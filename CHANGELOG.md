@@ -10,7 +10,7 @@ Seven new figures, each with its bias in its limits: files authored (degree of a
 
 Privacy: the fingerprint is keyed (HMAC-SHA256 under a per-report key printed once and stored nowhere; `--fingerprint-key` reuses one) and GitHub noreply addresses are never written. Reports carry `schemaVersion: 2`; 0.1.x reports fail `check` by design.
 
-The Action writes the Markdown report to the job summary and uploads the report files as the `workproof-report` artifact, so a run leaves something readable behind even without a pull request to comment on. `npm run release` now also moves the `v0` tag that `uses: Bubblegunn/workproof@v0` resolves to.
+The Action writes the Markdown report to the job summary and uploads the report files as the `workproof-report` artifact, so a run leaves something readable behind even without a pull request to comment on. `npm run release` now also moves the `v0` tag that `uses: Bubblegunn/workproof@v0` resolves to, and the release workflow starts on full version tags only, so the moving tag cannot start a second publish.
 
 ## 0.1.3 (2026-09-05)
 

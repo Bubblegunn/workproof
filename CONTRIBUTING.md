@@ -28,7 +28,7 @@ To add a figure: create `src/figures/<name>.ts` exporting a function that return
 Maintainers only. One command; the workflow does the rest.
 
 1. Write the `## X.Y.Z (unreleased)` entry in `CHANGELOG.md` and merge it.
-2. On a clean, green `main`: `npm run release -- X.Y.Z` (or `patch`, `minor`, `major`; add `--dry-run` to see the plan). It dates the entry, sets the version in `package.json`, `CITATION.cff` and the `version` input default in `action.yml`, runs the tests, commits, tags `vX.Y.Z`, pushes, and moves the `v0` tag that `uses: Bubblegunn/workproof@v0` resolves to (a major tag follows the newest release of that major; the workflow cannot move it because release tags are admin-only).
+2. On a clean, green `main`: `npm run release -- X.Y.Z` (or `patch`, `minor`, `major`; add `--dry-run` to see the plan). It dates the entry, sets the version in `package.json`, `CITATION.cff` and the `version` input default in `action.yml`, runs the tests, commits, tags `vX.Y.Z`, pushes, and then moves the major tag (`v0` today) to the release and force-pushes it, so `uses: Bubblegunn/workproof@v0` follows the newest release in that major. The major tag moves from this command and not from the workflow because release tags are admin-only by ruleset; a workflow token could not move it.
 3. Watch the `release` workflow: it publishes to npm with provenance, creates the GitHub release from the CHANGELOG entry, and installs the published version from the registry on three operating systems.
 
 CI runs `scripts/release-gate.mjs` on every push: the version must agree across those files and `npm pack` may ship only the paths in `scripts/pack-allowlist.txt` (regenerate with `node scripts/release-gate.mjs --update` when the package layout changes on purpose).
