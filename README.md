@@ -461,6 +461,16 @@ workproof's only dependency. Degree of authorship follows Avelino, Hora and Vale
 (2016), major contributors follow Bird et al. (2011), and the absence factor is the CHAOSS
 Contributor Absence Factor.
 
+## Thanks
+
+[@edwardsong08](https://github.com/edwardsong08) sent two pull requests on the day this was
+published, without knowing me: `--format markdown|json|both`, so a pipeline can ask for one file
+instead of two ([#9](https://github.com/Bubblegunn/workproof/pull/9)), and a language map that
+covers Elixir, Scala, Haskell, Lua, R, Objective-C and Zig
+([#3](https://github.com/Bubblegunn/workproof/pull/3)). Both shipped in 0.1.3 and are in every
+release since. The second one is why the footprint figure names the right language for anyone
+outside the handful I had thought to list.
+
 ## Development
 
 ```
