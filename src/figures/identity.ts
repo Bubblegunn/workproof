@@ -16,14 +16,28 @@ import type { Identity } from "./types.js";
  * turn English "I" into "ı", so the four i forms collapse to one instead. The cost is that two
  * names differing only in dotted and dotless i match each other; the benefit is that a Turkish
  * name matches itself in any case, and the error message prints the folded form that was tried.
+ *
+ * The German sharp s. `"WEISS".toLowerCase()` is "weiss" and `"Weiß".toLowerCase()` is "weiß",
+ * because JavaScript's `toLowerCase` is Unicode's simple case fold. The full fold maps ß to ss
+ * (CaseFolding.txt, status F, https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt), so
+ * ß and capital ẞ are mapped before it runs. Without this, one person who signs both ways was two
+ * people, and half their commits were left out of every figure.
+ *
+ * Compatibility spellings. A name typed in fullwidth Latin letters, which is what a Japanese or
+ * Korean keyboard produces without switching modes, is the same name typed in ASCII; NFKC is what
+ * says so. It folds the ﬁ ligature and the compatibility ideographs with it.
+ *
+ * This fold decides which commits are counted, so a gap in it is a wrong figure rather than a
+ * cosmetic problem. It is never a display form: the report prints the name git holds.
  */
 export function foldIdentity(s: string): string {
   return s
-    .normalize("NFC")
+    .normalize("NFKC")
     .replace(/[\u0130\u0131Ii]/g, "i")
     .replace(/\u0307/g, "")
+    .replace(/[\u00df\u1e9e]/g, "ss")
     .toLowerCase()
-    .normalize("NFC")
+    .normalize("NFKC")
     .trim();
 }
 

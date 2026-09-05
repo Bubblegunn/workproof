@@ -289,6 +289,17 @@ test("an author matches across normalization and Turkish casing", async () => {
   // Different names must still be different.
   assert.notEqual(foldIdentity("Ada Lovelace"), foldIdentity("Bob"));
 
+  // The sharp s and the fullwidth letters decide which commits are counted, not how a name looks:
+  // "toLowerCase" is Unicode's simple fold and leaves ß alone, so one person who signs "Weiß" and
+  // "WEISS" was two people and half their work was missing from every figure. A name typed in
+  // fullwidth Latin letters, which a Japanese or Korean keyboard produces without switching modes,
+  // never matched the ASCII spelling.
+  assert.equal(foldIdentity("Weiß"), foldIdentity("WEISS"));
+  assert.equal(foldIdentity("Straße"), foldIdentity("STRASSE"));
+  assert.equal(foldIdentity("\uff25\uff46\uff45"), foldIdentity("Efe"));
+  assert.equal(foldIdentity("\ufb01nn"), foldIdentity("finn"));
+  assert.notEqual(foldIdentity("Weiss"), foldIdentity("Weis"));
+
   const dir = await makeRepo();
   try {
     // The fixture's names are ASCII, so folding must not change who resolves.

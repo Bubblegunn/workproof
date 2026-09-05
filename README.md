@@ -175,6 +175,48 @@ so it never merges them for you: pass each address to `--author`, or write a `.m
 The addresses themselves stay out of the document unless you pass `--emails`, the same rule the
 rest of the report follows.
 
+## Names that are not ASCII
+
+The identity fold decides which commits are yours, so a gap in it is a missing figure rather than
+an ugly one. Two gaps were closed against Unicode 17.0, and both changed counts:
+
+- `Weiß` and `WEISS` are one person. JavaScript's `toLowerCase` is Unicode's simple case fold and
+  leaves ß alone, so the two spellings never met and half of one person's commits fell outside
+  every figure. The full fold maps ß to ss
+  ([CaseFolding.txt](https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt), status `F`),
+  which is what the tool does now.
+- A name typed in fullwidth Latin letters, which is what a Japanese or Korean keyboard produces
+  without switching modes, is the same name typed in ASCII. Matching normalises to NFKC, so the
+  two forms meet, along with the ﬁ ligature and the compatibility ideographs.
+
+Turkish dotted and dotless i and decomposed accents were already folded. The fold is for matching
+only. The report always prints the name git holds.
+
+Display is separate. An Arabic or Hebrew name is the first strong character of the plain-language
+paragraph, and without an isolate it turns the whole paragraph right to left: the English after it
+reverses and the figures land in the wrong order. Names and repository names are wrapped in U+2068
+and U+2069 in the Markdown report, the isolates [UAX #9](https://www.unicode.org/reports/tr9/)
+defines for this. They are invisible, they are added only where a strong right-to-left character
+appears, and they are never written into the JSON, so the hash over a report is unchanged and a
+report written before this still verifies.
+
+Three things here are deliberate:
+
+- Numbers are printed in the `en-US` format wherever a person reads them, so `12,345` is twelve
+  thousand for every reader. The hash is taken over the RFC 8785 canonical JSON, where numbers
+  are not formatted at all, so this cannot affect `workproof verify`. It is about the document:
+  two reports are meant to be read side by side, and a thousands separator that follows the
+  reader's machine makes that harder for no gain.
+- Weeks are ISO weeks, starting on Monday. That is not the local week for most of the world: of
+  the twenty most populous countries, CLDR gives Monday to seven, Sunday to eleven and Saturday
+  to two, which `Intl.Locale.prototype.getWeekInfo` reports in Node 24. Cadence counts weeks a
+  person was active, and that figure is only worth reading next to another report, so it uses one
+  definition everywhere rather than the reader's. The days inside a week are already the author's
+  own local dates, which is what decides whether a Sunday commit belongs to this week or the next.
+- A `.mailmap` name is matched by git, not by this tool. git compares those names ignoring case
+  for ASCII letters only, verified on git 2.50.1: an entry written `josÉ Álvarez` matches a commit
+  by `JOSÉ ÁLVAREZ`, and one written `josé álvarez` does not. Map by address wherever you can.
+
 ## In plain language
 
 Each repository section of the Markdown report opens with a paragraph a non-engineer can

@@ -8,6 +8,7 @@
  * The paragraph is derived from the hashed figures, not part of the hash.
  */
 import type { RepoReport } from "./analyse.js";
+import { isolate } from "./text.js";
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const n = (x: number) => x.toLocaleString("en-US");
@@ -25,7 +26,9 @@ function longDate(iso: string): string {
 }
 
 export function plainSummary(repo: RepoReport): string {
-  const who = repo.identity.names[0] ?? "This author";
+  // Isolated so a right-to-left name at the head of the paragraph cannot reverse the sentence
+  // around it. Presentation only: the data, and the hash over it, keep the name git holds.
+  const who = isolate(repo.identity.names[0] ?? "This author");
   const tenure = value<{ first: string; last: string; days: number }>(repo, "tenure");
   const commits = value<{ author: number; total: number; share: number }>(repo, "commitShare");
   const surviving = value<{ lines: number; linesAttributed: number; share: number; sample: number }>(repo, "survivingLines");
@@ -36,7 +39,7 @@ export function plainSummary(repo: RepoReport): string {
   const sentences: string[] = [];
 
   if (tenure) {
-    sentences.push(`${who} worked in ${repo.name} from ${longDate(tenure.first)} to ${longDate(tenure.last)}, a span of ${n(tenure.days)} days.`);
+    sentences.push(`${who} worked in ${isolate(repo.name)} from ${longDate(tenure.first)} to ${longDate(tenure.last)}, a span of ${n(tenure.days)} days.`);
   }
 
   if (commits && surviving) {

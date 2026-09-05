@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1
+
+A person who signs `Weiß` on one machine and `WEISS` on another was two people, and half their commits fell outside every figure. JavaScript's `toLowerCase` is Unicode's simple case fold and leaves ß alone; the full fold maps it to ss (CaseFolding.txt, status F), which the identity fold now does. The same fold normalises to NFKC, so a name typed in fullwidth Latin letters, which is what a Japanese or Korean keyboard produces without switching modes, matches the ASCII spelling. This changes which commits are counted, not how a name is printed: the report still prints the name git holds.
+
+An Arabic or Hebrew name no longer turns the plain-language paragraph right to left. Names and repository names are wrapped in the U+2068 and U+2069 isolates UAX #9 defines, in the Markdown report only. The JSON keeps the exact string git holds, so the hash is unchanged and a report written before this release still verifies.
+
+The README, in both languages, adds a section on names that are not ASCII and states three choices that are deliberate rather than overlooked: `en-US` number formatting for people, which cannot reach the hash because that is taken over canonical JSON; ISO weeks for cadence, though CLDR gives Monday to only seven of the twenty most populous countries; and mapping identities by address, because git matches a `.mailmap` name ignoring case for ASCII letters only.
+
 ## 0.4.0 (2026-09-05)
 
 **The hash was not reproducible on another machine, and that is the one thing this tool exists to promise.** It covered two values that belong to the computer rather than to the repository: the local directory's name, and the git version string. Both were reproduced with real runs. The same repository copied to a second folder and measured with the same command produced two different hashes; so did two reports identical except for `git --version`. Anyone who cloned a repository under a different name, or simply had a different git, could not verify a report they had been given.

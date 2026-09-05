@@ -115,6 +115,49 @@ sayılmadan paydadan çıktı; bu, aynı kişinin eski sürümde %24,1 görünen
 adlandırırdı. Bu boşluk, iki yönde de, bir raporun birinin işi hakkında söyleyebileceği en
 dürüst şeydir.
 
+## ASCII olmayan isimler
+
+Kimlik katlaması hangi commit'lerin size ait olduğuna karar verir; oradaki bir boşluk çirkin bir
+görüntü değil, eksik bir figür demektir. Unicode 17.0'a bakılarak iki boşluk kapatıldı ve ikisi de
+sayıları değiştirdi:
+
+- `Weiß` ile `WEISS` tek kişidir. JavaScript'in `toLowerCase`'i Unicode'un basit harf katlamasıdır
+  ve ß'ye dokunmaz; iki yazım hiç buluşmuyordu ve bir kişinin commit'lerinin yarısı bütün
+  figürlerin dışında kalıyordu. Tam katlama ß'yi ss'ye eşler
+  ([CaseFolding.txt](https://www.unicode.org/Public/UCD/latest/ucd/CaseFolding.txt), durum `F`)
+  ve araç artık bunu yapıyor.
+- Tam genişlikli Latin harfleriyle yazılan bir isim, ki Japonca ya da Korece bir klavyede mod
+  değiştirmeden yazılan budur, ASCII ile yazılan aynı isimdir. Eşleştirme NFKC'ye normalleştirir;
+  ﬁ bağlaması ve uyumluluk ideografları da bununla birlikte katlanır.
+
+Türkçe noktalı ve noktasız i ile ayrışık aksanlar zaten katlanıyordu. Katlama yalnız eşleştirme
+içindir; rapor her zaman git'in tuttuğu ismi yazar.
+
+Görüntü ayrı bir konu. Arapça ya da İbranice bir isim, sade dil paragrafının ilk güçlü
+karakteridir ve yalıtıcı olmadan bütün paragrafı sağdan sola çevirir: ardındaki İngilizce ters
+döner, sayılar yanlış sırada görünür. Markdown raporunda isimler ve depo adları U+2068 ile U+2069
+arasına alınıyor; [UAX #9](https://www.unicode.org/reports/tr9/) bu yalıtıcıları tam olarak bunun
+için tanımlar. Görünmezler, yalnız güçlü sağdan sola karakter geçtiğinde eklenirler ve JSON'a hiç
+yazılmazlar; yani rapor özeti değişmez ve bu değişiklikten önce yazılmış bir rapor hâlâ doğrulanır.
+
+Üç şey bilerek böyle:
+
+- Sayılar, insanın okuduğu her yerde `en-US` biçiminde yazılır; `12,345` her okuyucu için on iki
+  bindir. Özet, sayıların hiç biçimlendirilmediği RFC 8785 kanonik JSON üzerinden alınır, yani bu
+  seçim `workproof verify`'ı etkileyemez. Mesele belgedir: iki rapor yan yana okunmak için yazılır
+  ve okuyucunun makinesine göre değişen bir binlik ayıracı bunu boşuna zorlaştırır.
+- Haftalar ISO haftasıdır, pazartesi başlar. Dünyanın çoğu için yerel hafta bu değildir: en
+  kalabalık yirmi ülkeden CLDR'ye göre yedisinde pazartesi, on birinde pazar, ikisinde cumartesi
+  başlar; Node 24'te bunu `Intl.Locale.prototype.getWeekInfo` söyler. Cadence, bir kişinin etkin
+  olduğu haftaları sayar ve bu figür ancak başka bir raporun yanında anlamlıdır, o yüzden
+  okuyucunun tanımını değil her yerde aynı tanımı kullanır. Haftanın içindeki günler zaten yazarın
+  kendi yerel tarihleridir; bir pazar commit'inin bu haftaya mı yoksa sonrakine mi düştüğüne o
+  karar verir.
+- `.mailmap` isimlerini bu araç değil git eşleştirir. git bu isimleri yalnız ASCII harfleri için
+  büyük küçük harf farkını yok sayarak karşılaştırır; git 2.50.1 üzerinde doğrulandı:
+  `josÉ Álvarez` yazılmış bir satır `JOSÉ ÁLVAREZ` imzalı bir commit ile eşleşiyor,
+  `josé álvarez` yazılmış olan eşleşmiyor. Mümkün olan her yerde adresle eşleyin.
+
 ## Ne ölçer
 
 Her figür git'ten gelir, başka hiçbir şeyden değil. Bot commit'leri ile üretilmiş, vendored,

@@ -5,6 +5,7 @@ import { analyseRepo } from "../src/analyse.js";
 import { plainSummary } from "../src/summary.js";
 import { buildReport, renderMarkdown } from "../src/report.js";
 import { rmSync } from "node:fs";
+import { isolate } from "../src/text.js";
 
 const PARAMS = { author: ["ada@example.com"], sample: 1, depth: 2, threshold: 0.05, minCommits: 1, paths: false, emails: false, exclusions: true, exclude: [], seed: "", copies: false };
 
@@ -46,4 +47,15 @@ test("the summary is rendered into the Markdown and is not part of the hash", as
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+});
+
+test("a right-to-left name is isolated so it cannot reverse the sentence it opens", () => {
+  // The author's name is the first strong character of the plain-language paragraph. Without an
+  // isolate, an Arabic or Hebrew name makes the whole paragraph right to left under UAX #9: the
+  // English words after it reverse and the figures land in the wrong order. The isolate is
+  // presentation only, so a report's data and its hash are unchanged.
+  assert.equal(isolate("Ada Lovelace"), "Ada Lovelace");
+  assert.equal(isolate("محمد علي"), "\u2068محمد علي\u2069");
+  assert.equal(isolate("דוד כהן"), "\u2068דוד כהן\u2069");
+  assert.equal(isolate("\u2068already\u2069"), "\u2068already\u2069");
 });
