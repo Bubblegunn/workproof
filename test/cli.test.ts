@@ -74,6 +74,28 @@ test("the CLI writes both files and verify exits 0", async () => {
   }
 });
 
+test("the CLI can write markdown only", async () => {
+  const dir = await makeRepo();
+  try {
+    const cli = join(process.cwd(), "dist/src/cli.js");
+    execFileSync("node", [cli, "--repo", dir, "--author", "ada@example.com", "--format", "markdown", "--out", join(dir, "markdown")], { encoding: "utf8" });
+    await readFile(join(dir, "markdown.md"), "utf8");
+    await assert.rejects(() => readFile(join(dir, "markdown.json"), "utf8"));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("the CLI rejects an unknown output format", async () => {
+  const dir = await makeRepo();
+  try {
+    const cli = join(process.cwd(), "dist/src/cli.js");
+    assert.throws(() => execFileSync("node", [cli, "--format", "yaml"], { encoding: "utf8", stdio: "pipe" }), /--format must be markdown, json, or both/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
 test("--max-commits reads only the newest commits and is recorded in the parameters", async () => {
   const dir = await makeRepo();
   try {
