@@ -100,13 +100,13 @@ test("--max-commits reads only the newest commits and is recorded in the paramet
   const dir = await makeRepo();
   try {
     const seen: string[] = [];
-    const repo = await analyseRepo(dir, { ...params, maxCommits: 4 }, { progress: (m) => seen.push(m) });
+    const repo = await analyseRepo(dir, { ...params, maxCommits: 9 }, { progress: (m) => seen.push(m) });
     const t = repo.figures.find((f) => f.id === "tenure")!;
     assert.equal(t.value.first, "2026-01-12");
     const share = repo.figures.find((f) => f.id === "commitShare")!;
     assert.deepEqual(share.value, { author: 2, total: 2, share: 1 });
-    assert.ok(seen.some((m) => /newest 4 commits/.test(m)));
-    assert.ok(seen.some((m) => /4 commits read/.test(m)));
+    assert.ok(seen.some((m) => /newest 9 commits/.test(m)));
+    assert.ok(seen.some((m) => /9 commits read/.test(m)));
     assert.ok(seen.some((m) => /blamed \d+ of \d+ files/.test(m)));
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -137,9 +137,9 @@ test("--badge writes a shields.io endpoint document built from the first reposit
     const out = execFileSync("node", [cli, "--repo", dir, "--author", "ada@example.com", "--out", join(dir, "b"), "--badge"], { encoding: "utf8" });
     assert.match(out, /wrote .*b\.md and .*b\.json and .*b\.badge\.json/);
     const badge = JSON.parse(await readFile(join(dir, "b.badge.json"), "utf8"));
-    assert.deepEqual(badge, { schemaVersion: 1, label: "workproof", message: "61.5% surviving lines · 100.0% commits", color: "1f3fbf" });
+    assert.deepEqual(badge, { schemaVersion: 1, label: "workproof", message: "16.9% surviving lines · 100.0% commits", color: "1f3fbf" });
     const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.3", generatedAt: "x" });
-    assert.equal(badgeFor(report).message, "61.5% surviving lines · 100.0% commits");
+    assert.equal(badgeFor(report).message, "16.9% surviving lines · 100.0% commits");
     assert.throws(() => badgeFor({ ...report, repositories: [] }), /no repositories/);
   } finally {
     await rm(dir, { recursive: true, force: true });
