@@ -131,7 +131,8 @@ workproof verify <report.json> [--repo <dir>]...
 --narrate              append a model-written paragraph
 --badge                also write <out>.badge.json, a shields.io endpoint document
 --out <basename>       output basename (default: workproof-report)
---json                 print the JSON to stdout instead of writing files
+--format <mode>        write markdown, json, or both (default: both); json prints to stdout
+--json                 same as --format json
 ```
 
 A `.mailmap` in the repository merges an author's several addresses. Progress lines go to

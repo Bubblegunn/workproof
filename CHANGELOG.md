@@ -4,6 +4,8 @@
 
 `--badge` writes a shields.io endpoint document next to the report; a composite GitHub Action (`Bubblegunn/workproof@main`) runs the report on a pull request and posts one sticky comment with the six figures.
 
+From outside the project, both by @edwardsong08: the language map now covers Elixir, Scala, Haskell, Lua, R, Objective-C and Zig (#3), and `--format markdown|json|both` lets a pipeline ask for one file instead of two, with `--json` kept as an alias (#9, closes #1).
+
 ## 0.1.2 (2026-09-05)
 
 Progress lines on stderr while reading history and blaming; `--max-commits` for enormous histories; elapsed time in the summary line; a multi-repository test; README sections on gaming and a Turkish README; contributing guide, issue templates, roadmap and a provenance release workflow.
