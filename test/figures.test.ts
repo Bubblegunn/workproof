@@ -8,6 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { analyseRepo } from "../src/analyse.js";
 import { listCommits, listTags, rootCommit, headSha, remoteUrl, gitVersion, checkAttr, PINNED_CONFIG } from "../src/git.js";
+import { foldIdentity } from "../src/figures/identity.js";
 
 test("git helpers read commits with files, tags, root and head", async () => {
   const dir = await makeRepo();
@@ -85,7 +86,7 @@ test("identity resolves by email or name, tenure spans first to last commit, com
     assert.match(share.command, /git log/);
     assert.ok(share.limits.length >= 1);
     assert.equal(isMine(commits[0]!, ada), false);
-    await assert.rejects(resolveIdentity(commits, ["nobody@example.com"], dir), /no commits by nobody@example.com in this repository\. Authors here: "Bob" \(5\), "Ada" \(3\)/);
+    await assert.rejects(resolveIdentity(commits, ["nobody@example.com"], dir), /no commits by nobody@example.com in this repository, comparing names and addresses folded to that form\. Authors here: "Bob" \(5\), "Ada" \(3\)/);
     // Without --author, the repository's configured name is enough when the email does not match.
     execFileSync("git", ["config", "user.email", "other@example.com"], { cwd: dir });
     execFileSync("git", ["config", "user.name", "Bob"], { cwd: dir });
@@ -271,6 +272,28 @@ test("weeks are the author's weeks, not UTC weeks", async () => {
     const t = r.figures.find((f) => f.id === "tenure")!.value as { first: string; last: string };
     assert.equal(t.first, "2026-03-02");
     assert.equal(t.last, "2026-03-11");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("an author matches across normalization and Turkish casing", async () => {
+  // A name typed precomposed did not match the same name stored decomposed, and the error then
+  // listed an author that looked identical to what was typed. Separately, "İ".toLowerCase() is
+  // "i" plus a combining dot and "I".toLowerCase() is "i" rather than "ı", so a Turkish name in
+  // capitals matched nothing, including itself.
+  assert.equal(foldIdentity("José Álvarez".normalize("NFD")), foldIdentity("José Álvarez".normalize("NFC")));
+  assert.equal(foldIdentity("İSMAİL YILMAZ"), foldIdentity("İsmail Yılmaz"));
+  assert.equal(foldIdentity("İsmail YILMAZ"), foldIdentity("ismail yilmaz"));
+  assert.equal(foldIdentity("ŞEYMA ÇAĞLAR"), foldIdentity("Şeyma Çağlar"));
+  // Different names must still be different.
+  assert.notEqual(foldIdentity("Ada Lovelace"), foldIdentity("Bob"));
+
+  const dir = await makeRepo();
+  try {
+    // The fixture's names are ASCII, so folding must not change who resolves.
+    const id = await resolveIdentity(await listCommits(dir, {}), ["ADA"], dir);
+    assert.deepEqual(id.names, ["Ada"]);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
