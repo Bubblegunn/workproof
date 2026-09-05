@@ -10,3 +10,5 @@ export { narrate } from "./narrate.js";
 export type { Figure, Identity } from "./figures/types.js";
 export { badgeFor } from "./badge.js";
 export type { Badge } from "./badge.js";
+export { statementFor, predicateFor, writeStatement, signLocal, PREDICATE_TYPE, STATEMENT_TYPE } from "./attest.js";
+export type { InTotoStatement, Predicate, DsseEnvelope } from "./attest.js";

@@ -107,11 +107,11 @@
 
 **Files:** Create `src/attest.ts`, `test/attest.test.ts`; modify `src/cli.ts`, `src/index.ts`, `action.yml`.
 
-- [ ] `statementFor(report): InTotoStatement` per the spec; `writeStatement(reportPath)` writes `<basename>.intoto.json`; `signLocal(statementPath, keyPath)` runs `ssh-keygen -Y sign -f key -n workproof <statement>` and wraps the base64 payload and signature in a DSSE envelope `{ payloadType: "application/vnd.in-toto+json", payload, signatures: [{ keyid: "ssh", sig }] }` written as `<basename>.dsse.json`.
-- [ ] CLI: `workproof attest <report.json> [--local <ssh-key>]`.
-- [ ] Action: input `attest` (default `"false"`); when true, `sigstore/cosign-installer` pinned by SHA, then `cosign attest-blob` with `--bundle`.
-- [ ] Tests: statement subject digest equals `report.hash`; predicate has no `path` keys; a generated ed25519 key signs and `ssh-keygen -Y check-novalidate` accepts the signature.
-- [ ] Commit: `feat: attest writes an in-toto statement and signs it locally or in the Action`.
+- [x] `statementFor(report): InTotoStatement` per the spec; `writeStatement(reportPath)` writes `<basename>.intoto.json`; `signLocal(statementPath, keyPath)` runs `ssh-keygen -Y sign -f key -n workproof <statement>` and wraps the base64 payload and signature in a DSSE envelope `{ payloadType: "application/vnd.in-toto+json", payload, signatures: [{ keyid: "ssh", sig }] }` written as `<basename>.dsse.json`.
+- [x] CLI: `workproof attest <report.json> [--local <ssh-key>]`.
+- [x] Action: input `attest` (default `"false"`); when true, `sigstore/cosign-installer` pinned by SHA, then `cosign attest-blob` with `--bundle`.
+- [x] Tests: statement subject digest equals `report.hash`; predicate has no `path` keys; a generated ed25519 key signs and `ssh-keygen -Y check-novalidate` accepts the signature.
+- [x] Commit: `feat: attest writes an in-toto statement and signs it locally or in the Action`.
 
 ### Task 9: Action hardening, README, CHANGELOG, docs sync
 

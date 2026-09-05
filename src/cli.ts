@@ -3,12 +3,13 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
-import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor, newFingerprintKey } from "./index.js";
+import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor, newFingerprintKey, writeStatement, signLocal } from "./index.js";
 import type { Params, Report, RepoReport } from "./index.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof check <report.json>
        workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
+       workproof attest <report.json> [--local <ssh-key>]
 
 Turn a git repository into a verifiable engineering report for one author, without showing code.
 
@@ -34,11 +35,13 @@ Turn a git repository into a verifiable engineering report for one author, witho
   -h, --help             this text
 
 check validates the document and recomputes its hash offline; verify does that, then
-compares the fingerprint and HEAD and recomputes every figure in the repository.`;
+compares the fingerprint and HEAD and recomputes every figure in the repository; attest
+writes an in-toto statement whose subject is the report hash, and with --local signs it
+with ssh-keygen -Y sign (namespace workproof) into a DSSE envelope.`;
 
 type OutputFormat = "both" | "markdown" | "json";
 
-interface Cli { params: Params; repos: string[]; out: string; format: OutputFormat; json: boolean; doNarrate: boolean; badge: boolean; verifyFile: string | undefined; checkFile: string | undefined }
+interface Cli { params: Params; repos: string[]; out: string; format: OutputFormat; json: boolean; doNarrate: boolean; badge: boolean; verifyFile: string | undefined; checkFile: string | undefined; attestFile: string | undefined; localKey: string | undefined }
 
 export function parse(argv: string[]): Cli {
   const params: Params = { depth: 2, threshold: 0.5, minCommits: 5, paths: false, emails: false, exclusions: true, exclude: [], seed: "", copies: false };
@@ -51,6 +54,19 @@ export function parse(argv: string[]): Cli {
   let badge = false;
   let verifyFile: string | undefined;
   let checkFile: string | undefined;
+  let attestFile: string | undefined;
+  let localKey: string | undefined;
+  if (argv[0] === "attest") {
+    attestFile = argv[1];
+    if (!attestFile) throw new Error("attest needs a report.json");
+    argv = argv.slice(2);
+    if (argv[0] === "--local") {
+      localKey = argv[1];
+      if (!localKey) throw new Error("--local needs an ssh private key path");
+      argv = argv.slice(2);
+    }
+    if (argv.length) throw new Error(`unknown option ${argv[0]} (attest takes only --local <ssh-key>)`);
+  }
   if (argv[0] === "check") {
     checkFile = argv[1];
     if (!checkFile) throw new Error("check needs a report.json");
@@ -100,12 +116,12 @@ export function parse(argv: string[]): Cli {
   }
   if (authors.length) params.author = authors;
   if (!repos.length) repos.push(process.cwd());
-  return { params, repos, out, format, json, doNarrate, badge, verifyFile, checkFile };
+  return { params, repos, out, format, json, doNarrate, badge, verifyFile, checkFile, attestFile, localKey };
 }
 
 async function main() {
   const started = Date.now();
-  const { params, repos, out, format, json, doNarrate, badge, verifyFile, checkFile } = parse(process.argv.slice(2));
+  const { params, repos, out, format, json, doNarrate, badge, verifyFile, checkFile, attestFile, localKey } = parse(process.argv.slice(2));
   const progress = (m: string) => process.stderr.write(`${m}\n`);
   const printIntegrity = (i: ReturnType<typeof checkReport>) => {
     const schemaProblems = i.problems.filter((p) => !p.startsWith("hash mismatch"));
@@ -113,6 +129,16 @@ async function main() {
     for (const p of schemaProblems) console.log(`  ${p}`);
     if (!schemaProblems.length) console.log(i.ok ? `hash ok ${i.hash.computed}` : i.problems.find((p) => p.startsWith("hash mismatch"))!);
   };
+  if (attestFile) {
+    const { statement, predicate } = await writeStatement(attestFile);
+    const files = [statement, predicate];
+    if (localKey) {
+      const { signature, envelope } = await signLocal(statement, localKey);
+      files.push(signature, envelope);
+    }
+    console.log(`wrote ${files.slice(0, -1).join(", ")} and ${files[files.length - 1]}`);
+    return;
+  }
   if (checkFile) {
     const result = checkReport(JSON.parse(await readFile(checkFile, "utf8")));
     printIntegrity(result);
