@@ -332,8 +332,36 @@ the run. Set `comment: "false"` to skip the comment and keep the summary and the
 
 ## Gaming and bias
 
-Partly gameable, and built so the gaming shows. These are the thirteen things a reader
-should know before trusting a number.
+Partly gameable, and built so the gaming shows. `npm run bench:adversarial` applies four
+strategies to copies of the same fixture repository, dates every gaming commit inside the
+subject's existing tenure so the window itself does not move, and recomputes every figure
+with identical parameters:
+
+| figure | baseline | commit padding | whitespace churn | generated file | generated, marked | Bob alone | Bob credits Ada |
+|---|---|---|---|---|---|---|---|
+| commits per week | 1.0 | **21.0** | 1.3 | 1.3 | 1.3 | 1.0 | 1.0 |
+| median commit | 4 lines | **2 lines** | 4 lines | 4 lines | 2 lines | 4 lines | 4 lines |
+| surviving lines | 51.6% | 53.1% | 51.6% | **99.3%** | 53.1% | 6.9% | 6.9% |
+| surviving count | 16 | 17 | 16 | **2,016** | 17 | 16 | 16 |
+| co-authored | 0 | 0 | 0 | 0 | 0 | 0 | **8** |
+| excluded files | 2 | 2 | 2 | 2 | **3** | 2 | 2 |
+
+Sixty padding commits take the cadence from 1.0 to 21.0 a week and buy one surviving line,
+16 to 17, while the median commit falls from 4 lines to 2: loud in the rows that count
+commits, silent in the row that counts code, and the median is the tell in the same report.
+Re-indenting every source line moves nothing, because blame runs with `-w`.
+
+The generated file is the real hole, and the table says so: 2,000 machine-written lines
+under a name the built-in lists do not match take surviving lines from 51.6% to 99.3%. The
+same file marked `linguist-generated` in `.gitattributes` leaves every count and shows up
+in the excluded column instead. The defence is a repository convention, not a detector.
+
+The co-author trailer buys nothing. Bob's eight commits move the subject's shares down
+either way because Bob wrote that code; naming the subject as co-author changes the
+co-authored count and no other row. `test/adversarial.test.ts` pins the last two of those
+so they cannot regress quietly.
+
+These are the thirteen things a reader should know before trusting a number.
 
 1. Commit spam moves commit share and cadence, and nothing else. Surviving lines come from
    `git blame` at HEAD, so a thousand empty commits add zero surviving lines, and the two
