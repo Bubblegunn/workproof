@@ -229,6 +229,16 @@ Three commands, in increasing order of what the reader needs to have.
   compares HEAD, then recomputes every figure and prints what differs. A report from another
   repository stops at the fingerprint. If HEAD moved since the report, it says so and shows
   which figures changed.
+The hash is reproducible **across operating systems, git versions, locales and directory
+names**, for the same repository at the same commit with the same command and the same
+`--fingerprint-key`. It is not reproducible across a rewritten history, a different sample
+or a different seed, and it is not meant to be: those change the measurement. Two fields
+in the report are deliberately outside the hash, because a verifier on another machine
+cannot reproduce them: the local directory name, and the git version. They stay in the
+document, where they explain why two runs might legitimately differ. Before 0.4.0 both
+were inside it, so the same repository in a folder with a different name hashed
+differently; a test now pins all of this, and CI checks it on Linux, macOS and Windows.
+
 - `workproof attest report.json` writes `report.intoto.json`, an
   [in-toto](https://in-toto.io) v1 Statement whose subject is the report hash and whose
   predicate carries the tool version, parameters, HEAD, keyed fingerprint, git version and

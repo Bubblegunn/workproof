@@ -34,6 +34,28 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run examples
+  reproducibility:
+    # The hash is the promise: the same repository hashes the same for a stranger. This
+    # measures one pinned fixture under two directory names on three operating systems and
+    # fails if any of them disagrees with the others.
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run build
+      - run: node scripts/hash-reproducibility.mjs
+        env:
+          WORKPROOF_EXPECT: b9f5f75ed5329b54c4d1a28f9e053f552e69ed2c3ef407b0031d14cfdf53e325
   package:
     # The tarball people install, checked before a tag exists: exports, types, bin, and a real install.
     runs-on: ubuntu-latest
@@ -68,9 +90,9 @@ jobs:
   ci-ok:
     # The one check the branch ruleset requires; it fails if any job above failed or was cancelled.
     if: always()
-    needs: [test, package, release-gate]
+    needs: [test, package, release-gate, reproducibility]
     runs-on: ubuntu-latest
     steps:
       - run: |
-          echo "test: ${{ needs.test.result }}  package: ${{ needs.package.result }}  release-gate: ${{ needs.release-gate.result }}"
-          test "${{ needs.test.result }}" = success && test "${{ needs.package.result }}" = success && test "${{ needs.release-gate.result }}" = success
+          echo "test: ${{ needs.test.result }}  package: ${{ needs.package.result }}  release-gate: ${{ needs.release-gate.result }}  reproducibility: ${{ needs.reproducibility.result }}"
+          test "${{ needs.test.result }}" = success && test "${{ needs.package.result }}" = success && test "${{ needs.release-gate.result }}" = success && test "${{ needs.reproducibility.result }}" = success

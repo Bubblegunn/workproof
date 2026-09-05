@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.0 (unreleased)
+
+**The hash was not reproducible on another machine, and that is the one thing this tool exists to promise.** It covered two values that belong to the computer rather than to the repository: the local directory's name, and the git version string. Both were reproduced with real runs. The same repository copied to a second folder and measured with the same command produced two different hashes; so did two reports identical except for `git --version`. Anyone who cloned a repository under a different name, or simply had a different git, could not verify a report they had been given.
+
+Both fields stay in the report, because they explain why two runs might legitimately differ, and both are now outside the hash. What the hash covers is what a stranger can reproduce: the head, the fingerprint, the identity, the exclusion counts, every figure, and the flags the caller chose, including the blame flags, the ignore-revs file and the seed. A test pins the exclusions in both directions, and CI recomputes the same fixture's hash on Linux, macOS and Windows so this cannot decay.
+
+**Every existing report's hash changes.** A report made before this release will not verify against one made after, the same way the local-weeks change did in 0.3.0. Regenerate any report you are relying on.
+
 ## 0.3.1 (2026-09-05)
 
 A report now says when someone else in the repository looks like the same person. Anyone who has committed from a laptop and a work machine is two authors to git, so the report described half their work and said nothing about the other half, which is a silently wrong number in a tool whose whole claim is that its numbers can be checked. Three signals raise it: the same name on another address, a GitHub noreply login that matches the subject's address or name, and the same address name on another domain. Role addresses such as `dev@` and bot addresses are ignored. The disclosure appears in the Markdown above the figures, as `identity.possiblySplit` in the JSON, and as a warning on stderr during the run; the addresses themselves stay out of the document unless `--emails` is on, as everywhere else. It is a disclosure and not a correction: only the author knows whether two addresses are one person. No figure, hash or verification changed, and a report made before this release still verifies.

@@ -4,7 +4,7 @@ import { rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { makeRepo } from "./fixture.js";
-import { analyseRepo, buildReport, checkReport, verifyReport, canonicalize, validateReport } from "../src/index.js";
+import { analyseRepo, buildReport, checkReport, verifyReport, canonicalize, validateReport, hashOf } from "../src/index.js";
 
 const KEY = "0123456789abcdef0123456789abcdef";
 const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1, fingerprintKey: KEY };
@@ -100,4 +100,32 @@ test("the CLI's check works offline and verify prints integrity first", async ()
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test("the hash does not depend on the machine: directory name and git version are out", () => {
+  // The product's whole claim is that a stranger with the same repository recomputes the
+  // same string. Before 0.4.0 the hash covered environment.git and the local directory
+  // name, so the same repository measured under a different name, or on a machine with a
+  // different git, hashed differently. Both were reproduced with real runs.
+  const repo = {
+    name: "alpha",
+    head: "a".repeat(40),
+    fingerprint: "b".repeat(64),
+    environment: { git: "git version 2.51.0", blame: ["-w", "-M"], ignoreRevs: null, seed: "" },
+    figures: [{ id: "tenure", title: "t", value: 1, command: "git log", limits: [] }],
+  };
+  const renamed = { ...repo, name: "beta" };
+  const otherGit = { ...repo, environment: { ...repo.environment, git: "git version 2.39.5 (Apple Git-154)" } };
+  const params = { depth: 2 };
+
+  assert.equal(hashOf(params, [renamed]), hashOf(params, [repo]), "a different directory name must not move the hash");
+  assert.equal(hashOf(params, [otherGit]), hashOf(params, [repo]), "a different git version must not move the hash");
+
+  // What the hash must still cover: the figures, and the flags the caller chose.
+  const otherFigure = { ...repo, figures: [{ ...repo.figures[0]!, value: 2 }] };
+  const otherFlags = { ...repo, environment: { ...repo.environment, blame: ["-w"] } };
+  const otherHead = { ...repo, head: "c".repeat(40) };
+  assert.notEqual(hashOf(params, [otherFigure]), hashOf(params, [repo]), "a changed figure must move the hash");
+  assert.notEqual(hashOf(params, [otherFlags]), hashOf(params, [repo]), "changed blame flags must move the hash");
+  assert.notEqual(hashOf(params, [otherHead]), hashOf(params, [repo]), "a different commit must move the hash");
 });

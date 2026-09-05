@@ -17,8 +17,33 @@ export interface Report {
 }
 
 /** The hash a report with these parameters and repositories must carry. */
+/**
+ * What of a repository the hash covers: everything a stranger with the same repository at
+ * the same commit can reproduce, and nothing else.
+ *
+ * Two fields are recorded in the report and deliberately left out. `name` is the local
+ * directory's basename, so the same repository cloned to a different folder hashed
+ * differently. `environment.git` is the local git version string, so two people with the
+ * same repository and different git hashed differently. Both were reproduced with real
+ * runs before 0.4.0. They stay in the document because they explain why two runs might
+ * legitimately differ; they are not something a verifier can be asked to reproduce.
+ *
+ * The blame flags, the ignore-revs file and the seed stay in, because those are the
+ * question the caller asked, not the machine they asked it on.
+ */
+function forHash(repositories: unknown): unknown {
+  if (!Array.isArray(repositories)) return repositories;
+  return repositories.map((repo) => {
+    if (repo === null || typeof repo !== "object") return repo;
+    const { name: _name, environment, ...rest } = repo as Record<string, unknown>;
+    if (environment === null || typeof environment !== "object") return rest;
+    const { git: _git, ...restEnvironment } = environment as Record<string, unknown>;
+    return { ...rest, environment: restEnvironment };
+  });
+}
+
 export const hashOf = (params: unknown, repositories: unknown): string =>
-  createHash("sha256").update(canonicalize({ params, repositories })).digest("hex");
+  createHash("sha256").update(canonicalize({ params, repositories: forHash(repositories) })).digest("hex");
 
 /**
  * What of the parameters the report may carry: never the fingerprint key, never a GitHub
