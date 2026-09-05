@@ -33,6 +33,7 @@ Turn a git repository into a verifiable engineering report for one author, witho
   --format <mode>        output markdown, json, or both (default: both)
   --json                 print the JSON to stdout instead of writing files (legacy alias)
   -h, --help             this text
+  --version              print the version
 
 check validates the document and recomputes its hash offline; verify does that, then
 compares the fingerprint and HEAD and recomputes every figure in the repository; attest
@@ -120,6 +121,10 @@ export function parse(argv: string[]): Cli {
 }
 
 async function main() {
+  if (process.argv.includes("--version")) {
+    console.log(createRequire(import.meta.url)("../../package.json").version as string);
+    return;
+  }
   const started = Date.now();
   const { params, repos, out, format, json, doNarrate, badge, verifyFile, checkFile, attestFile, localKey } = parse(process.argv.slice(2));
   const progress = (m: string) => process.stderr.write(`${m}\n`);
