@@ -12,10 +12,11 @@ export interface FileChange { path: string; added: number | null; deleted: numbe
 export interface Commit { sha: string; email: string; name: string; date: Date; parents: number; files: FileChange[] }
 
 /** All commits reachable from HEAD, newest first, with per-file numstat. One git call. */
-export async function listCommits(cwd: string, opts: { since?: string; until?: string }): Promise<Commit[]> {
+export async function listCommits(cwd: string, opts: { since?: string; until?: string; max?: number }): Promise<Commit[]> {
   const args = ["log", "--numstat", "--format=%x1e%H%x1f%aE%x1f%aN%x1f%aI%x1f%P", "-M"];
   if (opts.since) args.push(`--since=${opts.since}`);
   if (opts.until) args.push(`--until=${opts.until}`);
+  if (opts.max) args.push(`--max-count=${opts.max}`);
   const out = await git(args, cwd);
   const commits: Commit[] = [];
   for (const block of out.split("\x1e")) {

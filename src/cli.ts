@@ -15,6 +15,7 @@ Turn a git repository into a verifiable engineering report for one author, witho
   --repo <dir>           repository to analyse (repeatable; default: current directory)
   --since / --until      override the tenure window (dates git understands)
   --sample <n>           blame every n-th file (default: 1, or 7 for very large repositories)
+  --max-commits <n>      read only the newest n commits (escape hatch for enormous histories)
   --depth <n>            directory depth for ownership (default: 2)
   --paths                include directory paths in the report (off by default)
   --emails               include author emails in the report (off by default)
@@ -50,6 +51,7 @@ export function parse(argv: string[]): Cli {
     else if (a === "--since") params.since = next();
     else if (a === "--until") params.until = next();
     else if (a === "--sample") params.sample = Number(next());
+    else if (a === "--max-commits") { params.maxCommits = Number(next()); if (!Number.isInteger(params.maxCommits) || params.maxCommits < 1) throw new Error("--max-commits must be an integer >= 1"); }
     else if (a === "--depth") params.depth = Number(next());
     else if (a === "--paths") params.paths = true;
     else if (a === "--emails") params.emails = true;
@@ -67,7 +69,9 @@ export function parse(argv: string[]): Cli {
 }
 
 async function main() {
+  const started = Date.now();
   const { params, repos, out, json, doNarrate, verifyFile } = parse(process.argv.slice(2));
+  const progress = (m: string) => process.stderr.write(`${m}\n`);
   if (verifyFile) {
     const report = JSON.parse(await readFile(verifyFile, "utf8")) as Report;
     const result = await verifyReport(report, repos);
@@ -78,7 +82,7 @@ async function main() {
   }
   const version = createRequire(import.meta.url)("../../package.json").version as string;
   const repositories: RepoReport[] = [];
-  for (const dir of repos) repositories.push(await analyseRepo(dir, params));
+  for (const dir of repos) repositories.push(await analyseRepo(dir, params, { progress }));
   const report = buildReport(repositories, params, { version, generatedAt: new Date().toISOString() });
   let narrative: string | undefined;
   if (doNarrate) {
@@ -94,7 +98,7 @@ async function main() {
   }
   await writeFile(`${out}.json`, JSON.stringify(report, null, 2));
   await writeFile(`${out}.md`, renderMarkdown(report, narrative));
-  console.log(`wrote ${out}.md and ${out}.json`);
+  console.log(`wrote ${out}.md and ${out}.json in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 }
 
 const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";

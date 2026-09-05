@@ -1,5 +1,7 @@
 <p align="center"><img src="assets/wordmark.svg" width="480" alt="workproof"></p>
 
+<p align="center">English | <a href="README.tr.md">Türkçe</a></p>
+
 <p align="center"><em>Your best work is in private repos. Prove it anyway.</em></p>
 
 <p align="center">
@@ -119,6 +121,7 @@ workproof verify <report.json> [--repo <dir>]...
 --repo <dir>           repository to analyse (repeatable; several produce one combined report)
 --since / --until      override the tenure window
 --sample <n>           blame every n-th file (default: 1; 7 for very large repositories)
+--max-commits <n>      read only the newest n commits (escape hatch for enormous histories)
 --depth <n>            directory depth for ownership (default: 2)
 --paths                include directory paths
 --emails               include author emails
@@ -127,7 +130,28 @@ workproof verify <report.json> [--repo <dir>]...
 --json                 print the JSON to stdout instead of writing files
 ```
 
-A `.mailmap` in the repository merges an author's several addresses.
+A `.mailmap` in the repository merges an author's several addresses. Progress lines go to
+stderr while history is read and files are blamed, so a long run is visibly alive; on a
+history of hundreds of thousands of commits, `--max-commits` bounds the read and the report
+records that it did.
+
+## Can it be gamed?
+
+Partly, and the report is built so the gaming shows.
+
+- Commit spam moves commit share and cadence, and nothing else. Surviving lines come from
+  `git blame` at HEAD, so a thousand empty commits add zero surviving lines, and the gap
+  between the two shares is printed side by side.
+- Vendoring a library inflates lines added. The languages figure and the owned-directory
+  list (with `--paths`) show where those lines landed, and a reviewer sees a directory
+  named `vendor` or `node_modules` owning most of them.
+- Rewriting history to change authorship changes the root commit or HEAD, so the
+  fingerprint and HEAD in an older report stop matching.
+- The verifier runs against the same repository. A report that does not reproduce is worse
+  than no report, which is the incentive the tool relies on.
+
+What it cannot catch: a genuinely large, low-value contribution. That is what references
+are for.
 
 ## For candidates
 

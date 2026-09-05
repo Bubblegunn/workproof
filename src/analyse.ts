@@ -19,6 +19,13 @@ export interface Params {
   minCommits: number;
   paths: boolean;
   emails: boolean;
+  /** Escape hatch for enormous histories: read only the newest n commits. */
+  maxCommits?: number;
+}
+
+export interface AnalyseHooks {
+  /** Called with short status lines while history is read and files are blamed. */
+  progress?: (message: string) => void;
 }
 
 export interface RepoReport {
@@ -45,9 +52,12 @@ const survivingVersion = (): string => {
   }
 };
 
-export async function analyseRepo(cwd: string, params: Params): Promise<RepoReport> {
+export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHooks = {}): Promise<RepoReport> {
+  const say = hooks.progress ?? (() => {});
   await assertRepository(cwd);
-  const all = await listCommits(cwd, {});
+  say(`${basename(cwd)}: reading history${params.maxCommits ? ` (newest ${params.maxCommits} commits)` : ""}...`);
+  const all = await listCommits(cwd, params.maxCommits ? { max: params.maxCommits } : {});
+  say(`${basename(cwd)}: ${all.length.toLocaleString("en-US")} commits read`);
   const id = await resolveIdentity(all, params.author, cwd);
   const t = tenure(all, id, { ...(params.since ? { since: params.since } : {}), ...(params.until ? { until: params.until } : {}) });
   const start = new Date(t.value.first + "T00:00:00Z");
@@ -65,8 +75,11 @@ export async function analyseRepo(cwd: string, params: Params): Promise<RepoRepo
     cadence(inTenure, tags, id, { first: t.value.first, last: t.value.last }),
     fp,
     testsAndDocs(inTenure, id),
-    await survivingLines(cwd, id, { sample, version: survivingVersion() }),
   ];
+  say(`${basename(cwd)}: blaming files (1 in ${sample} sample)...`);
+  const surviving = await survivingLines(cwd, id, { sample, version: survivingVersion() });
+  say(`${basename(cwd)}: blamed ${surviving.value.filesSampled} of ${surviving.value.filesTotal} files`);
+  figures.push(surviving);
   return {
     name: basename(cwd),
     head: await headSha(cwd),
