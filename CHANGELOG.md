@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 (unreleased)
+## 0.2.0 (2026-09-05)
 
 Every repository section of the Markdown report now opens with a plain-language paragraph for the person who will read the report and does not write software. It is assembled from the figures by a fixed rule with no model call, so it is deterministic, states no opinion about quality, keeps commit share and surviving lines apart, and ends with the command that recomputes it. It is derived from the hashed figures rather than added to them, so the hash is unchanged.
 
