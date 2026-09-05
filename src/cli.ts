@@ -21,16 +21,20 @@ Turn a git repository into a verifiable engineering report for one author, witho
   --emails               include author emails in the report (off by default)
   --narrate              append a model-written paragraph; needs WORKPROOF_API_URL, WORKPROOF_API_KEY, WORKPROOF_MODEL
   --out <basename>       output basename (default: workproof-report)
-  --json                 print the JSON to stdout instead of writing files
+  --format <mode>        output markdown, json, or both (default: both)
+  --json                 print the JSON to stdout instead of writing files (legacy alias)
   -h, --help             this text`;
 
-interface Cli { params: Params; repos: string[]; out: string; json: boolean; doNarrate: boolean; verifyFile: string | undefined }
+type OutputFormat = "both" | "markdown" | "json";
+
+interface Cli { params: Params; repos: string[]; out: string; format: OutputFormat; json: boolean; doNarrate: boolean; verifyFile: string | undefined }
 
 export function parse(argv: string[]): Cli {
   const params: Params = { depth: 2, threshold: 0.5, minCommits: 5, paths: false, emails: false };
   const repos: string[] = [];
   const authors: string[] = [];
   let out = "workproof-report";
+  let format: OutputFormat = "both";
   let json = false;
   let doNarrate = false;
   let verifyFile: string | undefined;
@@ -57,7 +61,12 @@ export function parse(argv: string[]): Cli {
     else if (a === "--emails") params.emails = true;
     else if (a === "--narrate") doNarrate = true;
     else if (a === "--out") out = next();
-    else if (a === "--json") json = true;
+    else if (a === "--format") {
+      const value = next();
+      if (value !== "both" && value !== "markdown" && value !== "json") throw new Error("--format must be markdown, json, or both");
+      format = value;
+    }
+    else if (a === "--json") { json = true; format = "json"; }
     else if (a === "-h" || a === "--help") {
       console.log(HELP);
       process.exit(0);
@@ -65,12 +74,12 @@ export function parse(argv: string[]): Cli {
   }
   if (authors.length) params.author = authors;
   if (!repos.length) repos.push(process.cwd());
-  return { params, repos, out, json, doNarrate, verifyFile };
+  return { params, repos, out, format, json, doNarrate, verifyFile };
 }
 
 async function main() {
   const started = Date.now();
-  const { params, repos, out, json, doNarrate, verifyFile } = parse(process.argv.slice(2));
+  const { params, repos, out, format, json, doNarrate, verifyFile } = parse(process.argv.slice(2));
   const progress = (m: string) => process.stderr.write(`${m}\n`);
   if (verifyFile) {
     const report = JSON.parse(await readFile(verifyFile, "utf8")) as Report;
@@ -92,13 +101,13 @@ async function main() {
     if (!url || !key || !model) throw new Error("--narrate needs WORKPROOF_API_URL, WORKPROOF_API_KEY and WORKPROOF_MODEL");
     narrative = await narrate(report, { url, key, model });
   }
-  if (json) {
+  if (format === "json") {
     console.log(JSON.stringify(report, null, 2));
     return;
   }
-  await writeFile(`${out}.json`, JSON.stringify(report, null, 2));
-  await writeFile(`${out}.md`, renderMarkdown(report, narrative));
-  console.log(`wrote ${out}.md and ${out}.json in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+  if (format === "markdown" || format === "both") await writeFile(`${out}.md`, renderMarkdown(report, narrative));
+  if (format === "both") await writeFile(`${out}.json`, JSON.stringify(report, null, 2));
+  console.log(format === "markdown" ? `wrote ${out}.md` : `wrote ${out}.md and ${out}.json in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 }
 
 const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";
