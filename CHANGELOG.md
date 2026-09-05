@@ -10,6 +10,8 @@ Seven new figures, each with its bias in its limits: files authored (degree of a
 
 Privacy: the fingerprint is keyed (HMAC-SHA256 under a per-report key printed once and stored nowhere; `--fingerprint-key` reuses one) and GitHub noreply addresses are never written. Reports carry `schemaVersion: 2`; 0.1.x reports fail `check` by design.
 
+The Action writes the Markdown report to the job summary and uploads the report files as the `workproof-report` artifact, so a run leaves something readable behind even without a pull request to comment on.
+
 ## 0.1.3 (2026-09-05)
 
 `--badge` writes a shields.io endpoint document next to the report; a composite GitHub Action (`Bubblegunn/workproof@main`) runs the report on a pull request and posts one sticky comment with the six figures.

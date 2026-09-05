@@ -1,5 +1,5 @@
 name: workproof
-description: Run workproof on the checked-out repository and run check, write the in-toto statement, and post the headline figures as a sticky pull-request comment.
+description: Run workproof on the checked-out repository, run check, write the in-toto statement, put the Markdown report in the job summary, upload the report files as an artifact, and post the headline figures as a sticky pull-request comment.
 author: Efe Genc
 branding:
   icon: check-square
@@ -39,6 +39,21 @@ runs:
         npx --yes "workproof@${WP_VERSION}" check workproof-report.json
         npx --yes "workproof@${WP_VERSION}" attest workproof-report.json
         echo "report=workproof-report.json" >> "$GITHUB_OUTPUT"
+    - name: Write the report to the job summary
+      shell: bash
+      run: |
+        set -euo pipefail
+        cat workproof-report.md >> "$GITHUB_STEP_SUMMARY"
+    - name: Upload the report as an artifact
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: workproof-report
+        path: |
+          workproof-report.md
+          workproof-report.json
+          workproof-report.intoto.json
+          workproof-report.predicate.json
+        if-no-files-found: error
     - name: Install cosign
       if: ${{ inputs.attest == 'true' }}
       uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2

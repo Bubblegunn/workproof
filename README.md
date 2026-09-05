@@ -264,7 +264,8 @@ reader verifies, the badge is only how they find it.
 ## GitHub Action
 
 The repository ships a composite action that runs workproof on a checkout, runs `check`,
-writes the in-toto statement, and posts one sticky comment on the pull request with the
+writes the in-toto statement, puts the Markdown report in the job summary, uploads the
+report files as one artifact, and posts one sticky comment on the pull request with the
 headline figures. `fetch-depth: 0` is required, or the history the figures come from is
 missing; `author` is required because a GitHub login does not map reliably onto commit
 identities.
@@ -297,9 +298,10 @@ jobs:
 `@v0` is a moving tag the maintainer points at the newest 0.x release; pin a commit SHA if
 you want the action to never change under you. Inputs reach the shell through environment
 variables, never by interpolation into the script. The comment is updated in place on later
-pushes (it carries a marker), and `workproof-report.json`, `.intoto.json` and
-`.predicate.json` stay in the workspace for an `upload-artifact` step. Set
-`comment: "false"` to only produce the files.
+pushes (it carries a marker). The full Markdown report appears on the run's summary page,
+and `workproof-report.md`, `.json`, `.intoto.json` and `.predicate.json` are uploaded as the
+`workproof-report` artifact, so a report survives the workspace and can be downloaded from
+the run. Set `comment: "false"` to skip the comment and keep the summary and the artifact.
 
 ## Gaming and bias
 
