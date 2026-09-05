@@ -172,7 +172,7 @@ snapshot files are removed before any of them is computed (see Gaming and bias).
 |---|---|---|
 | Tenure window | first to last commit by the author, or `--since/--until` | work before the first commit or after the last |
 | Share of commits | non-merge commits by the author over all human non-merge commits in the window | what survived; a typo and a subsystem count the same |
-| Cadence | active weeks, commits per active week, longest streak, release tags in tenure and the author's | a week with one commit and a week with forty both count as active |
+| Cadence | active weeks, commits per active week, longest streak, release tags in tenure and the author's | a week with one commit and a week with forty both count as active; weeks are the author's own, read from the offset each commit records |
 | Footprint | files touched, directories at or above a commit-share threshold, languages by lines added | anything the exclusion lists miss still counts |
 | Test-file changes and documents created | share of test-file changes; `.md`, `.mdx`, `.rst` files whose oldest commit is the author's | test cases, coverage, or the quality of a document |
 | Files authored | files alive at HEAD where the author's degree of authorship (Avelino et al.) is at least 3.293 and above 75% of the file's maximum | coefficients fitted on other systems; first authorship outweighs later rewrites |

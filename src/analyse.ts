@@ -131,11 +131,11 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
   const t = tenure(all, id, { ...(params.since ? { since: params.since } : {}), ...(params.until ? { until: params.until } : {}) });
   const start = new Date(t.value.first + "T00:00:00Z");
   const end = new Date(t.value.last + "T23:59:59Z");
-  const inTenure = all.filter((c) => c.date >= start && c.date <= end);
+  const inTenure = all.filter((c) => c.localDate >= start && c.localDate <= end);
   let addedAll = 0;
   let addedExcluded = 0;
   for (const c of ex.raw) {
-    if (c.date < start || c.date > end || c.parents > 1) continue;
+    if (c.localDate < start || c.localDate > end || c.parents > 1) continue;
     for (const f of c.files) {
       if (f.added === null) continue;
       addedAll += f.added;

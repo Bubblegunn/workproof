@@ -27,7 +27,7 @@ function weeksBetween(first: string, last: string): string[] {
 export function cadence(commits: Commit[], tags: Tag[], id: Identity, window: { first: string; last: string }) {
   const mine = commits.filter((c) => isMine(c, id) && c.parents <= 1);
   const perWeek = new Map<string, number>();
-  for (const c of mine) perWeek.set(isoWeek(c.date), (perWeek.get(isoWeek(c.date)) ?? 0) + 1);
+  for (const c of mine) perWeek.set(isoWeek(c.localDate), (perWeek.get(isoWeek(c.localDate)) ?? 0) + 1);
   const weeks = weeksBetween(window.first, window.last);
   let streak = 0;
   let longest = 0;
@@ -53,8 +53,12 @@ export function cadence(commits: Commit[], tags: Tag[], id: Identity, window: { 
     id: "cadence",
     title: "Cadence",
     value,
-    command: "git log --no-merges --format=%aI --author=<identity>; ISO weeks; git for-each-ref refs/tags with creatordate",
-    limits: ["A week with one commit and a week with forty both count as active.", "Tags are releases only if the project tags releases."],
+    command: "git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate",
+    limits: [
+      "A week with one commit and a week with forty both count as active.",
+      "Tags are releases only if the project tags releases.",
+      "Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week.",
+    ],
   };
   return figure;
 }

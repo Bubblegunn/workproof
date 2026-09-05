@@ -39,6 +39,12 @@ export interface Commit {
   email: string;
   name: string;
   date: Date;
+  /**
+   * The author's wall clock, as a Date whose UTC fields are the local calendar date and time
+   * that `%aI` reports. Calendar figures (which week, which day) must use this; anything
+   * ordering commits in time must use `date`, which is the instant.
+   */
+  localDate: Date;
   parents: number;
   files: FileChange[];
   /** Lower-cased emails from Co-authored-by trailers. */
@@ -97,6 +103,7 @@ export async function listCommits(cwd: string, opts: { since?: string; until?: s
       email: email!.toLowerCase(),
       name: name!,
       date: new Date(iso!),
+      localDate: wallClock(iso!),
       parents: parents ? parents.trim().split(" ").filter(Boolean).length : 0,
       files,
       coAuthors: coAuthorValues.map((v) => (v.match(/<([^>]+)>/)?.[1] ?? "").toLowerCase()).filter(Boolean),
@@ -105,6 +112,20 @@ export async function listCommits(cwd: string, opts: { since?: string; until?: s
     });
   }
   return commits;
+}
+
+/**
+ * `%aI` carries the author's offset, for example 2026-03-02T00:30:00+13:00. `new Date` keeps the
+ * instant and drops the offset, so a commit made on Monday morning in Auckland lands in the
+ * previous UTC week. This shifts the instant by the stated offset so the UTC getters read back
+ * the author's own calendar.
+ */
+export function wallClock(iso: string): Date {
+  const m = iso.match(/([+-])(\d{2}):?(\d{2})$/);
+  const instant = new Date(iso);
+  if (!m || /[Zz]$/.test(iso)) return instant;
+  const minutes = (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3]));
+  return new Date(instant.getTime() + minutes * 60000);
 }
 
 export interface Tag { name: string; date: Date; email: string }

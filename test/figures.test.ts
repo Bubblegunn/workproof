@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rm } from "node:fs/promises";
-import { makeRepo, makeNfdRepo } from "./fixture.js";
+import { makeRepo, makeNfdRepo, makeTzRepo } from "./fixture.js";
 import { execFileSync } from "node:child_process";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -249,6 +249,28 @@ test("a repository whose paths are decomposed still produces a report", async ()
     assert.equal(v.lines, 40);
     const footprint = r.figures.find((f) => f.id === "footprint")!.value as { filesTouched: number };
     assert.equal(footprint.filesTouched, 4);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("weeks are the author's weeks, not UTC weeks", async () => {
+  // Four commits at +13:00, two inside each of two consecutive local weeks. Read in UTC, two of
+  // them fall into the previous week and the report claimed three active weeks and a three-week
+  // streak for two weeks of work.
+  const dir = await makeTzRepo();
+  try {
+    const r = await analyseRepo(dir, { author: ["kiwi@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 });
+    const c = r.figures.find((f) => f.id === "cadence")!.value as { activeWeeks: number; weeksInTenure: number; longestStreakWeeks: number; commitsPerActiveWeek: number };
+    assert.equal(c.activeWeeks, 2);
+    assert.equal(c.weeksInTenure, 2);
+    assert.equal(c.longestStreakWeeks, 2);
+    assert.equal(c.commitsPerActiveWeek, 2);
+    // The tenure window is the author's calendar too: the first commit is Monday 2 March locally,
+    // which is Sunday 1 March in UTC.
+    const t = r.figures.find((f) => f.id === "tenure")!.value as { first: string; last: string };
+    assert.equal(t.first, "2026-03-02");
+    assert.equal(t.last, "2026-03-11");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

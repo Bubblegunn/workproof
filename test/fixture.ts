@@ -123,3 +123,26 @@ export async function makeNfdRepo(): Promise<string> {
   g(["symbolic-ref", "HEAD", "refs/heads/main"]);
   return dir;
 }
+
+/**
+ * Four commits by a developer at +13:00, two inside each of two consecutive local weeks. In UTC
+ * two of them fall into the previous week, so a report built on UTC weeks says three active
+ * weeks for two weeks of work.
+ */
+export async function makeTzRepo(): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "workproof-tz-"));
+  const dates = ["2026-03-02T00:30:00+13:00", "2026-03-04T10:00:00+13:00", "2026-03-09T00:30:00+13:00", "2026-03-11T10:00:00+13:00"];
+  const g = (args: string[], date: string) =>
+    execFileSync("git", args, {
+      cwd: dir,
+      encoding: "utf8",
+      env: { ...process.env, GIT_AUTHOR_NAME: "Kiwi Dev", GIT_AUTHOR_EMAIL: "kiwi@example.com", GIT_COMMITTER_NAME: "Kiwi Dev", GIT_COMMITTER_EMAIL: "kiwi@example.com", GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date },
+    });
+  g(["init", "-q", "-b", "main"], dates[0]!);
+  for (const [i, date] of dates.entries()) {
+    await writeFile(join(dir, `f${i}.ts`), `line ${i}\n`);
+    g(["add", "."], date);
+    g(["commit", "-q", "-m", `commit ${i}`], date);
+  }
+  return dir;
+}
