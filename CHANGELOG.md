@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.3 (unreleased)
+## 0.1.3 (2026-09-05)
 
 `--badge` writes a shields.io endpoint document next to the report; a composite GitHub Action (`Bubblegunn/workproof@main`) runs the report on a pull request and posts one sticky comment with the six figures.
 
