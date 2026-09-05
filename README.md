@@ -6,6 +6,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/npm/v/workproof?style=flat-square&color=111111&label=npm" alt="npm">
+  <img src="https://img.shields.io/npm/dm/workproof?style=flat-square&color=111111" alt="npm downloads">
+  <img src="https://img.shields.io/github/actions/workflow/status/Bubblegunn/workproof/ci.yml?style=flat-square&color=111111&label=ci" alt="ci">
+  <img src="https://img.shields.io/bundlephobia/minzip/workproof?style=flat-square&color=111111" alt="minzipped size">
   <img src="https://img.shields.io/github/stars/Bubblegunn/workproof?style=flat-square&color=111111" alt="stars">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT">
 </p>
