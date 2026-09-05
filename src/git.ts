@@ -1,28 +1,67 @@
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 
-const execFileP = promisify(execFile);
+/**
+ * Settings that change what diff and blame attribute, pinned so two machines with different
+ * defaults produce the same figures. indentHeuristic became the default in git 2.14 and
+ * rename detection in 2.9; a report records the git version it ran under as well.
+ */
+export const PINNED_CONFIG = ["-c", "diff.renames=true", "-c", "diff.algorithm=myers", "-c", "diff.indentHeuristic=true", "-c", "core.autocrlf=false"];
 
-export async function git(args: string[], cwd: string): Promise<string> {
-  const { stdout } = await execFileP("git", args, { cwd, encoding: "utf8", maxBuffer: 1024 * 1024 * 512 });
-  return stdout;
+export function git(args: string[], cwd: string, input?: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = execFile("git", [...PINNED_CONFIG, ...args], { cwd, encoding: "utf8", maxBuffer: 1024 * 1024 * 512 }, (err, stdout) => {
+      if (err) reject(err);
+      else resolve(stdout);
+    });
+    if (input !== undefined) child.stdin?.end(input);
+  });
 }
 
-export interface FileChange { path: string; added: number | null; deleted: number | null }
-export interface Commit { sha: string; email: string; name: string; date: Date; parents: number; files: FileChange[] }
+export const gitVersion = async (cwd: string): Promise<string> => (await git(["--version"], cwd)).trim();
 
-/** All commits reachable from HEAD, newest first, with per-file numstat. One git call. */
+export interface FileChange { path: string; added: number | null; deleted: number | null }
+export interface Commit {
+  sha: string;
+  email: string;
+  name: string;
+  date: Date;
+  parents: number;
+  files: FileChange[];
+  /** Lower-cased emails from Co-authored-by trailers. */
+  coAuthors: string[];
+  /** Names from Co-authored-by trailers, as written. */
+  coAuthorNames: string[];
+  /** Values of Assisted-by trailers, as written. */
+  assistedBy: string[];
+}
+
+const RS = "\x1e";
+const US = "\x1f";
+const GS = "\x1d";
+
+function splitTrailers(field: string | undefined): string[] {
+  return (field ?? "").split(GS).map((s) => s.trim()).filter(Boolean);
+}
+
+/** All commits reachable from HEAD, newest first, with per-file numstat and trailers. One git call. */
 export async function listCommits(cwd: string, opts: { since?: string; until?: string; max?: number }): Promise<Commit[]> {
-  const args = ["log", "--numstat", "--format=%x1e%H%x1f%aE%x1f%aN%x1f%aI%x1f%P", "-M"];
+  const args = [
+    "log",
+    "--numstat",
+    "--format=%x1e%H%x1f%aE%x1f%aN%x1f%aI%x1f%P%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%(trailers:key=Assisted-by,valueonly,separator=%x1d)",
+    "-M",
+  ];
   if (opts.since) args.push(`--since=${opts.since}`);
   if (opts.until) args.push(`--until=${opts.until}`);
   if (opts.max) args.push(`--max-count=${opts.max}`);
   const out = await git(args, cwd);
   const commits: Commit[] = [];
-  for (const block of out.split("\x1e")) {
+  for (const block of out.split(RS)) {
     if (!block.trim()) continue;
+    // Trailer values may contain newlines only if a trailer does, which git folds; the header ends at the first newline.
     const [header, ...rest] = block.split("\n");
-    const [sha, email, name, iso, parents] = header!.split("\x1f");
+    const [sha, email, name, iso, parents, coAuthorField, assistedField] = header!.split(US);
+    const coAuthorValues = splitTrailers(coAuthorField);
     const files: FileChange[] = [];
     for (const line of rest) {
       if (!line.trim()) continue;
@@ -41,6 +80,9 @@ export async function listCommits(cwd: string, opts: { since?: string; until?: s
       date: new Date(iso!),
       parents: parents ? parents.trim().split(" ").filter(Boolean).length : 0,
       files,
+      coAuthors: coAuthorValues.map((v) => (v.match(/<([^>]+)>/)?.[1] ?? "").toLowerCase()).filter(Boolean),
+      coAuthorNames: coAuthorValues.map((v) => v.replace(/\s*<[^>]*>\s*$/, "").trim()).filter(Boolean),
+      assistedBy: splitTrailers(assistedField),
     });
   }
   return commits;
@@ -72,6 +114,23 @@ export async function configuredName(cwd: string): Promise<string> {
 export async function assertRepository(cwd: string): Promise<void> {
   try { await git(["rev-parse", "--is-inside-work-tree"], cwd); } catch { throw new Error(`${cwd} is not inside a git repository (use --repo to point at one)`); }
 }
+/** linguist-generated and linguist-vendored from .gitattributes, for the given paths. */
+export async function checkAttr(cwd: string, paths: string[]): Promise<Map<string, { generated: boolean; vendored: boolean }>> {
+  const out = new Map<string, { generated: boolean; vendored: boolean }>();
+  if (!paths.length) return out;
+  const raw = await git(["check-attr", "-z", "--stdin", "linguist-generated", "linguist-vendored"], cwd, paths.join("\0") + "\0");
+  const parts = raw.split("\0");
+  for (let i = 0; i + 2 < parts.length; i += 3) {
+    const [path, attr, value] = [parts[i]!, parts[i + 1]!, parts[i + 2]!];
+    const entry = out.get(path) ?? { generated: false, vendored: false };
+    const set = value === "set" || value === "true";
+    if (attr === "linguist-generated") entry.generated = set;
+    if (attr === "linguist-vendored") entry.vendored = set;
+    out.set(path, entry);
+  }
+  return out;
+}
+
 export async function configuredEmail(cwd: string): Promise<string> {
   try { return (await git(["config", "--get", "user.email"], cwd)).trim().toLowerCase(); } catch { return ""; }
 }

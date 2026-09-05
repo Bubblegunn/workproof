@@ -7,7 +7,7 @@ import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { analyseRepo } from "../src/analyse.js";
-import { listCommits, listTags, rootCommit, headSha, remoteUrl } from "../src/git.js";
+import { listCommits, listTags, rootCommit, headSha, remoteUrl, gitVersion, checkAttr, PINNED_CONFIG } from "../src/git.js";
 
 test("git helpers read commits with files, tags, root and head", async () => {
   const dir = await makeRepo();
@@ -30,6 +30,29 @@ test("git helpers read commits with files, tags, root and head", async () => {
     assert.equal(await remoteUrl(dir), "git@example.com:acme/app.git");
     const windowed = await listCommits(dir, { since: "2026-02-01", until: "2026-02-28" });
     assert.equal(windowed.length, 7);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("git runs with pinned diff settings and reads trailers and linguist attributes", async () => {
+  const dir = await makeRepo();
+  try {
+    assert.deepEqual(PINNED_CONFIG.filter((_, i) => i % 2 === 1), ["diff.renames=true", "diff.algorithm=myers", "diff.indentHeuristic=true", "core.autocrlf=false"]);
+    assert.match(await gitVersion(dir), /^git version \d+\.\d+/);
+    const commits = await listCommits(dir, {});
+    const generated = commits.find((c) => c.files.some((f) => f.path === "gen/out.ts"))!;
+    assert.deepEqual(generated.coAuthors, ["ada@example.com"]);
+    assert.deepEqual(generated.coAuthorNames, ["Ada"]);
+    const assisted = commits.find((c) => c.name === "Bob (aider)")!;
+    assert.deepEqual(assisted.coAuthors, ["noreply@anthropic.com"]);
+    assert.ok(assisted.coAuthorNames.includes("Claude"));
+    assert.deepEqual(assisted.assistedBy, []);
+    assert.deepEqual(commits[0]!.coAuthors, []);
+    const attrs = await checkAttr(dir, ["gen/out.ts", "src/a.ts"]);
+    assert.deepEqual(attrs.get("gen/out.ts"), { generated: true, vendored: false });
+    assert.deepEqual(attrs.get("src/a.ts"), { generated: false, vendored: false });
+    assert.equal((await checkAttr(dir, [])).size, 0);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
