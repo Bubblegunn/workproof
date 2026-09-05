@@ -117,6 +117,33 @@ window and 70.6% of the lines that are still alive. A commit count alone would h
 them one contributor among seventy-one. That gap, in either direction, is usually the most
 honest thing a report can say about someone's work.
 
+## When someone reformatted the code
+
+A repository-wide formatter run rewrites lines it did not write. Plain `git blame` then
+credits every one of them to whoever ran the formatter. workproof reads
+`.git-blame-ignore-revs` at the root by default, so those commits are skipped and the
+lines keep their real author; `-w` handles whitespace-only changes on its own, so the
+file matters when a formatter changed quotes, line breaks or trailing commas.
+
+[guidance-ai/guidance](https://github.com/guidance-ai/guidance) at `21b1d90` (21 May 2026)
+lists its black and ruff runs in that file. Two runs per author on 5 September 2026 with
+`--sample 1`; the second passes an empty `--ignore-revs-file`, which is the only way to
+turn the default off:
+
+| author | honouring `.git-blame-ignore-revs` (default) | ignoring it |
+|---|---|---|
+| Harsha Nori, who ran black over the tree in April 2024 | 2,185 of 49,267 surviving lines, 4.4% | 2,476 of 49,267, 5.0% |
+| Scott Lundberg, who wrote most of what black reformatted | 12,368 of 49,267, 25.1% | 12,152 of 49,267, 24.7% |
+
+Without the file, 291 lines of other people's code would have counted for the person who
+ran the formatter, 216 of them taken from one author. The report prints the file it used
+in every `How:` line and under `environment.ignoreRevs` in the JSON, so two reports are
+only comparable when that line matches:
+
+```
+How: `git blame --line-porcelain -w -M --ignore-revs-file .git-blame-ignore-revs HEAD -- <file> over a deterministic 1-in-1 file sample (surviving-lines 0.1.1: FNV-1a on path); generated, vendored and lock files excluded`
+```
+
 ## What it measures
 
 Every figure comes from git and nothing else. Bot commits and generated, vendored, lock and
