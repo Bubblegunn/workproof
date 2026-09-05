@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
-import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor } from "./index.js";
+import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor, newFingerprintKey } from "./index.js";
 import type { Params, Report, RepoReport } from "./index.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
@@ -139,6 +139,11 @@ async function main() {
     process.exit(result.ok ? 0 : 1);
   }
   const version = createRequire(import.meta.url)("../../package.json").version as string;
+  if (!params.fingerprintKey) {
+    // One key per report, so the repositories in a combined report share it; printed once, stored nowhere.
+    params.fingerprintKey = newFingerprintKey();
+    progress(`fingerprint key ${params.fingerprintKey} (keep it to compare reports or to verify the fingerprint; it is not stored)`);
+  }
   const repositories: RepoReport[] = [];
   for (const dir of repos) repositories.push(await analyseRepo(dir, params, { progress }));
   const report = buildReport(repositories, params, { version, generatedAt: new Date().toISOString() });

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Params, RepoReport } from "./analyse.js";
 import { canonicalize } from "./canonical.js";
+import { publicEmail } from "./analyse.js";
 
 export interface Report {
   tool: "workproof";
@@ -18,10 +19,14 @@ export interface Report {
 export const hashOf = (params: unknown, repositories: unknown): string =>
   createHash("sha256").update(canonicalize({ params, repositories })).digest("hex");
 
-/** Without --emails, an author given as an email address is not echoed into the report. */
+/**
+ * What of the parameters the report may carry: never the fingerprint key, never a GitHub
+ * noreply login, and without --emails no author given as an email address.
+ */
 function publicParams(params: Params): Params {
-  if (params.emails || !params.author) return params;
-  return { ...params, author: params.author.map((a) => (a.includes("@") ? "(email hidden)" : a)) };
+  const { fingerprintKey: _key, ...rest } = params;
+  if (!rest.author) return rest;
+  return { ...rest, author: rest.author.map((a) => (a.includes("@") ? (params.emails ? publicEmail(a) : "(email hidden)") : a)) };
 }
 
 export function buildReport(repositories: RepoReport[], params: Params, meta: { version: string; generatedAt: string }): Report {
@@ -103,7 +108,7 @@ export function renderMarkdown(report: Report, narrative?: string): string {
   out.push(
     `## Integrity`,
     ``,
-    `Report hash \`${report.hash}\` (sha256 over the RFC 8785 canonical JSON of parameters and figures; \`npx workproof check\` recomputes it offline). Repository fingerprints are hashes of the root commit and remote; they identify a repository without naming it.`,
+    `Report hash \`${report.hash}\` (sha256 over the RFC 8785 canonical JSON of parameters and figures; \`npx workproof check\` recomputes it offline). Repository fingerprints are keyed hashes of the root commit and remote; they identify a repository without naming it, and only someone holding the key printed when the report was made can compare them.`,
     ``,
   );
   if (narrative) {

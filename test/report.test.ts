@@ -2,16 +2,50 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rm } from "node:fs/promises";
 import { makeRepo } from "./fixture.js";
-import { analyseRepo, buildReport, renderMarkdown, fingerprint } from "../src/index.js";
+import { analyseRepo, buildReport, renderMarkdown, fingerprint, newFingerprintKey, publicEmail } from "../src/index.js";
 
 const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 };
 
-test("fingerprint normalises remotes and is stable", () => {
+test("fingerprint normalises remotes and is stable; keyed fingerprints match only under the same key", () => {
   const a = fingerprint("abc", "git@github.com:Acme/App.git");
   const b = fingerprint("abc", "https://github.com/acme/app");
   assert.equal(a, b);
   assert.equal(a.length, 64);
   assert.notEqual(a, fingerprint("abd", "https://github.com/acme/app"));
+  const k1 = "00".repeat(16);
+  const k2 = "ff".repeat(16);
+  assert.equal(fingerprint("abc", "git@github.com:Acme/App.git", k1), fingerprint("abc", "https://github.com/acme/app", k1));
+  assert.notEqual(fingerprint("abc", "https://github.com/acme/app", k1), fingerprint("abc", "https://github.com/acme/app", k2));
+  assert.notEqual(fingerprint("abc", "https://github.com/acme/app", k1), a);
+  assert.match(newFingerprintKey(), /^[0-9a-f]{32}$/);
+  assert.notEqual(newFingerprintKey(), newFingerprintKey());
+  assert.equal(publicEmail("49699333+someone@users.noreply.github.com"), "(github noreply)");
+  assert.equal(publicEmail("ada@example.com"), "ada@example.com");
+});
+
+test("the key is printed once, never stored, and two reports of one repository match only under it", async () => {
+  const dir = await makeRepo();
+  try {
+    const seen: string[] = [];
+    const generated = await analyseRepo(dir, params, { progress: (m) => seen.push(m) });
+    assert.ok(seen.some((m) => /^fingerprint key [0-9a-f]{32} \(keep it/.test(m)));
+    const key = seen.find((m) => m.startsWith("fingerprint key"))!.split(" ")[2]!;
+    const again = await analyseRepo(dir, { ...params, fingerprintKey: key });
+    const other = await analyseRepo(dir, { ...params, fingerprintKey: "ab".repeat(16) });
+    assert.equal(generated.fingerprint, again.fingerprint);
+    assert.notEqual(generated.fingerprint, other.fingerprint);
+    assert.equal(generated.fingerprintKeyed, true);
+    const report = buildReport([again], { ...params, fingerprintKey: key }, { version: "0.2.0", generatedAt: "2026-09-05T00:00:00Z" });
+    assert.ok(!JSON.stringify(report).includes(key), "the key must not be stored in the report");
+    assert.ok(!("fingerprintKey" in report.params));
+    // A GitHub noreply address never appears, even with --emails and exclusions off.
+    const noreply = await analyseRepo(dir, { ...params, author: ["dependabot[bot]"], emails: true, exclusions: false });
+    assert.deepEqual(noreply.identity.emails, ["(github noreply)"]);
+    const rep = buildReport([noreply], { ...params, author: ["49699333+dependabot[bot]@users.noreply.github.com"], emails: true, exclusions: false }, { version: "0.2.0", generatedAt: "2026-09-05T00:00:00Z" });
+    assert.ok(!JSON.stringify(rep).includes("users.noreply.github.com"));
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 });
 
 test("analyseRepo produces every figure and buildReport hashes without emails by default", async () => {

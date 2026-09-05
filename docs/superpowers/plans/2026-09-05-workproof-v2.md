@@ -97,11 +97,11 @@
 
 **Files:** Modify `src/analyse.ts` (`fingerprint`), `src/verify.ts`, `src/cli.ts`, `src/figures/identity.ts`; tests in `test/report.test.ts`.
 
-- [ ] `fingerprint(root, remote, key: string)` = HMAC-SHA256 hex; `analyseRepo` takes `params.fingerprintKey` or generates 16 random bytes hex and reports it through `hooks.progress` as `fingerprint key <hex> (keep it to compare reports; it is not stored)`; `RepoReport.fingerprintKeyed = true`.
-- [ ] `verify`: with `--fingerprint-key` compares; without, prints `fingerprint not compared (pass --fingerprint-key)` and continues.
-- [ ] Emails matching `/@users\.noreply\.github\.com$/` are replaced by `(github noreply)` in `identity.emails` even with `--emails`.
-- [ ] Tests: two reports with the same key share a fingerprint, different keys differ; a noreply address never appears in JSON.
-- [ ] Commit: `feat(privacy): keyed fingerprint and no GitHub noreply logins`.
+- [x] `fingerprint(root, remote, key: string)` = HMAC-SHA256 hex; `analyseRepo` takes `params.fingerprintKey` or generates 16 random bytes hex and reports it through `hooks.progress` as `fingerprint key <hex> (keep it to compare reports; it is not stored)`; `RepoReport.fingerprintKeyed = true`.
+- [x] `verify`: with `--fingerprint-key` compares; without, prints `fingerprint not compared (pass --fingerprint-key)` and continues.
+- [x] Emails matching `/@users\.noreply\.github\.com$/` are replaced by `(github noreply)` in `identity.emails` even with `--emails`.
+- [x] Tests: two reports with the same key share a fingerprint, different keys differ; a noreply address never appears in JSON.
+- [x] Commit: `feat(privacy): keyed fingerprint and no GitHub noreply logins`.
 
 ### Task 8: `attest`
 

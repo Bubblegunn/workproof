@@ -1,4 +1,4 @@
-export { analyseRepo, fingerprint } from "./analyse.js";
+export { analyseRepo, fingerprint, newFingerprintKey, publicEmail } from "./analyse.js";
 export type { Params, RepoReport, AnalyseHooks } from "./analyse.js";
 export { buildReport, renderMarkdown, hashOf } from "./report.js";
 export { canonicalize } from "./canonical.js";

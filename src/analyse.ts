@@ -1,4 +1,4 @@
-import { createHash, createHmac } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import { basename } from "node:path";
 import { createRequire } from "node:module";
 import { access } from "node:fs/promises";
@@ -62,9 +62,18 @@ export interface RepoReport {
   figures: Figure<any>[];
 }
 
+/** A fresh 16-byte fingerprint key as hex. Printed once, stored nowhere. */
+export const newFingerprintKey = (): string => randomBytes(16).toString("hex");
+
+const NOREPLY = /@users\.noreply\.github\.com$/i;
+/** GitHub noreply addresses carry the login in the local part, so they are never written out. */
+export const publicEmail = (email: string): string => (NOREPLY.test(email) ? "(github noreply)" : email);
+
 /**
- * Identifies a repository without naming it: sha256 of the root commit and the normalised
- * remote, or HMAC-SHA256 under a key when one is given (see Task 7 of the 0.2.0 plan).
+ * Identifies a repository without naming it. Keyed: HMAC-SHA256 under a per-report key of
+ * the root commit and the normalised remote, so a reader cannot look a public repository
+ * up from its fingerprint. Unkeyed (no key given): plain sha256, kept for callers that
+ * want a stable public identifier.
  */
 export function fingerprint(root: string, remote: string, key?: string): string {
   let r = remote.trim().toLowerCase().replace(/\.git$/, "");
@@ -111,6 +120,8 @@ async function applyExclusions(cwd: string, all: Commit[], params: Params) {
 export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHooks = {}): Promise<RepoReport> {
   const say = hooks.progress ?? (() => {});
   await assertRepository(cwd);
+  const key = params.fingerprintKey ?? newFingerprintKey();
+  if (!params.fingerprintKey) say(`fingerprint key ${key} (keep it to compare reports; it is not stored)`);
   say(`${basename(cwd)}: reading history${params.maxCommits ? ` (newest ${params.maxCommits} commits)` : ""}...`);
   const everything = await listCommits(cwd, params.maxCommits ? { max: params.maxCommits } : {});
   say(`${basename(cwd)}: ${everything.length.toLocaleString("en-US")} commits read`);
@@ -167,8 +178,9 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
   return {
     name: basename(cwd),
     head: await headSha(cwd),
-    fingerprint: fingerprint(await rootCommit(cwd), await remoteUrl(cwd)),
-    identity: { emails: params.emails ? id.emails : [], names: id.names, count: id.emails.length },
+    fingerprint: fingerprint(await rootCommit(cwd), await remoteUrl(cwd), key),
+    fingerprintKeyed: true,
+    identity: { emails: params.emails ? [...new Set(id.emails.map(publicEmail))] : [], names: id.names, count: id.emails.length },
     environment: { git: await gitVersion(cwd), blame, ignoreRevs, seed: params.seed ?? "" },
     excluded: { botCommits: ex.botCommits, files: ex.excluded.size, linesAddedShare: addedAll ? addedExcluded / addedAll : 0, enabled: ex.enabled },
     figures,
