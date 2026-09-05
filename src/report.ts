@@ -36,6 +36,7 @@ export function buildReport(repositories: RepoReport[], params: Params, meta: { 
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
 const n = (x: number) => x.toLocaleString("en-US");
+const plural = (x: number, one: string, many: string) => `${n(x)} ${x === 1 ? one : many}`;
 
 function figureLines(f: RepoReport["figures"][number]): string[] {
   const v = f.value;
@@ -65,13 +66,13 @@ function figureLines(f: RepoReport["figures"][number]): string[] {
     case "majorContributor":
       return [`major contributor in ${n(v.major)} of ${n(v.dirs)} directories (at least ${v.threshold * 100}% of commits)`];
     case "commitSize":
-      return [`median ${n(v.median)} lines, 90th percentile ${n(v.p90)}, ${n(v.huge)} commits over 10,000 lines`];
+      return [`median ${n(v.median)} lines, 90th percentile ${n(v.p90)}, ${plural(v.huge, "commit", "commits")} over 10,000 lines`];
     case "coAuthored":
-      return [`${n(v.trailerCommits)} commits by others naming the author in a Co-authored-by trailer`];
+      return [`${plural(v.trailerCommits, "commit", "commits")} by others naming the author in a Co-authored-by trailer`];
     case "absenceFactor":
       return [`${n(v.authorsToHalf)} author${v.authorsToHalf === 1 ? "" : "s"} cover half the commits; the author ranks ${n(v.authorRank)} of ${n(v.authors)} by commit count`];
     case "aiAssisted":
-      return [`${n(v.commits)} commits declare an AI tool in a trailer, ${pct(v.share)} of the author's commits`];
+      return [`${plural(v.commits, "commit declares", "commits declare")} an AI tool in a trailer, ${pct(v.share)} of the author's commits`];
     case "survivalByCohort":
       return v.length ? (v as { year: number; lines: number }[]).map((c) => `${c.year}: ${n(c.lines)} lines`) : ["no surviving lines in the sample"];
     case "survivingLines":
@@ -95,7 +96,7 @@ export function renderMarkdown(report: Report, narrative?: string): string {
       `HEAD \`${repo.head.slice(0, 12)}\` · fingerprint \`${repo.fingerprint.slice(0, 16)}\` · identities: ${repo.identity.names.join(", ")}${repo.identity.emails.length ? ` (${repo.identity.emails.join(", ")})` : ""}`,
       ``,
       repo.excluded.enabled
-        ? `excluded ${n(repo.excluded.botCommits)} bot commits and ${n(repo.excluded.files)} generated, vendored or lock files (${pct(repo.excluded.linesAddedShare)} of lines added)`
+        ? `excluded ${plural(repo.excluded.botCommits, "bot commit", "bot commits")} and ${plural(repo.excluded.files, "generated, vendored or lock file", "generated, vendored or lock files")} (${pct(repo.excluded.linesAddedShare)} of lines added)`
         : `exclusions off (--no-exclusions): bot commits and generated files are counted`,
       ``,
     );

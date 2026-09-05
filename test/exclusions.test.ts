@@ -46,7 +46,7 @@ test("analyseRepo drops the bot from every denominator and excluded files from e
     const s = bob.figures.find((f) => f.id === "survivingLines")!;
     assert.equal(s.value.filesTotal, 7);
     const md = renderMarkdown(buildReport([bob], params, { version: "0.2.0", generatedAt: "2026-09-05T00:00:00Z" }));
-    assert.match(md, /excluded 1 bot commits and 2 generated, vendored or lock files \(24\.2% of lines added\)/);
+    assert.match(md, /excluded 1 bot commit and 2 generated, vendored or lock files \(24\.2% of lines added\)/);
     const off = await analyseRepo(dir, { ...params, author: ["bob@example.com"], exclusions: false });
     assert.equal(off.excluded.enabled, false);
     assert.equal(off.excluded.botCommits, 0);

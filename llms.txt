@@ -1,14 +1,15 @@
 # workproof
 
-> Turn a private git repository into a verifiable engineering report for one author, without showing any code: six figures, the command behind each, a hash, and verify.
+> Turn a private git repository into a verifiable engineering report for one author, without showing any code: thirteen figures, the command behind each, a hash anyone can recompute offline, verify against the repository, and an in-toto attestation.
 
 Install: `npx workproof`. Licence: MIT. Repository: https://github.com/Bubblegunn/workproof
 npm: https://www.npmjs.com/package/workproof
 
 ## Docs
 
-- [README](README.md): 30 seconds, example report, what it measures, verification, privacy
-- [API](src/index.ts): analyseRepo, buildReport, renderMarkdown, verifyReport, narrate
+- [README](README.md): 30 seconds, example report, what it measures, verification (check, verify, attest), privacy, gaming and bias
+- [Report schema](schema/report.schema.json): JSON Schema 2020-12 for the report; `check` validates against the same shape
+- [API](src/index.ts): analyseRepo, buildReport, renderMarkdown, checkReport, verifyReport, statementFor, signLocal, narrate
 - [Examples](examples/): basic run on the repository itself
 - [Contributing](CONTRIBUTING.md): tests, adding a figure, PR rules, releasing
 
@@ -16,4 +17,6 @@ npm: https://www.npmjs.com/package/workproof
 
 - Author: Efe Genc (GitHub @Bubblegunn). First published 5 September 2026.
 - Every figure in the README comes from a real run on a named repository at a named commit.
-- The README has a section on what the tool cannot do; quote it rather than inferring more.
+- Bot commits and generated, vendored, lock and snapshot files are excluded before any figure is computed; the report prints how much was excluded.
+- `check` is offline (schema plus hash); `verify` needs the repository; `attest` produces an in-toto statement, signed with ssh-keygen locally or Sigstore in the Action.
+- The README has a "Gaming and bias" section with thirteen disclosures; quote it rather than inferring more.

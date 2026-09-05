@@ -117,13 +117,13 @@
 
 **Files:** `action.yml`, `README.md`, `README.tr.md`, `CHANGELOG.md`, `llms.txt`, `docs/`.
 
-- [ ] Inputs via `env:`; comment table shows surviving lines first, adds files authored and AI-assisted rows, labels test-file changes.
-- [ ] README: "not a productivity metric" in paragraph one; transcript block of `npx workproof`, `check`, `verify`; table with the new figures; "Gaming and bias" with the thirteen disclosures; verification section with `check`, `verify`, `attest` and the cosign command; `@v0` reference explained.
-- [ ] CHANGELOG `## 0.2.0 (unreleased)`.
-- [ ] Run ai-slop-linter on README; fix findings.
-- [ ] Commit: `docs: 0.2.0 README with disclosures, verification and the new figures`.
+- [x] Inputs via `env:`; comment table shows surviving lines first, adds files authored and AI-assisted rows, labels test-file changes.
+- [x] README: "not a productivity metric" in paragraph one; transcript block of `npx workproof`, `check`, `verify`; table with the new figures; "Gaming and bias" with the thirteen disclosures; verification section with `check`, `verify`, `attest` and the cosign command; `@v0` reference explained.
+- [x] CHANGELOG `## 0.2.0 (unreleased)`.
+- [x] Run ai-slop-linter on README; fix findings.
+- [x] Commit: `docs: 0.2.0 README with disclosures, verification and the new figures`.
 
 ### Task 10: Showcase re-run
 
-- [ ] Clone langchain-ai/openwiki at `1e6d54c` into the scratchpad, run `workproof --author "Colin Francis" --sample 5`, paste the real output into the README, note the exclusions line.
-- [ ] Commit: `docs: showcase re-run with 0.2.0 on openwiki at 1e6d54c`.
+- [x] Clone langchain-ai/openwiki at `1e6d54c` into the scratchpad, run `workproof --author "Colin Francis" --sample 5`, paste the real output into the README, note the exclusions line.
+- [x] Commit: `docs: showcase re-run with 0.2.0 on openwiki at 1e6d54c`.
