@@ -76,6 +76,10 @@ export function renderMarkdown(report: Report, narrative?: string): string {
       ``,
       `HEAD \`${repo.head.slice(0, 12)}\` · fingerprint \`${repo.fingerprint.slice(0, 16)}\` · identities: ${repo.identity.names.join(", ")}${repo.identity.emails.length ? ` (${repo.identity.emails.join(", ")})` : ""}`,
       ``,
+      repo.excluded.enabled
+        ? `excluded ${n(repo.excluded.botCommits)} bot commits and ${n(repo.excluded.files)} generated, vendored or lock files (${pct(repo.excluded.linesAddedShare)} of lines added)`
+        : `exclusions off (--no-exclusions): bot commits and generated files are counted`,
+      ``,
     );
     for (const f of repo.figures) {
       out.push(`### ${f.title}`, ``);

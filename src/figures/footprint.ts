@@ -66,7 +66,7 @@ export function footprint(commits: Commit[], id: Identity, opts: { depth: number
     value,
     command: `git log --no-merges --numstat -M; directories at depth ${opts.depth} where the author's commit share is at least ${Math.round(opts.threshold * 100)}% over at least ${opts.minCommits} commits; languages by lines added, extension map`,
     limits: [
-      "Lines added include generated and vendored files unless they were excluded upstream.",
+      "Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts.",
       "A directory owned by commit count may still contain other people's surviving code; see the blame figure.",
     ],
   };

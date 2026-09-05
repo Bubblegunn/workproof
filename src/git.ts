@@ -102,6 +102,12 @@ export async function listTags(cwd: string): Promise<Tag[]> {
   return tags.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
 
+/** Every path in the HEAD tree. */
+export async function listHeadFiles(cwd: string): Promise<string[]> {
+  const out = await git(["ls-tree", "-r", "-z", "--name-only", "HEAD"], cwd);
+  return out.split("\0").filter(Boolean);
+}
+
 export const rootCommit = async (cwd: string) => (await git(["rev-list", "--max-parents=0", "HEAD"], cwd)).trim().split("\n").pop()!;
 export const headSha = async (cwd: string) => (await git(["rev-parse", "HEAD"], cwd)).trim();
 export async function remoteUrl(cwd: string): Promise<string> {

@@ -5,8 +5,8 @@ import { analyse, parseArgs } from "surviving-lines/bin/surviving-lines.js";
 
 interface AuthorRow { mail: string; lines: number }
 
-export async function survivingLines(cwd: string, id: Identity, opts: { sample: number; version: string }) {
-  const result = await analyse(parseArgs(["--cwd", cwd, "--sample", String(opts.sample)]));
+export async function survivingLines(cwd: string, id: Identity, opts: { sample: number; version: string; exclude?: string[] }) {
+  const result = await analyse(parseArgs(["--cwd", cwd, "--sample", String(opts.sample), ...(opts.exclude ?? []).flatMap((g) => ["--exclude", g])]));
   const mine = (result.authors as AuthorRow[]).filter((a) => id.emails.includes(a.mail));
   const lines = mine.reduce((s, a) => s + a.lines, 0);
   const value = {

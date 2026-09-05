@@ -17,6 +17,12 @@ Turn a git repository into a verifiable engineering report for one author, witho
   --sample <n>           blame every n-th file (default: 1, or 7 for very large repositories)
   --max-commits <n>      read only the newest n commits (escape hatch for enormous histories)
   --depth <n>            directory depth for ownership (default: 2)
+  --no-exclusions        count bot commits and generated, vendored, lock and snapshot files
+  --exclude <glob>       also drop files matching the glob (repeatable)
+  --seed <text>          salt for the blame file sample
+  --copies               pass -C to git blame so copied lines follow their origin
+  --ignore-revs-file <f> blame ignore-revs file (default: .git-blame-ignore-revs at the root)
+  --fingerprint-key <hex> reuse a fingerprint key so two reports of one repository match
   --paths                include directory paths in the report (off by default)
   --emails               include author emails in the report (off by default)
   --narrate              append a model-written paragraph; needs WORKPROOF_API_URL, WORKPROOF_API_KEY, WORKPROOF_MODEL
@@ -31,7 +37,7 @@ type OutputFormat = "both" | "markdown" | "json";
 interface Cli { params: Params; repos: string[]; out: string; format: OutputFormat; json: boolean; doNarrate: boolean; badge: boolean; verifyFile: string | undefined }
 
 export function parse(argv: string[]): Cli {
-  const params: Params = { depth: 2, threshold: 0.5, minCommits: 5, paths: false, emails: false };
+  const params: Params = { depth: 2, threshold: 0.5, minCommits: 5, paths: false, emails: false, exclusions: true, exclude: [], seed: "", copies: false };
   const repos: string[] = [];
   const authors: string[] = [];
   let out = "workproof-report";
@@ -59,6 +65,12 @@ export function parse(argv: string[]): Cli {
     else if (a === "--sample") params.sample = Number(next());
     else if (a === "--max-commits") { params.maxCommits = Number(next()); if (!Number.isInteger(params.maxCommits) || params.maxCommits < 1) throw new Error("--max-commits must be an integer >= 1"); }
     else if (a === "--depth") params.depth = Number(next());
+    else if (a === "--no-exclusions") params.exclusions = false;
+    else if (a === "--exclude") params.exclude!.push(next());
+    else if (a === "--seed") params.seed = next();
+    else if (a === "--copies") params.copies = true;
+    else if (a === "--ignore-revs-file") params.ignoreRevsFile = next();
+    else if (a === "--fingerprint-key") params.fingerprintKey = next();
     else if (a === "--paths") params.paths = true;
     else if (a === "--emails") params.emails = true;
     else if (a === "--narrate") doNarrate = true;
