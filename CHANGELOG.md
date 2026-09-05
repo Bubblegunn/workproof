@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.0 (unreleased)
+## 0.4.0 (2026-09-05)
 
 **The hash was not reproducible on another machine, and that is the one thing this tool exists to promise.** It covered two values that belong to the computer rather than to the repository: the local directory's name, and the git version string. Both were reproduced with real runs. The same repository copied to a second folder and measured with the same command produced two different hashes; so did two reports identical except for `git --version`. Anyone who cloned a repository under a different name, or simply had a different git, could not verify a report they had been given.
 
