@@ -25,56 +25,56 @@
 
 **Files:** Modify `test/fixture.ts`.
 
-- [ ] Add after the rename commit (d5): commit 6 by `dependabot[bot]` (`49699333+dependabot[bot]@users.noreply.github.com`, 2026-02-10) adding `package-lock.json` with 20 lines; commit 7 by Ada (2026-02-11) adding `gen/out.ts` (8 lines) with `.gitattributes` containing `gen/* linguist-generated` and a message body `Co-authored-by: Bob <bob@example.com>`; commit 8 by Bob with name `Bob (aider)` (2026-02-12) touching `docs/guide.md` and message trailer `Co-Authored-By: Claude <noreply@anthropic.com>`; commit 9 by Bob (2026-02-13) reformatting `src/a.ts` (every line gets two leading spaces) and a root `.git-blame-ignore-revs` listing that commit's sha, committed by Bob in commit 10 (2026-02-14).
-- [ ] Export `makeRepo` unchanged in signature; update the existing test expectations that count commits (5 becomes 10) and files.
-- [ ] Run `npm test`; fix counts in `figures.test.ts`, `report.test.ts`, `cli.test.ts` so all pass.
-- [ ] Commit: `test: fixture with a bot commit, lock file, generated attribute, trailers and a reformat`.
+- [x] Add after the rename commit (d5): commit 6 by `dependabot[bot]` (`49699333+dependabot[bot]@users.noreply.github.com`, 2026-02-10) adding `package-lock.json` with 20 lines; commit 7 by Ada (2026-02-11) adding `gen/out.ts` (8 lines) with `.gitattributes` containing `gen/* linguist-generated` and a message body `Co-authored-by: Bob <bob@example.com>`; commit 8 by Bob with name `Bob (aider)` (2026-02-12) touching `docs/guide.md` and message trailer `Co-Authored-By: Claude <noreply@anthropic.com>`; commit 9 by Bob (2026-02-13) reformatting `src/a.ts` (every line gets two leading spaces) and a root `.git-blame-ignore-revs` listing that commit's sha, committed by Bob in commit 10 (2026-02-14).
+- [x] Export `makeRepo` unchanged in signature; update the existing test expectations that count commits (5 becomes 10) and files.
+- [x] Run `npm test`; fix counts in `figures.test.ts`, `report.test.ts`, `cli.test.ts` so all pass.
+- [x] Commit: `test: fixture with a bot commit, lock file, generated attribute, trailers and a reformat`.
 
 ### Task 2: JCS canonicalisation, schema, `check`, integrity-first `verify`
 
 **Files:** Create `src/canonical.ts`, `src/schema.ts`, `schema/report.schema.json`, `test/integrity.test.ts`; modify `src/report.ts`, `src/verify.ts`, `src/cli.ts`, `package.json` (`files` adds `schema`).
 
-- [ ] `canonical.ts`: `export function canonicalize(value: unknown): string` per RFC 8785: `null`, booleans, finite numbers via `JSON.stringify`, strings via `JSON.stringify`, arrays element-wise, objects with keys sorted by UTF-16 code unit order (`a < b` comparison on JS strings), `undefined` values skipped, non-finite numbers throw.
-- [ ] Test: `canonicalize({b:1,a:[true,null,"xé"],c:{z:0,y:1.5}})` equals `{"a":[true,null,"xé"],"b":1,"c":{"y":1.5,"z":0}}`; `canonicalize({a:Infinity})` throws.
-- [ ] `report.ts`: `hash = sha256(canonicalize({ params, repositories }))`; add `schemaVersion: 2` to `Report`.
-- [ ] `schema.ts`: `export function validateReport(value: unknown): string[]` returning problems (`"repositories[0].figures[2].limits: expected array"`), checking `tool === "workproof"`, `schemaVersion === 2`, `version`, `generatedAt`, `params` object, `repositories` array of `{ name, head (40 hex), fingerprint (64 hex), identity {emails[], names[], count}, environment {git, blame}, excluded {botCommits, files, linesAddedShare}, figures[] of {id, title, value, command, limits[]} }`, `hash` 64 hex.
-- [ ] `schema/report.schema.json`: the same shape as JSON Schema 2020-12 with `$id` `https://workproof.dev/schema/report-2.json`.
-- [ ] `verify.ts`: `export function checkReport(report: unknown): { ok: boolean; problems: string[]; hash: { stated: string; computed: string } }`; `verifyReport` calls it first, then compares `fingerprint` (when a key is given or the fingerprint is unkeyed; see Task 7) and `head`, then figures; result gains `integrity`.
-- [ ] `cli.ts`: subcommand `check <report.json>`; prints `schema ok`, `hash ok` or the mismatch, exit 1 on failure; `verify` prints integrity lines first.
-- [ ] Tests: build a report from the fixture; `checkReport` ok; mutate `report.repositories[0].figures[1].value.author` and expect hash mismatch; delete `hash` and expect a schema problem; `verifyReport` on the mutated report reports `integrity.ok === false` and no figure rows.
-- [ ] Commit: `feat: check recomputes the hash over RFC 8785 JSON and verify compares integrity first`.
+- [x] `canonical.ts`: `export function canonicalize(value: unknown): string` per RFC 8785: `null`, booleans, finite numbers via `JSON.stringify`, strings via `JSON.stringify`, arrays element-wise, objects with keys sorted by UTF-16 code unit order (`a < b` comparison on JS strings), `undefined` values skipped, non-finite numbers throw.
+- [x] Test: `canonicalize({b:1,a:[true,null,"xé"],c:{z:0,y:1.5}})` equals `{"a":[true,null,"xé"],"b":1,"c":{"y":1.5,"z":0}}`; `canonicalize({a:Infinity})` throws.
+- [x] `report.ts`: `hash = sha256(canonicalize({ params, repositories }))`; add `schemaVersion: 2` to `Report`.
+- [x] `schema.ts`: `export function validateReport(value: unknown): string[]` returning problems (`"repositories[0].figures[2].limits: expected array"`), checking `tool === "workproof"`, `schemaVersion === 2`, `version`, `generatedAt`, `params` object, `repositories` array of `{ name, head (40 hex), fingerprint (64 hex), identity {emails[], names[], count}, environment {git, blame}, excluded {botCommits, files, linesAddedShare}, figures[] of {id, title, value, command, limits[]} }`, `hash` 64 hex.
+- [x] `schema/report.schema.json`: the same shape as JSON Schema 2020-12 with `$id` `https://workproof.dev/schema/report-2.json`.
+- [x] `verify.ts`: `export function checkReport(report: unknown): { ok: boolean; problems: string[]; hash: { stated: string; computed: string } }`; `verifyReport` calls it first, then compares `fingerprint` (when a key is given or the fingerprint is unkeyed; see Task 7) and `head`, then figures; result gains `integrity`.
+- [x] `cli.ts`: subcommand `check <report.json>`; prints `schema ok`, `hash ok` or the mismatch, exit 1 on failure; `verify` prints integrity lines first.
+- [x] Tests: build a report from the fixture; `checkReport` ok; mutate `report.repositories[0].figures[1].value.author` and expect hash mismatch; delete `hash` and expect a schema problem; `verifyReport` on the mutated report reports `integrity.ok === false` and no figure rows.
+- [x] Commit: `feat: check recomputes the hash over RFC 8785 JSON and verify compares integrity first`.
 
 ### Task 3: Pinned git environment, trailers, attributes
 
 **Files:** Modify `src/git.ts`; test in `test/figures.test.ts`.
 
-- [ ] `git()` prepends `["-c","diff.renames=true","-c","diff.algorithm=myers","-c","diff.indentHeuristic=true","-c","core.autocrlf=false"]`.
-- [ ] `export async function gitVersion(cwd): Promise<string>` returns the `git --version` line trimmed.
-- [ ] `listCommits`: format gains `%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%(trailers:key=Assisted-by,valueonly,separator=%x1d)`; `Commit` gains `coAuthors: string[]` (lowercased emails extracted from `Name <email>`; names kept in `coAuthorNames`) and `assistedBy: string[]`.
-- [ ] `export async function checkAttr(cwd, paths: string[]): Promise<Map<string, { generated: boolean; vendored: boolean }>>` using `git check-attr -z linguist-generated linguist-vendored --stdin`.
-- [ ] Tests: commit 7 has `coAuthors` `["bob@example.com"]`; commit 8 has `coAuthorNames` containing `Claude`; `checkAttr` marks `gen/out.ts` generated.
-- [ ] Commit: `feat(git): pinned diff settings, trailers and linguist attributes`.
+- [x] `git()` prepends `["-c","diff.renames=true","-c","diff.algorithm=myers","-c","diff.indentHeuristic=true","-c","core.autocrlf=false"]`.
+- [x] `export async function gitVersion(cwd): Promise<string>` returns the `git --version` line trimmed.
+- [x] `listCommits`: format gains `%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%(trailers:key=Assisted-by,valueonly,separator=%x1d)`; `Commit` gains `coAuthors: string[]` (lowercased emails extracted from `Name <email>`; names kept in `coAuthorNames`) and `assistedBy: string[]`.
+- [x] `export async function checkAttr(cwd, paths: string[]): Promise<Map<string, { generated: boolean; vendored: boolean }>>` using `git check-attr -z linguist-generated linguist-vendored --stdin`.
+- [x] Tests: commit 7 has `coAuthors` `["bob@example.com"]`; commit 8 has `coAuthorNames` containing `Claude`; `checkAttr` marks `gen/out.ts` generated.
+- [x] Commit: `feat(git): pinned diff settings, trailers and linguist attributes`.
 
 ### Task 4: Bots and generated-file exclusions
 
 **Files:** Create `src/exclusions.ts`, `test/exclusions.test.ts`; modify `src/analyse.ts`, `src/figures/footprint.ts`, `src/report.ts`, `src/cli.ts`.
 
-- [ ] `exclusions.ts`: `export const isBot = (c: { name: string; email: string }) => /\[bot\]$/.test(c.name) || /^\d+\+.*\[bot\]@users\.noreply\.github\.com$/.test(c.email)`; `export function isExcludedPath(path: string): boolean` with the lists from the spec; `export function excludedSet(paths: Iterable<string>, attrs: Map<string,{generated:boolean;vendored:boolean}>, extra: RegExp[]): Set<string>`.
-- [ ] `analyse.ts`: after `listCommits`, `const bots = all.filter(isBot).length; const human = all.filter(c => !isBot(c))`; all figures use `human`. Compute the excluded path set over every path in `human` commits plus HEAD files; filter `files` of each commit for figures (keep a copy for `excluded.linesAddedShare`). `RepoReport` gains `environment: { git: string; blame: string[]; ignoreRevs: string | null; seed: string }` and `excluded: { botCommits: number; files: number; linesAddedShare: number; enabled: boolean }`.
-- [ ] `Params` gains `exclusions: boolean` (default true), `exclude: string[]`, `seed: string`, `copies: boolean`, `ignoreRevsFile?: string`, `fingerprintKey?: string`.
-- [ ] `report.ts` Markdown: under the repository header, `excluded N bot commits and M generated, vendored or lock files (P% of lines added)`.
-- [ ] `cli.ts`: `--no-exclusions`, `--exclude`, `--seed`, `--copies`, `--ignore-revs-file`, `--fingerprint-key`.
-- [ ] Tests: `isBot` on the dependabot commit true, on Ada false; `isExcludedPath("package-lock.json")`, `("a/__snapshots__/x.snap")`, `("vendor/x.go")` true, `("src/a.ts")` false; `analyseRepo` on the fixture reports `excluded.botCommits === 1`, `excluded.files === 2` (`package-lock.json`, `gen/out.ts`), commit share total excludes the bot, languages contain no JSON.
-- [ ] Commit: `feat: bots leave every denominator and generated, vendored and lock files leave every count`.
+- [x] `exclusions.ts`: `export const isBot = (c: { name: string; email: string }) => /\[bot\]$/.test(c.name) || /^\d+\+.*\[bot\]@users\.noreply\.github\.com$/.test(c.email)`; `export function isExcludedPath(path: string): boolean` with the lists from the spec; `export function excludedSet(paths: Iterable<string>, attrs: Map<string,{generated:boolean;vendored:boolean}>, extra: RegExp[]): Set<string>`.
+- [x] `analyse.ts`: after `listCommits`, `const bots = all.filter(isBot).length; const human = all.filter(c => !isBot(c))`; all figures use `human`. Compute the excluded path set over every path in `human` commits plus HEAD files; filter `files` of each commit for figures (keep a copy for `excluded.linesAddedShare`). `RepoReport` gains `environment: { git: string; blame: string[]; ignoreRevs: string | null; seed: string }` and `excluded: { botCommits: number; files: number; linesAddedShare: number; enabled: boolean }`.
+- [x] `Params` gains `exclusions: boolean` (default true), `exclude: string[]`, `seed: string`, `copies: boolean`, `ignoreRevsFile?: string`, `fingerprintKey?: string`.
+- [x] `report.ts` Markdown: under the repository header, `excluded N bot commits and M generated, vendored or lock files (P% of lines added)`.
+- [x] `cli.ts`: `--no-exclusions`, `--exclude`, `--seed`, `--copies`, `--ignore-revs-file`, `--fingerprint-key`.
+- [x] Tests: `isBot` on the dependabot commit true, on Ada false; `isExcludedPath("package-lock.json")`, `("a/__snapshots__/x.snap")`, `("vendor/x.go")` true, `("src/a.ts")` false; `analyseRepo` on the fixture reports `excluded.botCommits === 1`, `excluded.files === 2` (`package-lock.json`, `gen/out.ts`), commit share total excludes the bot, languages contain no JSON.
+- [x] Commit: `feat: bots leave every denominator and generated, vendored and lock files leave every count`.
 
 ### Task 5: One blame pass with ignore-revs, copies, cohorts
 
 **Files:** Rewrite `src/figures/surviving.ts`; test in `test/figures.test.ts`.
 
-- [ ] `survivingLines(cwd, id, opts: { sample; seed; exclude: RegExp-free globs; copies; ignoreRevsFile: string | null; excluded: Set<string>; version })`: list text files with `git diff --numstat -z <empty-tree> HEAD`, drop excluded paths and `--exclude` globs (via surviving-lines `globToRegExp`/`selected`), sample with surviving-lines `inSample(path, sample, seed)`, run `git blame --line-porcelain -w -M [-C] [--ignore-revs-file F] HEAD -- path` with 4 workers, parse `author-mail` and `author-time` per line; value `{ lines, linesAttributed, share, filesSampled, filesTotal, sample, seed, byYear: [{ year, lines }] }` where `byYear` covers the subject's lines only.
-- [ ] Empty tree id: `git hash-object -t tree /dev/null` equivalent via `git rev-parse --verify 4b825dc642cb6eb9a060e54bf8d69288fbee4904^{tree}` fallback constant.
-- [ ] Tests on the fixture: with ignore-revs auto-detected, Ada's surviving lines in `src/a.ts` still count the reformatted lines as Ada's (8 lines: `line 0` to `line 5` plus `ada 6`, `ada 7`? After Bob's rewrite of the tail, Ada keeps `line 0`..`line 5` = 6 lines; assert 6 of the file's 10 are Ada's with ignore-revs and fewer without); `byYear` has one entry for 2026; excluded `gen/out.ts` and `package-lock.json` are not blamed (`filesTotal` counts only included files).
-- [ ] Commit: `feat(surviving): one blame pass honouring .git-blame-ignore-revs, --copies and cohorts`.
+- [x] `survivingLines(cwd, id, opts: { sample; seed; exclude: RegExp-free globs; copies; ignoreRevsFile: string | null; excluded: Set<string>; version })`: list text files with `git diff --numstat -z <empty-tree> HEAD`, drop excluded paths and `--exclude` globs (via surviving-lines `globToRegExp`/`selected`), sample with surviving-lines `inSample(path, sample, seed)`, run `git blame --line-porcelain -w -M [-C] [--ignore-revs-file F] HEAD -- path` with 4 workers, parse `author-mail` and `author-time` per line; value `{ lines, linesAttributed, share, filesSampled, filesTotal, sample, seed, byYear: [{ year, lines }] }` where `byYear` covers the subject's lines only.
+- [x] Empty tree id: `git hash-object -t tree /dev/null` equivalent via `git rev-parse --verify 4b825dc642cb6eb9a060e54bf8d69288fbee4904^{tree}` fallback constant.
+- [x] Tests on the fixture: with ignore-revs auto-detected, Ada's surviving lines in `src/a.ts` still count the reformatted lines as Ada's (8 lines: `line 0` to `line 5` plus `ada 6`, `ada 7`? After Bob's rewrite of the tail, Ada keeps `line 0`..`line 5` = 6 lines; assert 6 of the file's 10 are Ada's with ignore-revs and fewer without); `byYear` has one entry for 2026; excluded `gen/out.ts` and `package-lock.json` are not blamed (`filesTotal` counts only included files).
+- [x] Commit: `feat(surviving): one blame pass honouring .git-blame-ignore-revs, --copies and cohorts`.
 
 ### Task 6: Labels and new figures
 

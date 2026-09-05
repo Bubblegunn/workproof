@@ -56,7 +56,7 @@ function figureLines(f: RepoReport["figures"][number]): string[] {
     case "testsAndDocs":
       return [`${n(v.testChangesAuthor)} of ${n(v.testChangesTotal)} test-file changes, ${pct(v.testShare)}`, `${n(v.docsAuthored)} documents authored`];
     case "survivingLines":
-      return [`${n(v.lines)} of ${n(v.linesAttributed)} surviving lines, ${pct(v.share)} (files ${v.filesSampled}/${v.filesTotal}, sample 1 in ${v.sample})`];
+      return [`${n(v.lines)} of ${n(v.linesAttributed)} surviving lines, ${pct(v.share)} (files ${v.filesSampled}/${v.filesTotal}, sample 1 in ${v.sample}${v.seed ? `, seed "${v.seed}"` : ""})`];
     default:
       return [JSON.stringify(v)];
   }

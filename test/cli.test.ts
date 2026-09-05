@@ -137,9 +137,9 @@ test("--badge writes a shields.io endpoint document built from the first reposit
     const out = execFileSync("node", [cli, "--repo", dir, "--author", "ada@example.com", "--out", join(dir, "b"), "--badge"], { encoding: "utf8" });
     assert.match(out, /wrote .*b\.md and .*b\.json and .*b\.badge\.json/);
     const badge = JSON.parse(await readFile(join(dir, "b.badge.json"), "utf8"));
-    assert.deepEqual(badge, { schemaVersion: 1, label: "workproof", message: "32.3% surviving lines · 100.0% commits", color: "1f3fbf" });
+    assert.deepEqual(badge, { schemaVersion: 1, label: "workproof", message: "51.6% surviving lines · 100.0% commits", color: "1f3fbf" });
     const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.3", generatedAt: "2026-09-05T00:00:00Z" });
-    assert.equal(badgeFor(report).message, "32.3% surviving lines · 100.0% commits");
+    assert.equal(badgeFor(report).message, "51.6% surviving lines · 100.0% commits");
     assert.throws(() => badgeFor({ ...report, repositories: [] }), /no repositories/);
   } finally {
     await rm(dir, { recursive: true, force: true });

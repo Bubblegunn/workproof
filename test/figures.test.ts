@@ -62,7 +62,7 @@ import { resolveIdentity, isMine } from "../src/figures/identity.js";
 import { tenure, commitShare } from "../src/figures/commits.js";
 import { cadence, isoWeek } from "../src/figures/cadence.js";
 import { footprint, testsAndDocs, languageOf } from "../src/figures/footprint.js";
-import { survivingLines } from "../src/figures/surviving.js";
+import { survivingLines, parseBlame, listTextFiles } from "../src/figures/surviving.js";
 
 test("identity resolves by email or name, tenure spans first to last commit, commit share excludes merges", async () => {
   const dir = await makeRepo();
@@ -145,17 +145,39 @@ test("footprint counts files, owned directories and languages; tests and docs ar
   }
 });
 
-test("surviving lines come from surviving-lines and follow the identity", async () => {
+test("one blame pass honours ignore-revs, exclusions and the seed, and buckets the subject's lines by year", async () => {
   const dir = await makeRepo();
   try {
     const commits = await listCommits(dir, {});
     const ada = await resolveIdentity(commits, ["ada@example.com"], dir);
-    const s = await survivingLines(dir, ada, { sample: 1, version: "test" });
-    assert.equal(s.value.linesAttributed, 59);
-    assert.equal(s.value.lines, 10);
-    assert.ok(Math.abs(s.value.share - 10 / 59) < 1e-9);
-    assert.equal(s.value.filesTotal, 9);
-    assert.match(s.command, /git blame -w -M/);
+    const base = { sample: 1, seed: "", exclude: [], copies: false, excluded: new Set(["gen/out.ts", "package-lock.json"]), version: "test" };
+    // Bob's semicolon reformat is listed in .git-blame-ignore-revs, so Ada keeps line 0 to line 5 of src/a.ts.
+    const honoured = await survivingLines(dir, ada, { ...base, ignoreRevsFile: ".git-blame-ignore-revs" });
+    assert.equal(honoured.value.filesTotal, 7);
+    assert.equal(honoured.value.filesSampled, 7);
+    assert.equal(honoured.value.linesAttributed, 31);
+    assert.equal(honoured.value.lines, 16);
+    assert.deepEqual(honoured.value.byYear, [{ year: 2026, lines: 16 }]);
+    assert.match(honoured.command, /git blame --line-porcelain -w -M --ignore-revs-file \.git-blame-ignore-revs HEAD/);
+    assert.ok(honoured.limits.some((l) => l.includes(".git-blame-ignore-revs")));
+    // Without it, the reformat takes all ten lines of src/a.ts.
+    const ignored = await survivingLines(dir, ada, { ...base, ignoreRevsFile: null });
+    assert.equal(ignored.value.lines, 10);
+    assert.equal(ignored.value.linesAttributed, 31);
+    // Nothing excluded and copies on: the lock file and the generated file come back.
+    const raw = await survivingLines(dir, ada, { ...base, excluded: new Set(), copies: true, ignoreRevsFile: null });
+    assert.equal(raw.value.filesTotal, 9);
+    assert.equal(raw.value.linesAttributed, 59);
+    assert.match(raw.command, /-w -M -C HEAD/);
+    // A glob drops files too, and the seed changes which files a sample draws.
+    const globbed = await survivingLines(dir, ada, { ...base, ignoreRevsFile: null, exclude: ["*.md", "test/**"] });
+    assert.equal(globbed.value.filesTotal, 5);
+    const a = await survivingLines(dir, ada, { ...base, ignoreRevsFile: null, sample: 3, seed: "one" });
+    const b = await survivingLines(dir, ada, { ...base, ignoreRevsFile: null, sample: 3, seed: "two" });
+    assert.ok(a.value.filesSampled < 7 && b.value.filesSampled < 7);
+    assert.equal(a.value.seed, "one");
+    assert.deepEqual((await listTextFiles(dir)).map((f) => f.path).sort(), [".git-blame-ignore-revs", ".gitattributes", "docs/guide.md", "gen/out.ts", "package-lock.json", "src/a.ts", "src/c.py", "src/renamed.ts", "test/a.test.ts"]);
+    assert.deepEqual(parseBlame("abc 1 1 1\nauthor Ada\nauthor-mail <Ada@Example.com>\nauthor-time 1767607200\n\tline 0\n"), [{ mail: "ada@example.com", year: 2026 }]);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

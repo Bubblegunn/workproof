@@ -13,7 +13,7 @@ import { resolveIdentity } from "./figures/identity.js";
 import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
 import { footprint, testsAndDocs } from "./figures/footprint.js";
-import { survivingLines } from "./figures/surviving.js";
+import { survivingLines, blameFlags } from "./figures/surviving.js";
 import type { Figure } from "./figures/types.js";
 
 export interface Params {
@@ -132,7 +132,7 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
   const tags = await listTags(cwd);
   const sample = params.sample ?? (all.reduce((n, c) => n + c.files.length, 0) > 50000 ? 7 : 1);
   const ignoreRevs = await ignoreRevsFor(cwd, params);
-  const blame = ["-w", "-M", ...(params.copies ? ["-C"] : []), ...(ignoreRevs ? [`--ignore-revs-file ${ignoreRevs}`] : [])];
+  const blame = blameFlags(params.copies ?? false, ignoreRevs);
   const fp = footprint(inTenure, id, { depth: params.depth, threshold: params.threshold, minCommits: params.minCommits });
   if (!params.paths) {
     fp.value = { ...fp.value, ownedDirectories: fp.value.ownedDirectories.map((d) => ({ ...d, path: "(hidden; run with --paths)" })) };
@@ -145,7 +145,15 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
     testsAndDocs(inTenure, id),
   ];
   say(`${basename(cwd)}: blaming files (1 in ${sample} sample)...`);
-  const surviving = await survivingLines(cwd, id, { sample, version: survivingVersion(), exclude: [...(params.exclude ?? []), ...ex.excluded] });
+  const surviving = await survivingLines(cwd, id, {
+    sample,
+    seed: params.seed ?? "",
+    exclude: params.exclude ?? [],
+    copies: params.copies ?? false,
+    ignoreRevsFile: ignoreRevs,
+    excluded: ex.excluded,
+    version: survivingVersion(),
+  });
   say(`${basename(cwd)}: blamed ${surviving.value.filesSampled} of ${surviving.value.filesTotal} files`);
   figures.push(surviving);
   return {
