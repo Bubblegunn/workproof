@@ -6,6 +6,8 @@
 
 Both fields stay in the report, because they explain why two runs might legitimately differ, and both are now outside the hash. What the hash covers is what a stranger can reproduce: the head, the fingerprint, the identity, the exclusion counts, every figure, and the flags the caller chose, including the blame flags, the ignore-revs file and the seed. A test pins the exclusions in both directions, and CI recomputes the same fixture's hash on Linux, macOS and Windows so this cannot decay.
 
+The README now places these figures in the literature that already exists around them: Kalliamvakou, Gousios and Blincoe on the traps in mining a forge, Bird and colleagues on ownership as a defect predictor rather than a measure of credit, and Spinellis and Gurov on how long lines live. None of that work measures a person's share of surviving code, and a first measurement of how far it diverges from commit share now sits in the surviving-lines repository.
+
 **Every existing report's hash changes.** A report made before this release will not verify against one made after, the same way the local-weeks change did in 0.3.0. Regenerate any report you are relying on.
 
 ## 0.3.1 (2026-09-05)

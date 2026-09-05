@@ -493,6 +493,28 @@ with an attestation if the reader cannot reach the repository.
 It measures survivorship and activity, not quality, review, design or mentoring. It does
 not rank people. It does not replace references. It is not a legal document.
 
+## What the research says about numbers like these
+
+Repository-derived figures have a literature, and most of it is a warning. Kalliamvakou,
+Gousios and Blincoe catalogued the traps in mining a forge, including that most repositories
+are personal and inactive and that a large share of merged pull requests are not recorded as
+merged ([MSR 2014](https://doi.org/10.1145/2597073.2597074), extended in [EMSE
+2015](https://doi.org/10.1007/s10664-015-9393-5)). Bird and colleagues related ownership
+concentration to defects rather than to credit, which is a different question from this one
+and is not evidence that a high share means good work. On survival, Spinellis, Louridas and
+Kechagia put the median line lifespan at about 2.4 years across 89 repositories ([PeerJ CS
+7:e372, 2021](https://doi.org/10.7717/peerj-cs.372)), and Gurov found over half of all lines
+are never deleted in 120 TypeScript repositories ([arXiv
+2606.04993](https://arxiv.org/abs/2606.04993)).
+
+None of that work measures a person's share of the surviving code, which is what the
+surviving-lines figure here reports. A first measurement of how far that share diverges from
+commit share, over twelve repositories, is in
+[surviving-lines/research](https://github.com/Bubblegunn/surviving-lines/tree/main/research):
+the same person tops both in 25 of 36 runs, and among substantial contributors the two
+differ by a median of 7.5 percentage points. That is the honest size of the effect this
+report exists to expose, measured rather than asserted.
+
 ## Where it comes from
 
 The method is written up in
