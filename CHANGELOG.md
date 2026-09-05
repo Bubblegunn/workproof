@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.0 (unreleased)
+
+A repository whose paths are stored decomposed now produces a report instead of failing. Git precomposes command-line arguments on macOS, so a path read out of the tree and handed back as a pathspec matched nothing, ending the run with `fatal: no such path café.ts in HEAD` and no report. `core.precomposeunicode=false` joins the pinned settings, so the path sent is the path git stored. A checkout authored on Linux carrying Korean, French, Turkish, Vietnamese, Portuguese or Spanish filenames was affected; figures for ASCII repositories are byte-identical.
+
 ## 0.2.0 (2026-09-05)
 
 Every repository section of the Markdown report now opens with a plain-language paragraph for the person who will read the report and does not write software. It is assembled from the figures by a fixed rule with no model call, so it is deterministic, states no opinion about quality, keeps commit share and surviving lines apart, and ends with the command that recomputes it. It is derived from the hashed figures rather than added to them, so the hash is unchanged.

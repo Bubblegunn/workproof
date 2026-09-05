@@ -4,8 +4,16 @@ import { execFile } from "node:child_process";
  * Settings that change what diff and blame attribute, pinned so two machines with different
  * defaults produce the same figures. indentHeuristic became the default in git 2.14 and
  * rename detection in 2.9; a report records the git version it ran under as well.
+ *
+ * `core.precomposeunicode` is true in every repository git creates on macOS, and it rewrites
+ * command-line arguments from decomposed to precomposed form. Paths here are read out of the
+ * tree and handed back as pathspecs, so a stored decomposed path came back as a different
+ * string and matched nothing: "fatal: no such path café.ts in HEAD", and the run ended with no
+ * report. Pinning it off keeps the path sent identical to the path git stored. A checkout
+ * authored on Linux carrying Korean, French, Turkish, Vietnamese, Portuguese or Spanish
+ * filenames was affected; ASCII repositories are unchanged either way.
  */
-export const PINNED_CONFIG = ["-c", "diff.renames=true", "-c", "diff.algorithm=myers", "-c", "diff.indentHeuristic=true", "-c", "core.autocrlf=false"];
+export const PINNED_CONFIG = ["-c", "diff.renames=true", "-c", "diff.algorithm=myers", "-c", "diff.indentHeuristic=true", "-c", "core.autocrlf=false", "-c", "core.precomposeunicode=false"];
 
 export function git(args: string[], cwd: string, input?: string): Promise<string> {
   return new Promise((resolve, reject) => {

@@ -89,3 +89,37 @@ export async function makeRepo(): Promise<string> {
   g(["commit", "-q", "-m", "chore: blame ignore revs"], "bob", d10);
   return dir;
 }
+
+/**
+ * A repository whose paths are stored decomposed, which is what a checkout authored on Linux
+ * carries for Korean, French, Turkish, Vietnamese, Portuguese and Spanish names. macOS
+ * normalises anything created through the filesystem, so the entries are written into the
+ * index directly.
+ */
+export async function makeNfdRepo(): Promise<string> {
+  const dir = await mkdtemp(join(tmpdir(), "workproof-nfd-"));
+  const env = {
+    ...process.env,
+    GIT_AUTHOR_NAME: "Ada",
+    GIT_AUTHOR_EMAIL: "ada@example.com",
+    GIT_COMMITTER_NAME: "Ada",
+    GIT_COMMITTER_EMAIL: "ada@example.com",
+    GIT_AUTHOR_DATE: "2026-01-05T10:00:00Z",
+    GIT_COMMITTER_DATE: "2026-01-05T10:00:00Z",
+  };
+  const g = (args: string[], input?: Buffer) => execFileSync("git", args, { cwd: dir, env, input, encoding: "buffer" });
+  g(["init", "-q", "-b", "main"]);
+  const names = ["café.ts", "모듈.ts", "İstanbul.ts", "plain.ts"].map((n) => n.normalize("NFD"));
+  const entries: Buffer[] = [];
+  for (const [i, name] of names.entries()) {
+    const body = Buffer.from(Array.from({ length: 10 }, (_, j) => `line ${j} of ${i}`).join("\n") + "\n");
+    const blob = String(g(["hash-object", "-w", "--stdin"], body)).trim();
+    entries.push(Buffer.concat([Buffer.from(`100644 ${blob}\t`), Buffer.from(name, "utf8"), Buffer.from("\n")]));
+  }
+  g(["update-index", "--add", "--index-info"], Buffer.concat(entries));
+  const tree = String(g(["write-tree"])).trim();
+  const commit = String(g(["commit-tree", tree, "-m", "init"])).trim();
+  g(["update-ref", "refs/heads/main", commit]);
+  g(["symbolic-ref", "HEAD", "refs/heads/main"]);
+  return dir;
+}

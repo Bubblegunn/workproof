@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rm } from "node:fs/promises";
-import { makeRepo } from "./fixture.js";
+import { makeRepo, makeNfdRepo } from "./fixture.js";
 import { execFileSync } from "node:child_process";
 import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -38,7 +38,7 @@ test("git helpers read commits with files, tags, root and head", async () => {
 test("git runs with pinned diff settings and reads trailers and linguist attributes", async () => {
   const dir = await makeRepo();
   try {
-    assert.deepEqual(PINNED_CONFIG.filter((_, i) => i % 2 === 1), ["diff.renames=true", "diff.algorithm=myers", "diff.indentHeuristic=true", "core.autocrlf=false"]);
+    assert.deepEqual(PINNED_CONFIG.filter((_, i) => i % 2 === 1), ["diff.renames=true", "diff.algorithm=myers", "diff.indentHeuristic=true", "core.autocrlf=false", "core.precomposeunicode=false"]);
     assert.match(await gitVersion(dir), /^git version \d+\.\d+/);
     const commits = await listCommits(dir, {});
     const generated = commits.find((c) => c.files.some((f) => f.path === "gen/out.ts"))!;
@@ -232,6 +232,23 @@ test("a directory that is not a repository gets a plain sentence", async () => {
   const dir = await mkdtemp(join(tmpdir(), "workproof-norepo-"));
   try {
     await assert.rejects(analyseRepo(dir, { depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false }), /not inside a git repository/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("a repository whose paths are decomposed still produces a report", async () => {
+  // git precomposes command-line arguments on macOS, so a path read out of the tree and handed
+  // back to blame matched nothing: "fatal: no such path café.ts in HEAD", and analyseRepo threw
+  // before any figure was computed.
+  const dir = await makeNfdRepo();
+  try {
+    const r = await analyseRepo(dir, { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 });
+    const v = r.figures.find((f) => f.id === "survivingLines")!.value as { lines: number; filesTotal: number };
+    assert.equal(v.filesTotal, 4);
+    assert.equal(v.lines, 40);
+    const footprint = r.figures.find((f) => f.id === "footprint")!.value as { filesTouched: number };
+    assert.equal(footprint.filesTouched, 4);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
