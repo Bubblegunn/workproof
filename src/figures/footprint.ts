@@ -5,7 +5,8 @@ import { isMine } from "./identity.js";
 const LANG: Record<string, string> = {
   ts: "TypeScript", tsx: "TypeScript", js: "JavaScript", jsx: "JavaScript", mjs: "JavaScript", cjs: "JavaScript",
   py: "Python", cs: "C#", go: "Go", rs: "Rust", java: "Java", kt: "Kotlin", swift: "Swift", rb: "Ruby", php: "PHP",
-  c: "C", h: "C", cpp: "C++", hpp: "C++", css: "CSS", scss: "CSS", html: "HTML", vue: "Vue", svelte: "Svelte",
+  c: "C", h: "C", cpp: "C++", hpp: "C++", ex: "Elixir", exs: "Elixir", scala: "Scala", sc: "Scala", hs: "Haskell", lhs: "Haskell", lua: "Lua", r: "R", m: "Objective-C", mm: "Objective-C", zig: "Zig",
+  css: "CSS", scss: "CSS", html: "HTML", vue: "Vue", svelte: "Svelte",
   sql: "SQL", sh: "Shell", yml: "YAML", yaml: "YAML", json: "JSON", md: "Markdown", mdx: "Markdown", tf: "Terraform", dart: "Dart",
 };
 

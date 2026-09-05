@@ -109,6 +109,13 @@ test("footprint counts files, owned directories and languages; tests and docs ar
     assert.equal(td.value.docsAuthored, 1);
     assert.equal(languageOf("x/y.tsx"), "TypeScript");
     assert.equal(languageOf("a.cs"), "C#");
+    assert.equal(languageOf("lib/parser.ex"), "Elixir");
+    assert.equal(languageOf("lib/parser.scala"), "Scala");
+    assert.equal(languageOf("src/parser.hs"), "Haskell");
+    assert.equal(languageOf("scripts/build.lua"), "Lua");
+    assert.equal(languageOf("analysis/model.r"), "R");
+    assert.equal(languageOf("src/main.mm"), "Objective-C");
+    assert.equal(languageOf("src/main.zig"), "Zig");
     assert.equal(languageOf("a.png"), null);
   } finally {
     await rm(dir, { recursive: true, force: true });
