@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.1
+## 0.4.1 (2026-09-05)
 
 A person who signs `Weiß` on one machine and `WEISS` on another was two people, and half their commits fell outside every figure. JavaScript's `toLowerCase` is Unicode's simple case fold and leaves ß alone; the full fold maps it to ss (CaseFolding.txt, status F), which the identity fold now does. The same fold normalises to NFKC, so a name typed in fullwidth Latin letters, which is what a Japanese or Korean keyboard produces without switching modes, matches the ASCII spelling. This changes which commits are counted, not how a name is printed: the report still prints the name git holds.
 
