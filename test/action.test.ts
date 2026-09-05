@@ -5,7 +5,7 @@ import { readFileSync } from "node:fs";
 // The composite action is YAML the test suite cannot execute; these checks pin the contract
 // the README promises: every step is SHA-pinned, the Markdown report reaches the job summary,
 // and the report files are uploaded as one artifact.
-const action = readFileSync(new URL("../../action.yml", import.meta.url), "utf8");
+const action = readFileSync(new URL("../../action.yml", import.meta.url), "utf8").replace(/\r\n/g, "\n"); // Windows checkouts may carry CRLF
 
 test("every action the composite uses is pinned to a full commit SHA", () => {
   const uses = [...action.matchAll(/^\s+uses:\s+(\S+)/gm)].map((m) => m[1] ?? "");
