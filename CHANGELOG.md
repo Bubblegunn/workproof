@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0 (unreleased)
+## 0.3.0 (2026-09-05)
 
 A repository whose paths are stored decomposed now produces a report instead of failing. Git precomposes command-line arguments on macOS, so a path read out of the tree and handed back as a pathspec matched nothing, ending the run with `fatal: no such path café.ts in HEAD` and no report. `core.precomposeunicode=false` joins the pinned settings, so the path sent is the path git stored. A checkout authored on Linux carrying Korean, French, Turkish, Vietnamese, Portuguese or Spanish filenames was affected; figures for ASCII repositories are byte-identical.
 
