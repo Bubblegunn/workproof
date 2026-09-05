@@ -99,7 +99,10 @@ const pinned = new RegExp(`Bubblegunn/${name}@v\\d+\\.\\d+\\.\\d+`);
 const pinnedAll = new RegExp(pinned.source, "g");
 for (const f of readmes) if (pinned.test(read(f))) plan.push(`${f}: Bubblegunn/${name}@${tag}`);
 if (pkg.scripts?.["release:prepare"]) plan.push("npm run release:prepare");
+const major = `v${target.split(".")[0]}`;
+const movesMajor = has("action.yml");
 plan.push("npm test", `commit "chore(release): ${target}"`, `tag ${tag} (annotated, message = the CHANGELOG entry)`, "git push origin main --follow-tags");
+if (movesMajor) plan.push(`move the ${major} tag to ${tag} and push it (the action's moving major tag)`);
 
 console.log(`release ${name} ${current} -> ${target}${dryRun ? " (dry run)" : ""}`);
 for (const p of plan) console.log(`  - ${p}`);
@@ -155,10 +158,15 @@ try {
   sh("git", ["commit", "--quiet", "-F", join(dir, "commit.txt")]);
   sh("git", ["tag", "-a", tag, "-F", join(dir, "tag.txt")]);
   sh("git", ["push", "origin", "main", "--follow-tags"]);
+  if (movesMajor) {
+    // Consumers write `uses: Bubblegunn/<name>@v0`; the release moves that tag, the workflow cannot (tags are admin-only).
+    sh("git", ["tag", "--force", major, tag]);
+    sh("git", ["push", "--force", "origin", `refs/tags/${major}`]);
+  }
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
 const repo = String(pkg.repository?.url ?? pkg.repository ?? "")
   .replace(/^git\+/, "")
   .replace(/\.git$/, "");
-console.log(`\n${tag} pushed. Watch the release workflow: ${repo}/actions/workflows/release.yml`);
+console.log(`\n${tag} pushed${movesMajor ? `, ${major} moved to it` : ""}. Watch the release workflow: ${repo}/actions/workflows/release.yml`);
