@@ -3,7 +3,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
-import { analyseRepo, buildReport, renderMarkdown, verifyReport, narrate } from "./index.js";
+import { analyseRepo, buildReport, renderMarkdown, verifyReport, narrate, badgeFor } from "./index.js";
 import type { Params, Report, RepoReport } from "./index.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
@@ -20,11 +20,12 @@ Turn a git repository into a verifiable engineering report for one author, witho
   --paths                include directory paths in the report (off by default)
   --emails               include author emails in the report (off by default)
   --narrate              append a model-written paragraph; needs WORKPROOF_API_URL, WORKPROOF_API_KEY, WORKPROOF_MODEL
+  --badge                also write <out>.badge.json, a shields.io endpoint document
   --out <basename>       output basename (default: workproof-report)
   --json                 print the JSON to stdout instead of writing files
   -h, --help             this text`;
 
-interface Cli { params: Params; repos: string[]; out: string; json: boolean; doNarrate: boolean; verifyFile: string | undefined }
+interface Cli { params: Params; repos: string[]; out: string; json: boolean; doNarrate: boolean; badge: boolean; verifyFile: string | undefined }
 
 export function parse(argv: string[]): Cli {
   const params: Params = { depth: 2, threshold: 0.5, minCommits: 5, paths: false, emails: false };
@@ -33,6 +34,7 @@ export function parse(argv: string[]): Cli {
   let out = "workproof-report";
   let json = false;
   let doNarrate = false;
+  let badge = false;
   let verifyFile: string | undefined;
   if (argv[0] === "verify") {
     verifyFile = argv[1];
@@ -56,6 +58,7 @@ export function parse(argv: string[]): Cli {
     else if (a === "--paths") params.paths = true;
     else if (a === "--emails") params.emails = true;
     else if (a === "--narrate") doNarrate = true;
+    else if (a === "--badge") badge = true;
     else if (a === "--out") out = next();
     else if (a === "--json") json = true;
     else if (a === "-h" || a === "--help") {
@@ -65,12 +68,12 @@ export function parse(argv: string[]): Cli {
   }
   if (authors.length) params.author = authors;
   if (!repos.length) repos.push(process.cwd());
-  return { params, repos, out, json, doNarrate, verifyFile };
+  return { params, repos, out, json, doNarrate, badge, verifyFile };
 }
 
 async function main() {
   const started = Date.now();
-  const { params, repos, out, json, doNarrate, verifyFile } = parse(process.argv.slice(2));
+  const { params, repos, out, json, doNarrate, badge, verifyFile } = parse(process.argv.slice(2));
   const progress = (m: string) => process.stderr.write(`${m}\n`);
   if (verifyFile) {
     const report = JSON.parse(await readFile(verifyFile, "utf8")) as Report;
@@ -98,7 +101,8 @@ async function main() {
   }
   await writeFile(`${out}.json`, JSON.stringify(report, null, 2));
   await writeFile(`${out}.md`, renderMarkdown(report, narrative));
-  console.log(`wrote ${out}.md and ${out}.json in ${((Date.now() - started) / 1000).toFixed(1)}s`);
+  if (badge) await writeFile(`${out}.badge.json`, JSON.stringify(badgeFor(report), null, 2));
+  console.log(`wrote ${out}.md and ${out}.json${badge ? ` and ${out}.badge.json` : ""} in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 }
 
 const entry = process.argv[1] ? pathToFileURL(process.argv[1]).href : "";

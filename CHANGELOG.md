@@ -1,6 +1,10 @@
 # Changelog
 
-## 0.1.2 (unreleased)
+## 0.1.3 (unreleased)
+
+`--badge` writes a shields.io endpoint document next to the report; a composite GitHub Action (`Bubblegunn/workproof@main`) runs the report on a pull request and posts one sticky comment with the six figures.
+
+## 0.1.2 (2026-09-05)
 
 Progress lines on stderr while reading history and blaming; `--max-commits` for enormous histories; elapsed time in the summary line; a multi-repository test; README sections on gaming and a Turkish README; contributing guide, issue templates, roadmap and a provenance release workflow.
 

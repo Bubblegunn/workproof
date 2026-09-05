@@ -6,3 +6,5 @@ export { verifyReport } from "./verify.js";
 export type { VerifyRow } from "./verify.js";
 export { narrate } from "./narrate.js";
 export type { Figure, Identity } from "./figures/types.js";
+export { badgeFor } from "./badge.js";
+export type { Badge } from "./badge.js";
