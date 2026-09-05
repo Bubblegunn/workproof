@@ -1,0 +1,69 @@
+name: workproof
+description: Run workproof on the checked-out repository and post the six-figure summary as a sticky pull-request comment.
+author: Efe Genc
+branding:
+  icon: check-square
+  color: blue
+inputs:
+  author:
+    description: Identity to report on, an email or a name as it appears in git log. Required, because a GitHub login does not map reliably onto commit identities.
+    required: true
+  sample:
+    description: Blame every n-th file (1 blames every file).
+    required: false
+    default: "1"
+  comment:
+    description: Post or update a sticky comment on the pull request with the summary. Needs permissions pull-requests write and a pull_request event.
+    required: false
+    default: "true"
+  version:
+    description: workproof version to run.
+    required: false
+    default: "0.1.2"
+runs:
+  using: composite
+  steps:
+    - name: Run workproof
+      shell: bash
+      run: |
+        set -euo pipefail
+        npx --yes "workproof@${{ inputs.version }}" --repo . --author "${{ inputs.author }}" --sample "${{ inputs.sample }}" --out workproof-report
+        echo "report=workproof-report.json" >> "$GITHUB_OUTPUT"
+    - name: Comment on the pull request
+      if: ${{ inputs.comment == 'true' && github.event_name == 'pull_request' }}
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PR: ${{ github.event.pull_request.number }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+        marker="<!-- workproof-summary -->"
+        body="$(node -e '
+          const r = JSON.parse(require("fs").readFileSync("workproof-report.json", "utf8"));
+          const repo = r.repositories[0];
+          const f = Object.fromEntries(repo.figures.map((x) => [x.id, x.value]));
+          const pct = (x) => (x * 100).toFixed(1) + "%";
+          const lines = [
+            "<!-- workproof-summary -->",
+            "### workproof · " + repo.identity.names.join(", "),
+            "",
+            "| figure | value |",
+            "|---|---|",
+            "| Tenure window | " + f.tenure.first + " to " + f.tenure.last + " (" + f.tenure.days + " days) |",
+            "| Share of commits | " + f.commitShare.author + " of " + f.commitShare.total + ", " + pct(f.commitShare.share) + " |",
+            "| Cadence | " + f.cadence.activeWeeks + " active weeks of " + f.cadence.weeksInTenure + ", " + f.cadence.commitsPerActiveWeek + " commits per active week |",
+            "| Footprint | " + f.footprint.filesTouched + " files touched, " + f.footprint.ownedDirectories.length + " directories at or above the threshold |",
+            "| Tests and docs | " + pct(f.testsAndDocs.testShare) + " of test-file changes, " + f.testsAndDocs.docsAuthored + " documents |",
+            "| Surviving lines | " + f.survivingLines.lines.toLocaleString("en-US") + " of " + f.survivingLines.linesAttributed.toLocaleString("en-US") + ", " + pct(f.survivingLines.share) + " |",
+            "",
+            "HEAD `" + repo.head.slice(0, 12) + "` · report hash `" + r.hash.slice(0, 16) + "` · verify with `npx workproof verify workproof-report.json`. Every figure has a limit; see the report.",
+          ];
+          process.stdout.write(lines.join("\n"));
+        ')"
+        existing="$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq ".[] | select(.body | startswith(\"$marker\")) | .id" | head -1)"
+        if [ -n "$existing" ]; then
+          gh api -X PATCH "repos/$REPO/issues/comments/$existing" -f body="$body" >/dev/null
+        else
+          gh api -X POST "repos/$REPO/issues/$PR/comments" -f body="$body" >/dev/null
+        fi

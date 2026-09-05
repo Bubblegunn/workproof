@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { makeRepo } from "./fixture.js";
-import { analyseRepo, buildReport, verifyReport, narrate, renderMarkdown } from "../src/index.js";
+import { analyseRepo, buildReport, verifyReport, narrate, renderMarkdown, badgeFor } from "../src/index.js";
 
 const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 };
 
@@ -127,5 +127,21 @@ test("two repositories make one report with two sections, and verify checks both
   } finally {
     await rm(a, { recursive: true, force: true });
     await rm(b, { recursive: true, force: true });
+  }
+});
+
+test("--badge writes a shields.io endpoint document built from the first repository", async () => {
+  const dir = await makeRepo();
+  try {
+    const cli = join(process.cwd(), "dist/src/cli.js");
+    const out = execFileSync("node", [cli, "--repo", dir, "--author", "ada@example.com", "--out", join(dir, "b"), "--badge"], { encoding: "utf8" });
+    assert.match(out, /wrote .*b\.md and .*b\.json and .*b\.badge\.json/);
+    const badge = JSON.parse(await readFile(join(dir, "b.badge.json"), "utf8"));
+    assert.deepEqual(badge, { schemaVersion: 1, label: "workproof", message: "61.5% surviving lines · 100.0% commits", color: "1f3fbf" });
+    const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.3", generatedAt: "x" });
+    assert.equal(badgeFor(report).message, "61.5% surviving lines · 100.0% commits");
+    assert.throws(() => badgeFor({ ...report, repositories: [] }), /no repositories/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
   }
 });

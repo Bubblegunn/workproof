@@ -6,6 +6,9 @@
 
 <p align="center">
   <img src="https://img.shields.io/npm/v/workproof?style=flat-square&color=111111&label=npm" alt="npm">
+  <img src="https://img.shields.io/npm/dm/workproof?style=flat-square&color=111111" alt="npm downloads">
+  <img src="https://img.shields.io/github/actions/workflow/status/Bubblegunn/workproof/ci.yml?style=flat-square&color=111111&label=ci" alt="ci">
+  <img src="https://img.shields.io/bundlephobia/minzip/workproof?style=flat-square&color=111111" alt="minzipped size">
   <img src="https://img.shields.io/github/stars/Bubblegunn/workproof?style=flat-square&color=111111" alt="stars">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT">
 </p>
@@ -126,6 +129,7 @@ workproof verify <report.json> [--repo <dir>]...
 --paths                include directory paths
 --emails               include author emails
 --narrate              append a model-written paragraph
+--badge                also write <out>.badge.json, a shields.io endpoint document
 --out <basename>       output basename (default: workproof-report)
 --json                 print the JSON to stdout instead of writing files
 ```
@@ -134,6 +138,58 @@ A `.mailmap` in the repository merges an author's several addresses. Progress li
 stderr while history is read and files are blamed, so a long run is visibly alive; on a
 history of hundreds of thousands of commits, `--max-commits` bounds the read and the report
 records that it did.
+
+## Badge
+
+`--badge` writes `workproof-report.badge.json` next to the report, in the
+[shields.io endpoint format](https://shields.io/badges/endpoint-badge):
+
+```json
+{ "schemaVersion": 1, "label": "workproof", "message": "70.6% surviving lines · 24.1% commits", "color": "1f3fbf" }
+```
+
+Commit it to a public repository (your portfolio, a gist) and point shields at the raw URL:
+
+```
+![workproof](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/<you>/<repo>/main/workproof-report.badge.json&style=flat-square)
+```
+
+A badge is a claim, not evidence. Keep the JSON report next to it; the report is what a
+reader verifies, the badge is only how they find it.
+
+## GitHub Action
+
+The repository ships a composite action that runs workproof on a checkout and posts one
+sticky comment on the pull request with the six figures. `fetch-depth: 0` is required, or
+the history the figures come from is missing; `author` is required because a GitHub login
+does not map reliably onto commit identities.
+
+```yaml
+name: workproof
+on:
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: Bubblegunn/workproof@main
+        with:
+          author: ada@example.com
+          sample: "1"
+```
+
+The comment is updated in place on later pushes (it carries a marker), and the JSON report
+stays in the workspace as `workproof-report.json` for an `upload-artifact` step if you want
+the evidence kept with the run. Set `comment: "false"` to only produce the files.
 
 ## Can it be gamed?
 
