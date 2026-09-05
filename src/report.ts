@@ -54,7 +54,21 @@ function figureLines(f: RepoReport["figures"][number]): string[] {
       ];
     }
     case "testsAndDocs":
-      return [`${n(v.testChangesAuthor)} of ${n(v.testChangesTotal)} test-file changes, ${pct(v.testShare)}`, `${n(v.docsAuthored)} documents authored`];
+      return [`${n(v.testChangesAuthor)} of ${n(v.testChangesTotal)} test-file changes, ${pct(v.testShare)}`, `${n(v.docsCreated)} documents created`];
+    case "filesAuthored":
+      return [`${n(v.authored)} of ${n(v.total)} files alive at HEAD, ${pct(v.share)} (degree of authorship)`];
+    case "majorContributor":
+      return [`major contributor in ${n(v.major)} of ${n(v.dirs)} directories (at least ${v.threshold * 100}% of commits)`];
+    case "commitSize":
+      return [`median ${n(v.median)} lines, 90th percentile ${n(v.p90)}, ${n(v.huge)} commits over 10,000 lines`];
+    case "coAuthored":
+      return [`${n(v.trailerCommits)} commits by others naming the author in a Co-authored-by trailer`];
+    case "absenceFactor":
+      return [`${n(v.authorsToHalf)} author${v.authorsToHalf === 1 ? "" : "s"} cover half the commits; the author ranks ${n(v.authorRank)} of ${n(v.authors)} by commit count`];
+    case "aiAssisted":
+      return [`${n(v.commits)} commits declare an AI tool in a trailer, ${pct(v.share)} of the author's commits`];
+    case "survivalByCohort":
+      return v.length ? (v as { year: number; lines: number }[]).map((c) => `${c.year}: ${n(c.lines)} lines`) : ["no surviving lines in the sample"];
     case "survivingLines":
       return [`${n(v.lines)} of ${n(v.linesAttributed)} surviving lines, ${pct(v.share)} (files ${v.filesSampled}/${v.filesTotal}, sample 1 in ${v.sample}${v.seed ? `, seed "${v.seed}"` : ""})`];
     default:

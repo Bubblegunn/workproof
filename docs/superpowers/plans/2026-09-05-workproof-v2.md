@@ -80,18 +80,18 @@
 
 **Files:** Create `src/figures/authorship.ts`; modify `src/figures/footprint.ts` (`docsCreated`, title "Tests and documentation" with "test-file changes"), `src/analyse.ts`, `src/report.ts` (Markdown lines), `src/badge.ts`, `action.yml` comment table; tests in `test/figures.test.ts`.
 
-- [ ] `docsCreated`: first commit (oldest) touching each `.md/.mdx/.rst` path; count those by the author.
-- [ ] `filesAuthored(commits, id, headFiles: Set<string>)` with DOA as in the spec.
-- [ ] `majorContributor(commits, id, depth)` returning `{ major, dirs, threshold: 0.05 }`.
-- [ ] `commitSize(commits, id)` median and p90 of added+deleted over included files; `huge` over 10,000.
-- [ ] `coAuthored(commits, id)`: commits not by the author whose `coAuthors` include one of the author's emails.
-- [ ] `absenceFactor(commits, id)`: sort authors by commit count descending, take until cumulative share reaches 0.5; `authorsToHalf`, `authorRank` (1-based), `authors` (distinct non-bot).
-- [ ] `aiAssisted(commits, id)`: author commits where `coAuthorNames` or `assistedBy` match `/claude|cursor|copilot|codex|gemini|chatgpt|aider|devin|windsurf/i` or name ends with `(aider)`.
-- [ ] `survivalByCohort` from Task 5's `byYear`, emitted as its own figure.
-- [ ] Order of figures: tenure, commitShare, cadence, footprint, testsAndDocs, filesAuthored, majorContributor, commitSize, coAuthored, absenceFactor, aiAssisted, survivingLines, survivalByCohort.
-- [ ] Badge: `${pct(surviving)} surviving lines · ${days} days`.
-- [ ] Tests pin each number on the fixture and check every new figure has non-empty `limits`.
-- [ ] Commit: `feat: files authored, major-contributor components, commit size, co-authored, absence factor, AI-assisted share, survival by cohort`.
+- [x] `docsCreated`: first commit (oldest) touching each `.md/.mdx/.rst` path; count those by the author.
+- [x] `filesAuthored(commits, id, headFiles: Set<string>)` with DOA as in the spec.
+- [x] `majorContributor(commits, id, depth)` returning `{ major, dirs, threshold: 0.05 }`.
+- [x] `commitSize(commits, id)` median and p90 of added+deleted over included files; `huge` over 10,000.
+- [x] `coAuthored(commits, id)`: commits not by the author whose `coAuthors` include one of the author's emails.
+- [x] `absenceFactor(commits, id)`: sort authors by commit count descending, take until cumulative share reaches 0.5; `authorsToHalf`, `authorRank` (1-based), `authors` (distinct non-bot).
+- [x] `aiAssisted(commits, id)`: author commits where `coAuthorNames` or `assistedBy` match `/claude|cursor|copilot|codex|gemini|chatgpt|aider|devin|windsurf/i` or name ends with `(aider)`.
+- [x] `survivalByCohort` from Task 5's `byYear`, emitted as its own figure.
+- [x] Order of figures: tenure, commitShare, cadence, footprint, testsAndDocs, filesAuthored, majorContributor, commitSize, coAuthored, absenceFactor, aiAssisted, survivingLines, survivalByCohort.
+- [x] Badge: `${pct(surviving)} surviving lines · ${days} days`.
+- [x] Tests pin each number on the fixture and check every new figure has non-empty `limits`.
+- [x] Commit: `feat: files authored, major-contributor components, commit size, co-authored, absence factor, AI-assisted share, survival by cohort`.
 
 ### Task 7: Privacy
 

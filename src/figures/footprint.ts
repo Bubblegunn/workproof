@@ -73,28 +73,33 @@ export function footprint(commits: Commit[], id: Identity, opts: { depth: number
   return figure;
 }
 
+/**
+ * Test-file changes by the author over all, and documents the author created: Markdown,
+ * MDX and RST files whose oldest commit in the history read is the author's.
+ */
 export function testsAndDocs(commits: Commit[], id: Identity) {
   const nonMerge = commits.filter((c) => c.parents <= 1);
   let testChangesAuthor = 0;
   let testChangesTotal = 0;
-  const docs = new Set<string>();
-  for (const c of nonMerge) {
+  const firstTouch = new Map<string, boolean>();
+  for (const c of [...nonMerge].sort((a, b) => a.date.getTime() - b.date.getTime())) {
     const mine = isMine(c, id);
     for (const f of c.files) {
       if (isTest(f.path)) {
         testChangesTotal++;
         if (mine) testChangesAuthor++;
       }
-      if (mine && isDoc(f.path)) docs.add(f.path);
+      if (isDoc(f.path) && !firstTouch.has(f.path)) firstTouch.set(f.path, mine);
     }
   }
-  const value = { testChangesAuthor, testChangesTotal, testShare: testChangesTotal ? testChangesAuthor / testChangesTotal : 0, docsAuthored: docs.size };
+  const docsCreated = [...firstTouch.values()].filter(Boolean).length;
+  const value = { testChangesAuthor, testChangesTotal, testShare: testChangesTotal ? testChangesAuthor / testChangesTotal : 0, docsCreated };
   const figure: Figure<typeof value> = {
     id: "testsAndDocs",
-    title: "Tests and documentation",
+    title: "Test-file changes and documents created",
     value,
-    command: "git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; docs are .md, .mdx, .rst",
-    limits: ["Test file changes are counted, not test cases or coverage.", "A README edit and a design document count the same."],
+    command: "git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read",
+    limits: ["Test-file changes are counted, not test cases or coverage.", "A one-line README and a design document count the same; a document rewritten by someone else stays with its creator."],
   };
   return figure;
 }

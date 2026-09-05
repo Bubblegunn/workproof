@@ -18,7 +18,8 @@ test("analyseRepo produces every figure and buildReport hashes without emails by
   const dir = await makeRepo();
   try {
     const repo = await analyseRepo(dir, params);
-    assert.deepEqual(repo.figures.map((f) => f.id), ["tenure", "commitShare", "cadence", "footprint", "testsAndDocs", "survivingLines"]);
+    assert.deepEqual(repo.figures.map((f) => f.id), ["tenure", "commitShare", "cadence", "footprint", "testsAndDocs", "filesAuthored", "majorContributor", "commitSize", "coAuthored", "absenceFactor", "aiAssisted", "survivingLines", "survivalByCohort"]);
+    for (const f of repo.figures) assert.ok(f.limits.length >= 1 && f.command.length > 10, f.id);
     assert.equal(repo.identity.count, 1);
     const report = buildReport([repo], params, { version: "0.1.0", generatedAt: "2026-09-05T00:00:00Z" });
     assert.equal(report.hash.length, 64);

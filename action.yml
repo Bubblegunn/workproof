@@ -50,14 +50,16 @@ runs:
             "",
             "| figure | value |",
             "|---|---|",
+            "| Surviving lines | " + f.survivingLines.lines.toLocaleString("en-US") + " of " + f.survivingLines.linesAttributed.toLocaleString("en-US") + ", " + pct(f.survivingLines.share) + " |",
+            "| Files authored | " + f.filesAuthored.authored + " of " + f.filesAuthored.total + " alive at HEAD, " + pct(f.filesAuthored.share) + " |",
             "| Tenure window | " + f.tenure.first + " to " + f.tenure.last + " (" + f.tenure.days + " days) |",
             "| Share of commits | " + f.commitShare.author + " of " + f.commitShare.total + ", " + pct(f.commitShare.share) + " |",
             "| Cadence | " + f.cadence.activeWeeks + " active weeks of " + f.cadence.weeksInTenure + ", " + f.cadence.commitsPerActiveWeek + " commits per active week |",
             "| Footprint | " + f.footprint.filesTouched + " files touched, " + f.footprint.ownedDirectories.length + " directories at or above the threshold |",
-            "| Tests and docs | " + pct(f.testsAndDocs.testShare) + " of test-file changes, " + f.testsAndDocs.docsAuthored + " documents |",
-            "| Surviving lines | " + f.survivingLines.lines.toLocaleString("en-US") + " of " + f.survivingLines.linesAttributed.toLocaleString("en-US") + ", " + pct(f.survivingLines.share) + " |",
+            "| Test-file changes and documents | " + pct(f.testsAndDocs.testShare) + " of test-file changes, " + f.testsAndDocs.docsCreated + " documents created |",
+            "| AI-assisted commits | " + f.aiAssisted.commits + ", " + pct(f.aiAssisted.share) + " of the author's commits |",
             "",
-            "HEAD `" + repo.head.slice(0, 12) + "` · report hash `" + r.hash.slice(0, 16) + "` · verify with `npx workproof verify workproof-report.json`. Every figure has a limit; see the report.",
+            "excluded " + repo.excluded.botCommits + " bot commits and " + repo.excluded.files + " generated, vendored or lock files · HEAD `" + repo.head.slice(0, 12) + "` · report hash `" + r.hash.slice(0, 16) + "` · `npx workproof check workproof-report.json` recomputes the hash offline, `verify` recomputes the figures. Every figure has a limit; see the report.",
           ];
           process.stdout.write(lines.join("\n"));
         ')"

@@ -14,6 +14,7 @@ import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
 import { footprint, testsAndDocs } from "./figures/footprint.js";
 import { survivingLines, blameFlags } from "./figures/surviving.js";
+import { filesAuthored, majorContributor, commitSize, coAuthored, absenceFactor, aiAssisted, survivalByCohort } from "./figures/authorship.js";
 import type { Figure } from "./figures/types.js";
 
 export interface Params {
@@ -97,13 +98,14 @@ async function applyExclusions(cwd: string, all: Commit[], params: Params) {
   const extra = (params.exclude ?? []).map((g: string) => globToRegExp(g) as RegExp);
   const botCommits = enabled ? all.filter(isBot).length : 0;
   const human = enabled ? all.filter((c) => !isBot(c)) : all;
-  const paths = new Set<string>(await listHeadFiles(cwd));
+  const headFiles = await listHeadFiles(cwd);
+  const paths = new Set<string>(headFiles);
   for (const c of human) for (const f of c.files) paths.add(f.path);
   const attrs = enabled ? await checkAttr(cwd, [...paths]) : new Map();
   const excluded = excludedSet(paths, attrs, extra);
   if (!enabled) for (const p of [...excluded]) if (!extra.some((re) => re.test(p))) excluded.delete(p);
   const commits = human.map((c) => ({ ...c, files: c.files.filter((f) => !excluded.has(f.path)) }));
-  return { commits, raw: human, excluded, botCommits, enabled };
+  return { commits, raw: human, excluded, botCommits, enabled, headFiles: new Set(headFiles.filter((p) => !excluded.has(p))) };
 }
 
 export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHooks = {}): Promise<RepoReport> {
@@ -143,6 +145,12 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
     cadence(inTenure, tags, id, { first: t.value.first, last: t.value.last }),
     fp,
     testsAndDocs(inTenure, id),
+    filesAuthored(all, id, ex.headFiles),
+    majorContributor(inTenure, id, params.depth),
+    commitSize(inTenure, id),
+    coAuthored(inTenure, id),
+    absenceFactor(inTenure, id),
+    aiAssisted(inTenure, id),
   ];
   say(`${basename(cwd)}: blaming files (1 in ${sample} sample)...`);
   const surviving = await survivingLines(cwd, id, {
@@ -155,7 +163,7 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
     version: survivingVersion(),
   });
   say(`${basename(cwd)}: blamed ${surviving.value.filesSampled} of ${surviving.value.filesTotal} files`);
-  figures.push(surviving);
+  figures.push(surviving, survivalByCohort(surviving.value.byYear, sample));
   return {
     name: basename(cwd),
     head: await headSha(cwd),

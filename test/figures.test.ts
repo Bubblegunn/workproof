@@ -21,7 +21,7 @@ test("git helpers read commits with files, tags, root and head", async () => {
     assert.equal(initial.files.find((f) => f.path === "logo.png")?.added, null);
     assert.equal(initial.files.find((f) => f.path === "src/a.ts")?.added, 10);
     const rename = commits[5]!;
-    assert.ok(rename.files.some((f) => f.path === "src/renamed.ts"));
+    assert.ok(rename.files.some((f) => f.path === "src/renamed.ts" && f.from === "src/b.ts"));
     const tags = await listTags(dir);
     assert.deepEqual(tags.map((t) => t.name), ["v1.0.0"]);
     assert.equal(tags[0]?.email, "ada@example.com");
@@ -129,7 +129,9 @@ test("footprint counts files, owned directories and languages; tests and docs ar
     const td = testsAndDocs(commits, ada);
     assert.equal(td.value.testChangesAuthor, 1);
     assert.equal(td.value.testChangesTotal, 1);
-    assert.equal(td.value.docsAuthored, 1);
+    assert.equal(td.value.docsCreated, 1);
+    assert.equal(testsAndDocs(commits, await resolveIdentity(commits, ["bob@example.com"], dir)).value.docsCreated, 0);
+    assert.equal(td.title, "Test-file changes and documents created");
     assert.equal(languageOf("x/y.tsx"), "TypeScript");
     assert.equal(languageOf("a.cs"), "C#");
     assert.equal(languageOf("lib/parser.ex"), "Elixir");
@@ -178,6 +180,49 @@ test("one blame pass honours ignore-revs, exclusions and the seed, and buckets t
     assert.equal(a.value.seed, "one");
     assert.deepEqual((await listTextFiles(dir)).map((f) => f.path).sort(), [".git-blame-ignore-revs", ".gitattributes", "docs/guide.md", "gen/out.ts", "package-lock.json", "src/a.ts", "src/c.py", "src/renamed.ts", "test/a.test.ts"]);
     assert.deepEqual(parseBlame("abc 1 1 1\nauthor Ada\nauthor-mail <Ada@Example.com>\nauthor-time 1767607200\n\tline 0\n"), [{ mail: "ada@example.com", year: 2026 }]);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+import { filesAuthored, majorContributor, commitSize, coAuthored, absenceFactor, aiAssisted, degreeOfAuthorship } from "../src/figures/authorship.js";
+
+test("authorship figures pin their numbers on the fixture and carry limits", async () => {
+  const dir = await makeRepo();
+  try {
+    const commits = (await listCommits(dir, {})).filter((c) => c.name !== "dependabot[bot]").map((c) => ({ ...c, files: c.files.filter((f) => !["gen/out.ts", "package-lock.json"].includes(f.path)) }));
+    const ada = await resolveIdentity(commits, ["ada@example.com"], dir);
+    const bob = await resolveIdentity(commits, ["bob@example.com"], dir);
+    const head = new Set([".git-blame-ignore-revs", ".gitattributes", "docs/guide.md", "logo.png", "src/a.ts", "src/c.py", "src/renamed.ts", "test/a.test.ts"]);
+    assert.ok(Math.abs(degreeOfAuthorship(1, 1, 2) - 4.2023) < 1e-3);
+    // Ada created a.ts, b.ts (renamed by Bob, history carried), guide.md, the test and the logo; Bob's later commits do not take them.
+    const fa = filesAuthored(commits, ada, head);
+    assert.deepEqual(fa.value, { authored: 5, total: 8, share: 5 / 8 });
+    // Bob authored c.py and the two dotfiles; on a.ts his normalised DOA is above 0.75 but the absolute value is below 3.293.
+    assert.deepEqual(filesAuthored(commits, bob, head).value, { authored: 3, total: 8, share: 3 / 8 });
+    assert.deepEqual(majorContributor(commits, ada, 2).value, { major: 3, dirs: 3, threshold: 0.05 });
+    assert.deepEqual(majorContributor(commits, bob, 2).value, { major: 2, dirs: 3, threshold: 0.05 });
+    // Ada's commits: 18, 2 and 4 lines.
+    assert.deepEqual(commitSize(commits, ada).value, { median: 4, p90: 18, huge: 0 });
+    assert.deepEqual(coAuthored(commits, ada).value, { trailerCommits: 1 });
+    assert.deepEqual(coAuthored(commits, bob).value, { trailerCommits: 0 });
+    // Bob has 6 of 9 commits, so one author covers half; Ada ranks second of two.
+    assert.deepEqual(absenceFactor(commits, ada).value, { authorsToHalf: 1, authorRank: 2, authors: 2 });
+    assert.deepEqual(absenceFactor(commits, bob).value, { authorsToHalf: 1, authorRank: 1, authors: 2 });
+    assert.deepEqual(aiAssisted(commits, bob).value, { commits: 1, share: 1 / 6 });
+    assert.deepEqual(aiAssisted(commits, ada).value, { commits: 0, share: 0 });
+    for (const f of [fa, majorContributor(commits, ada, 2), commitSize(commits, ada), coAuthored(commits, ada), absenceFactor(commits, ada), aiAssisted(commits, ada)]) {
+      assert.ok(f.limits.length >= 1 && f.limits.every((l) => l.length > 20), f.id);
+    }
+    // Through analyseRepo the window is Ada's tenure, so only her three commits are in play; cohorts come from the blame pass.
+    const repo = await analyseRepo(dir, { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 });
+    const v = Object.fromEntries(repo.figures.map((f) => [f.id, f.value]));
+    assert.deepEqual(v.filesAuthored, { authored: 5, total: 8, share: 5 / 8 });
+    assert.deepEqual(v.majorContributor, { major: 3, dirs: 3, threshold: 0.05 });
+    assert.deepEqual(v.absenceFactor, { authorsToHalf: 1, authorRank: 1, authors: 1 });
+    assert.deepEqual(v.coAuthored, { trailerCommits: 0 });
+    assert.deepEqual(v.survivalByCohort, [{ year: 2026, lines: 16 }]);
+    assert.equal(v.testsAndDocs.docsCreated, 1);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

@@ -18,12 +18,12 @@ export function badgeFor(report: Report): Badge {
   const repo = report.repositories[0];
   if (!repo) throw new Error("the report has no repositories");
   const surviving = repo.figures.find((f) => f.id === "survivingLines");
-  const commits = repo.figures.find((f) => f.id === "commitShare");
-  if (!surviving || !commits) throw new Error("the report has no surviving-lines or commit-share figure");
+  const tenure = repo.figures.find((f) => f.id === "tenure");
+  if (!surviving || !tenure) throw new Error("the report has no surviving-lines or tenure figure");
   return {
     schemaVersion: 1,
     label: "workproof",
-    message: `${pct(surviving.value.share)} surviving lines · ${pct(commits.value.share)} commits`,
+    message: `${pct(surviving.value.share)} surviving lines · ${Number(tenure.value.days).toLocaleString("en-US")} days`,
     color: "1f3fbf",
   };
 }

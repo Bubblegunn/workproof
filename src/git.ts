@@ -19,7 +19,13 @@ export function git(args: string[], cwd: string, input?: string): Promise<string
 
 export const gitVersion = async (cwd: string): Promise<string> => (await git(["--version"], cwd)).trim();
 
-export interface FileChange { path: string; added: number | null; deleted: number | null }
+export interface FileChange {
+  path: string;
+  added: number | null;
+  deleted: number | null;
+  /** The previous path when git detected a rename in this commit. */
+  from?: string;
+}
 export interface Commit {
   sha: string;
   email: string;
@@ -67,11 +73,16 @@ export async function listCommits(cwd: string, opts: { since?: string; until?: s
       if (!line.trim()) continue;
       const [a, d, ...pathParts] = line.split("\t");
       let path = pathParts.join("\t");
+      let from: string | undefined;
       // rename entries look like "old => new" or "dir/{old => new}/file"
       const brace = path.match(/^(.*)\{(.*) => (.*)\}(.*)$/);
-      if (brace) path = `${brace[1]}${brace[3]}${brace[4]}`;
-      else if (path.includes(" => ")) path = path.split(" => ")[1]!;
-      files.push({ path, added: a === "-" ? null : Number(a), deleted: d === "-" ? null : Number(d) });
+      if (brace) {
+        from = `${brace[1]}${brace[2]}${brace[4]}`;
+        path = `${brace[1]}${brace[3]}${brace[4]}`;
+      } else if (path.includes(" => ")) {
+        [from, path] = path.split(" => ") as [string, string];
+      }
+      files.push({ path, added: a === "-" ? null : Number(a), deleted: d === "-" ? null : Number(d), ...(from ? { from } : {}) });
     }
     commits.push({
       sha: sha!,
