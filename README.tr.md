@@ -414,6 +414,18 @@ yazısında anlatılıyor. Örnekleyici ve glob yardımcıları workproof'un tek
 derecesi Avelino, Hora ve Valente (2016), ana katkıcı Bird ve ark. (2011), yokluk faktörü
 CHAOSS Contributor Absence Factor tanımını izler.
 
+## Atıf
+
+Her sürüm Zenodo'da bir DOI ile arşivleniyor, böylece bir makale ya da rapor tam olarak
+çalıştırdığı koda işaret edebiliyor.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22394558.svg)](https://doi.org/10.5281/zenodo.22394558)
+
+Bu **kavram** DOI'si: her zaman en yeni sürüme çözümlenir. Çalıştırdığınız sürümün kendisini
+atıflamak için o sayfayı açıp yan çubuktan sürümü seçin ve orada yazan DOI'yi kullanın.
+Depodaki `CITATION.cff` aynı tanımlayıcıyı taşıyor, bu yüzden GitHub'ın "Cite this repository"
+düğmesi elle kopyalama olmadan doğru BibTeX ve APA üretiyor.
+
 ## Geliştirme
 
 ```

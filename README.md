@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/github/actions/workflow/status/Bubblegunn/workproof/ci.yml?style=flat-square&color=111111&label=ci" alt="ci">
   <img src="https://img.shields.io/github/stars/Bubblegunn/workproof?style=flat-square&color=111111" alt="stars">
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT">
+  <a href="https://doi.org/10.5281/zenodo.22394558"><img src="https://img.shields.io/badge/DOI-10.5281%2Fzenodo.22394558-111111?style=flat-square" alt="DOI"></a>
 </p>
 
 workproof turns a git repository into a verifiable engineering report for one author,
@@ -575,6 +576,18 @@ covers Elixir, Scala, Haskell, Lua, R, Objective-C and Zig
 ([#3](https://github.com/Bubblegunn/workproof/pull/3)). Both shipped in 0.1.3 and are in every
 release since. The second one is why the footprint figure names the right language for anyone
 outside the handful I had thought to list.
+
+## Cite this
+
+Every release is archived on Zenodo with a DOI, so a paper or a report can point at the
+exact code it ran.
+
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22394558.svg)](https://doi.org/10.5281/zenodo.22394558)
+
+That is the **concept** DOI: it always resolves to the newest version. To cite the exact
+version you ran, open that page, pick the version in the sidebar, and use the DOI shown
+there. `CITATION.cff` in this repository carries the same identifier, so GitHub's "Cite this
+repository" button produces correct BibTeX and APA without any copying by hand.
 
 ## Development
 
