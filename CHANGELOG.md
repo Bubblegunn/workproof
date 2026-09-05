@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1 (unreleased)
+
+A report now says when someone else in the repository looks like the same person. Anyone who has committed from a laptop and a work machine is two authors to git, so the report described half their work and said nothing about the other half, which is a silently wrong number in a tool whose whole claim is that its numbers can be checked. Three signals raise it: the same name on another address, a GitHub noreply login that matches the subject's address or name, and the same address name on another domain. Role addresses such as `dev@` and bot addresses are ignored. The disclosure appears in the Markdown above the figures, as `identity.possiblySplit` in the JSON, and as a warning on stderr during the run; the addresses themselves stay out of the document unless `--emails` is on, as everywhere else. It is a disclosure and not a correction: only the author knows whether two addresses are one person. No figure, hash or verification changed, and a report made before this release still verifies.
+
 ## 0.3.0 (2026-09-05)
 
 A repository whose paths are stored decomposed now produces a report instead of failing. Git precomposes command-line arguments on macOS, so a path read out of the tree and handed back as a pathspec matched nothing, ending the run with `fatal: no such path café.ts in HEAD` and no report. `core.precomposeunicode=false` joins the pinned settings, so the path sent is the path git stored. A checkout authored on Linux carrying Korean, French, Turkish, Vietnamese, Portuguese or Spanish filenames was affected; figures for ASCII repositories are byte-identical.

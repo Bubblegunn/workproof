@@ -9,7 +9,7 @@ import { isBot, excludedSet } from "./exclusions.js";
 // surviving-lines ships plain ESM JavaScript without type declarations.
 // @ts-ignore
 import { globToRegExp } from "surviving-lines/bin/surviving-lines.js";
-import { resolveIdentity } from "./figures/identity.js";
+import { resolveIdentity, possibleSplits } from "./figures/identity.js";
 import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
 import { footprint, testsAndDocs } from "./figures/footprint.js";
@@ -54,7 +54,13 @@ export interface RepoReport {
   fingerprint: string;
   /** True when the fingerprint is an HMAC under a key the report does not carry. */
   fingerprintKeyed?: boolean;
-  identity: { emails: string[]; names: string[]; count: number };
+  identity: {
+    emails: string[];
+    names: string[];
+    count: number;
+    /** Addresses here that look like the subject and were not counted as them. */
+    possiblySplit?: { names: string[]; emails?: string[]; reasons: string[] };
+  };
   /** What the figures were computed with, so a verifier can tell a drift from an edit. */
   environment: { git: string; blame: string[]; ignoreRevs: string | null; seed: string };
   /** What left the denominators before any figure was computed. */
@@ -128,6 +134,9 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
   const ex = await applyExclusions(cwd, everything, params);
   const all = ex.commits;
   const id = await resolveIdentity(all, params.author, cwd);
+  // Before any figure is computed: does someone else here look like the same person? A split
+  // identity makes every figure below describe half the work, silently.
+  const splits = possibleSplits(all, id);
   const t = tenure(all, id, { ...(params.since ? { since: params.since } : {}), ...(params.until ? { until: params.until } : {}) });
   const start = new Date(t.value.first + "T00:00:00Z");
   const end = new Date(t.value.last + "T23:59:59Z");
@@ -180,7 +189,20 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
     head: await headSha(cwd),
     fingerprint: fingerprint(await rootCommit(cwd), await remoteUrl(cwd), key),
     fingerprintKeyed: true,
-    identity: { emails: params.emails ? [...new Set(id.emails.map(publicEmail))] : [], names: id.names, count: id.emails.length },
+    identity: {
+      emails: params.emails ? [...new Set(id.emails.map(publicEmail))] : [],
+      names: id.names,
+      count: id.emails.length,
+      ...(splits.length
+        ? {
+            possiblySplit: {
+              names: [...new Set(splits.map((sp) => sp.name))],
+              ...(params.emails ? { emails: [...new Set(splits.map((sp) => publicEmail(sp.email)))] } : {}),
+              reasons: [...new Set(splits.map((sp) => sp.reason))],
+            },
+          }
+        : {}),
+    },
     environment: { git: await gitVersion(cwd), blame, ignoreRevs, seed: params.seed ?? "" },
     excluded: { botCommits: ex.botCommits, files: ex.excluded.size, linesAddedShare: addedAll ? addedExcluded / addedAll : 0, enabled: ex.enabled },
     figures,

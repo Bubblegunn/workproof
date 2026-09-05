@@ -4,52 +4,169 @@
   "title": "workproof report",
   "description": "A verifiable engineering report for one author. hash is sha256 over the RFC 8785 canonical JSON of { params, repositories }.",
   "type": "object",
-  "required": ["tool", "schemaVersion", "version", "generatedAt", "params", "repositories", "hash"],
+  "required": [
+    "tool",
+    "schemaVersion",
+    "version",
+    "generatedAt",
+    "params",
+    "repositories",
+    "hash"
+  ],
   "properties": {
-    "tool": { "const": "workproof" },
-    "schemaVersion": { "const": 2 },
-    "version": { "type": "string" },
-    "generatedAt": { "type": "string", "format": "date-time" },
-    "params": { "type": "object" },
-    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "tool": {
+      "const": "workproof"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "version": {
+      "type": "string"
+    },
+    "generatedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "params": {
+      "type": "object"
+    },
+    "hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
     "repositories": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["name", "head", "fingerprint", "identity", "environment", "excluded", "figures"],
+        "required": [
+          "name",
+          "head",
+          "fingerprint",
+          "identity",
+          "environment",
+          "excluded",
+          "figures"
+        ],
         "properties": {
-          "name": { "type": "string" },
-          "head": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
-          "fingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-          "fingerprintKeyed": { "type": "boolean" },
+          "name": {
+            "type": "string"
+          },
+          "head": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "fingerprint": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "fingerprintKeyed": {
+            "type": "boolean"
+          },
           "identity": {
             "type": "object",
-            "required": ["emails", "names", "count"],
+            "required": [
+              "emails",
+              "names",
+              "count"
+            ],
             "properties": {
-              "emails": { "type": "array", "items": { "type": "string" } },
-              "names": { "type": "array", "items": { "type": "string" } },
-              "count": { "type": "integer", "minimum": 0 }
+              "emails": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "names": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "possiblySplit": {
+                "type": "object",
+                "properties": {
+                  "names": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "emails": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "reasons": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "names",
+                  "reasons"
+                ]
+              }
             }
           },
           "environment": {
             "type": "object",
-            "required": ["git", "blame"],
+            "required": [
+              "git",
+              "blame"
+            ],
             "properties": {
-              "git": { "type": "string" },
-              "blame": { "type": "array", "items": { "type": "string" } },
-              "ignoreRevs": { "type": ["string", "null"] },
-              "seed": { "type": "string" }
+              "git": {
+                "type": "string"
+              },
+              "blame": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "ignoreRevs": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "seed": {
+                "type": "string"
+              }
             }
           },
           "excluded": {
             "type": "object",
-            "required": ["botCommits", "files", "linesAddedShare"],
+            "required": [
+              "botCommits",
+              "files",
+              "linesAddedShare"
+            ],
             "properties": {
-              "botCommits": { "type": "integer", "minimum": 0 },
-              "files": { "type": "integer", "minimum": 0 },
-              "linesAddedShare": { "type": "number", "minimum": 0, "maximum": 1 },
-              "enabled": { "type": "boolean" }
+              "botCommits": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "files": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "linesAddedShare": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "enabled": {
+                "type": "boolean"
+              }
             }
           },
           "figures": {
@@ -57,13 +174,31 @@
             "minItems": 1,
             "items": {
               "type": "object",
-              "required": ["id", "title", "value", "command", "limits"],
+              "required": [
+                "id",
+                "title",
+                "value",
+                "command",
+                "limits"
+              ],
               "properties": {
-                "id": { "type": "string", "minLength": 1 },
-                "title": { "type": "string" },
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "title": {
+                  "type": "string"
+                },
                 "value": {},
-                "command": { "type": "string" },
-                "limits": { "type": "array", "items": { "type": "string" } }
+                "command": {
+                  "type": "string"
+                },
+                "limits": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
               }
             }
           }

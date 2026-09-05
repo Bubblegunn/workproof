@@ -144,6 +144,37 @@ only comparable when that line matches:
 How: `git blame --line-porcelain -w -M --ignore-revs-file .git-blame-ignore-revs HEAD -- <file> over a deterministic 1-in-1 file sample (surviving-lines 0.1.1: FNV-1a on path); generated, vendored and lock files excluded`
 ```
 
+## When you are two people
+
+Git has no idea that the address on your laptop and the address on your work machine belong to
+one person. It counts them as two authors, so a report about one of them describes half your
+work and says nothing about the rest, and every figure in it is quietly too small. This is the
+most common way these numbers go wrong and nothing normally tells you.
+
+The report tells you:
+
+```
+**1 other identity in this repository looks like the same person and was not counted here**:
+Efe Genc. The same name, "Efe Genc", on another address. Every figure below therefore describes
+only the work under the identities named above. If they are the same person, re-run with each
+address passed to `--author`, or merge them in a `.mailmap`.
+```
+
+The same line appears as a warning on stderr while the run is happening, and as
+`identity.possiblySplit` in the JSON. Three signals raise it: the same name on another address,
+a GitHub noreply login that matches your address or your name, and the same address name on
+another domain. Role addresses like `dev@` and bot addresses are ignored, because sharing one
+proves nothing.
+
+It is a disclosure, not a correction. The tool cannot know whether two addresses are one person,
+so it never merges them for you: pass each address to `--author`, or write a `.mailmap`, which
+`git log`, `git blame` and `git shortlog` all read as well.
+[`surviving-lines --identities`](https://github.com/Bubblegunn/surviving-lines) prints the
+`.mailmap` lines for a whole repository if you want to fix it once for everyone.
+
+The addresses themselves stay out of the document unless you pass `--emails`, the same rule the
+rest of the report follows.
+
 ## In plain language
 
 Each repository section of the Markdown report opens with a paragraph a non-engineer can

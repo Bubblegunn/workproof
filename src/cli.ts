@@ -208,6 +208,11 @@ async function main() {
     await writeFile(`${out}.badge.json`, JSON.stringify(badgeFor(report), null, 2));
     written.push(`${out}.badge.json`);
   }
+  for (const repo of report.repositories) {
+    const split = repo.identity.possiblySplit;
+    if (!split) continue;
+    progress(`${repo.name}: warning, ${split.names.length} other identity in this repository looks like the same person and is not in these figures (${split.names.join(", ")}). Pass every address to --author, or merge them in a .mailmap.`);
+  }
   console.log(`wrote ${written.join(" and ")} in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 }
 

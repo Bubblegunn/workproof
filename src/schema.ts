@@ -34,6 +34,12 @@ function checkRepository(problems: Problem[], path: string, r: unknown): void {
     expect(problems, `${path}.identity.emails`, Array.isArray(id.emails), "array");
     expect(problems, `${path}.identity.names`, Array.isArray(id.names), "array");
     expect(problems, `${path}.identity.count`, typeof id.count === "number", "number");
+    if (id.possiblySplit !== undefined && expect(problems, `${path}.identity.possiblySplit`, isObject(id.possiblySplit), "object")) {
+      const ps = id.possiblySplit as Record<string, unknown>;
+      expect(problems, `${path}.identity.possiblySplit.names`, Array.isArray(ps.names), "array");
+      expect(problems, `${path}.identity.possiblySplit.reasons`, Array.isArray(ps.reasons), "array");
+      if (ps.emails !== undefined) expect(problems, `${path}.identity.possiblySplit.emails`, Array.isArray(ps.emails), "array");
+    }
   }
   if (expect(problems, `${path}.environment`, isObject(repo.environment), "object")) {
     const env = repo.environment as Record<string, unknown>;

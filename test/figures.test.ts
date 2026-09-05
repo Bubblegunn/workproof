@@ -8,7 +8,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { analyseRepo } from "../src/analyse.js";
 import { listCommits, listTags, rootCommit, headSha, remoteUrl, gitVersion, checkAttr, PINNED_CONFIG } from "../src/git.js";
-import { foldIdentity } from "../src/figures/identity.js";
+import { foldIdentity, possibleSplits } from "../src/figures/identity.js";
 
 test("git helpers read commits with files, tags, root and head", async () => {
   const dir = await makeRepo();
@@ -297,4 +297,35 @@ test("an author matches across normalization and Turkish casing", async () => {
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test("possibleSplits finds the subject's other addresses and ignores other people and bots", () => {
+  const commits = [
+    { name: "Efe Genc", email: "50203466+bubblegunn@users.noreply.github.com" },
+    { name: "Efe Genc", email: "efegenc95@gmail.com" },
+    { name: "Ada Lovelace", email: "ada@example.com" },
+    { name: "dependabot[bot]", email: "49699333+dependabot[bot]@users.noreply.github.com" },
+  ] as any[];
+  const subject = { emails: ["50203466+bubblegunn@users.noreply.github.com"], names: ["Efe Genc"] };
+  const found = possibleSplits(commits, subject);
+  assert.deepEqual(found.map((f) => f.email), ["efegenc95@gmail.com"]);
+  assert.match(found[0]!.reason, /name/);
+});
+
+test("possibleSplits matches a GitHub noreply login against a plain address", () => {
+  const commits = [
+    { name: "S. Gupta", email: "12345+shivam-070208@users.noreply.github.com" },
+    { name: "Shivam", email: "shivam-070208@fastmail.com" },
+  ] as any[];
+  const found = possibleSplits(commits, { emails: ["12345+shivam-070208@users.noreply.github.com"], names: ["S. Gupta"] });
+  assert.deepEqual(found.map((f) => f.email), ["shivam-070208@fastmail.com"]);
+  assert.match(found[0]!.reason, /login/);
+});
+
+test("possibleSplits says nothing when the subject has one address and nobody resembles them", () => {
+  const commits = [
+    { name: "Ada", email: "ada@example.com" },
+    { name: "Bob", email: "bob@example.com" },
+  ] as any[];
+  assert.deepEqual(possibleSplits(commits, { emails: ["ada@example.com"], names: ["Ada"] }), []);
 });
