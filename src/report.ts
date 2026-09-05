@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { Params, RepoReport } from "./analyse.js";
 import { canonicalize } from "./canonical.js";
 import { publicEmail } from "./analyse.js";
+import { plainSummary } from "./summary.js";
 
 export interface Report {
   tool: "workproof";
@@ -98,6 +99,12 @@ export function renderMarkdown(report: Report, narrative?: string): string {
       repo.excluded.enabled
         ? `excluded ${plural(repo.excluded.botCommits, "bot commit", "bot commits")} and ${plural(repo.excluded.files, "generated, vendored or lock file", "generated, vendored or lock files")} (${pct(repo.excluded.linesAddedShare)} of lines added)`
         : `exclusions off (--no-exclusions): bot commits and generated files are counted`,
+      ``,
+      `### In plain language`,
+      ``,
+      plainSummary(repo),
+      ``,
+      `That paragraph is assembled from the figures below by a fixed rule, with no model involved, so it says nothing the numbers do not.`,
       ``,
     );
     for (const f of repo.figures) {

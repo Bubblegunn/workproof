@@ -90,9 +90,11 @@ test("the CLI's check works offline and verify prints integrity first", async ()
     assert.throws(() => execFileSync("node", [cli, "check", join(dir, "edited.json")], { encoding: "utf8", stdio: "pipe" }), (err: { status: number; stdout: string }) => err.status === 1 && /hash mismatch/.test(err.stdout));
     assert.throws(() => execFileSync("node", [cli, "verify", join(dir, "edited.json"), "--repo", dir], { encoding: "utf8", stdio: "pipe" }), (err: { status: number; stdout: string }) => err.status === 1 && /^schema ok\nhash mismatch/.test(err.stdout) && /not recomputed/.test(err.stdout));
     const v = execFileSync("node", [cli, "verify", join(dir, "r.json"), "--repo", dir, "--fingerprint-key", KEY], { encoding: "utf8" });
-    assert.match(v, /^schema ok\nhash ok [0-9a-f]{64}\n.*: fingerprint ok\nall figures reproduce\n$/);
+    assert.match(v, /^schema ok\nhash ok [0-9a-f]{64}\n.*: fingerprint ok\nall figures reproduce\n/);
+    assert.match(v, /What this proves: every figure in the report was recomputed/);
+    assert.match(v, /What it does not prove: that the repository itself is honest history/);
     const unkeyed = execFileSync("node", [cli, "verify", join(dir, "r.json"), "--repo", dir], { encoding: "utf8" });
-    assert.match(unkeyed, /fingerprint not compared \(pass --fingerprint-key\)\nall figures reproduce\n$/);
+    assert.match(unkeyed, /fingerprint not compared \(pass --fingerprint-key\)\nall figures reproduce\n/);
     assert.throws(() => execFileSync("node", [cli, "verify", join(dir, "r.json"), "--repo", dir, "--fingerprint-key", "ff".repeat(16)], { encoding: "utf8", stdio: "pipe" }), (err: { status: number; stdout: string }) => err.status === 1 && /different repository/.test(err.stdout));
     assert.throws(() => execFileSync("node", [cli, "check", join(dir, "r.json"), "--repo", dir], { encoding: "utf8", stdio: "pipe" }), /never reads a repository/);
   } finally {

@@ -167,6 +167,11 @@ async function main() {
     const differ = result.rows.filter((r) => !r.match).length;
     if (result.fingerprints.some((f) => f.compared && !f.match)) process.exit(1);
     console.log(result.ok ? "all figures reproduce" : `${differ} figures differ`);
+    console.log(
+      result.ok
+        ? "\nWhat this proves: every figure in the report was recomputed from this repository just now and came out the same, and the document has not been edited since it was written.\nWhat it does not prove: that the repository itself is honest history, that the figures measure anything worth measuring, or that the work was good. A repository whose history was rewritten before the report was made reproduces perfectly."
+        : "\nA figure that differs is not proof of dishonesty. HEAD moves, and every figure except tenure is computed at HEAD; check the HEAD line above before concluding anything.",
+    );
     process.exit(result.ok ? 0 : 1);
   }
   const version = createRequire(import.meta.url)("../../package.json").version as string;

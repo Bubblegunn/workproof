@@ -144,6 +144,25 @@ only comparable when that line matches:
 How: `git blame --line-porcelain -w -M --ignore-revs-file .git-blame-ignore-revs HEAD -- <file> over a deterministic 1-in-1 file sample (surviving-lines 0.1.1: FNV-1a on path); generated, vendored and lock files excluded`
 ```
 
+## In plain language
+
+Each repository section of the Markdown report opens with a paragraph a non-engineer can
+read, assembled from the figures by a fixed rule with no model call, so it is deterministic
+and says nothing the numbers do not:
+
+> Ada worked in app from 5 January 2026 to 19 January 2026, a span of 15 days. They made 3
+> of the 3 changes recorded in that period (100%), and 16 of the 31 lines of code still in
+> the project today are theirs (52%). The second number is the one that lasts: it counts the
+> work that survived everything written since. 5 of the 8 files in the project were started
+> by them (63%). They were active in 3 of the 3 weeks in that period. Before any of this was
+> counted, 1 automated change and 2 machine-written or copied files were removed, so none of
+> them inflate the figures.
+
+It states no opinion about quality, keeps the two shares apart, and ends with the command
+that recomputes it. `--narrate` is a different thing: that one asks a model, is labelled as
+unverified in the report, and is not part of the hash. So is this paragraph, which is
+derived from the hashed figures rather than added to them.
+
 ## What it measures
 
 Every figure comes from git and nothing else. Bot commits and generated, vendored, lock and
@@ -194,6 +213,16 @@ Three commands, in increasing order of what the reader needs to have.
 
   where `allowed_signers` is one line, `you@example.com ssh-ed25519 AAAA...`, and the key is
   the one GitHub serves at `https://github.com/<you>.keys`.
+
+What `verify` proves: every figure was recomputed from that repository at that moment and
+came out the same, and the document was not edited after it was written. What it does not
+prove: that the repository is honest history, that the figures measure anything worth
+measuring, or that the work was good. A repository whose history was rewritten before the
+report was made reproduces perfectly. The command prints both halves of that after its
+result, so a reader who never opens this README still sees the limit.
+
+A figure that differs is not proof of dishonesty either. Every figure except tenure is
+computed at HEAD, and HEAD moves; `verify` prints the HEAD line first for that reason.
 
 In the GitHub Action, `attest: "true"` signs the same statement keylessly with
 [Sigstore](https://www.sigstore.dev): cosign is installed from a SHA-pinned action and
