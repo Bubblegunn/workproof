@@ -33,7 +33,7 @@ test("analyseRepo produces every figure and buildReport hashes without emails by
     assert.match(md, /What this cannot show/);
     assert.ok(!md.includes("—"), "no em dashes in the report");
     const withPaths = await analyseRepo(dir, { ...params, paths: true, emails: true });
-    const rep2 = buildReport([withPaths], { ...params, paths: true, emails: true }, { version: "0.1.0", generatedAt: "x" });
+    const rep2 = buildReport([withPaths], { ...params, paths: true, emails: true }, { version: "0.1.0", generatedAt: "2026-09-05T00:00:00Z" });
     assert.ok(JSON.stringify(rep2).includes("ada@example.com"));
     assert.match(renderMarkdown(rep2), /- src: 2 of 2 commits, 100\.0%/);
   } finally {

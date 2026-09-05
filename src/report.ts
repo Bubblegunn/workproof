@@ -1,22 +1,22 @@
 import { createHash } from "node:crypto";
 import type { Params, RepoReport } from "./analyse.js";
+import { canonicalize } from "./canonical.js";
 
 export interface Report {
   tool: "workproof";
+  /** Shape of the document; check and verify refuse other versions. */
+  schemaVersion: 2;
   version: string;
   generatedAt: string;
   params: Params;
   repositories: RepoReport[];
-  /** sha256 of the canonical JSON of { params, repositories }. */
+  /** sha256 of the RFC 8785 canonical JSON of { params, repositories }. */
   hash: string;
 }
 
-const canonical = (v: unknown): string =>
-  JSON.stringify(v, (_k, val) =>
-    val && typeof val === "object" && !Array.isArray(val)
-      ? Object.fromEntries(Object.keys(val).sort().map((k) => [k, (val as Record<string, unknown>)[k]]))
-      : val,
-  );
+/** The hash a report with these parameters and repositories must carry. */
+export const hashOf = (params: unknown, repositories: unknown): string =>
+  createHash("sha256").update(canonicalize({ params, repositories })).digest("hex");
 
 /** Without --emails, an author given as an email address is not echoed into the report. */
 function publicParams(params: Params): Params {
@@ -26,8 +26,7 @@ function publicParams(params: Params): Params {
 
 export function buildReport(repositories: RepoReport[], params: Params, meta: { version: string; generatedAt: string }): Report {
   const shown = publicParams(params);
-  const hash = createHash("sha256").update(canonical({ params: shown, repositories })).digest("hex");
-  return { tool: "workproof", version: meta.version, generatedAt: meta.generatedAt, params: shown, repositories, hash };
+  return { tool: "workproof", schemaVersion: 2, version: meta.version, generatedAt: meta.generatedAt, params: shown, repositories, hash: hashOf(shown, repositories) };
 }
 
 const pct = (x: number) => `${(x * 100).toFixed(1)}%`;
@@ -90,7 +89,7 @@ export function renderMarkdown(report: Report, narrative?: string): string {
   out.push(
     `## Integrity`,
     ``,
-    `Report hash \`${report.hash}\` (sha256 of parameters and figures). Repository fingerprints are hashes of the root commit and remote; they identify a repository without naming it.`,
+    `Report hash \`${report.hash}\` (sha256 over the RFC 8785 canonical JSON of parameters and figures; \`npx workproof check\` recomputes it offline). Repository fingerprints are hashes of the root commit and remote; they identify a repository without naming it.`,
     ``,
   );
   if (narrative) {

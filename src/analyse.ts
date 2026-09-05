@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 import { basename } from "node:path";
 import { createRequire } from "node:module";
 import { access } from "node:fs/promises";
@@ -51,6 +51,8 @@ export interface RepoReport {
   name: string;
   head: string;
   fingerprint: string;
+  /** True when the fingerprint is an HMAC under a key the report does not carry. */
+  fingerprintKeyed?: boolean;
   identity: { emails: string[]; names: string[]; count: number };
   /** What the figures were computed with, so a verifier can tell a drift from an edit. */
   environment: { git: string; blame: string[]; ignoreRevs: string | null; seed: string };
@@ -59,11 +61,15 @@ export interface RepoReport {
   figures: Figure<any>[];
 }
 
-/** sha256 of the root commit and the normalised remote: identifies a repository without naming it. */
-export function fingerprint(root: string, remote: string): string {
+/**
+ * Identifies a repository without naming it: sha256 of the root commit and the normalised
+ * remote, or HMAC-SHA256 under a key when one is given (see Task 7 of the 0.2.0 plan).
+ */
+export function fingerprint(root: string, remote: string, key?: string): string {
   let r = remote.trim().toLowerCase().replace(/\.git$/, "");
   r = r.replace(/^[a-z+]+:\/\//, "").replace(/^git@([^:]+):/, "$1/");
-  return createHash("sha256").update(`${root}\n${r}`).digest("hex");
+  const text = `${root}\n${r}`;
+  return key === undefined ? createHash("sha256").update(text).digest("hex") : createHmac("sha256", Buffer.from(key, "hex")).update(text).digest("hex");
 }
 
 const require = createRequire(import.meta.url);

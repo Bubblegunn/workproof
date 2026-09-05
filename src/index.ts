@@ -1,9 +1,11 @@
 export { analyseRepo, fingerprint } from "./analyse.js";
 export type { Params, RepoReport, AnalyseHooks } from "./analyse.js";
-export { buildReport, renderMarkdown } from "./report.js";
+export { buildReport, renderMarkdown, hashOf } from "./report.js";
+export { canonicalize } from "./canonical.js";
+export { validateReport } from "./schema.js";
 export type { Report } from "./report.js";
-export { verifyReport } from "./verify.js";
-export type { VerifyRow } from "./verify.js";
+export { verifyReport, checkReport } from "./verify.js";
+export type { VerifyRow, VerifyResult, Integrity } from "./verify.js";
 export { narrate } from "./narrate.js";
 export type { Figure, Identity } from "./figures/types.js";
 export { badgeFor } from "./badge.js";

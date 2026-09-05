@@ -12,7 +12,7 @@ const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommi
 test("verify reproduces on the same HEAD and reports mismatches after a new commit", async () => {
   const dir = await makeRepo();
   try {
-    const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.0", generatedAt: "x" });
+    const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.0", generatedAt: "2026-09-05T00:00:00Z" });
     const same = await verifyReport(report, [dir]);
     assert.equal(same.ok, true);
     assert.equal(same.rows.every((r) => r.match), true);
@@ -46,7 +46,7 @@ test("narrate posts figures only and returns the model text", async () => {
   const port = (server.address() as { port: number }).port;
   const dir = await makeRepo();
   try {
-    const report = buildReport([await analyseRepo(dir, { ...params, paths: true })], { ...params, paths: true }, { version: "0.1.0", generatedAt: "x" });
+    const report = buildReport([await analyseRepo(dir, { ...params, paths: true })], { ...params, paths: true }, { version: "0.1.0", generatedAt: "2026-09-05T00:00:00Z" });
     const text = await narrate(report, { url: `http://127.0.0.1:${port}/v1/chat/completions`, key: "k", model: "m" });
     assert.equal(text, "Ada wrote most of it.");
     assert.ok(seen[0]!.includes("survivingLines"));
@@ -117,7 +117,7 @@ test("two repositories make one report with two sections, and verify checks both
   const a = await makeRepo();
   const b = await makeRepo();
   try {
-    const report = buildReport([await analyseRepo(a, params), await analyseRepo(b, params)], params, { version: "0.1.2", generatedAt: "x" });
+    const report = buildReport([await analyseRepo(a, params), await analyseRepo(b, params)], params, { version: "0.1.2", generatedAt: "2026-09-05T00:00:00Z" });
     assert.equal(report.repositories.length, 2);
     const md = renderMarkdown(report);
     assert.equal((md.match(/^## workproof-/gm) ?? []).length, 2);
@@ -138,7 +138,7 @@ test("--badge writes a shields.io endpoint document built from the first reposit
     assert.match(out, /wrote .*b\.md and .*b\.json and .*b\.badge\.json/);
     const badge = JSON.parse(await readFile(join(dir, "b.badge.json"), "utf8"));
     assert.deepEqual(badge, { schemaVersion: 1, label: "workproof", message: "32.3% surviving lines · 100.0% commits", color: "1f3fbf" });
-    const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.3", generatedAt: "x" });
+    const report = buildReport([await analyseRepo(dir, params)], params, { version: "0.1.3", generatedAt: "2026-09-05T00:00:00Z" });
     assert.equal(badgeFor(report).message, "32.3% surviving lines · 100.0% commits");
     assert.throws(() => badgeFor({ ...report, repositories: [] }), /no repositories/);
   } finally {
