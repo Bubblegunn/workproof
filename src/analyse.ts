@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { basename } from "node:path";
 import { createRequire } from "node:module";
-import { listCommits, listTags, rootCommit, headSha, remoteUrl } from "./git.js";
+import { listCommits, listTags, rootCommit, headSha, remoteUrl, assertRepository } from "./git.js";
 import { resolveIdentity } from "./figures/identity.js";
 import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
@@ -46,6 +46,7 @@ const survivingVersion = (): string => {
 };
 
 export async function analyseRepo(cwd: string, params: Params): Promise<RepoReport> {
+  await assertRepository(cwd);
   const all = await listCommits(cwd, {});
   const id = await resolveIdentity(all, params.author, cwd);
   const t = tenure(all, id, { ...(params.since ? { since: params.since } : {}), ...(params.until ? { until: params.until } : {}) });

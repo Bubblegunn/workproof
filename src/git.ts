@@ -64,6 +64,13 @@ export const headSha = async (cwd: string) => (await git(["rev-parse", "HEAD"], 
 export async function remoteUrl(cwd: string): Promise<string> {
   try { return (await git(["config", "--get", "remote.origin.url"], cwd)).trim(); } catch { return ""; }
 }
+export async function configuredName(cwd: string): Promise<string> {
+  try { return (await git(["config", "--get", "user.name"], cwd)).trim(); } catch { return ""; }
+}
+/** Throws a plain sentence when the directory is not inside a git repository. */
+export async function assertRepository(cwd: string): Promise<void> {
+  try { await git(["rev-parse", "--is-inside-work-tree"], cwd); } catch { throw new Error(`${cwd} is not inside a git repository (use --repo to point at one)`); }
+}
 export async function configuredEmail(cwd: string): Promise<string> {
   try { return (await git(["config", "--get", "user.email"], cwd)).trim().toLowerCase(); } catch { return ""; }
 }

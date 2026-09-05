@@ -2,6 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { rm } from "node:fs/promises";
 import { makeRepo } from "./fixture.js";
+import { execFileSync } from "node:child_process";
+import { mkdtemp } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { analyseRepo } from "../src/analyse.js";
 import { listCommits, listTags, rootCommit, headSha, remoteUrl } from "../src/git.js";
 
 test("git helpers read commits with files, tags, root and head", async () => {
@@ -57,7 +62,11 @@ test("identity resolves by email or name, tenure spans first to last commit, com
     assert.match(share.command, /git log/);
     assert.ok(share.limits.length >= 1);
     assert.equal(isMine(commits[0]!, ada), false);
-    await assert.rejects(resolveIdentity(commits, ["nobody@example.com"], dir), /no commits by/);
+    await assert.rejects(resolveIdentity(commits, ["nobody@example.com"], dir), /no commits by nobody@example.com in this repository\. Authors here: "Ada" \(3\), "Bob" \(2\)/);
+    // Without --author, the repository's configured name is enough when the email does not match.
+    execFileSync("git", ["config", "user.email", "other@example.com"], { cwd: dir });
+    execFileSync("git", ["config", "user.name", "Bob"], { cwd: dir });
+    assert.deepEqual((await resolveIdentity(commits, undefined, dir)).emails, ["bob@example.com"]);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -117,6 +126,15 @@ test("surviving lines come from surviving-lines and follow the identity", async 
     assert.ok(Math.abs(s.value.share - 16 / 26) < 1e-9);
     assert.equal(s.value.filesTotal, 5);
     assert.match(s.command, /git blame -w -M/);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("a directory that is not a repository gets a plain sentence", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "workproof-norepo-"));
+  try {
+    await assert.rejects(analyseRepo(dir, { depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false }), /not inside a git repository/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
