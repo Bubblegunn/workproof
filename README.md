@@ -55,7 +55,7 @@ all figures reproduce
 
 ## What a report looks like
 
-Real output for one maintainer of openwiki at `1e6d54c`, run on 5 September 2026 with
+Real output for one maintainer of openwiki at `1e6d54c`, run on 6 September 2026 with
 `--author "Colin Francis" --sample 5`, paths and emails hidden (the defaults). Under every
 figure the full report also prints `How:` with the git command and `What this cannot show:`;
 they are cut here for length.
@@ -63,15 +63,15 @@ they are cut here for length.
 ```
 ## openwiki
 
-HEAD 1e6d54cdfeec · fingerprint a1b19a27aab4a577 · identities: Colin Francis
+HEAD 1e6d54cdfeec · fingerprint bc554285a25c705c · identities: Colin Francis
 
-excluded 64 bot commits and 1 generated, vendored or lock file (2.2% of lines added)
+excluded 64 bot commits and 1 generated, vendored or lock file (2.6% of lines added)
 
 ### Tenure window
 2026-07-06 to 2026-09-03 (60 days)
 
 ### Share of commits in tenure
-71 of 233 non-merge commits, 30.5%
+71 of 235 non-merge commits, 30.2%
 
 ### Cadence
 9 active weeks of 9, 7.9 commits per active week, longest streak 9 weeks
@@ -83,7 +83,7 @@ excluded 64 bot commits and 1 generated, vendored or lock file (2.2% of lines ad
 languages by lines added: TypeScript 81.4%, JSON 9.7%, Markdown 7.1%, JavaScript 1.6%, YAML 0.2%
 
 ### Test-file changes and documents created
-393 of 656 test-file changes, 59.9%
+393 of 657 test-file changes, 59.8%
 101 documents created
 
 ### Files authored
@@ -99,7 +99,7 @@ median 166 lines, 90th percentile 9,234, 6 commits over 10,000 lines
 119 commits by others naming the author in a Co-authored-by trailer
 
 ### Absence factor
-4 authors cover half the commits; the author ranks 1 of 71 by commit count
+4 authors cover half the commits; the author ranks 1 of 73 by commit count
 
 ### AI-assisted commits
 1 commit declares an AI tool in a trailer, 1.4% of the author's commits
@@ -113,9 +113,9 @@ median 166 lines, 90th percentile 9,234, 6 commits over 10,000 lines
 
 Read the first line and the two shares together. Sixty-four bot commits left the
 denominator before anything was counted, which moved this person's commit share from the
-24.1% an older version reported to 30.5%. They wrote 30.5% of the human commits in their
+24.1% an older version reported to 30.2%. They wrote 30.2% of the human commits in their
 window and 70.6% of the lines that are still alive. A commit count alone would have called
-them one contributor among seventy-one. That gap, in either direction, is usually the most
+them one contributor among seventy-three. That gap, in either direction, is usually the most
 honest thing a report can say about someone's work.
 
 ## When someone reformatted the code

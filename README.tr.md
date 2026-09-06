@@ -52,7 +52,7 @@ all figures reproduce
 
 ## Bir rapor neye benzer
 
-openwiki deposunun `1e6d54c` sürümünde bir bakımcı için 5 Eylül 2026'da
+openwiki deposunun `1e6d54c` sürümünde bir bakımcı için 6 Eylül 2026'da
 `--author "Colin Francis" --sample 5` ile alınan gerçek çıktı; yollar ve e-postalar gizli
 (varsayılanlar). Tam raporda her figürün altında git komutuyla `How:` ve
 `What this cannot show:` satırları da vardır; burada yer için kesildi.
@@ -62,13 +62,13 @@ openwiki deposunun `1e6d54c` sürümünde bir bakımcı için 5 Eylül 2026'da
 
 HEAD 1e6d54cdfeec · fingerprint a1b19a27aab4a577 · identities: Colin Francis
 
-excluded 64 bot commits and 1 generated, vendored or lock file (2.2% of lines added)
+excluded 64 bot commits and 1 generated, vendored or lock file (2.6% of lines added)
 
 ### Tenure window
 2026-07-06 to 2026-09-03 (60 days)
 
 ### Share of commits in tenure
-71 of 233 non-merge commits, 30.5%
+71 of 235 non-merge commits, 30.2%
 
 ### Cadence
 9 active weeks of 9, 7.9 commits per active week, longest streak 9 weeks
@@ -80,7 +80,7 @@ excluded 64 bot commits and 1 generated, vendored or lock file (2.2% of lines ad
 languages by lines added: TypeScript 81.4%, JSON 9.7%, Markdown 7.1%, JavaScript 1.6%, YAML 0.2%
 
 ### Test-file changes and documents created
-393 of 656 test-file changes, 59.9%
+393 of 657 test-file changes, 59.8%
 101 documents created
 
 ### Files authored
@@ -96,7 +96,7 @@ median 166 lines, 90th percentile 9,234, 6 commits over 10,000 lines
 119 commits by others naming the author in a Co-authored-by trailer
 
 ### Absence factor
-4 authors cover half the commits; the author ranks 1 of 71 by commit count
+4 authors cover half the commits; the author ranks 1 of 73 by commit count
 
 ### AI-assisted commits
 1 commit declares an AI tool in a trailer, 1.4% of the author's commits
