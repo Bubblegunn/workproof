@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.4.2
+
+**The report in the README did not reproduce, on a tool whose whole claim is that it does.** The front
+page shows a real report on `langchain-ai/openwiki` at `1e6d54c` and invites the reader to recompute
+it. Running the stated command at the stated commit with the current build gave different numbers, and
+a different fingerprint:
+
+| figure | README said | actually computes |
+|---|---|---|
+| share of commits | 71 of 233, 30.5% | 71 of 235, 30.2% |
+| test file changes | 393 of 656, 59.9% | 393 of 657, 59.8% |
+| excluded lines | 2.2% | 2.6% |
+| absence factor | 1 of 71 authors | 1 of 73 |
+
+The block was generated on 5 September, before 0.4.0 and 0.4.1 changed what the report covers, and
+nothing in CI compared it against a fresh run, so it drifted in silence. For this tool that is the
+worst inconsistency available: a reader who accepted the invitation would have found the published
+figures disagreeing with the tool that produced them, with no way to tell a stale document from a
+dishonest one. Regenerated at the same commit in both languages, with the prose that cites the shares
+updated. The fingerprint still differs per run by design, because its key is random unless
+`--fingerprint-key` is passed.
+
+Nothing in `src/`, `bin/` or the package manifest changed since 0.4.1, so a report you generate is
+byte for byte what 0.4.1 generated and one written before this release still verifies.
+
+`CITATION.cff` and both READMEs now cite the archived release by DOI, so a figure quoted in a document
+can name the version that produced it.
+
 ## 0.4.1 (2026-09-05)
 
 A person who signs `Weiß` on one machine and `WEISS` on another was two people, and half their commits fell outside every figure. JavaScript's `toLowerCase` is Unicode's simple case fold and leaves ß alone; the full fold maps it to ss (CaseFolding.txt, status F), which the identity fold now does. The same fold normalises to NFKC, so a name typed in fullwidth Latin letters, which is what a Japanese or Korean keyboard produces without switching modes, matches the ASCII spelling. This changes which commits are counted, not how a name is printed: the report still prints the name git holds.
