@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.4.2
+## 0.4.2 (2026-09-12)
 
 **The report in the README did not reproduce, on a tool whose whole claim is that it does.** The front
 page shows a real report on `langchain-ai/openwiki` at `1e6d54c` and invites the reader to recompute
