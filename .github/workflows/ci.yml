@@ -55,7 +55,14 @@ jobs:
       - run: npm run build
       - run: node scripts/hash-reproducibility.mjs
         env:
-          WORKPROOF_EXPECT: b9f5f75ed5329b54c4d1a28f9e053f552e69ed2c3ef407b0031d14cfdf53e325
+          # The hash of the pinned fixture. It is pinned here on purpose, so that a change in the
+          # report's identity has to be noticed and explained rather than drifting quietly.
+          # Updating it is not routine: say in the commit why the report changed.
+          # Last change: b9f5f75e -> b0331b67 when surviving-lines went 0.1.1 to 0.1.7 (#23). The
+          # method line records the dependency's version, the method line is part of the report,
+          # and the report is what is hashed, so the identity moved for a real and correct reason.
+          # Verified by installing 0.1.1 again and getting b9f5f75e back.
+          WORKPROOF_EXPECT: b0331b6705b02fa3ff2c57b1563a9dd53418951ade371a5c2565b712c3028f97
   package:
     # The tarball people install, checked before a tag exists: exports, types, bin, and a real install.
     runs-on: ubuntu-latest
