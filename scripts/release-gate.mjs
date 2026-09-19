@@ -81,11 +81,7 @@ if (has(".claude-plugin/plugin.json")) {
 const packed = JSON.parse(
   execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], shell: process.platform === "win32" }),
 );
-const pack = Array.isArray(packed)
-  ? packed[0]
-  : Object.values(packed)[0];
-
-const files = pack.files.map((f) => f.path).sort();
+const files = packed[0].files.map((f) => f.path).sort();
 const allowlistPath = "scripts/pack-allowlist.txt";
 if (process.argv.includes("--update")) {
   writeFileSync(join(root, allowlistPath), `${files.join("\n")}\n`);
