@@ -17,10 +17,50 @@ const problems = [];
 const pkg = JSON.parse(read("package.json"));
 const version = pkg.version;
 
-const heading = /^## +(\S+)/m.exec(read("CHANGELOG.md"));
-if (!heading) problems.push("CHANGELOG.md has no '## ' heading");
-else if (heading[1] !== version) problems.push(`CHANGELOG.md top entry is ${heading[1]}, package.json is ${version}`);
+const compareVersions = (a, b) => {
+  const x = a.split(".").map(Number);
+  const y = b.split(".").map(Number);
 
+  for (let i = 0; i < 3; i++) {
+    if (x[i] !== y[i]) return x[i] - y[i];
+  }
+
+  return 0;
+};
+
+const heading = /^## +(\S+)(.*)$/m.exec(read("CHANGELOG.md"));
+
+let changelogState;
+
+if (!heading) {
+  problems.push("CHANGELOG.md has no '## ' heading");
+} else {
+  const headingVersion = heading[1];
+  const headingRest = heading[2];
+  const hasDate = /\d{4}-\d{2}-\d{2}/.test(headingRest);
+
+  if (!/^\d+\.\d+\.\d+$/.test(headingVersion)) {
+    problems.push(`CHANGELOG.md top entry is not a version: ${headingVersion}`);
+  } else {
+    const comparison = compareVersions(headingVersion, version);
+
+    if (comparison === 0) {
+      if (hasDate) {
+        changelogState = `released at ${version}`;
+      } else {
+        problems.push(`CHANGELOG.md top entry ${headingVersion} is undated`);
+      }
+    } else if (comparison > 0) {
+      if (hasDate) {
+        problems.push(`CHANGELOG.md top entry ${headingVersion} is dated, package.json is ${version}`);
+      } else {
+        changelogState = `${headingVersion} pending, package at ${version}`;
+      }
+    } else {
+      problems.push(`CHANGELOG.md top entry is ${headingVersion}, package.json is ${version}`);
+    }
+  }
+}
 if (has("CITATION.cff")) {
   const v = /^version: "?([^"\n]+)"?$/m.exec(read("CITATION.cff"))?.[1];
   if (v !== version) problems.push(`CITATION.cff version is ${v}, package.json is ${version}`);
@@ -41,7 +81,11 @@ if (has(".claude-plugin/plugin.json")) {
 const packed = JSON.parse(
   execFileSync("npm", ["pack", "--dry-run", "--json", "--ignore-scripts"], { cwd: root, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], shell: process.platform === "win32" }),
 );
-const files = packed[0].files.map((f) => f.path).sort();
+const pack = Array.isArray(packed)
+  ? packed[0]
+  : Object.values(packed)[0];
+
+const files = pack.files.map((f) => f.path).sort();
 const allowlistPath = "scripts/pack-allowlist.txt";
 if (process.argv.includes("--update")) {
   writeFileSync(join(root, allowlistPath), `${files.join("\n")}\n`);
@@ -62,4 +106,4 @@ if (problems.length) {
   for (const p of problems) console.error(`release-gate: ${p}`);
   process.exit(1);
 }
-console.log(`release-gate: ok, version ${version} everywhere, ${files.length} packed files all allowed`);
+console.log(`release-gate: ok, ${changelogState}, ${files.length} packed files all allowed`);
