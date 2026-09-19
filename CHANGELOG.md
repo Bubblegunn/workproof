@@ -1,5 +1,34 @@
 # Changelog
 
+## 0.5.0
+
+**Bot detection was partly guesswork, and the guesswork ran on the expensive side.** Two definitions
+existed: `exclusions.ts`, which decides what leaves every denominator, and `identity.ts`, which
+suggests that two addresses might be the same person. They could drift apart, and one of them matched
+on name prefixes — any address beginning with `dependabot`, `renovate`, `github-actions` or
+`greenkeeper` was a bot, so `dependabot.fan@gmail.com` and `renovate-reviewer@corp.com` were bots too.
+
+There is now one `isBotIdentity`, used by both, matching on the commit email rather than the author
+name, and every pattern in it points at a real address: the GitHub `[bot]@users.noreply.github.com`
+form, `bot@renovateapp.com`, `gitlab-bot@gitlab.com` and `teabot@gitea.io`. The four prefixes are
+gone.
+
+Measured before merging: both definitions over every commit in six repositories, 572 commits, 30
+excluded by the old `exclusions.ts` rule and 30 by the new one, zero disagreements in either file. No
+figure in any existing report moves. The version is a minor rather than a patch because what leaves a
+denominator is user-visible behaviour, and for someone whose repository holds a bot this library did
+not recognise before, or recognised only by name, the numbers can change.
+
+One narrowing comes with it, and the README says so rather than leaving it to be found: `exclusions.ts`
+no longer excludes on the author name, so a bot whose name ends in `[bot]` but whose address is
+outside the recognised forms is counted as a contributor. That deflates the subject's share rather
+than inflating it, which is the safe direction for an ownership claim.
+
+From outside the project, by [@shivam-070208](https://github.com/shivam-070208): the shared
+definition, the evidence-backed forge patterns and the tests for both directions
+([#26](https://github.com/Bubblegunn/workproof/pull/26), closes
+[#10](https://github.com/Bubblegunn/workproof/issues/10)).
+
 ## 0.4.2 (2026-09-12)
 
 **The report in the README did not reproduce, on a tool whose whole claim is that it does.** The front

@@ -594,6 +594,11 @@ covers Elixir, Scala, Haskell, Lua, R, Objective-C and Zig
 release since. The second one is why the footprint figure names the right language for anyone
 outside the handful I had thought to list.
 
+[@shivam-070208](https://github.com/shivam-070208) asked whether the two bot definitions should be
+one before writing any of it, which is why the answer could be measured first. The shared
+`isBotIdentity` above, and the removal of four name prefixes that had been classifying people as bots,
+are his ([#26](https://github.com/Bubblegunn/workproof/pull/26)).
+
 ## Cite this
 
 Every release is archived on Zenodo with a DOI, so a paper or a report can point at the
