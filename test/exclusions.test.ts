@@ -7,11 +7,40 @@ import { isBot, isExcludedPath, excludedSet } from "../src/exclusions.js";
 
 const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 };
 
-test("bots are recognised by GitHub's two app-identity patterns only", () => {
-  assert.equal(isBot({ name: "dependabot[bot]", email: "49699333+dependabot[bot]@users.noreply.github.com" }), true);
-  assert.equal(isBot({ name: "renovate[bot]", email: "bot@renovateapp.com" }), true);
-  assert.equal(isBot({ name: "Ada", email: "ada@example.com" }), false);
-  assert.equal(isBot({ name: "Robot Ross", email: "ross@example.com" }), false);
+test("recognises bot identities across supported forges", () => {
+  for (const email of [
+    "49699333+dependabot[bot]@users.noreply.github.com",
+    "dependabot[bot]@users.noreply.github.com",
+    "29139614+renovate[bot]@users.noreply.github.com",
+    "41898282+github-actions[bot]@users.noreply.github.com",
+    "bot@renovateapp.com",
+    "gitlab-bot@gitlab.com",
+    "teabot@gitea.io",
+  ]) {
+    assert.equal(isBot({ name: "Bot", email }), true, email);
+  }
+});
+
+test("does not classify human-like identities as bots", () => {
+  for (const email of [
+    "dependabot@company.com",
+    "renovate@example.com",
+    "github-actions@example.com",
+    "greenkeeper@example.com",
+    "human@renovateapp.com",
+    "developer@gitlab.com",
+    "developer@gitea.io",
+    "alice.bot@example.com",
+  ]) {
+    assert.equal(isBot({ name: "Developer", email }), false, email);
+  }
+});
+
+test("bot detection is based on email, not the author name", () => {
+  assert.equal(
+    isBot({ name: "Alice[bot]", email: "alice@example.com" }),
+    false,
+  );
 });
 
 test("lock, snapshot, minified, generated and vendored paths are excluded; source is not", () => {

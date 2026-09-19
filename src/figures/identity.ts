@@ -1,5 +1,6 @@
 import type { Commit } from "../git.js";
 import { configuredEmail, configuredName } from "../git.js";
+import { isBotIdentity } from "./bot.js";
 import type { Identity } from "./types.js";
 
 
@@ -76,7 +77,6 @@ export const isMine = (c: Commit, id: Identity): boolean => id.emails.includes(c
 /** Local parts that belong to a role rather than a person, so sharing one proves nothing. */
 const GENERIC_LOCAL = new Set(["dev", "admin", "info", "me", "git", "hello", "mail", "noreply", "no-reply", "contact", "support", "team", "root", "user", "build", "ci", "bot", "test", "email", "work", "home"]);
 
-const isBotAddress = (mail: string) => /\[bot\]@|^(?:dependabot|renovate|github-actions|greenkeeper)\b/i.test(mail);
 
 /** The GitHub login inside `12345+login@users.noreply.github.com`, or the older form. */
 const githubLogin = (mail: string): string | null => {
@@ -109,7 +109,7 @@ export function possibleSplits(
   const out: { name: string; email: string; reason: string }[] = [];
   for (const c of commits) {
     const email = c.email;
-    if (mine.has(foldIdentity(email)) || seen.has(foldIdentity(email)) || isBotAddress(email)) continue;
+    if (mine.has(foldIdentity(email)) || seen.has(foldIdentity(email)) || isBotIdentity(email)) continue;
     let reason = "";
     if (myNames.includes(foldIdentity(c.name))) {
       reason = `the same name, "${c.name}", on another address`;

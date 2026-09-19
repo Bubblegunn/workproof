@@ -484,8 +484,22 @@ These are the thirteen things a reader should know before trusting a number.
    `linguist-generated` or `linguist-vendored` in `.gitattributes`, and the report prints how
    much was excluded. Anything the lists miss still counts; `--exclude` covers it, and the
    glob is recorded in the parameters.
-3. Bot commits (`dependabot[bot]`, `renovate[bot]`, GitHub app identities) leave every
-   denominator. A bot with a human-looking name is not detected; there is no heuristic.
+3. Bot commits (`[bot]@users.noreply.github.com`, Renovate, GitLab and Gitea bot identities) leave every denominator. Bot  detection uses commit email identities,
+   not author names.
+
+### Bot identities
+
+Bot detection currently recognises commit identities from:
+
+- GitHub
+- GitLab
+- Gitea
+
+GitHub bot identities use the `users.noreply.github.com` `[bot]` address form.
+Known additional identities include `bot@renovateapp.com`, `gitlab-bot@gitlab.com`,
+and `teabot@gitea.io`.
+
+Detection is based on commit email addresses, not author names.
 4. A reformat commit takes every line it touched unless it is listed in
    `.git-blame-ignore-revs`. The report says which file was used, or that none was.
 5. `--since`, `--until`, `--sample`, `--seed` and `--exclude` are all ways to choose a

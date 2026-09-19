@@ -187,6 +187,7 @@ test("one blame pass honours ignore-revs, exclusions and the seed, and buckets t
 });
 
 import { filesAuthored, majorContributor, commitSize, coAuthored, absenceFactor, aiAssisted, degreeOfAuthorship } from "../src/figures/authorship.js";
+import { isBotIdentity } from "../src/figures/bot.js";
 
 test("authorship figures pin their numbers on the fixture and carry limits", async () => {
   const dir = await makeRepo();
@@ -339,4 +340,58 @@ test("possibleSplits says nothing when the subject has one address and nobody re
     { name: "Bob", email: "bob@example.com" },
   ] as any[];
   assert.deepEqual(possibleSplits(commits, { emails: ["ada@example.com"], names: ["Ada"] }), []);
+});
+
+test("recognises known bot email identities", () => {
+  for (const email of [
+    "49699333+dependabot[bot]@users.noreply.github.com",
+    "dependabot[bot]@users.noreply.github.com",
+    "29139614+renovate[bot]@users.noreply.github.com",
+    "41898282+github-actions[bot]@users.noreply.github.com",
+    "bot@renovateapp.com",
+    "gitlab-bot@gitlab.com",
+    "teabot@gitea.io",
+  ]) {
+    assert.equal(isBotIdentity(email), true, email);
+  }
+});
+
+test("does not recognise unrelated or human email identities as bots", () => {
+  for (const email of [
+    "dependabot@company.com",
+    "renovate@example.com",
+    "github-actions@example.com",
+    "greenkeeper@example.com",
+    "human@renovateapp.com",
+    "developer@gitlab.com",
+    "developer@gitea.io",
+    "alice.bot@example.com",
+    "bot@example.com",
+  ]) {
+    assert.equal(isBotIdentity(email), false, email);
+  }
+});
+
+test("bot identity matching is case insensitive", () => {
+  for (const email of [
+    "DEPENDABOT[BOT]@USERS.NOREPLY.GITHUB.COM",
+    "BOT@RENOVATEAPP.COM",
+    "GITLAB-BOT@GITLAB.COM",
+    "TEABOT@GITEA.IO",
+  ]) {
+    assert.equal(isBotIdentity(email), true, email);
+  }
+});
+
+test("does not classify a bot-like author name without a bot email", () => {
+  assert.equal(isBotIdentity("alice@example.com"), false);
+});
+
+test("does not classify non-GitHub [bot] email addresses as bots", () => {
+  for (const email of [
+    "alice[bot]@example.com",
+    "alice[bot]@gmail.com",
+  ]) {
+    assert.equal(isBotIdentity(email), false, email);
+  }
 });
