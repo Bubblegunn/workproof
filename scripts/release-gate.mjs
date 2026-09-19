@@ -8,6 +8,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { compareVersions } from "./version.mjs";
 
 const root = process.cwd();
 const read = (f) => readFileSync(join(root, f), "utf8");
@@ -16,17 +17,6 @@ const problems = [];
 
 const pkg = JSON.parse(read("package.json"));
 const version = pkg.version;
-
-const compareVersions = (a, b) => {
-  const x = a.split(".").map(Number);
-  const y = b.split(".").map(Number);
-
-  for (let i = 0; i < 3; i++) {
-    if (x[i] !== y[i]) return x[i] - y[i];
-  }
-
-  return 0;
-};
 
 const heading = /^## +(\S+)(.*)$/m.exec(read("CHANGELOG.md"));
 
