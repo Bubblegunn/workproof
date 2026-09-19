@@ -1,3 +1,5 @@
+import { isBotIdentity } from "./figures/bot.js";
+
 /**
  * What leaves every denominator before a figure is computed.
  *
@@ -9,7 +11,7 @@
  */
 
 export const isBot = (c: { name: string; email: string }): boolean =>
-  /\[bot\]$/.test(c.name) || /^\d+\+.*\[bot\]@users\.noreply\.github\.com$/i.test(c.email);
+  isBotIdentity(c.email);
 
 const LOCK_FILES = new Set([
   "package-lock.json",
