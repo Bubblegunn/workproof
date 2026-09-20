@@ -117,8 +117,8 @@ version = "${packageVersion}"
   };
 }
 
-const run = (repo) =>
-  spawnSync(process.execPath, [script], {
+const run = (repo, args=[]) =>
+  spawnSync(process.execPath, [script, ...args], {
     cwd: repo,
     encoding: "utf8",
     env: process.env,
@@ -232,6 +232,77 @@ test("compares versions numerically", () => {
     assert.match(
       r.stdout,
       /release-gate: ok, 0\.10\.0 pending, package at 0\.9\.0,/,
+    );
+  } finally {
+    rmSync(f.base, { recursive: true, force: true });
+  }
+});
+
+test("accepts a package when all packed files are in the allowlist", () => {
+  const f = fixture({
+    packageVersion: "0.4.2",
+    changelogHeading: "## 0.4.2 (2026-09-12)",
+  });
+
+  try {
+    const r = run(f.repo);
+
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(
+      r.stdout,
+      /release-gate: ok, released at 0\.4\.2,/,
+    );
+  } finally {
+    rmSync(f.base, { recursive: true, force: true });
+  }
+});
+
+test("reject a package when unexpected pack includes a file outside the allowed list",()=>{
+  const f = fixture({
+    packageVersion: "0.4.2",
+    changelogHeading: "## 0.4.2 (2026-09-12)",
+  });
+
+  try {
+    writeFileSync(
+      join(f.repo, "dist", "unexpected.js"),
+      "console.log('unexpected');\n",
+    );
+    const r = run(f.repo);
+    assert.equal(r.status,1);
+    assert.match(
+      r.stderr,
+      /npm pack would ship dist\/unexpected\.js, which is not in scripts\/pack-allowlist\.txt/,
+    );
+  } finally {
+     rmSync(f.base, { recursive: true, force: true });
+  }
+})
+
+
+test("updates the allowlist with the files npm pack would ship", () => {
+  const f = fixture({
+    packageVersion: "0.4.2",
+    changelogHeading: "## 0.4.2 (2026-09-12)",
+  });
+
+  try {
+    writeFileSync(
+      join(f.repo, "dist", "unexpected.js"),
+      "console.log('unexpected');\n",
+    );
+
+    const r = run(f.repo, ["--update"]);
+
+    assert.equal(r.status, 0, r.stderr);
+    assert.match(
+      r.stdout,
+      /release-gate: wrote \d+ paths to scripts\/pack-allowlist\.txt/,
+    );
+
+    assert.match(
+      f.read("scripts/pack-allowlist.txt"),
+      /^dist\/unexpected\.js$/m,
     );
   } finally {
     rmSync(f.base, { recursive: true, force: true });
