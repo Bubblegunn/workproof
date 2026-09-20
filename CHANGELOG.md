@@ -30,13 +30,17 @@ push. Both could not hold, so a contributor's credit could only be written at re
 on the day their work merged. The gate now recognises two states and says which one it found, and
 this entry exists on the day it describes.
 
-From outside the project, both by [@shivam-070208](https://github.com/shivam-070208): the shared bot
-identity, the evidence-backed forge patterns and the tests for both directions
+From outside the project, all three by [@shivam-070208](https://github.com/shivam-070208): the shared
+bot identity, the evidence-backed forge patterns and the tests for both directions
 ([#26](https://github.com/Bubblegunn/workproof/pull/26), closes
-[#10](https://github.com/Bubblegunn/workproof/issues/10)); and the release-gate fix above, with a
+[#10](https://github.com/Bubblegunn/workproof/issues/10)); the release-gate fix above, with a
 shared version comparator so the two scripts cannot drift again
 ([#29](https://github.com/Bubblegunn/workproof/pull/29), closes
-[#28](https://github.com/Bubblegunn/workproof/issues/28)).
+[#28](https://github.com/Bubblegunn/workproof/issues/28)); and the tests for the pack allowlist,
+which had been enforced with nothing that would notice if it stopped enforcing — reading an empty
+packed-file list left all 63 tests passing, and now fails two of them
+([#33](https://github.com/Bubblegunn/workproof/pull/33), closes
+[#30](https://github.com/Bubblegunn/workproof/issues/30)).
 
 ## 0.4.2 (2026-09-12)
 

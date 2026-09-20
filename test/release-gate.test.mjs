@@ -117,7 +117,7 @@ version = "${packageVersion}"
   };
 }
 
-const run = (repo, args=[]) =>
+const run = (repo, args = []) =>
   spawnSync(process.execPath, [script, ...args], {
     cwd: repo,
     encoding: "utf8",
@@ -257,7 +257,7 @@ test("accepts a package when all packed files are in the allowlist", () => {
   }
 });
 
-test("reject a package when unexpected pack includes a file outside the allowed list",()=>{
+test("reject a package when unexpected pack includes a file outside the allowed list", () => {
   const f = fixture({
     packageVersion: "0.4.2",
     changelogHeading: "## 0.4.2 (2026-09-12)",
@@ -269,16 +269,15 @@ test("reject a package when unexpected pack includes a file outside the allowed 
       "console.log('unexpected');\n",
     );
     const r = run(f.repo);
-    assert.equal(r.status,1);
+    assert.equal(r.status, 1);
     assert.match(
       r.stderr,
       /npm pack would ship dist\/unexpected\.js, which is not in scripts\/pack-allowlist\.txt/,
     );
   } finally {
-     rmSync(f.base, { recursive: true, force: true });
+    rmSync(f.base, { recursive: true, force: true });
   }
-})
-
+});
 
 test("updates the allowlist with the files npm pack would ship", () => {
   const f = fixture({
