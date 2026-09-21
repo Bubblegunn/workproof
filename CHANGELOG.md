@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.5.0 (unreleased)
+## 0.5.0 (2026-09-21)
 
 **Bot detection was partly guesswork, and the guesswork ran on the expensive side.** Two definitions
 existed: `exclusions.ts`, which decides what leaves every denominator, and `identity.ts`, which
