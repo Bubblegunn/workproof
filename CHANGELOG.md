@@ -37,10 +37,15 @@ bot identity, the evidence-backed forge patterns and the tests for both directio
 shared version comparator so the two scripts cannot drift again
 ([#29](https://github.com/Bubblegunn/workproof/pull/29), closes
 [#28](https://github.com/Bubblegunn/workproof/issues/28)); and the tests for the pack allowlist,
-which had been enforced with nothing that would notice if it stopped enforcing — reading an empty
-packed-file list left all 63 tests passing, and now fails two of them
+which had been enforced with nothing that would notice if it stopped enforcing. Reading an empty
+packed-file list left all 63 tests passing, and now it fails two of them
 ([#33](https://github.com/Bubblegunn/workproof/pull/33), closes
-[#30](https://github.com/Bubblegunn/workproof/issues/30)).
+[#30](https://github.com/Bubblegunn/workproof/issues/30)); and the fix for `npm pack --dry-run
+--json`, which returns an array on npm 11 and an object keyed by package name on npm 12, so the gate
+died on npm 12 where it used to read the packed file list
+([#35](https://github.com/Bubblegunn/workproof/pull/35), closes
+[#31](https://github.com/Bubblegunn/workproof/issues/31)). Each of the four arrived with the mutation
+that fails its own test already run and pasted.
 
 ## 0.4.2 (2026-09-12)
 
