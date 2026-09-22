@@ -11,8 +11,9 @@ import {
   readFileSync,
   writeFileSync,
   rmSync,
+  chmodSync,
 } from "node:fs";
-import { join, dirname } from "node:path";
+import { join, dirname, delimiter } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 
@@ -117,12 +118,111 @@ version = "${packageVersion}"
   };
 }
 
-const run = (repo, args = []) =>
+const run = (repo, args = [], env = process.env) =>
   spawnSync(process.execPath, [script, ...args], {
     cwd: repo,
     encoding: "utf8",
-    env: process.env,
+    env,
   });
+
+function resolveRealNpm() {
+  const command = process.platform === "win32" ? "where.exe" : "which";
+
+  const result = spawnSync(command, ["npm"], {
+    encoding: "utf8",
+  });
+
+  if (result.status !== 0) {
+    throw new Error(`could not resolve npm: ${result.stderr}`);
+  }
+
+  const npmPath = result.stdout.trim().split(/\r?\n/)[0];
+  if (!npmPath) {
+    throw new Error("could not resolve npm path");
+  }
+
+  return npmPath;
+}
+
+function createFakeNpm(repo, mode, realNpm) {
+  console.log("debug2",repo)
+  const fakeBin = join(repo, "fake-bin");
+  mkdirSync(fakeBin);
+
+  const fakeNpmScript = join(fakeBin, "fake-npm.mjs");
+
+  writeFileSync(
+    fakeNpmScript,
+    `import { execFileSync } from "node:child_process";
+
+      const realNpm = ${JSON.stringify(realNpm)};
+      const mode = ${JSON.stringify(mode)};
+      const args = process.argv.slice(2);
+
+      const expected = [
+        "pack",
+        "--dry-run",
+        "--json",
+        "--ignore-scripts",
+      ];
+
+      if (
+        args.length !== expected.length ||
+        args.some((arg, index) => arg !== expected[index])
+      ) {
+        process.stderr.write(
+          \`unexpected npm invocation: \${args.join(" ")}\`,
+        );
+        process.exit(1);
+      }
+
+      const output = execFileSync(realNpm, args, {
+        cwd: process.cwd(),
+        encoding: "utf8",
+        ${process.platform === "win32" ? "shell: true," : ""}
+      });
+
+      if (mode === "invalid") {
+        process.stdout.write(JSON.stringify({ unexpected: true }));
+        process.exit(0);
+      }
+
+      const packed = JSON.parse(output);
+
+      if (!Array.isArray(packed) || packed.length === 0) {
+        throw new Error("unexpected real npm pack output");
+      }
+
+      const packageData = packed[0];
+
+      process.stdout.write(
+        JSON.stringify({
+          [packageData.name]: packageData,
+        }),
+      );
+      `,
+    );
+
+  if (process.platform === "win32") {
+    writeFileSync(
+      join(fakeBin, "npm.cmd"),
+      `@echo off\r\n"${process.execPath}" "${fakeNpmScript}" %*\r\n`,
+    );
+  } else {
+    const fakeNpm = join(fakeBin, "npm");
+
+    writeFileSync(
+      fakeNpm,
+      `#!/bin/sh
+      exec "${process.execPath}" "${fakeNpmScript}" "$@"
+      `,
+    );
+
+    chmodSync(fakeNpm, 0o755);
+  }
+
+  return fakeBin;
+}
 
 test("accepts a released version when the CHANGELOG entry is dated", () => {
   const f = fixture({
@@ -302,6 +402,56 @@ test("updates the allowlist with the files npm pack would ship", () => {
     assert.match(
       f.read("scripts/pack-allowlist.txt"),
       /^dist\/unexpected\.js$/m,
+    );
+  } finally {
+    rmSync(f.base, { recursive: true, force: true });
+  }
+});
+
+test("release gate handles npm 12 package-name keyed pack output", () => {
+  const f = fixture({
+    packageVersion: "0.4.2",
+    changelogHeading: "## 0.4.2 (2026-09-12)",
+  });
+
+  try {
+    const realNpm = resolveRealNpm();
+    const fakeBin = createFakeNpm(f.repo, "object", realNpm);
+
+    const env = {
+      ...process.env,
+      PATH: `${fakeBin}${delimiter}${process.env.PATH ?? ""}`,
+    };
+
+    const result = run(f.repo, [], env);
+
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(f.base, { recursive: true, force: true });
+  }
+});
+
+test("release gate rejects an unrecognized npm pack output shape", () => {
+  const f = fixture({
+    packageVersion: "0.4.2",
+    changelogHeading: "## 0.4.2 (2026-09-12)",
+  });
+
+  try {
+    const realNpm = resolveRealNpm();
+    const fakeBin = createFakeNpm(f.repo, "invalid", realNpm);
+
+    const env = {
+      ...process.env,
+      PATH: `${fakeBin}${delimiter}${process.env.PATH ?? ""}`,
+    };
+
+    const result = run(f.repo, [], env);
+
+    assert.notEqual(result.status, 0);
+    assert.match(
+      result.stderr,
+      /unexpected npm pack output shape/,
     );
   } finally {
     rmSync(f.base, { recursive: true, force: true });
