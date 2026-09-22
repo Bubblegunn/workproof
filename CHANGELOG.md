@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.1 (unreleased)
+
+**The npm 12 fix had no test that could tell whether it was being exercised.** `extractPackedFiles`
+was covered four ways, and the line wiring it into `release-gate.mjs` was not: reverting that line to
+`packed[0].files` left the whole suite green, because npm 11 returns the array shape and the gate
+handles it either way.
+
+There is now an integration test that puts a fake `npm` on `PATH`, forwards to the real one and
+reshapes its output into the npm 12 object, with a `.cmd` beside the shell script for the Windows
+runner and an assertion on the arguments the gate passes. The stub writes a marker that both tests
+read, so a test cannot pass while the stub sits unused, which is the way this check could have gone
+quiet without anyone noticing.
+
+Written by [@shivam-070208](https://github.com/shivam-070208)
+([#40](https://github.com/Bubblegunn/workproof/pull/40), closes
+[#37](https://github.com/Bubblegunn/workproof/issues/37)). Measured before merging: with the
+injection removed the npm 12 test now fails, where it passed before the marker; reverting the wired
+line fails both new tests; and replacing the unrecognised-shape `throw` with an empty list fails
+exactly the test written for it. Nothing in the published package changes, which is why this is a
+patch entry.
+
 ## 0.5.0 (2026-09-21)
 
 **Bot detection was partly guesswork, and the guesswork ran on the expensive side.** Two definitions
