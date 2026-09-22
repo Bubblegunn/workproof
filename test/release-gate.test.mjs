@@ -148,12 +148,16 @@ function createFakeNpm(repo, mode, realNpm) {
   const fakeBin = join(repo, "fake-bin");
   mkdirSync(fakeBin);
 
+  const markerDir = join(repo, "fake-npm-marker");
+  mkdirSync(markerDir);
+
   const fakeNpmScript = join(fakeBin, "fake-npm.mjs");
 
   writeFileSync(
     fakeNpmScript,
     ` import { execFileSync } from "node:child_process";
-      import { readFileSync } from "node:fs";
+      import { readFileSync, writeFileSync } from "node:fs";
+      import { join } from "node:path";
 
       const realNpm = ${JSON.stringify(realNpm)};
       const mode = ${JSON.stringify(mode)};
@@ -175,6 +179,10 @@ function createFakeNpm(repo, mode, realNpm) {
         );
         process.exit(1);
       }
+      writeFileSync(
+        join(process.env.FAKE_NPM_MARKER_DIR, "fake-npm-ran"),
+        mode,
+      );
 
       if (mode === "invalid") {
         process.stdout.write(JSON.stringify({ unexpected: true }));
@@ -435,11 +443,17 @@ test("release gate handles npm 12 package-name keyed pack output", () => {
     const env = {
       ...process.env,
       PATH: `${fakeBin}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_NPM_MARKER_DIR: join(f.repo, "fake-npm-marker"),
     };
 
     const result = run(f.repo, [], env);
 
     assert.equal(result.status, 0, result.stderr);
+
+    assert.equal(
+      f.read("fake-npm-marker/fake-npm-ran"),
+      "object",
+    );
   } finally {
     rmSync(f.base, { recursive: true, force: true });
   }
@@ -458,11 +472,16 @@ test("release gate rejects an unrecognized npm pack output shape", () => {
     const env = {
       ...process.env,
       PATH: `${fakeBin}${delimiter}${process.env.PATH ?? ""}`,
+      FAKE_NPM_MARKER_DIR: join(f.repo, "fake-npm-marker"),
     };
 
     const result = run(f.repo, [], env);
 
     assert.notEqual(result.status, 0);
+    assert.equal(
+      f.read("fake-npm-marker/fake-npm-ran"),
+      "invalid",
+    );
     assert.match(
       result.stderr,
       /unexpected npm pack output shape/,
