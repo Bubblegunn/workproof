@@ -145,7 +145,6 @@ function resolveRealNpm() {
 }
 
 function createFakeNpm(repo, mode, realNpm) {
-  console.log("debug2",repo)
   const fakeBin = join(repo, "fake-bin");
   mkdirSync(fakeBin);
 
@@ -153,7 +152,8 @@ function createFakeNpm(repo, mode, realNpm) {
 
   writeFileSync(
     fakeNpmScript,
-    `import { execFileSync } from "node:child_process";
+    ` import { execFileSync } from "node:child_process";
+      import { readFileSync } from "node:fs";
 
       const realNpm = ${JSON.stringify(realNpm)};
       const mode = ${JSON.stringify(mode)};
@@ -176,32 +176,46 @@ function createFakeNpm(repo, mode, realNpm) {
         process.exit(1);
       }
 
+      if (mode === "invalid") {
+        process.stdout.write(JSON.stringify({ unexpected: true }));
+        process.exit(0);
+      }
+
       const output = execFileSync(realNpm, args, {
         cwd: process.cwd(),
         encoding: "utf8",
         ${process.platform === "win32" ? "shell: true," : ""}
       });
 
-      if (mode === "invalid") {
-        process.stdout.write(JSON.stringify({ unexpected: true }));
-        process.exit(0);
-      }
-
       const packed = JSON.parse(output);
 
-      if (!Array.isArray(packed) || packed.length === 0) {
-        throw new Error("unexpected real npm pack output");
+      const packageJson = JSON.parse(
+        readFileSync("package.json", "utf8"),
+      );
+
+      const packageName = packageJson.name;
+
+      let packageData;
+
+      if (Array.isArray(packed)) {
+        packageData = packed[0];
+      } else if (packed && typeof packed === "object") {
+        packageData = packed[packageName];
       }
 
-      const packageData = packed[0];
+      if (!packageData) {
+        throw new Error(
+          "could not extract package data from real npm output",
+        );
+      }
 
       process.stdout.write(
         JSON.stringify({
-          [packageData.name]: packageData,
+          [packageName]: packageData,
         }),
       );
       `,
-    );
+  );
 
   if (process.platform === "win32") {
     writeFileSync(
@@ -215,7 +229,7 @@ function createFakeNpm(repo, mode, realNpm) {
       fakeNpm,
       `#!/bin/sh
       exec "${process.execPath}" "${fakeNpmScript}" "$@"
-      `,
+    `,
     );
 
     chmodSync(fakeNpm, 0o755);
