@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
 import { makeRepo } from "./fixture.js";
-import { analyseRepo, buildReport, verifyReport, narrate, renderMarkdown, badgeFor } from "../src/index.js";
+import { analyseRepo, buildReport, verifyReport, narrate, renderMarkdown, badgeFor, cardFor } from "../src/index.js";
 
 const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 };
 
@@ -171,5 +171,97 @@ test("a shallow clone is refused by analyse, verify and the CLI, naming the fix"
   } finally {
     await rm(full, { recursive: true, force: true });
     await rm(shallow, { recursive: true, force: true });
+  }
+});
+
+test("--card writes light and dark SVG files", async () => {
+  const dir = await makeRepo();
+
+  try {
+    const cli = join(process.cwd(), "dist/src/cli.js");
+    const out = join(dir, "card-report");
+
+    execFileSync("node", [
+      cli,
+      "--repo", dir,
+      "--author", "ada@example.com",
+      "--out", out,
+      "--card",
+    ], { encoding: "utf8" });
+
+    const light = await readFile(`${out}.card.svg`, "utf8");
+    const dark = await readFile(`${out}.card-dark.svg`, "utf8");
+
+    assert.match(light, /width="500" height="180"/);
+    assert.match(dark, /width="500" height="180"/);
+    assert.notEqual(light, dark);
+
+    const report = JSON.parse(
+      await readFile(`${out}.json`, "utf8"),
+    );
+
+    assert.equal(report.tool, "workproof");
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("card figures come from the report", () => {
+  const report = {
+    repositories: [{
+      head: "abcdef123456",
+      figures: [
+        { id: "survivingLines", value: { lines: 100, share: 0.5 } },
+        { id: "commitShare", value: { author: 5, total: 10, share: 0.5 } },
+        { id: "tenure", value: { days: 20 } },
+        { id: "filesAuthored", value: { authored: 4, total: 8 } },
+      ],
+    }],
+  } as Parameters<typeof cardFor>[0];
+
+  const before = cardFor(report);
+  report.repositories[0]!.figures[0]!.value = { lines: 250, share: 0.75 };
+  const after = cardFor(report);
+
+  assert.notEqual(before, after);
+  assert.match(after, />250</);
+  assert.match(after, /75\.0%/);
+});
+
+test("card excludes private report details with all privacy options", async () => {
+  const dir = await makeRepo();
+
+  try {
+    const source = await readFile(join(dir, "src/a.ts"), "utf8");
+
+    for (const paths of [false, true]) {
+      for (const emails of [false, true]) {
+        const options = { ...params, paths, emails };
+
+        const report = buildReport(
+          [await analyseRepo(dir, options)],
+          options,
+          {
+            version: "0.1.0",
+            generatedAt: "2026-09-05T00:00:00Z",
+          },
+        );
+
+        for (const theme of ["light", "dark"] as const) {
+          const svg = cardFor(report, theme);
+
+          assert.doesNotMatch(svg, /ada@example\.com/);
+          assert.doesNotMatch(svg, /src\/a\.ts/);
+
+          if (source.length > 0) {
+            assert.doesNotMatch(svg, new RegExp(
+              source.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+            ));
+          }
+        }
+      }
+    }
+  } finally {
+    await rm(dir, { recursive: true, force: true });
   }
 });
