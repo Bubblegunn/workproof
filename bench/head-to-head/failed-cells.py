@@ -9,7 +9,7 @@ bad = []
 BAD_TEXT = re.compile(r"rate[_ -]?limit|overloaded|\b429\b|\b529\b|usage limit|api_error|quota", re.I)
 for name in sorted(os.listdir(runs)):
     d = os.path.join(runs, name)
-    m = re.fullmatch(r"(T\d+)-(.+)-(\d+)", name)
+    m = re.fullmatch(r"([TH]\d+)-(.+)-(\d+)", name)
     if not m or not os.path.isdir(d): continue
     if not os.path.exists(os.path.join(d, "DONE")): bad.append(name); continue
     result = None; tail = []
@@ -26,5 +26,5 @@ for name in sorted(os.listdir(runs)):
     if len(text) < 400 and BAD_TEXT.search(text): bad.append(name); continue
     if any(BAD_TEXT.search(l) and '"type":"system"' in l and "api_retry" in l for l in tail): bad.append(name)
 for n in bad:
-    t, a, i = re.fullmatch(r"(T\d+)-(.+)-(\d+)", n).groups()
+    t, a, i = re.fullmatch(r"([TH]\d+)-(.+)-(\d+)", n).groups()
     print(t, a, i)
