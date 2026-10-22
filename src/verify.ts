@@ -1,4 +1,4 @@
-import { analyseRepo, fingerprint } from "./analyse.js";
+import { analyseRepo, fingerprint, NOREPLY_PLACEHOLDER } from "./analyse.js";
 import { headSha, rootCommit, remoteUrl, assertRepository, assertNotShallow } from "./git.js";
 import { hashOf } from "./report.js";
 import { validateReport } from "./schema.js";
@@ -59,7 +59,11 @@ export async function verifyReport(report: Report, repoDirs: string[], opts: { f
     const head = await headSha(dir);
     if (head !== expected.head) headMoved.push(`${expected.name}: report at ${expected.head.slice(0, 12)}, repository at ${head.slice(0, 12)}`);
     // Emails are hidden from the report by default, so resolve the identity from what it does carry.
-    const author = expected.identity.emails.length ? expected.identity.emails : expected.identity.names;
+    // With emails shown, a GitHub noreply address is a placeholder that matches no commit, so names
+    // are used then. The names of a merged identity resolve to the same commits, because the merge
+    // runs to a fixed point (mergeSplits).
+    const shownAddresses = expected.identity.emails.length > 0 && !expected.identity.emails.includes(NOREPLY_PLACEHOLDER);
+    const author = shownAddresses ? expected.identity.emails : expected.identity.names;
     const actual = await analyseRepo(dir, { ...report.params, author, ...(key ? { fingerprintKey: key } : {}) });
     for (const f of expected.figures) {
       const a = actual.figures.find((x) => x.id === f.id);

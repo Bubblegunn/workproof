@@ -15,6 +15,48 @@ npx workproof
 
 That writes `workproof-report.md` (paste it into a résumé, a portfolio or a visa application) and `workproof-report.json` (for tools and for checking). The recording runs it on a public repository, [langchain-ai/openwiki](https://github.com/langchain-ai/openwiki) at `1e6d54c`; the output is committed as a [sample report](docs/sample/openwiki-report.md).
 
+### Three ways to install
+
+Run it once with npx. Nothing is installed. Run it inside the repository you want to report on:
+
+```
+npx workproof
+```
+
+Add it to Claude Code as a plugin. The agent then runs the tool itself, checks and verifies the report, and offers six commands: `/workproof`, `/verify-report`, `/cv-bullets`, `/self-review`, `/usage-report` and `/tailor-resume`. The commands call the CLI (`workproof sessions`, `verdict` and `bullets` produce their output in a fixed template without a model), and a small hook (`hooks/workproof-hint.sh`, plain shell, no network, no file writes) adds one line naming the skill when your prompt is about your own commits, a CV, a report someone sent or your Claude Code usage.
+
+```
+/plugin install workproof --marketplace Bubblegunn/workproof
+```
+
+That one-step form works on Claude Code 2.1.275 or newer. On an older version, use two steps:
+
+```
+/plugin marketplace add Bubblegunn/workproof
+/plugin install workproof@workproof
+```
+
+Or add only the skill to any agent that reads skills. The skill alone does not add the four commands:
+
+```
+npx skills add Bubblegunn/workproof
+```
+
+The skill starts when you ask the question this tool answers, in your own words. You can say, for example:
+
+- "Write me 4 CV bullets for this repo."
+- "Tailor my resume to this job description." (it uses only your report, bank or past resume, tags every bullet and lists the skills you lack as gaps)
+- "How much of this codebase is mine?"
+- "Write my self-review paragraph for this repo."
+- "I need visa evidence from this private repo that I can attach."
+- "Someone sent me a workproof report. Can I trust it?"
+- "What did my Claude Code usage deliver this month? Write a short report for my manager."
+- "I committed under several email addresses. How much is mine across all of them?"
+
+Before it writes a document, the agent checks whether the repository is public and tells you if it is. It quotes the report instead of counting with git, so the figures you hand over are the ones the tool printed.
+
+If this helped, a star on the repository helps others find it.
+
 ![Terminal recording: workproof writes a report, check prints hash ok, verify prints all figures reproduce, then the two shares are shown](docs/demo.gif)
 
 It is not a productivity metric and does not rank people. It reports what survived and what was touched, and under every figure it prints the git command behind it and what the figure cannot show. A reader who has only the JSON file can run `workproof check` and learn whether it was edited after it was written; that does not prove the repository's history is real ([threat model](docs/THREAT-MODEL.md)). Candidates run it; for a hiring manager, see [For hiring managers](#for-hiring-managers).
@@ -28,21 +70,6 @@ It is not a productivity metric and does not rank people. It reports what surviv
   <a href="https://www.bestpractices.dev/projects/15493"><img src="https://img.shields.io/cii/level/15493?style=flat-square&color=111111&label=openssf%20best%20practices" alt="OpenSSF Best Practices"></a>
 </p>
 
-### As a Claude Code plugin
-
-```
-/plugin install workproof --marketplace Bubblegunn/workproof
-```
-
-That one-step form works on Claude Code 2.1.275 or newer. On an older version, use two steps:
-
-```
-/plugin marketplace add Bubblegunn/workproof
-/plugin install workproof@workproof
-```
-
-The plugin adds one skill. When you ask the agent the question this tool answers, it runs `npx workproof` itself instead of estimating.
-
 ## How this differs
 
 git-fame and gitinspector also report per-author numbers from git. [docs/COMPARISON.md](docs/COMPARISON.md) holds the measured comparison: each tool was run on the same fixture repositories on 2026-10-21, once with its defaults and once tuned by hand. These are the rows where workproof is ahead or ties:
@@ -52,7 +79,7 @@ git-fame and gitinspector also report per-author numbers from git. [docs/COMPARI
 - Email addresses: the default output of workproof has none. gitinspector v0.5.1 and onefetch 3.1.0 print one.
 - Checking a report: workproof has `check`, `verify`, `attest` and `countersign` for a report it wrote. The help text of git-fame, gitinspector, git-who and onefetch mentions no verify or attest command.
 
-The rows where workproof is behind are on the same page: running as a git subcommand, writing CSV, HTML or XML, speed against git-fame, git-who and onefetch, and putting private work on the GitHub contribution graph.
+The rows where workproof is behind are on the same page: running as a git subcommand, writing CSV, HTML or XML, speed against git-fame, git-who and onefetch, and putting private work on the GitHub contribution graph. The other Claude Code plugins are compared on their own page, [docs/PLUGIN-COMPARISON.md](docs/PLUGIN-COMPARISON.md), and the six tasks behind the measured comparison are in [docs/HEAD-TO-HEAD.md](docs/HEAD-TO-HEAD.md).
 
 ## What the run prints
 
@@ -303,9 +330,14 @@ workproof [options] [--repo <dir>]...
 workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-signers <file>]
 workproof countersign <report.json> --key <ssh-key> [--repo <dir>] [--fingerprint-key <hex>] [--as <label>]
 workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
+workproof verdict <report.json> [--repo <dir>]... [--fingerprint-key <hex>] [--out <file>]
+workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--out <file>]
+workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
 workproof attest <report.json> [--local <ssh-key>]
+workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
 
 --author <email|name>   identity to report on (repeatable; default: git config user.email)
+--no-merge-identities   count only the configured address and addresses with the same name (default: merge addresses that look like yours, and say which)
 --repo <dir>            repository to analyse (repeatable; several produce one combined report)
 --since / --until       override the tenure window
 --sample <n>            blame every n-th file (default: 1; 7 for very large repositories)
@@ -321,6 +353,7 @@ workproof attest <report.json> [--local <ssh-key>]
 --emails                include author emails
 --narrate               append a model-written paragraph
 --badge                 also write <out>.badge.json, a shields.io endpoint document
+--quiet                 no progress lines and no star hint (warnings and the fingerprint key stay)
 --out <basename>        output basename (default: workproof-report)
 --format <mode>         write markdown, json, or both (default: both); json prints to stdout
 --json                  same as --format json
@@ -463,33 +496,29 @@ one person. It counts them as two authors, so a report about one of them describ
 work and says nothing about the rest, and every figure in it is quietly too small. This is the
 most common way these numbers go wrong and nothing normally tells you.
 
-The report tells you:
+By default, workproof merges the other addresses that strongly look like yours into your identity,
+and says so. Three signals count as strong: the same name on another address, a GitHub noreply
+login that matches your name or your address, and an address name that matches your GitHub login.
+The run prints one line on stderr that names the merged addresses and the reason for each, and the
+report carries this line, so every figure describes the work under all of the merged addresses:
 
 ```
-**1 other identity in this repository looks like the same person and was not counted here**:
-Efe Genc. The same name, "Efe Genc", on another address. Every figure below therefore describes
-only the work under the identities named above. If they are the same person, re-run with each
-address passed to `--author`, or merge them in a `.mailmap`.
+Merged by rule: 1 other address (same name on another address). Pass --no-merge-identities to count only the configured address.
 ```
 
-The same line appears as a warning on stderr while the run is happening, and as
-`identity.possiblySplit` in the JSON. Three signals raise it: the same name on another address,
-a GitHub noreply login that matches your address or your name, and the same address name on
-another domain. Role addresses like `dev@` and bot addresses are ignored, because sharing one
-proves nothing.
+The search repeats until no new address is found, so an address that matches one you already merged can be pulled in as well; the stderr list shows every one, and a name shared with a stranger is the same risk the weaker rule carries. The weaker signal, the same address name on another domain, is never merged, because a person can
+share a name part with a stranger. The run warns about it on stderr, and the JSON lists it under
+`identity.possiblySplit`. To count such an address, pass it with `--author`. To turn the merge off
+for every address, run with `--no-merge-identities`. An address passed with `--author` is counted
+exactly, and an explicit `--author` merges nothing else. Role addresses like `dev@` and bot addresses
+are ignored, because sharing one proves nothing.
 
-Without `--emails` the line states only how many other addresses may be the same person and
-tells you to re-run with `--emails`; the reasons are fixed phrases, and no name, login or address
-is written. With `--emails` the names, public emails and reasons are listed.
+The report carries the count and the reasons. The addresses themselves are printed on stderr for you
+to read and stay out of the document, the same rule the rest of the report follows.
 
-It is a disclosure, not a correction. The tool cannot know whether two addresses are one person,
-so it never merges them for you: pass each address to `--author`, or write a `.mailmap`, which
-`git log`, `git blame` and `git shortlog` all read as well.
-[`surviving-lines --identities`](https://github.com/Bubblegunn/surviving-lines) prints the
-`.mailmap` lines for a whole repository if you want to fix it once for everyone.
-
-The addresses themselves stay out of the document unless you pass `--emails`, the same rule the
-rest of the report follows.
+A `.mailmap` is a second way to fix this, and it is the only one that every reader of the repository
+gets: `git log`, `git blame` and `git shortlog` all read it. [`surviving-lines --identities`](https://github.com/Bubblegunn/surviving-lines)
+prints the `.mailmap` lines for a whole repository if you want to write it once for everyone.
 
 ## Names that are not ASCII
 
@@ -688,6 +717,17 @@ outside the handful I had thought to list.
 one before writing any of it, which is why the answer could be measured first. The shared
 `isBotIdentity` above, and the removal of four name prefixes that had been classifying people as bots,
 are his ([#26](https://github.com/Bubblegunn/workproof/pull/26)).
+
+The bullets reference the plugin uses, `skills/workproof/references/bullets.md`, is adapted from
+[JD Resume Tailor](https://github.com/Day-Raval/jd-resume-tailor) by Dayesh Raval (MIT, Copyright (c) 2026
+Dayesh Raval).
+
+`skills/workproof/references/tailor.md`, the step that tailors bullets to a job description, extends the same adaptation of JD Resume Tailor (Dayesh Raval, MIT, Copyright (c) 2026 Dayesh Raval).
+
+The session miner behind the usage report, `src/sessions/mine-sessions.mjs` (run as `workproof sessions`), is adapted from `mine-transcripts.mjs` in the
+[receipts plugin](https://github.com/anthropics/claude-plugins-official) (Apache License 2.0; the licence text is in
+`src/sessions/LICENSE-APACHE-2.0`). The adaptation removes the HTML receipt and the CSV export, drops the user name,
+replaces folder paths with fixed labels and reads the home folder from `WORKPROOF_HOME`; the header of the file lists every change.
 
 ## Cite this
 

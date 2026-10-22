@@ -9,7 +9,7 @@ import { isBot, excludedSet } from "./exclusions.js";
 // surviving-lines ships plain ESM JavaScript without type declarations.
 // @ts-ignore
 import { globToRegExp } from "surviving-lines/bin/surviving-lines.js";
-import { resolveIdentity, possibleSplits, SPLIT_HINT } from "./figures/identity.js";
+import { resolveIdentity, possibleSplits, mergeSplits, SPLIT_HINT } from "./figures/identity.js";
 import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
 import { footprint, testsAndDocs } from "./figures/footprint.js";
@@ -41,11 +41,27 @@ export interface Params {
   ignoreRevsFile?: string;
   /** Key for the repository fingerprint; generated per report when absent. */
   fingerprintKey?: string;
+  /**
+   * Set to false only by --no-merge-identities. Without it, an identity taken from git config
+   * absorbs the addresses that look like the same person (see mergeSplits). An explicit author
+   * is always exact, whatever this says.
+   */
+  mergeIdentities?: boolean;
+}
+
+export interface MergeNotice {
+  repo: string;
+  /** Full addresses, for the terminal only: the report never carries them without emails. */
+  emails: string[];
+  /** The fixed category strings of SPLIT_CATEGORY. */
+  reasons: string[];
 }
 
 export interface AnalyseHooks {
   /** Called with short status lines while history is read and files are blamed. */
   progress?: (message: string) => void;
+  /** Called once for a repository whose identity absorbed other addresses, before any figure. */
+  merged?: (notice: MergeNotice) => void;
 }
 
 export interface RepoReport {
@@ -60,6 +76,8 @@ export interface RepoReport {
     count: number;
     /** Addresses here that look like the subject and were not counted as them. */
     possiblySplit?: { count?: number; hint?: string; names: string[]; emails?: string[]; reasons: string[] };
+    /** Addresses merged into the identity by default, with the fixed categories that merged them. */
+    merged?: { count: number; reasons: string[]; emails?: string[] };
   };
   /** What the figures were computed with, so a verifier can tell a drift from an edit. */
   environment: { git: string; blame: string[]; ignoreRevs: string | null; seed: string };
@@ -72,8 +90,10 @@ export interface RepoReport {
 export const newFingerprintKey = (): string => randomBytes(16).toString("hex");
 
 const NOREPLY = /@users\.noreply\.github\.com$/i;
+/** What a GitHub noreply address is written as when emails are shown; it is not an address. */
+export const NOREPLY_PLACEHOLDER = "(github noreply)";
 /** GitHub noreply addresses carry the login in the local part, so they are never written out. */
-export const publicEmail = (email: string): string => (NOREPLY.test(email) ? "(github noreply)" : email);
+export const publicEmail = (email: string): string => (NOREPLY.test(email) ? NOREPLY_PLACEHOLDER : email);
 
 /**
  * Identifies a repository without naming it. Keyed: HMAC-SHA256 under a per-report key of
@@ -134,9 +154,15 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
   say(`${basename(cwd)}: ${everything.length.toLocaleString("en-US")} commits read`);
   const ex = await applyExclusions(cwd, everything, params);
   const all = ex.commits;
-  const id = await resolveIdentity(all, params.author, cwd);
-  // Before any figure is computed: does someone else here look like the same person? A split
-  // identity makes every figure below describe half the work, silently.
+  const configured = await resolveIdentity(all, params.author, cwd);
+  // Before any figure is computed. Without --author the identity is whatever git config says,
+  // which is one address of a person who may have several, so the addresses that look like the
+  // same person are merged in by default. An explicit --author is exact and merges nothing.
+  const explicit = !!(params.author && params.author.length);
+  const { identity: id, merged } = !explicit && params.mergeIdentities !== false ? mergeSplits(all, configured) : { identity: configured, merged: undefined };
+  if (merged) hooks.merged?.({ repo: basename(cwd), emails: merged.emails, reasons: merged.reasons });
+  // Whatever is still a possible split after the merge (none when merging is on, and every
+  // address when --author or --no-merge-identities is given).
   const splits = possibleSplits(all, id);
   const t = tenure(all, id, { ...(params.since ? { since: params.since } : {}), ...(params.until ? { until: params.until } : {}) });
   const start = new Date(t.value.first + "T00:00:00Z");
@@ -194,6 +220,8 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
       emails: params.emails ? [...new Set(id.emails.map(publicEmail))] : [],
       names: id.names,
       count: id.emails.length,
+      // The addresses are recorded only with --emails, as publicEmail forms, so the basis sentence can list them.
+      ...(merged ? { merged: { count: merged.emails.length, reasons: merged.reasons, ...(params.emails ? { emails: merged.emails.map(publicEmail) } : {}) } } : {}),
       ...(splits.length
         ? {
             // Without --emails the record is a count, a fixed hint and fixed category strings: no

@@ -49,3 +49,11 @@ Thirteen: tenure window, share of commits, cadence, footprint, test-file changes
 ## How do I add workproof to GitHub Actions?
 
 Use the composite action `Bubblegunn/workproof@v0` with `fetch-depth: 0` on the checkout and an `author` input. It writes the report to the job summary, uploads the report files as an artifact and can post a sticky pull request comment, sign the report with Sigstore (`attest: "true"`), or add a summary to a release (`release: "true"`). The workflow examples are in the README section "GitHub Action".
+
+## Can I use workproof if I committed under several email addresses?
+
+Yes. When you do not pass `--author`, workproof merges the other addresses that strongly look like yours into your identity: the same name on another address, a GitHub noreply login that matches your name or address, or an address name that matches your GitHub login. It prints one line on stderr that names the merged addresses and the reason for each, and the report says "Merged by rule". An address that shares only its address name on another domain is never merged. It is listed as a possible split with a warning, and you can count it by passing it with `--author`. To count only the configured address, run with `--no-merge-identities`. A `.mailmap` in the repository fixes the identity for every reader, because `git log`, `git blame` and `git shortlog` all read it. Check the list of merged addresses before you share the figures, because the merge follows a rule and cannot know who you are.
+
+## Can an agent write my CV bullets, or check a report someone sent me?
+
+Yes, with the plugin or the skill. Ask in your own words, for example "write 4 CV bullets for this repo" or "can I trust this workproof report?". The agent first checks whether the repository is public and says so. For bullets it runs the tool and writes from the report, and each bullet carries a source tag that points to a figure in it. For a report someone sent, it runs `check` and `verify` in your own clone of the repository and follows `references/received-report.md`. `check` alone proves only that the file was not edited after it was written. `verify` shows whether the figures come out the same in that repository, and a report can still pass both if its history was rewritten before it was made. The figures also do not show quality, review or design.

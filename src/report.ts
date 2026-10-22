@@ -4,6 +4,7 @@ import { canonicalize } from "./canonical.js";
 import { publicEmail } from "./analyse.js";
 import { plainSummary } from "./summary.js";
 import { isolate } from "./text.js";
+import { mergeBasisSentence } from "./basis.js";
 
 export interface Report {
   tool: "workproof";
@@ -111,6 +112,16 @@ function figureLines(f: RepoReport["figures"][number]): string[] {
 
 type SplitRecord = NonNullable<Report["repositories"][number]["identity"]["possiblySplit"]>;
 
+/**
+ * One line, after the identities, for addresses merged into the identity by default: the fixed
+ * category strings, then the basis as a sentence. Addresses appear only when the report shows them
+ * (--emails), which is when the merge record carries them.
+ */
+function mergedLine(merged: { count: number; reasons: string[]; emails?: string[] }, showAddresses: boolean): string {
+  const addresses = showAddresses && merged.emails?.length ? { addresses: merged.emails } : {};
+  return `Merged by rule: ${plural(merged.count, "other address", "other addresses")} (${merged.reasons.join(", ")}). ${mergeBasisSentence(merged, addresses)}`;
+}
+
 /** The paragraph about addresses that may be the subject. Without --emails the record holds no names, so it states a count only. */
 function splitNotice(split: SplitRecord): string {
   const n = split.count ?? split.names.length;
@@ -135,6 +146,7 @@ export function renderMarkdown(report: Report, narrative?: string): string {
       ``,
       `HEAD \`${repo.head.slice(0, 12)}\` · fingerprint \`${repo.fingerprint.slice(0, 16)}\` · identities: ${repo.identity.names.map(isolate).join(", ")}${repo.identity.emails.length ? ` (${repo.identity.emails.join(", ")})` : ""}`,
       ``,
+      ...(repo.identity.merged ? [mergedLine(repo.identity.merged, report.params.emails), ``] : []),
       ...(repo.identity.possiblySplit ? [splitNotice(repo.identity.possiblySplit), ``] : []),
       repo.excluded.enabled
         ? `excluded ${plural(repo.excluded.botCommits, "bot commit", "bot commits")} and ${plural(repo.excluded.files, "generated, vendored or lock file", "generated, vendored or lock files")} (${pct(repo.excluded.linesAddedShare)} of lines added)`

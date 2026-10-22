@@ -1,5 +1,87 @@
 # Changelog
 
+## Unreleased
+
+**`workproof bullets --resume` writes the finished resume file.** It prints `# <name>`, `Target role:`, `## Summary`, `## Skills`,
+`## Experience` and/or `## Projects` (each entry's heading lines copied verbatim from the source, then the ranked bullets with their
+source tags), `## Gaps`, `## Keyword coverage` and `## Ordering check`, so the skill only saves it and adds at most one Summary
+sentence. The Summary of a report with several repositories now uses one repository that has both figures and names it. The skill
+sends the several-addresses request to the single command `npx workproof mine --out <file>`, so the stated basis is in the file and
+not only in the chat.
+
+**`workproof mine` and a stated basis for every merge.** `workproof mine` prints the answer to "how many commits and lines are
+mine across all my email addresses" in a fixed template: non-merge commits, surviving lines, the number of addresses counted, and
+a sentence the user can paste that names the rule behind each merge (same name on another address, a GitHub noreply login that
+matches, an address name that matches the login). The sentence names the rule, not the address, unless `--emails` is given; the
+same sentence is now part of the "Merged by rule" line of the report. An address whose commits carry the configured name is
+counted even with `--no-merge-identities`, and the text says so. **`workproof bullets` always prints a `## Summary`** with a fixed
+first line (built from the report, or from the first ranked entry of a bank or resume) and ends with a checklist the skill tells the
+agent to satisfy. The hook has a second rule for phrasings such as "several email addresses" and "my old work email", written as a
+conjunction (first person, a commit word, an email phrase, a counting intent) so unrelated email prompts do not match. For those
+prompts, inside a repository, the hook also prints a plain `git shortlog` count (read-only, no writes, skipped above 20,000 commits),
+and lists the merged addresses when the prompt asks which addresses are the user's. When another address is merged, that count also ends with a paste-ready basis sentence in the same form as the one `workproof mine` prints.
+
+**The logic that used to sit next to the skill is in the CLI.** `workproof sessions` is the Claude Code usage miner (Apache-2.0
+attribution and licence text ship in `dist/src/sessions/`); `workproof verdict <report.json> --repo .` writes the verdict on a report
+someone else sent in a fixed template (Verdict, Altered figures, Hash status, a Merged-address claim section when the report
+makes one, What a passing check would not prove, Recommendation); `workproof bullets --jd <file> --facts <bank or resume>` (or
+`--report <report.json>`) prints ranked, source-tagged bullets, the skills the facts support, a Gaps section that is always present, a
+coverage table and an ordering check. None of them calls a model. The skill only runs `npx workproof ...`, so nothing depends on
+where the plugin is installed or on `${CLAUDE_PLUGIN_ROOT}`.
+
+**A deterministic prompt hint.** The plugin ships a `UserPromptSubmit` hook (`hooks/workproof-hint.sh`, POSIX sh, no network, no
+file writes, about 20 ms) that adds one line naming the workproof skill when the prompt is about the user's own commits across
+several email addresses, how much of a repo is theirs, evidence or bullets for a CV, promotion, visa or job description, a report
+someone sent, or their Claude Code usage. On 20 unrelated prompts it added nothing.
+
+**Addresses that look like yours are merged by default (`--no-merge-identities` opts out).** When no `--author` is given,
+an address is merged into your identity if the same name appears on it, if a GitHub noreply login matches your name or
+address, or if its address name matches your GitHub login. The run prints one line on stderr naming the merged addresses
+and why, and the report says "Merged by rule". Only these strong rules merge. The weaker rule, the same address name on
+another domain, is still only a warning in `identity.possiblySplit`. An explicit `--author` merges nothing else. The
+hashed report gains an optional `identity.merged` (a count and fixed reason phrases, no names or addresses), so a
+report made before this change still passes `check`; its figures are not recomputed here. The search repeats until no
+new address is found, so a chain of addresses can be pulled in; the printed list shows every one.
+
+**The plugin answers in your own words.** The skill now starts on phrases such as CV bullets, how much of this repo is
+mine, self-review, visa evidence and "can I trust this report". Before it writes a document, it checks whether the
+repository is public and says so in its first message. It quotes the report's sentences and figures instead of counting
+with git again. A report someone else sent is checked by the rules in `references/received-report.md`. CV bullets and a
+self-review paragraph come from `references/bullets.md`, and each bullet carries a source tag that points to a figure in
+the report. Six slash commands are included: `/workproof`, `/verify-report`, `/cv-bullets`, `/self-review`, `/usage-report` and `/tailor-resume`.
+
+**Tailor to a job description.** `skills/workproof/references/tailor.md` turns the text of a job description into CV bullets ranked
+by relevance. Every number comes from a fact source with its tag: the workproof report (figure id and hash prefix) or a portfolio bank or
+past resume the person names. Requirements the facts do not support are listed under Gaps, in the file and in the answer, and are never
+added to Skills. The step extends the adaptation of JD Resume Tailor (MIT, Copyright (c) 2026 Dayesh Raval) and keeps its notice.
+
+**The description opens with the questions people ask.** "How many commits are mine across all my email addresses", "how much of this
+repo is my work" and "what did my Claude Code usage deliver" come first, and the body sends usage requests to the session miner even
+inside a git repository. The star hint now also needs a terminal on stderr, so a redirected log never receives it, and `AGENT` is no
+longer treated as an agent variable.
+
+**A Claude Code usage report, from the local session logs.** The skill now answers "what did my Claude Code usage deliver" with a
+miner, now the command `workproof sessions` (`src/sessions/mine-sessions.mjs`), adapted from the receipts plugin's `mine-transcripts.mjs` (Apache License 2.0,
+`LICENSE-APACHE-2.0` ships beside it in the package, every change is listed in the file header). It prints JSON only: no paths, no user name, no prompt text,
+no session ids; folders outside a repository get fixed labels, and `WORKPROOF_HOME` points it at another home folder. The report it
+produces has no dollar figures and no hours saved, and says it is self-reported. The receipts plugin's printable HTML receipt and CSV export
+are not part of it.
+
+**A one-time star hint and `--quiet`.** After a successful report run on a terminal the CLI prints one line on stderr asking for a star,
+at most once per machine. It stays silent in CI, in the GitHub Action, when output is piped, when an agent runs the command, for `check`,
+`verify`, `attest` and `countersign`, and with `--quiet` or `WORKPROOF_NO_STAR_HINT=1`. It never enters a report or changes a hash.
+`--quiet` also drops the progress lines; the fingerprint key and the merge and split warnings stay.
+
+**The install section names three routes.** `npx workproof`, `/plugin install workproof --marketplace Bubblegunn/workproof`
+and `npx skills add Bubblegunn/workproof`. The README also lists sentences a person can say to the agent.
+
+**A head-to-head page and its harness.** `docs/PLUGIN-COMPARISON.md` sets workproof beside receipts, JD Resume Tailor,
+GapToGrowth and Infinite Resume, and says where the others are ahead. `docs/HEAD-TO-HEAD.md` freezes six public tasks
+before round 1, with the baseline measured before round 1. The harness that runs them is in `bench/head-to-head/`.
+
+**Credit.** `skills/workproof/references/bullets.md` is adapted from JD Resume Tailor by Dayesh Raval (MIT, Copyright (c) 2026
+Dayesh Raval): https://github.com/Day-Raval/jd-resume-tailor
+
 ## 0.7.0 (2026-10-20)
 
 **Privacy fix: other people's names and logins no longer reach the report without `--emails`.** The "may be the same

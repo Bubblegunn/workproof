@@ -17,6 +17,46 @@ npx workproof
 
 Bu komut `workproof-report.md` dosyasını yazar (özgeçmişe, portfolyoya ya da vize başvurusuna yapıştırabilirsiniz) ve `workproof-report.json` dosyasını yazar (araçlar ve denetleme için). Kayıt, [langchain-ai/openwiki](https://github.com/langchain-ai/openwiki) deposunun `1e6d54c` sürümünde çalıştırıldı; çıktı [örnek rapor](docs/sample/openwiki-report.md) olarak depoda duruyor.
 
+### Üç yolla kurulum
+
+Bir kez npx ile çalıştırın. Hiçbir şey kurulmaz. Raporunu çıkarmak istediğiniz deponun içinde çalıştırın:
+
+```
+npx workproof
+```
+
+Aracı Claude Code'a eklenti olarak ekleyin. Ajan aracı kendisi çalıştırır, raporu `check` ve `verify` ile denetler ve altı komut sunar: `/workproof`, `/verify-report`, `/cv-bullets`, `/self-review`, `/usage-report` ve `/tailor-resume`. Komutlar CLI'yi çağırır (`workproof sessions`, `verdict` ve `bullets` çıktılarını model kullanmadan sabit bir şablonla üretir); küçük bir kanca (`hooks/workproof-hint.sh`, düz kabuk betiği, ağ yok, dosya yazmaz) isteminiz kendi commit'leriniz, bir CV, size gönderilmiş bir rapor veya Claude Code kullanımınız hakkındaysa beceri adını tek satırla ekler.
+
+```
+/plugin install workproof --marketplace Bubblegunn/workproof
+```
+
+Bu tek adımlı biçim Claude Code 2.1.275 ve üstünde çalışır. Daha eski sürümde iki adım kullanın:
+
+```
+/plugin marketplace add Bubblegunn/workproof
+/plugin install workproof@workproof
+```
+
+Ya da beceri okuyan herhangi bir ajana yalnızca beceriyi ekleyin. Beceri tek başına dört komutu eklemez:
+
+```
+npx skills add Bubblegunn/workproof
+```
+
+Beceri, sorduğunuz soru bu aracın cevapladığı soru olduğunda, kendi cümlelerinizle devreye girer. Örneğin şunları söyleyebilirsiniz:
+
+- "Bu depo için 4 özgeçmiş maddesi yaz."
+- "Bu kod tabanının ne kadarı benim?"
+- "Bu depo için kendi değerlendirme paragrafımı yaz."
+- "Bir vize başvurusuna ekleyebileceğim, bu özel depodan kanıt lazım."
+- "Biri bana bir workproof raporu gönderdi. Güvenebilir miyim?"
+- "Birden çok e-posta adresiyle commit attım. Hepsini toplayınca ne kadarı benim?"
+
+Belge yazmadan önce ajan deponun herkese açık olup olmadığını denetler ve öyleyse bunu size söyler. Git ile yeniden saymak yerine raporu alıntılar; böylece verdiğiniz figürler aracın yazdığı figürlerdir.
+
+Bu size yardımcı olduysa, depoya bir yıldız vermek başkalarının onu bulmasına yardım eder.
+
 ![Terminal kaydı: workproof raporu yazar, check hash ok der, verify tüm figürlerin yeniden hesaplandığını söyler, sonra iki paylaşım gösterilir](docs/demo.gif)
 
 Bu bir verimlilik ölçütü değildir ve insanları sıralamaz. Hayatta kalanı ve dokunulanı ölçer; her figürün altında onun arkasındaki git komutunu ve neyi gösteremediğini yazar. Yalnızca JSON dosyası olan biri `workproof check` komutunu çalıştırıp dosyanın yazıldıktan sonra değiştirilip değiştirilmediğini öğrenebilir. Bu, deponun geçmişinin gerçek olduğunu kanıtlamaz ([tehdit modeli](docs/THREAT-MODEL.md)). Adaylar aracı çalıştırır; işe alan kişi için [İşe alanlar için](#i%CC%87%C5%9Fe-alanlar-i%C3%A7in) bölümüne bakın.
@@ -30,21 +70,6 @@ Bu bir verimlilik ölçütü değildir ve insanları sıralamaz. Hayatta kalanı
   <a href="https://www.bestpractices.dev/projects/15493"><img src="https://img.shields.io/cii/level/15493?style=flat-square&color=111111&label=openssf%20best%20practices" alt="OpenSSF Best Practices"></a>
 </p>
 
-### Claude Code eklentisi olarak
-
-```
-/plugin install workproof --marketplace Bubblegunn/workproof
-```
-
-Bu tek adımlı biçim Claude Code 2.1.275 ve üstünde çalışır. Daha eski sürümde iki adım kullanın:
-
-```
-/plugin marketplace add Bubblegunn/workproof
-/plugin install workproof@workproof
-```
-
-Eklenti tek bir beceri ekler. Aracın cevapladığı soruyu ajana sorduğunuzda ajan tahmin yürütmez, `npx workproof` komutunu kendisi çalıştırır.
-
 ## Bu aracın farkı
 
 git-fame ve gitinspector de git'ten kişi başına sayılar çıkarır. [docs/COMPARISON.md](docs/COMPARISON.md) ölçülmüş karşılaştırmayı içerir: her araç 2026-10-21 tarihinde aynı örnek depoda bir kez varsayılanlarıyla, bir kez elle ayarlanmış haliyle çalıştırıldı. Aşağıdakiler workproof'un önde olduğu ya da eşit olduğu satırlardır:
@@ -54,7 +79,7 @@ git-fame ve gitinspector de git'ten kişi başına sayılar çıkarır. [docs/CO
 - E-posta adresleri: workproof'un varsayılan çıktısında hiç e-posta adresi yok. gitinspector v0.5.1 ve onefetch 3.1.0 birer tane yazıyor.
 - Raporu denetleme: workproof kendi yazdığı bir raporu denetlemek için `check`, `verify`, `attest` ve `countersign` komutlarına sahip. git-fame, gitinspector, git-who ve onefetch'in yardım metinlerinde verify ya da attest komutu geçmiyor.
 
-Workproof'un geride kaldığı satırlar aynı sayfada: git alt komutu olarak çalışmak, CSV, HTML ya da XML yazmak, git-fame, git-who ve onefetch'e karşı hız, ve özel çalışmayı GitHub katkı grafiğine yansıtmak (contributions-importer'a karşı).
+Workproof'un geride kaldığı satırlar aynı sayfada: git alt komutu olarak çalışmak, CSV, HTML ya da XML yazmak, git-fame, git-who ve onefetch'e karşı hız, ve özel çalışmayı GitHub katkı grafiğine yansıtmak (contributions-importer'a karşı). Diğer Claude Code eklentileri kendi sayfasında karşılaştırılıyor: [docs/PLUGIN-COMPARISON.md](docs/PLUGIN-COMPARISON.md). Ölçüm için kullanılan altı görev [docs/HEAD-TO-HEAD.md](docs/HEAD-TO-HEAD.md) içinde.
 
 ## Çalıştırma ne yazar
 
@@ -145,6 +170,36 @@ sayılmadan paydadan çıktı; bu, aynı kişinin eski sürümde %24,1 görünen
 %70,6'sını yazmış. Tek başına commit sayısı onu yetmiş üç katkıcıdan biri diye
 adlandırırdı. Bu boşluk, iki yönde de, bir raporun birinin işi hakkında söyleyebileceği en
 dürüst şeydir.
+
+## Birden çok kimlik
+
+Git, laptopunuzdaki adresle iş makinenizdeki adresin aynı kişiye ait olduğunu bilmez. İkisini iki
+yazar sayar; bu yüzden bir figür sizin işinizin yalnız yarısını anlatır ve her figür olduğundan küçük
+çıkar. En sık yanlış çıkan şey budur ve normalde hiçbir şey bunu size söylemez.
+
+Varsayılan olarak workproof, kendinize güçlü biçimde benzeyen öteki adresleri kimliğinize birleştirir ve
+bunu söyler. Güçlü işaret üç tanedir: aynı isim başka bir adreste, adınız ya da adresinizle eşleşen bir
+GitHub noreply girişi ve GitHub girişinizle eşleşen bir adres adı. Çalıştırma stderr'e birleşen adresleri
+ve her birinin nedenini yazan tek satır basar. Rapor bu satırı `Merged by rule` olarak taşır; böylece her
+figür birleşen adreslerin hepsindeki işi kapsar:
+
+```
+Merged by rule: 1 other address (same name on another address). Pass --no-merge-identities to count only the configured address.
+```
+
+Zayıf işaret, başka bir alan adındaki aynı adres adıdır ve hiçbir zaman birleştirilmez; çünkü bir kişi
+bir yabancıyla ad kısmını paylaşabilir. Çalıştırma bunun için stderr'de uyarır, JSON bunu
+`identity.possiblySplit` altında listeler. Böyle bir adresi saymak için `--author` ile verin. Bütün
+birleştirmeyi kapatmak için `--no-merge-identities` ile çalıştırın. `--author` ile verilen adres tam
+olarak sayılır; açık bir `--author` başka hiçbir adresi birleştirmez. `dev@` gibi rol adresleri ve bot
+adresleri yok sayılır, çünkü birinin paylaşması bir şey kanıtlamaz.
+
+Rapor sayıyı ve nedenleri taşır. Adreslerin kendisi stderr'de yazılır ve belgenin dışında kalır; raporun
+geri kalanının uyduğu kuralla aynı.
+
+Herkesin okuyacağı kalıcı çözüm bir `.mailmap` dosyasıdır: `git log`, `git blame` ve `git shortlog` onu
+okur. [`surviving-lines --identities`](https://github.com/Bubblegunn/surviving-lines) bir depo için
+`.mailmap` satırlarını tek seferde basar.
 
 ## ASCII olmayan isimler
 
@@ -289,9 +344,14 @@ ulaşmaz.
 workproof [options] [--repo <dir>]...
 workproof check <report.json>
 workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
+workproof verdict <report.json> [--repo <dir>]... [--fingerprint-key <hex>] [--out <file>]
+workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--out <file>]
+workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
 workproof attest <report.json> [--local <ssh-key>]
+workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
 
 --author <email|name>   identity to report on (repeatable; default: git config user.email)
+--no-merge-identities   count only the configured address (default: merge addresses that look like yours, and say which)
 --repo <dir>            repository to analyse (repeatable; several produce one combined report)
 --since / --until       override the tenure window
 --sample <n>            blame every n-th file (default: 1; 7 for very large repositories)
@@ -307,6 +367,7 @@ workproof attest <report.json> [--local <ssh-key>]
 --emails                include author emails
 --narrate               append a model-written paragraph
 --badge                 also write <out>.badge.json, a shields.io endpoint document
+--quiet                 ilerleme satırları ve yıldız önerisi yok (uyarılar ve parmak izi anahtarı kalır)
 --out <basename>        output basename (default: workproof-report)
 --format <mode>         write markdown, json, or both (default: both); json prints to stdout
 --json                  same as --format json
@@ -467,6 +528,15 @@ yazısında anlatılıyor. Örnekleyici ve glob yardımcıları workproof'un tek
 [surviving-lines](https://github.com/Bubblegunn/surviving-lines) paketinden gelir. Yazarlık
 derecesi Avelino, Hora ve Valente (2016), ana katkıcı Bird ve ark. (2011), yokluk faktörü
 CHAOSS Contributor Absence Factor tanımını izler.
+
+Eklentinin kullandığı referans dosyası, `skills/workproof/references/bullets.md`, [JD Resume Tailor](https://github.com/Day-Raval/jd-resume-tailor)
+projesinden uyarlandı (Dayesh Raval, MIT, Copyright (c) 2026 Dayesh Raval).
+
+İş ilanına göre madde yazan adım, `skills/workproof/references/tailor.md`, aynı JD Resume Tailor uyarlamasının devamıdır (Dayesh Raval, MIT, Copyright (c) 2026 Dayesh Raval).
+
+Kullanım raporunun arkasındaki oturum okuyucu, `src/sessions/mine-sessions.mjs` (`workproof sessions` olarak çalışır), [receipts eklentisindeki](https://github.com/anthropics/claude-plugins-official)
+`mine-transcripts.mjs` dosyasından uyarlandı (Apache License 2.0; lisans metni `src/sessions/LICENSE-APACHE-2.0` içinde). Uyarlama HTML fişini ve CSV dışa aktarımını
+çıkarır, kullanıcı adını bırakır, klasör yollarını sabit etiketlerle değiştirir ve ev klasörünü `WORKPROOF_HOME` değişkeninden okur; dosyanın başlığı her değişikliği sayar.
 
 ## Atıf
 

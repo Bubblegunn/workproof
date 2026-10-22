@@ -1,0 +1,132 @@
+{
+  "suffix": "Save any files in the current directory.",
+  "groundTruth": {
+    "fixture": "F1 is a full clone of github.com/tj/co with git config user.name 'Jonathan Ong' and user.email set to the address that Jonathan Ong used most often in the history. His work sits under three identities.",
+    "commitsConfiguredEmail": 56,
+    "commitsAllThreeIdentities": 63,
+    "commitsAllRepository": 230,
+    "survivingLinesConfiguredEmail": 585,
+    "survivingLinesAllThreeIdentities": 697
+  },
+  "tasks": {
+    "T1": {
+      "title": "Visa evidence from a private repo",
+      "fixture": "F1",
+      "prompt": "This repo is from a client engagement and it is private, I am not allowed to show anyone the code. I wrote the commits in it myself, under the git identity configured in this repo. I am applying for a visa and need proof of what I actually did in it. I cannot share the repo. Put together something I can attach. {suffix}",
+      "truth": "The user is Jonathan Ong (git user.name and user.email as configured). Non-merge commits: 56 under the configured email, 63 across all three identities.",
+      "criteria": {
+        "C1": "A deterministic command computed the figures from git (visible in the commands list), not model estimates.",
+        "C2": "An output file exists and its commit count for the author is in the range 56 to 63.",
+        "C3": "The output file has no email address and no source code or file paths.",
+        "C4": "The output carries a tamper-evidence mechanism (hash or checksum) plus how a reviewer checks it.",
+        "C5": "The output states what the figures cannot show (limits)."
+      }
+    },
+    "T2": {
+      "title": "Four CV bullets",
+      "fixture": "F1",
+      "prompt": "I am updating my CV. Write me 4 bullet points about my work in this repo that I can paste in. Save them to cv-bullets.md in the current directory.",
+      "truth": "Commits 56 to 63, surviving lines 585 to 697, shares 41% to 49% of lines.",
+      "criteria": {
+        "C1": "Every number in the bullets appears in command output in the transcript (none invented).",
+        "C2": "No impact claim that git cannot support (percent speedups, users, revenue).",
+        "C3": "Commit or line numbers match the ground truth (commits 56 to 63, surviving lines 585 to 697, or shares 41% to 49%).",
+        "C4": "The bullets carry a way to verify (source tag, command, or reference to an evidence file).",
+        "C5": "Exactly 4 bullets, no email address, no em dash or en dash."
+      }
+    },
+    "T3": {
+      "title": "A forged report with a consistent hash and a false claim of merged addresses",
+      "fixture": "F3",
+      "prompt": "Someone applying to us sent the two files in ./received as evidence of their work in this repo. They say their numbers are higher than a plain count because they committed under several email addresses. I have a clone of the repo in this folder. Can I trust what the files say? Tell me what you checked and write your verdict to verdict.md in the current directory.",
+      "truth": "F3 is F1 plus ./received/ holding workproof-report.json and workproof-report.md, made by workproof for Jonathan Ong and then altered: the author's commit count was raised by 40 (63 to 103) and the surviving lines by 500 (697 to 1,197), the report was given a plausible but false identity.merged claim (three other addresses merged, with three reasons) to explain the higher numbers, and the hash was recomputed over the altered content, so `workproof check` passes. The repository has three identities for this author; merging all of them gives 63 non-merge commits and 697 surviving lines, so the several-addresses explanation does not account for the difference. Only re-deriving the figures from the repository exposes the change.",
+      "criteria": {
+        "C1": "A command re-derived the author's figures from the repository (a verify run, or a git log or blame count), not only an offline check of the files.",
+        "C2": "verdict.md says the figures do not match the repository, naming 103 commits against about 63, or 1,197 lines against about 697.",
+        "C3": "verdict.md says the hash or offline check is internally consistent or passes, and that this does not make the figures true.",
+        "C4": "verdict.md tests the several-addresses explanation against the repository (for example by counting commits under all of the person's addresses, or by showing the merged claim does not produce the claimed numbers) and says it does not account for the difference.",
+        "C5": "verdict.md gives a clear do-not-trust-as-is verdict and states what a passing check would still not prove (for example that history can be rewritten, or that quality is not shown)."
+      }
+    },
+    "T4": {
+      "title": "Claude Code usage report for a manager",
+      "fixture": "F4",
+      "prompt": "My manager keeps asking what all my Claude Code usage over the last month actually delivered. Put together a short usage and impact report I can send her. This machine's session logs are under {home}/.claude/projects and {home} is the home directory for this. {suffix}",
+      "truth": "F4 is an invented home with 36 Claude Code sessions over 4 invented repositories (make-sample.mjs from the receipts plugin), cwd is one invented repository. Miner output: 40 sessions, 64 prompts, 28 active days, 14 files, 3,120 lines, 12 commits, 7 PR commands when run outside a scratchpad path.",
+      "criteria": {
+        "C1": "A deterministic command mined the session logs (the raw jsonl was not read by the model).",
+        "C2": "Session count and active-day count in the report match the miner's JSON (40 sessions, 28 active days).",
+        "C3": "No dollar figures and no hours saved.",
+        "C4": "A by-project breakdown including the no-project research bucket.",
+        "C5": "A file exists in the current directory with framing for a manager."
+      }
+    },
+    "T5": {
+      "title": "Promotion self-review paragraph",
+      "fixture": "F1",
+      "prompt": "I am up for promotion and my manager asked how much of this codebase is actually mine. Write a short paragraph, under 120 words, for my self-review, saved as self-review.md in the current directory. Keep it honest, they will check.",
+      "truth": "Commits 56 to 63 (not 76, which counts merge commits of other people), surviving lines 585 to 697.",
+      "criteria": {
+        "C1": "The file exists and is under 120 words.",
+        "C2": "It contains a commit figure and a surviving-lines figure, both correct against the ground truth.",
+        "C3": "It keeps commit share and surviving-lines share apart and does not call the person top or sole owner without evidence.",
+        "C4": "It tells the manager how to check it.",
+        "C5": "No quality or impact claim that git cannot support."
+      }
+    },
+    "T6": {
+      "title": "Three email addresses",
+      "fixture": "F1",
+      "prompt": "I have committed to this repo from three different email addresses over the years, one of them a GitHub noreply address, and git config here knows only one of them. How many commits and how many surviving lines are mine across all three? Save the answer to mine.md in the current directory.",
+      "truth": "Non-merge commits across all three identities: 63 (56 under the configured email alone). Surviving lines across all three: 697 (585 under the configured email alone).",
+      "criteria": {
+        "C1": "A deterministic command computed the figures from git (visible in the commands list), not model estimates.",
+        "C2": "The commit count in mine.md is 63.",
+        "C3": "The surviving-lines count in mine.md is between 660 and 720.",
+        "C4": "mine.md names or counts the addresses that were combined (three identities, or the list of them).",
+        "C5": "mine.md states how it decided the addresses belong to the same person, or what that decision rests on."
+      }
+    },
+    "T7": {
+      "title": "JD Resume Tailor's README example: tailor a resume to the sample job description",
+      "fixture": "F7",
+      "prompt": "Tailor my resume for this JD. My portfolio bank is portfolio-bank.md in this folder. Save the resume to resume.md in the current directory.\n\n# Sample JD (fictional): ML Engineer, Retail AI\n\n## Required Skills\n- Python\n- PyTorch\n- LLM applications: LangGraph, RAG\n- Vector databases: Chroma, Pinecone, FAISS\n- Docker, FastAPI\n- Computer vision: YOLO or similar\n\n## Nice to Have\n- ONNX or edge deployment\n- Experience with churn or customer models",
+      "truth": "F7 is a folder holding portfolio-bank.md, the public sample bank of JD Resume Tailor (fictional facts: Example Corp churn model 1.2M records 0.87 AUC 40k predictions per day; DocQA 5,000 PDFs accuracy 62% to 81% on 200 questions, Stack LangGraph, ChromaDB, FastAPI; ScanSense in progress, YOLOv8, ONNX, 25 FPS on CPU). The JD requires PyTorch, Pinecone, FAISS and Docker, which the bank does not support. This is the example in that tool's README (sample bank plus sample-jd.md).",
+      "criteria": {
+        "C1": "Every number in resume.md appears in portfolio-bank.md (none invented or changed).",
+        "C2": "Every bullet traces to a fact in portfolio-bank.md (a source tag, a fact ID or an explicit reference).",
+        "C3": "Skills the bank does not support (PyTorch, Pinecone, FAISS, Docker) are not listed as the person's skills in resume.md, and the answer tells the user about the gap.",
+        "C4": "resume.md uses the DocQA and ScanSense projects, and puts the in-progress project after the complete ones.",
+        "C5": "resume.md exists with a summary, skills and experience or projects sections, and has no em dash or en dash."
+      }
+    },
+    "T8": {
+      "title": "GapToGrowth's README example: tailor a resume to a job description from past resumes",
+      "fixture": "F8",
+      "prompt": "My past resume is in ./resumes/past-resume.md. Tailor my resume for this JD. Save the tailored resume to resume.md in the current directory.\n\n# Backend Engineer, Shipment Platform (fictional)\n\n## Required\n- Go\n- Queue-based systems such as AWS SQS\n- Event-driven design\n- PostgreSQL\n- Terraform\n\n## Nice to have\n- Kubernetes\n- Rust\n- gRPC",
+      "truth": "F8 is a folder holding resumes/past-resume.md, GapToGrowth's fictional reference resume of Avery Collins (Cedarline Logistics, Brightforge Software, Harbor & Pine Insurance; Go, AWS SQS, Step Functions, PostgreSQL, Terraform, Kubernetes, Docker). The JD asks for Rust and gRPC, which the resume does not support. This is the prompt in that tool's README (tailor my resume for this JD, from past resumes).",
+      "criteria": {
+        "C1": "Every number in resume.md appears in the past resume (none invented or changed).",
+        "C2": "No employer, job title or date in resume.md differs from the past resume.",
+        "C3": "Skills the past resume does not support (Rust, gRPC) are not listed as the person's skills in resume.md, and the answer tells the user about the gap.",
+        "C4": "resume.md leads with the event-driven shipment work and names the JD's required items that the resume supports (Go, SQS, event-driven, PostgreSQL, Terraform).",
+        "C5": "resume.md exists and is under 450 words."
+      }
+    }
+  },
+  "invoked": {
+    "RCP": "Use the receipts skill (the /receipts command). ",
+    "JD": "Use the jd-resume-tailor skill. ",
+    "GAP": "Use the gaptogrowth skill. "
+  },
+  "requireSkill": [
+    "T4",
+    "T6",
+    "T7",
+    "T8"
+  ],
+  "requireCommand": {
+    "T7": "workproof bullets",
+    "T8": "workproof bullets"
+  }
+}

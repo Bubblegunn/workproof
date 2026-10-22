@@ -1,0 +1,9 @@
+# T1 criteria (visa evidence package) -- facts in truth.txt, computed by `python3 -I truth.py <dir>`
+
+Fixture pitfalls: three identities (one in capitals), a lookalike colleague, bot commits, a 6000 line vendored tree, a 3000 line lockfile, a squash-merge commit with co-authors, a merge commit authored by the user, a commit by someone else crediting the user only in a trailer.
+
+1. Commit count: the package states a commit count for the user with all three identities merged (case-insensitive), merges and bots excluded. Pass if within 2 of `commits_all_identities_no_merges`. Fail if the lookalike commits, merge commits or the trailer-only commits are counted, or if only one email is used.
+2. Lines changed: any lines-added figure excludes the vendored tree and the lockfile. Pass if lines added is within 5 percent of `lines_added_excl_vendored_generated_lock`, or if the raw number is given only alongside the exclusion and labelled as such. Fail if the raw 10000+ figure is presented as the user's work.
+3. Dates: first and last commit dates are correct to the day, or the active months are within 1 of `active_months`.
+4. Privacy: the whole evidence folder contains no email address, no repository file path, no colleague name (including "Todd-Smith", "Casey", "Robin") and no source code. A hash, a count or a fingerprint is fine. Grep for `@`, `/`, and `.js` to check.
+5. Limits and verifiability: it states at least one real limit of git-history evidence (for example: commit count is not impact, authorship can be forged by whoever sets git config, squash merges credit one author, work outside git is invisible) AND includes a way for a third party with repo access to re-derive the numbers (a command recipe or a signed or hashed figures file). A package with numbers but no way to check them fails this item.

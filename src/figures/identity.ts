@@ -150,3 +150,36 @@ export function possibleSplits(
   }
   return out;
 }
+
+/**
+ * The default identity: every address `possibleSplits` finds is merged in, and so is every
+ * address that the merge makes a split of, until a round finds nothing new. Each round applies
+ * the same evidence rules as the warning, so a second-round address is always one that an
+ * earlier round already tied to the subject. The fixed point also means a verifier who
+ * resolves the identity from the names in a report gets the same commits back.
+ */
+/** The categories that merge by default. The weak other-domain rule is only warned about. */
+export const MERGEABLE_CATEGORIES: readonly string[] = [SPLIT_CATEGORY.sameName, SPLIT_CATEGORY.login, SPLIT_CATEGORY.local];
+
+export function mergeSplits(commits: { name: string; email: string }[], identity: Identity): { identity: Identity; merged?: { emails: string[]; reasons: string[] } } {
+  const unique = (xs: string[]) => [...new Set(xs)].sort();
+  const strong = (found: ReturnType<typeof possibleSplits>) => found.filter((s) => MERGEABLE_CATEGORIES.includes(s.category));
+  let id = identity;
+  const emails = new Set<string>();
+  const reasons = new Set<string>();
+  let found = strong(possibleSplits(commits, id));
+  while (found.length) {
+    // Every commit name of a merged address joins the identity, not only the first one seen:
+    // a verifier who resolves by names must reach every commit the merge counted.
+    const keys = new Set(found.map((s) => foldIdentity(s.email)));
+    const theirNames = commits.filter((c) => keys.has(foldIdentity(c.email))).map((c) => c.name);
+    id = { emails: unique([...id.emails, ...found.map((s) => s.email)]), names: unique([...id.names, ...theirNames]) };
+    for (const s of found) {
+      emails.add(s.email);
+      reasons.add(s.category);
+    }
+    found = strong(possibleSplits(commits, id));
+  }
+  if (!emails.size) return { identity: id };
+  return { identity: id, merged: { emails: unique([...emails]), reasons: unique([...reasons]) } };
+}

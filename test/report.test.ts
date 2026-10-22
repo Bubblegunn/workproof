@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { rm } from "node:fs/promises";
 import { makeRepo } from "./fixture.js";
 import { analyseRepo, buildReport, renderMarkdown, fingerprint, newFingerprintKey, publicEmail } from "../src/index.js";
+import { mergeBasisSentence } from "../src/basis.js";
+import { SPLIT_CATEGORY } from "../src/figures/identity.js";
 
 const params = { author: ["ada@example.com"], depth: 2, threshold: 0.5, minCommits: 1, paths: false, emails: false, sample: 1 };
 
@@ -75,4 +77,25 @@ test("analyseRepo produces every figure and buildReport hashes without emails by
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test("mergeBasisSentence names the rule for every mergeable category and no address by default", () => {
+  const all = mergeBasisSentence({ count: 3, reasons: [SPLIT_CATEGORY.sameName, SPLIT_CATEGORY.login, SPLIT_CATEGORY.local] });
+  assert.ok(all.startsWith("Counted as the same person: 3 other addresses, because the rules matched:"), all);
+  assert.ok(all.includes("an address whose commits carry the same name"), all);
+  assert.ok(all.includes("a GitHub noreply address whose login matches the name or the address in git config"), all);
+  assert.ok(all.includes("an address whose name matches the GitHub login"), all);
+  assert.ok(all.endsWith("This is a rule, not proof: it can be wrong, and --no-merge-identities counts only the configured address and addresses with the same name."), all);
+  assert.ok(!all.includes("@"), "no address without the addresses option");
+  assert.ok(!all.includes("Addresses:"));
+});
+
+test("mergeBasisSentence passes an unknown reason through unchanged and uses singular for one address", () => {
+  const s = mergeBasisSentence({ count: 1, reasons: ["some future rule"] });
+  assert.ok(s.startsWith("Counted as the same person: 1 other address, because the rules matched: some future rule."), s);
+});
+
+test("mergeBasisSentence appends the addresses only when they are given", () => {
+  const s = mergeBasisSentence({ count: 2, reasons: [SPLIT_CATEGORY.login] }, { addresses: ["12345+ada@users.noreply.github.com", "ada@other.example"] });
+  assert.ok(s.endsWith(" Addresses: 12345+ada@users.noreply.github.com, ada@other.example."), s);
 });
