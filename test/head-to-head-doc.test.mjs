@@ -8,6 +8,13 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const cfg = JSON.parse(readFileSync(join(ROOT, "bench/head-to-head/tasks.json"), "utf8"));
 const page = readFileSync(join(ROOT, "docs/HEAD-TO-HEAD.md"), "utf8");
 
+// The squashed plugin-leadership branch leaves the raw round archives out on purpose (docs/HANDOFF-CLOUD.md); an archive that is present must still exist as named.
+function assertArchive(rel) {
+  if (existsSync(join(ROOT, rel))) return;
+  const handoff = readFileSync(join(ROOT, "docs/HANDOFF-CLOUD.md"), "utf8");
+  assert.ok(/Raw benchmark transcripts were left out on purpose/.test(handoff) && /Only the Markdown summaries under `bench\/head-to-head\/results\/`/.test(handoff), `${rel} missing and not documented as omitted`);
+}
+
 test("the page publishes every task prompt, criterion and ground truth that the harness runs", () => {
   assert.ok(Object.keys(cfg.tasks).length >= 6, "six public tasks");
   for (const [id, t] of Object.entries(cfg.tasks)) {
@@ -74,7 +81,7 @@ test("the round 2 results state the build, the archive, the outcome table, the f
   assert.ok(body.includes("### All criteria, process criteria included"));
   assert.match(body, /Gate: (PASS|FAIL)\./);
   for (const id of Object.keys(cfg.tasks)) assert.ok(body.includes(`| ${id} (`), `no row for ${id}`);
-  for (const f of ["results/round1.tar.gz", "results/round2.tar.gz"]) assert.ok(existsSync(join(ROOT, "bench/head-to-head", f)), f);
+  for (const f of ["results/round1.tar.gz", "results/round2.tar.gz"]) assertArchive(`bench/head-to-head/${f}`);
 });
 
 test("the round 3 forgery passes check, carries the false merged claim, and the guard tripwire stops on a changed configuration", async () => {
@@ -109,7 +116,7 @@ test("the round 3 results state the build, the isolation record, both tables, th
   assert.ok(body.includes("### Outcome criteria only") && body.includes("### All criteria, process criteria included"));
   assert.match(body, /Gate: (PASS|FAIL)\./);
   for (const id of Object.keys(cfg.tasks)) assert.ok(body.includes(`| ${id} (`), `no row for ${id}`);
-  assert.ok(existsSync(join(ROOT, "bench/head-to-head/results/round3.tar.gz")));
+  assertArchive("bench/head-to-head/results/round3.tar.gz");
 });
 
 test("the hook prompt lists are frozen: at least 16 positives and exactly 20 unrelated negatives, with no overlap", () => {
@@ -131,7 +138,7 @@ test("the round 4 results state the build, the guard record, both tables, the ga
   assert.ok(body.includes("### Outcome criteria only") && body.includes("### All criteria, process criteria included"));
   assert.match(body, /Gate: (PASS|FAIL)\./);
   for (const id of Object.keys(cfg.tasks)) assert.ok(body.includes(`| ${id} (`), `no row for ${id}`);
-  assert.ok(existsSync(join(ROOT, "bench/head-to-head/results/round4.tar.gz")));
+  assertArchive("bench/head-to-head/results/round4.tar.gz");
 });
 
 test("the round 5 hook prompt list is frozen with 8 positives and 8 close negatives and is not in the earlier lists", () => {
@@ -152,7 +159,7 @@ test("the round 5 results state the build, the guard record, both tables, the ga
   assert.ok(body.includes("### Outcome criteria only") && body.includes("### All criteria, process criteria included"));
   assert.match(body, /Gate: (PASS|FAIL)\./);
   for (const id of Object.keys(cfg.tasks)) assert.ok(body.includes(`| ${id} (`), `no row for ${id}`);
-  assert.ok(existsSync(join(ROOT, "bench/head-to-head/results/round5.tar.gz")));
+  assertArchive("bench/head-to-head/results/round5.tar.gz");
 });
 
 test("failed-cells.py lists a run with no result, an error result and a rate-limit message, and nothing for a clean run", async () => {
@@ -189,7 +196,7 @@ test("the round 6 results state the build, the guard record, both tables, the ga
   assert.ok(body.includes("### Outcome criteria only") && body.includes("### All criteria, process criteria included"));
   assert.match(body, /Gate: (PASS|FAIL)\./);
   for (const id of Object.keys(cfg.tasks)) assert.ok(body.includes(`| ${id} (`), `no row for ${id}`);
-  assert.ok(existsSync(join(ROOT, "bench/head-to-head/results/round6.tar.gz")));
+  assertArchive("bench/head-to-head/results/round6.tar.gz");
 });
 
 test("the round 7 rulings are recorded", () => {
@@ -206,7 +213,7 @@ test("the round 7 results state the archived commit, the guard record, both tabl
   assert.ok(body.includes("### Outcome criteria only") && body.includes("### All criteria, process criteria included"));
   assert.match(body, /Gate: (PASS|FAIL)\./);
   for (const id of Object.keys(cfg.tasks)) assert.ok(body.includes(`| ${id} (`), `no row for ${id}`);
-  assert.ok(existsSync(join(ROOT, "bench/head-to-head/results/round7.tar.gz")));
+  assertArchive("bench/head-to-head/results/round7.tar.gz");
 });
 
 test("the final-gate ruling records the process-criterion reason and the outcome-only verdicts of rounds 3 to 7", () => {

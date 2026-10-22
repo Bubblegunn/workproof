@@ -99,6 +99,19 @@ test("references/tailor.md exists, keeps the upstream credit and the tailoring r
   assert.ok(t.includes("Keep employer names, job titles and dates exactly as the source writes them"), "tailor.md lacks the employer, title and date hard rule");
 });
 
+test("the final chat message must state the Gaps in one sentence, in tailor.md and SKILL.md", () => {
+  const t = read(`${skillDir}/references/tailor.md`);
+  assert.ok(t.includes("The last chat message of the turn ends with one sentence that names every Gaps line"), "tailor.md lacks the last-message Gaps rule");
+  assert.ok(t.includes("a status note such as"), "tailor.md lacks the no-status-note rule");
+  assert.ok(t.includes("every requirement is covered by a fact"), "tailor.md lacks the None. wording");
+  assert.ok(t.includes("Run every command in the foreground") && t.includes("repeating the Gaps sentence"), "tailor.md lacks the foreground and late-notice recovery rule");
+  const b = read(`${skillDir}/SKILL.md`);
+  assert.ok(b.includes("Your last chat message names the Gaps in one sentence"), "SKILL.md lacks the Gaps-in-last-message rule");
+  assert.ok(b.includes("reply with the Gaps sentence again"), "SKILL.md lacks the late-notice rule");
+  const c = read("commands/tailor-resume.md");
+  assert.ok(c.includes("last chat message"), "tailor-resume.md lacks the last-message Gaps rule");
+});
+
 test("bullets.md still holds the full MIT permission notice that tailor.md points to", () => {
   const t = read(`${skillDir}/references/bullets.md`);
   assert.ok(t.includes("Permission is hereby granted"), "MIT permission notice missing from bullets.md");
