@@ -952,6 +952,23 @@ Held-out set, F9 and F6: not run in this session. The set in `~/claude-kredi-run
 
 Budget stops: no run starts when `spend.sh` prints a first number above 160, or when the session total in `workproof-deep-cost.tsv` reaches 13.0 USD. A run that fails (error result, rate limit) is repeated and not graded as a failure of the product. The report lists every step not run.
 
+## Round deep measurement protocol, version 2 (frozen 2026-10-22, owner decision; supersedes the budget-bound version above)
+
+Written and committed before any run of version 2. The 24 OURS runs made earlier on the plain CLI path (commit `a1de44d`, `/private/tmp/h2h-wp-deep-runs`) are not scored and not used: the owner moved all runs to the Agent SDK path. They stay as a diagnosis record only (cost 4.65 USD). Nothing in this section changes after a result is seen.
+
+Run path. Every `claude -p` call (runs, grading, sub-agents) goes through `~/claude-kredi-runs/sdk-shim/claude` first on PATH (`claude_agent_sdk.query()` with the same installed CLI 2.1.308, same stream-json output). Reason: the organisation key gives HTTP 429 "weekly limit" on the plain CLI; the promotional credit covers the Agent SDK. Only measured difference between the two paths: the desktop app's `Artifact` tool and the `artifact-diagramming` skill are absent on the SDK path; the tasks do not use them. All cells re-measured in this round run on the SDK path. Competitor cells of older rounds (CLI path) are not reused anywhere in the scored tables; they appear only in the history above. A run that returns 429 or an authentication error stops the queue and is written into the report.
+
+Code under test: product commit `e4d9057` (later commits are docs only), `git archive` copy `/private/tmp/h2h-wp-deep-code`, built, `--help` lists `sessions`, `verdict`, `bullets`, `mine`, `stop-check`. Sonnet (`claude-sonnet-5-5`), parallelism 3, temporary HOME per run, `guard.sh` around every run. `apiKeySource` of the first run must be `ANTHROPIC_API_KEY`.
+
+Budget (owner): at most 40 USD for runs, grading and sub-agents of this job, tracked in `workproof-deep-cost.tsv`; no new run starts at 36 USD. The full arm set (OURS, BASE, RCP, RCP_I, JD, JD_I, GAP, GAP_I, SR, CV, CV_I on 8 public tasks and the held-out tasks, 3 runs each, about 330 runs) is estimated at 75 USD or more from earlier per-run costs (ours 0.14, others 0.23 to 0.31), so it does not fit. Scope that fits, fixed here before any run:
+
+- Arms: OURS, BASE, RCP_I, JD_I, GAP_I (the invoked variant of each competitor; in every earlier round the invoked arm was equal or better on the tasks where a plain arm led by more than noise only on T3 and T4 for RCP, so plain RCP, JD and GAP are not run), SR on T4 only, CV_I on T2, T7, T8 only (the tasks cv-builder is built for), CV (plain) not run. Task text for `SR`/`CV_I` prompts as in `tasks.json`.
+- Public tasks: all eight, 3 runs per cell, in this order: T7, T8, T4, T2, T1, T3, T5, T6. Public runs stop when their cumulative cost reaches 24 USD.
+- Held-out set (`~/claude-kredi-runs/2026-10-22/heldout-r8/`, opened only after the public stage ends; local branch `heldout-2026-10-b`, not pushed): the same arms (SR and CV_I included), 3 runs per cell, until 34 USD cumulative. Grading takes the rest.
+- Grading: one blind packet per task with all arms of that task together, shuffled letters, same grader script, prompt template and model (Sonnet); outcome criteria only.
+- A task whose arms did not all finish 3 runs is reported as incomplete and does not enter Rule A or B. Rule A, Rule B and the ceiling rule are computed over completed tasks only, with the better of the arms that ran as the competitor. Because plain competitor arms are absent, the result cannot support a claim about plain arms, and no "first place" claim is made from a partial table.
+- F9 and F6 run only if the gate passes on a complete public and a complete held-out table and budget remains (F9: Haiku and Opus, 1 run per task: ours, best competitor, BASE; F6: 10 percent of cells re-run by an agent that has not read the code). Otherwise they are listed as not run.
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
