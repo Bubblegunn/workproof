@@ -68,7 +68,7 @@ for t, spec in cfg["tasks"].items():
         runs = sorted(x for x in os.listdir(RUNS) if re.fullmatch(rf"{t}-{arm}-\d+", x))
         for r in runs:
             n = r.rsplit("-", 1)[1]
-            pristine = os.path.join(FIXTURES, spec["fixture"]) if spec["fixture"].startswith("HC") and FIXTURES else None
+            pristine = os.path.join(FIXTURES, spec["fixture"]) if spec["fixture"].startswith(("HC", "HD")) and FIXTURES else None
             res, cmds, files = one(os.path.join(RUNS, r), pristine)
             parts.append(f"\n\n######## ARM {letter} RUN {n}\n### Commands/tools the agent used (in order)\n" + "\n".join(cmds[:40]) +
                          "\n### Final answer text\n" + res[:3500] + "\n### Files it left in the working directory\n" +
