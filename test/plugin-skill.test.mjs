@@ -287,5 +287,5 @@ test("SKILL.md rule 8: the last chat message of every task states the results of
   }
   assert.ok(b.includes("A turn never ends on a status note alone."), "SKILL.md lacks the no-status-note sentence");
   assert.ok(!/8\. The last chat message[^\n]*(@|\/Users\/)/.test(b), "the rule names no address or path");
-  assert.ok(Buffer.byteLength(b) < 20000, "SKILL.md grew past 20000 bytes (round 11 added the general document rules)");
+  assert.ok(Buffer.byteLength(b) < 21000, "SKILL.md grew past 21000 bytes (round 11 added the general document rules, iteration 2 the figure and count rules)");
 });

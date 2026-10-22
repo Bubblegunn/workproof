@@ -138,10 +138,32 @@ test("session hook: pointer inside a git work tree, nothing outside", () => {
   assert.equal(outside.stdout, "");
 });
 
+// Limit raised from 1700 to 2000 characters: restoring the user-named file exception (rule 4), the whitespace re-measure and raw-figure label (rule 6), and the delivered-only figure sentence keeps the always-loaded rules equal in meaning to SKILL.md.
 test("core-rules.md is short and lists R1 to R8", () => {
   const text = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
-  assert.ok(text.length <= 1700, `${text.length} characters`);
+  assert.ok(text.length <= 2000, `${text.length} characters`);
   for (let i = 1; i <= 8; i++) assert.match(text, new RegExp(`^${i}\\. `, "m"));
+});
+
+test("core-rules.md carries each rule inside its numbered line", () => {
+  const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
+  const line = (n) => core.split("\n").find((l) => l.startsWith(`${n}. `)) ?? "";
+  const checks = {
+    4: [/unless the user names a file/i],
+    5: [/basis/i, /never a session count/i, /no number/i],
+    6: [/lines written/i, /third-party/i, /reverted/i, /ignoring whitespace/i, /for the same filter/i, /state both/i, /which is raw/i, /delivered-only figure gets its own label and does not replace lines written/i],
+    7: [/what holds or does not/i],
+  };
+  for (const [n, res] of Object.entries(checks)) {
+    for (const re of res) assert.match(line(n), re, `rule ${n} lacks ${re}`);
+  }
+});
+
+test("SKILL.md carries the figure rule and the filtered-count rule", () => {
+  const skill = readFileSync(join(root, "skills", "workproof", "SKILL.md"), "utf8");
+  for (const k of ["lines written", "reverted", "third-party", "state both", "basis", "never (written as )?a session count", "no number", "does not replace the lines-written figure"]) {
+    assert.match(skill, new RegExp(k, "i"), `SKILL.md lacks ${k}`);
+  }
 });
 
 test.after(() => {

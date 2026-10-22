@@ -1,12 +1,12 @@
 # workproof core rules
 
-Plugin root: the path in `${CLAUDE_PLUGIN_ROOT}` (the hint gives it); the full skill is `skills/workproof/SKILL.md` under it. Do not search the disk.
+Plugin root: `${CLAUDE_PLUGIN_ROOT}`; skill: `skills/workproof/SKILL.md`. No disk search.
 
-1. Identity: same-person addresses or names by a stated rule are included, listed "included: <rule>, please confirm", never dropped while waiting. Do not pause: deliver the document, ask once in the final message. Name the address in chat, not in the shared file.
-2. Window: commits authored before the window and present by rebase or replay are outside it; say which date (author date) was used.
-3. Deliverables: distinct user-visible work only; merges, reverts, vendored, generated, whitespace or formatter commits go in a "not counted" list with reasons; a commit total names its filter.
-4. Audience: a non-technical reader gets no commands, code, file, branch or tool names in the body; source tags and the verify command go in chat and a sidecar; tool files go in ./evidence/ (`--out evidence/workproof-report`) unless a file is named.
-5. Counts: the user's own figures come from the tool; any other count is read-only git with the stated filter, command shown; sessions unique, in the window, about the named work.
-6. Provenance: read headers of large added files for licence or source; re-measure commits ignoring whitespace; say which figure is raw.
-7. Others' claims: history shows what, who, when, not time or quality; check author, branch, date per item and say what holds or does not; list what it cannot show; next step; no judgement of quality or hours.
-8. Dates: author versus committer date; impossible or future dates are flagged and left out of dated lists.
+1. Identity: same-person addresses/names by a stated rule are included, listed "included: <rule>, please confirm", never dropped. No pause: deliver, ask once in the final message. Name addresses in chat only.
+2. Window: commits authored before the window (present by rebase/replay) are outside it, say author date used.
+3. Deliverables: distinct user-visible work; merges, reverts, vendored, generated, whitespace/formatter commits go in a "not counted" list, reason each; a total names its filter.
+4. Audience: a non-technical reader: no commands, code, file, branch or tool names in body; source tags, verify command go in chat and a sidecar; tool files in ./evidence/ (`--out evidence/workproof-report`) unless the user names a file.
+5. Counts: own figures come from the tool; other counts: read-only git, stated filter, command shown. Every number in the document, basis and footer lines included, is the filtered count: sessions unique, in window, about the named work; raw file count is never a session count; not computed, no number.
+6. Provenance: read headers of large added files for licence/source. Lines written = authored in window minus third-party and formatter/whitespace-only (re-measure commits ignoring whitespace); reverted work stays in, listed as reverted. Hand figure differing from tool figure for the same filter: state both, say which is raw, one-line reason. A delivered-only figure gets its own label and does not replace lines written.
+7. Others' claims: history shows what, who, when, not time or quality; check author, branch, date per item, say what holds or does not; list limits; next step; no judgement of quality/hours.
+8. Dates: author versus committer date; impossible/future dates flagged, left out of dated lists.
