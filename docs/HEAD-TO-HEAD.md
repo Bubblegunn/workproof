@@ -973,6 +973,71 @@ Budget (owner): at most 40 USD for runs, grading and sub-agents of this job, tra
 
 The 132 reduced-set public runs cost 8.0 USD, about a third of the estimate, so the owner's full arm set fits. The arms removed for budget are added back before grading: plain RCP, JD and GAP on all eight public tasks; plain SR and plain CV on all eight; CV_I on the five tasks not yet run. SR_I on T4 stays as an extra arm (it was already run); it counts as a competitor on T4. The held-out stage runs all arms (OURS, BASE, RCP, RCP_I, JD, JD_I, GAP, GAP_I, SR, CV, CV_I) x3. Harness fix made during the first stage, before any grading: `bench/head-to-head/shim/npx` now also maps `npx --yes workproof` to the local build (it handled only `workproof` and `-y workproof`; the first, discarded attempt showed the agent using `--yes`). It affects only the OURS arm and was equal for all OURS runs of the version 2 stage. While the runs went on, whole-disk `find`/`bfs` scans started by agents (a search for the skill's reference files) were killed by a reaper script because they loaded the machine; this slows or ends an agent's search the same way for every arm that starts one. Total budget and stop rules are unchanged.
 
+
+## Results, deep round (Agent SDK path, 2026-10-22)
+
+Code under test: product commit `e4d9057` (archive copy built; docs-only commits after it). Protocol: "Round deep measurement protocol, version 2" with Amendment 1. Sonnet, 3 runs per cell, parallelism 3, temporary HOME per run, guard clean, all runs on the SDK path (`apiKeySource` ANTHROPIC_API_KEY); no cell is reused from older rounds. Blind packets with all arms of a task in shuffled order, one grader call per task (T5 was graded twice because the first output was malformed JSON; both attempts are kept, the second is scored). SR_I ran on T4 only (extra arm). Outcome criteria only.
+
+### Public set (8 tasks)
+
+| Task (max) | OURS | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I | SR | SR_I | CV | CV_I |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| T1 (4) | 4.00 (4-4, n=3) | 1.33 (1-2, n=3) | 0.67 (0-2, n=3) | 1.33 (1-2, n=3) | 1.33 (1-2, n=3) | 1.00 (0-2, n=3) | 1.67 (1-2, n=3) | 1.67 (1-2, n=3) | 1.00 (0-2, n=3) | n/a | 1.33 (1-2, n=3) | 1.67 (1-2, n=3) |
+| T2 (4) | 3.33 (3-4, n=3) | 0.67 (0-1, n=3) | 0.33 (0-1, n=3) | 0.67 (0-1, n=3) | 1.33 (1-2, n=3) | 3.00 (3-3, n=3) | 0.00 (0-0, n=3) | 1.67 (1-2, n=3) | 0.67 (0-1, n=3) | n/a | 0.67 (0-2, n=3) | 2.00 (2-2, n=3) |
+| T3 (4) | 4.00 (4-4, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.33 (3-4, n=3) | 3.00 (3-3, n=3) | 2.33 (2-3, n=3) | 3.00 (3-3, n=3) | 3.33 (3-4, n=3) | 2.67 (2-3, n=3) | n/a | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) |
+| T4 (4) | 4.00 (4-4, n=3) | 3.33 (3-4, n=3) | 4.00 (4-4, n=3) | 4.00 (4-4, n=3) | 3.67 (3-4, n=3) | 2.33 (1-3, n=3) | 3.33 (3-4, n=3) | 3.67 (3-4, n=3) | 1.00 (1-1, n=3) | 1.00 (1-1, n=3) | 4.00 (4-4, n=3) | 3.33 (3-4, n=3) |
+| T5 (5) | 5.00 (5-5, n=3) | 3.67 (3-4, n=3) | 3.00 (3-3, n=3) | 3.33 (3-4, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.33 (3-4, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | n/a | 2.67 (2-3, n=3) | 3.33 (3-4, n=3) |
+| T6 (4) | 4.00 (4-4, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | n/a | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) |
+| T7 (5) | 5.00 (5-5, n=3) | 4.00 (4-4, n=3) | 4.00 (4-4, n=3) | 3.00 (2-4, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 1.00 (0-3, n=3) | 3.67 (3-4, n=3) | n/a | 4.00 (4-4, n=3) | 4.00 (4-4, n=3) |
+| T8 (5) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 0.00 (0-0, n=3) | 2.00 (2-2, n=3) | 3.33 (0-5, n=3) | 0.00 (0-0, n=3) | 5.00 (5-5, n=3) | n/a | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) |
+| Total (35) | 34.00 | 23.00 | 21.67 | 22.67 | 17.33 | 18.67 | 19.67 | 16.33 | 19.00 | 1.00 | 22.67 | 24.33 |
+
+## Gate (outcome criteria only, better of plain and invoked arm per competitor)
+
+- T1: ours 4.00, best competitor 1.67 (GAP), max 4: PASS (strictly above every competitor)
+- T2: ours 3.33, best competitor 3.00 (JD), max 4: PASS (strictly above every competitor)
+- T3: ours 4.00, best competitor 3.33 (RCP), max 4: PASS (strictly above every competitor)
+- T4: ours 4.00, best competitor 4.00 (RCP), max 4: PASS (ceiling ruling: a competitor reaches the maximum 4; we must too)
+- T5: ours 5.00, best competitor 3.67 (BASE), max 5: PASS (strictly above every competitor)
+- T6: ours 4.00, best competitor 2.00 (BASE), max 4: PASS (strictly above every competitor)
+- T7: ours 5.00, best competitor 4.00 (BASE), max 5: PASS (strictly above every competitor)
+- T8: ours 4.67, best competitor 5.00 (BASE), max 5: FAIL (ceiling ruling: a competitor reaches the maximum 5; we must too)
+
+rule A: ours 34.00, best competitor total 24.33 (CV), needs 29.20: PASS
+rule B: FAIL
+gate: FAIL
+
+Only T8 fails: ours 4.67 (one run of three lost C5, the file was about 500 words against a limit of 450) against 5.00 for BASE, RCP_I, SR, CV and CV_I. Rule A passes, Rule B fails by the ceiling ruling, so the public gate fails by one run. Ours is at 34.00 of 35; the best other arm is CV_I at 24.33 (cv-builder, invoked). SR (session-report) scores 1.00 on T4 in both variants.
+
+### Held-out set b (3 tasks, written by an agent that had not read the product code; local branch `heldout-2026-10-b`, not pushed)
+
+| Task (max) | OURS | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I | SR | CV | CV_I |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| H1 (5) | 2.00 (2-2, n=3) | 3.67 (2-5, n=3) | 2.67 (2-4, n=3) | 3.67 (3-5, n=3) | 4.00 (4-4, n=3) | 4.67 (4-5, n=3) | 4.33 (4-5, n=3) | 4.33 (4-5, n=3) | 4.00 (4-4, n=3) | 3.67 (3-4, n=3) | 5.00 (5-5, n=3) |
+| H2 (5) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 4.33 (4-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 4.33 (4-5, n=3) | 5.00 (5-5, n=3) | 4.67 (4-5, n=3) |
+| H3 (5) | 3.67 (1-5, n=3) | 4.33 (4-5, n=3) | 4.00 (3-5, n=3) | 3.67 (2-5, n=3) | 4.33 (4-5, n=3) | 4.67 (4-5, n=3) | 4.33 (4-5, n=3) | 4.00 (3-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) |
+| Total (15) | 10.33 | 12.67 | 11.67 | 11.67 | 13.00 | 14.33 | 13.33 | 13.00 | 13.00 | 13.67 | 14.67 |
+
+## Gate (outcome criteria only, better of plain and invoked arm per competitor)
+
+- H1: ours 2.00, best competitor 5.00 (CV), max 5: FAIL (ceiling ruling: a competitor reaches the maximum 5; we must too)
+- H2: ours 4.67, best competitor 5.00 (RCP), max 5: FAIL (ceiling ruling: a competitor reaches the maximum 5; we must too)
+- H3: ours 3.67, best competitor 5.00 (CV), max 5: FAIL (ceiling ruling: a competitor reaches the maximum 5; we must too)
+
+rule A: ours 10.33, best competitor total 14.67 (CV), needs 17.60: FAIL
+rule B: FAIL
+gate: FAIL
+
+Why ours loses the held-out set (grader reasons of our runs; diagnosis only, the set is now seen and the product was not changed after it was opened):
+
+- H1 (2.00): all three runs gave no line totals (C2), did not name the excluded merge commits and the three excluded paths (C4), and did not say that out-of-window commits were left out (C5). The counted identities and the commit total were right. The closing statement lists exclusions "by rule" (round 8 ruling 3) and the model dropped the numbers and names the criteria ask for. Competitors that print the full breakdown win.
+- H3 (3.67, one run at 1): the skill was not called in two of three runs (a session-export prompt does not match the hint hook phrases); in the weak run the agent did not read the export. This is the trigger gap named in Phase 1.
+- H2 (4.67): one run missed a SHA mismatch (C5). Every arm is at 4.33 to 5.00.
+
+Scope: 8 public and 3 held-out tasks, Sonnet, SDK path, 2026-10-22, 3 runs per cell. Not a "first place" result: the public gate fails by one run on T8, the held-out gate fails on all three tasks. F9 and F6 were not run (the gate did not pass).
+
+Cost (sum of `total_cost_usd`): public runs 16.68 USD (267 runs), public grading 2.50 USD, held-out runs 7.43 USD (99 runs), held-out grading 0.62 USD. Job total in `workproof-deep-cost.tsv`: 36.91 USD. The 24 earlier plain-CLI runs (4.65 USD) are discarded.
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
