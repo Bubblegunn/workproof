@@ -1,6 +1,7 @@
 import { analyseRepo, NOREPLY_PLACEHOLDER } from "./analyse.js";
 import type { RepoReport } from "./analyse.js";
 import type { Report } from "./report.js";
+import { compareForeign } from "./foreign.js";
 import { checkReport, verifyReport } from "./verify.js";
 import type { Integrity, VerifyResult } from "./verify.js";
 
@@ -11,6 +12,8 @@ export interface VerdictOptions {
   fingerprintKey?: string;
   /** The report's file name, for the heading. Never a path. */
   reportName?: string;
+  /** Author names or addresses for a report in another format (repeatable --author). */
+  authors?: string[];
 }
 
 const HEADLINE: Record<VerdictStatus, string> = {
@@ -54,12 +57,27 @@ function hashLines(integrity: Integrity): string[] {
   return ["Offline check: the document does not have the shape this version writes:", ...integrity.problems.map((p) => `- ${p}`)];
 }
 
+/** A non-empty JSON object with none of workproof's own top-level keys: another tool's report. Empty or damaged workproof documents keep the shape check. */
+const isForeign = (r: unknown): boolean => typeof r === "object" && r !== null && !Array.isArray(r) && Object.keys(r).length > 0 && !["repositories", "params", "hash"].some((k) => k in r);
+
 /**
  * Builds the fixed verdict template from tool output only: checkReport offline first, then
  * verifyReport against the repositories given, then the merged-address claim re-derived.
  */
 export async function buildVerdict(report: Report, repoDirs: string[], opts: VerdictOptions = {}): Promise<{ markdown: string; status: VerdictStatus }> {
   const name = opts.reportName ?? "report.json";
+  // Not workproof's own shape: no hash or fingerprint to check, so compare by the figures it names.
+  if (isForeign(report)) {
+    const f = await compareForeign(report, repoDirs.length ? repoDirs : [process.cwd()], opts.authors ?? []);
+    const lines = [
+      `# Verdict on ${name}`, "", "## Verdict", HEADLINE[f.status], f.reason, "",
+      "## Altered figures", ...f.altered, "",
+      "## Hash status", "Not checked: the report is in a foreign format, so its hash cannot be checked. A passing figure comparison does not replace it.", "",
+      "## What a passing check would not prove", ...PASSING_CHECK_DOES_NOT_PROVE, "",
+      "## Recommendation", f.recommendation,
+    ];
+    return { markdown: `${lines.join("\n")}\n`, status: f.status };
+  }
   const integrity = checkReport(report);
   // A repository is compared only with its own directory: a report that names more repositories than
   // directories is never reproduced from one clone, so the extra repositories are listed as not compared.

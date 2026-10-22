@@ -330,7 +330,7 @@ workproof [options] [--repo <dir>]...
 workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-signers <file>]
 workproof countersign <report.json> --key <ssh-key> [--repo <dir>] [--fingerprint-key <hex>] [--as <label>]
 workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
-workproof verdict <report.json> [--repo <dir>]... [--fingerprint-key <hex>] [--out <file>]
+workproof verdict <report.json> [--repo <dir>]... [--author <name|email>]... [--fingerprint-key <hex>] [--out <file>]
 workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--out <file>]
 workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
 workproof attest <report.json> [--local <ssh-key>]

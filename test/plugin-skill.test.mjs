@@ -235,3 +235,32 @@ test("round 6 text: the tailoring and the several-addresses requests are single 
   assert.ok(tailor.includes("Do not rename, drop or reorder a heading"));
   assert.ok(cmd.includes("--resume --out"));
 });
+
+test("a public-looking repository never stops or asks: the package is built and one line records the public look", () => {
+  const section = skill.slice(skill.indexOf("## Before you produce a document"), skill.indexOf("## Run this"));
+  assert.match(section, /never stops the task and never triggers a question/);
+  assert.match(section, /ONE line inside the produced document or package/);
+  assert.match(section, /Do not wait for a reply and do not ask/);
+  assert.doesNotMatch(section, /before you write the document|tell the user before|better served|confirm/i);
+  for (const f of [...shippedFiles, "hooks/workproof-hint.sh"]) {
+    assert.doesNotMatch(read(f), /(ask|wait for) (for )?(the user'?s? )?confirm|(stop|pause) (and|to) ask/i, `${f} waits for confirmation`);
+  }
+  assert.match(read("commands/workproof.md"), /without stopping or asking/);
+  assert.doesNotMatch(read("commands/workproof.md"), /first tell me whether/);
+});
+
+test("a report in another format goes through verdict, and git counts are allowed only when verdict compared nothing", () => {
+  const ref = read(`${skillDir}/references/received-report.md`);
+  assert.match(ref, /another format/);
+  assert.match(ref, /same `verdict` command/);
+  assert.match(ref, /never answer "not compared" and stop/);
+  assert.match(ref, /side by side/);
+  assert.match(skill, /received report in another format/);
+});
+
+test("the final chat answer follows the file privacy defaults: no addresses, no other people's names, exclusions by rule", () => {
+  for (const text of [skill, read(`${skillDir}/references/received-report.md`)]) {
+    assert.match(text, /final chat answer follows the same privacy defaults as the files/);
+    assert.match(text, /one similar name on a different address was left out/);
+  }
+});

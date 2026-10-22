@@ -19,21 +19,23 @@ Requirements: Node 22 or newer, and git.
 
 ## Rules that always apply
 
-1. Never count commits or lines yourself and never estimate. In a git report every number you write comes from `workproof-report.json` or the report's own text, made by the tool in this session; in a usage report from the JSON of `workproof sessions`; when tailoring, from the report or the bank or resume the person named. Do not run `git log | wc -l`, `git shortlog` or `git blame` to get a figure to write down: they answer a different question (merge commits, the whole history instead of the tenure window, one email address) and the reader will compare.
+1. Never count commits or lines yourself and never estimate. The one exception is a received report in another format when `verdict` still compared nothing: then see `references/received-report.md`. In a git report every number you write comes from `workproof-report.json` or the report's own text, made by the tool in this session; in a usage report from the JSON of `workproof sessions`; when tailoring, from the report or the bank or resume the person named. Do not run `git log | wc -l`, `git shortlog` or `git blame` to get a figure to write down: they answer a different question (merge commits, the whole history instead of the tenure window, one email address) and the reader will compare.
 2. Quote the report. Use its sentences under "In plain language" and its figures with their ids. The commit figure is "N of M non-merge commits" inside the tenure window, not the total for the repository; say which window you mean.
 3. Keep the two shares apart: commits measure activity, surviving lines measure what lasted. Do not call the person the owner, the top contributor or the sole author.
 4. In a git report, write nothing git cannot show: speed-ups, users, revenue, quality, seniority.
 5. For git reports, run both `check` and `verify` on the report you hand over and say that you did.
 6. In a git report, state the two limits every time: history can be rewritten before a report is made, and the figures do not show quality, review, design or mentoring.
+7. The final chat answer follows the same privacy defaults as the files: no email addresses and no names of other people unless the user asked for them. Describe an exclusion by rule ("one similar name on a different address was left out"), not by naming the person or the address.
 
-## Before you produce a document: is the repository private?
+## Before you produce a document: does the repository look public?
 
-Do this first, and tell the user before you write the document, not after.
+A public-looking repository never stops the task and never triggers a question. Build everything the user asked for, including an `./evidence/` package when asked, in the same turn.
 
 - Run `git remote -v`. Without a remote, nothing says the repository is public.
-- With a remote, say that you are making one network call to it, then run `gh repo view --json visibility -q .visibility` if `gh` is installed, or `GIT_TERMINAL_PROMPT=0 git ls-remote <url>` (give up after about 10 seconds). If it answers without credentials, the repository is public. If it asks for credentials, fails or times out, the answer is unknown, not public.
-- If it is public, say so in your first message: anyone can recompute these figures from a public repository, so the reader is better served by the repository link plus this report; the report still shows which commits are the user's. Put one line saying the same at the top of any document you write. If it is unknown, say that you could not tell and continue.
-- Do not refuse. The user said they wrote the commits; the tool measures only the identity in the history. If the configured name or email differs from an account the user is signed in with, mention it once and go on.
+- With a remote, you may make one network call to it: `gh repo view --json visibility -q .visibility` if `gh` is installed, or `GIT_TERMINAL_PROMPT=0 git ls-remote <url>` (give up after about 10 seconds). If it answers without credentials, the repository looks public. If it asks for credentials, fails or times out, the answer is unknown, not public.
+- If it looks public, put ONE line inside the produced document or package (the package README or the report note, in addition to it, never instead of it): anyone can recompute these figures from a public repository, so the reader can also use the repository link. Add one sentence about it to the final answer. Do not wait for a reply and do not ask whether to continue.
+- If it is unknown, say in one sentence that you could not tell, and continue.
+- The user said they wrote the commits; the tool measures only the identity in the history. If the configured name or email differs from an account the user is signed in with, mention it once and go on.
 
 ## Run this
 
@@ -69,7 +71,7 @@ npx workproof verify workproof-report.json --repo . --fingerprint-key <hex>
 - An evidence document to attach (visa, review file, portfolio): run the tool, run `check` and `verify`, give the user `workproof-report.md` and `workproof-report.json`, and tell them how a reader checks it: `npx workproof check workproof-report.json`.
 - CV bullets: read `references/bullets.md` and follow it. Run the tool first; the bullets come from the JSON.
 - A self-review or promotion paragraph: read the "Self-review paragraph" part of `references/bullets.md`.
-- A report someone else sent, or "can I trust these figures": read `references/received-report.md` and follow it. Do not recount with git to decide.
+- A report someone else sent, or "can I trust these figures": read `references/received-report.md` and follow it. Do not recount with git to decide, unless the report is in another format and `verdict` compared nothing (the reference says how).
 - "How much is mine across all my addresses": run the tool, answer from the report, and name the addresses it merged.
 - What Claude Code usage delivered, for a manager: read "Claude Code usage report" below.
 - A job description to tailor to: read `references/tailor.md`.

@@ -16,9 +16,11 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-signers <file>]
        workproof countersign <report.json> --key <ssh-key> [--repo <dir>] [--fingerprint-key <hex>] [--as <label>]
        workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
-       workproof verdict <report.json> [--repo <dir>]... [--fingerprint-key <hex>] [--out <file>]
+       workproof verdict <report.json> [--repo <dir>]... [--author <name|email>]... [--fingerprint-key <hex>] [--out <file>]
                  a verdict on a report someone else sent, checked against the repository it names
                  (default: the current directory); a fixed template built from the tool's own output
+                 A report in another format is compared by the figures it names (commits, added and deleted lines,
+                 first and last commit) with the same figures counted from the repository; --author names the person.
                  The exit code is 0 whenever a verdict was produced, whatever it says.
        workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--out <file>]
                  a tailoring draft from a job description and your facts (a portfolio bank or past resume
@@ -221,7 +223,8 @@ export function parse(argv: string[]): Cli {
       if (a === "--repo") repos.push(resolve(value()));
       else if (a === "--fingerprint-key") params.fingerprintKey = value();
       else if (a === "--out") verdictOut = value();
-      else throw new Error("verdict takes only the report, --repo, --fingerprint-key and --out");
+      else if (a === "--author") (params.author ??= []).push(value());
+      else throw new Error("verdict takes only the report, --repo, --author, --fingerprint-key and --out");
     }
     argv = [];
   }
@@ -474,6 +477,7 @@ async function main() {
     const report = JSON.parse(await readFile(verdictFile, "utf8")) as Report;
     const { markdown } = await buildVerdict(report, repos, {
       reportName: basename(verdictFile),
+      ...(params.author ? { authors: params.author } : {}),
       ...(params.fingerprintKey ? { fingerprintKey: params.fingerprintKey } : {}),
     });
     if (verdictOut) {

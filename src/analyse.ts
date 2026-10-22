@@ -128,7 +128,7 @@ async function ignoreRevsFor(cwd: string, params: Params): Promise<string | null
 }
 
 /** Bot commits out, excluded paths out of every commit's file list; the untouched copy stays for the share. */
-async function applyExclusions(cwd: string, all: Commit[], params: Params) {
+export async function applyExclusions(cwd: string, all: Commit[], params: Params) {
   const enabled = params.exclusions !== false;
   const extra = (params.exclude ?? []).map((g: string) => globToRegExp(g) as RegExp);
   const botCommits = enabled ? all.filter(isBot).length : 0;

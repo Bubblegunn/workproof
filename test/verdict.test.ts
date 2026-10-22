@@ -324,3 +324,126 @@ test("(n) the CLI exits 0 for a malformed report and HELP says the exit code is 
     await rm(work, { recursive: true, force: true });
   }
 });
+
+/** A report in another format. */
+const foreignReport = (figures: Record<string, unknown>, extra: Record<string, unknown> = {}) => ({ subject: "Ada", figures, figures_sha256: "0".repeat(64), ...extra }) as unknown as Report;
+
+interface Truth { commits: number; added: number; deleted: number; first: string; last: string }
+
+/** A repository with a merge commit, a bot commit, a lock file and a second person; the expected figures come from plain git. */
+async function foreignRepo(): Promise<{ dir: string; truth: Truth }> {
+  const dir = await mkdtemp(join(tmpdir(), "workproof-foreign-"));
+  const run = (args: string[], who = "Ada", email = "ada@example.com", date = "2026-03-01T10:00:00Z") =>
+    execFileSync("git", args, { cwd: dir, encoding: "utf8", env: { ...process.env, GIT_AUTHOR_NAME: who, GIT_AUTHOR_EMAIL: email, GIT_COMMITTER_NAME: who, GIT_COMMITTER_EMAIL: email, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date } });
+  const write = (f: string, n: number, tag: string) => writeFile(join(dir, f), Array.from({ length: n }, (_, i) => `${tag} ${i}`).join("\n") + "\n");
+  run(["init", "-q", "-b", "main"]);
+  await write("a.txt", 12, "a");
+  run(["add", "."]); run(["commit", "-q", "-m", "one"]);
+  await write("package-lock.json", 80, "lock");
+  run(["add", "."]); run(["commit", "-q", "-m", "lock"], "Ada", "ada@example.com", "2026-03-05T10:00:00Z");
+  await write("bot.txt", 30, "bot");
+  run(["add", "."]); run(["commit", "-q", "-m", "bump"], "dependabot[bot]", "49699333+dependabot[bot]@users.noreply.github.com", "2026-03-06T10:00:00Z");
+  run(["checkout", "-q", "-b", "topic"]);
+  await write("b.txt", 7, "b");
+  run(["add", "."]); run(["commit", "-q", "-m", "topic"], "Bob", "bob@example.com", "2026-03-07T10:00:00Z");
+  run(["checkout", "-q", "main"]);
+  await write("c.txt", 5, "c");
+  run(["add", "."]); run(["commit", "-q", "-m", "two"], "Ada", "ada@example.com", "2026-03-09T10:00:00Z");
+  run(["merge", "-q", "--no-ff", "-m", "merge topic", "topic"], "Ada", "ada@example.com", "2026-03-10T10:00:00Z");
+  // Expected figures with plain git only: Ada's non-merge commits, the lock file left out.
+  const commits = Number(run(["rev-list", "--no-merges", "--count", "--author=ada@example.com", "HEAD"]).trim());
+  let added = 0;
+  let deleted = 0;
+  for (const line of run(["log", "--no-merges", "--author=ada@example.com", "--numstat", "--format="]).split("\n")) {
+    const [a, d, f] = line.split("\t");
+    if (f && f !== "package-lock.json") { added += Number(a); deleted += Number(d); }
+  }
+  const days = run(["log", "--no-merges", "--author=ada@example.com", "--format=%ad", "--date=short"]).trim().split("\n").sort();
+  return { dir, truth: { commits, added, deleted, first: days[0]!, last: days[days.length - 1]! } };
+}
+
+const withForeign = async (fn: (dir: string, t: Truth) => Promise<void>) => {
+  const { dir, truth } = await foreignRepo();
+  try { await fn(dir, truth); } finally { await rm(dir, { recursive: true, force: true }); }
+};
+
+test("(h) a foreign-format report whose figures match plain git reproduces, with the merge, bot and lock file left out", () => withForeign(async (dir, t) => {
+  assert.equal(t.commits, 3, "the fixture has three non-merge commits by Ada");
+  const report = foreignReport({ commits_authored: String(t.commits), lines_added: `${t.added}`, lines_deleted: t.deleted, first_commit: `${t.first}T10:00:00Z`, last_commit_date: t.last });
+  const { markdown, status } = await buildVerdict(report, [dir], { reportName: "foreign.json" });
+  assert.equal(status, "reproduces", markdown);
+  assert.ok(markdown.includes("The hash and the fingerprint were not checked"), markdown);
+  assert.ok(markdown.includes("Compared: commits_authored, lines_added, lines_deleted, first_commit, last_commit_date."), markdown);
+  assert.deepEqual(figureRows(markdown), []);
+  assertHeadingsInOrder(markdown);
+  assertNoIdentifiers(markdown, dir);
+}));
+
+test("(i) altered commits and lines are do-not-trust with both values; the string number 1,197 is read as 1197", () => withForeign(async (dir, t) => {
+  const { markdown, status } = await buildVerdict(foreignReport({ commits_authored: t.commits + 7, lines_added: "1,197", insertions: t.added }), [dir], { reportName: "foreign.json" });
+  assert.equal(status, "do-not-trust", markdown);
+  const rows = figureRows(markdown);
+  assert.ok(rows.includes(`| commits_authored | ${t.commits + 7} | ${t.commits} |`), markdown);
+  assert.ok(rows.includes(`| lines_added | 1197 | ${t.added} |`), markdown);
+  assert.ok(!rows.some((r) => r.startsWith("| insertions |")), "a matching figure is not an altered row");
+  assertNoIdentifiers(markdown, dir);
+}));
+
+test("(j) no recognisable figure, only shares and totals, arrays of objects, null and array JSON are not compared", () => withForeign(async (dir, t) => {
+  for (const report of [{ title: "CV", skills: ["go"] }, { commit_share: 0.4, total_commits: 999, repo_commits: 5, bot_commits: 3, merge_commits: 9, lines_added_total: 5 }, { rows: [{ commits: 999, lines_added: 1 }] }]) {
+    const { markdown, status } = await buildVerdict(report as unknown as Report, [dir], { reportName: "x.json" });
+    assert.equal(status, "not-checked", markdown);
+    assert.ok(markdown.includes("plain git"), markdown);
+    assertHeadingsInOrder(markdown);
+  }
+  for (const odd of [null, [], [{ commits: t.commits }]]) {
+    const { status } = await buildVerdict(odd as unknown as Report, [dir], { reportName: "x.json" });
+    assert.equal(status, "do-not-trust", "null and array JSON keep the shape check");
+  }
+}));
+
+test("(k) non_merge_commits is read; a key with different values in two places is ambiguous and skipped; a figure inside an array is ignored", () => withForeign(async (dir, t) => {
+  const report = foreignReport({ non_merge_commits: t.commits, lines_added: t.added }, { summary: { lines_added: t.added + 1 }, rows: [{ lines_deleted: 12345 }] });
+  const { markdown, status } = await buildVerdict(report, [dir], { reportName: "x.json" });
+  assert.equal(status, "reproduces", markdown);
+  assert.ok(markdown.includes("Not compared: lines_added (ambiguous"), markdown);
+  assert.ok(!markdown.includes("12345"), "the array figure is ignored");
+}));
+
+test("(l) explicit --author is exact: the look-alike address is not merged, and the report author is not used", () => withForeign(async (dir) => {
+  execFileSync("git", ["-c", "user.name=Ada", "-c", "user.email=ada@example.org", "commit", "-q", "--allow-empty", "-m", "other address"], { cwd: dir, env: { ...process.env, GIT_AUTHOR_NAME: "Ada", GIT_AUTHOR_EMAIL: "ada@example.org", GIT_COMMITTER_NAME: "Ada", GIT_COMMITTER_EMAIL: "ada@example.org" } });
+  // "ada@example.com" alone is three commits; the merge rule would add the other address (same name) for a report-derived author.
+  const exact = await buildVerdict(foreignReport({ commits_authored: 3 }, { subject: "Somebody Else" }), [dir], { authors: ["ada@example.com"] });
+  assert.equal(exact.status, "reproduces", exact.markdown);
+  const merged = await buildVerdict(foreignReport({ commits_authored: 3 }), [dir], {});
+  assert.equal(merged.status, "do-not-trust", "a report-derived author merges the address that shares the name");
+  assert.ok(merged.markdown.includes("| commits_authored | 3 | 4 |"), merged.markdown);
+}));
+
+test("(m2) a shallow clone is not-checked, not do-not-trust", () => withForeign(async (dir, t) => {
+  const shallow = await mkdtemp(join(tmpdir(), "workproof-shallow-"));
+  try {
+    execFileSync("git", ["clone", "-q", "--depth", "1", `file://${dir}`, shallow]);
+    const { markdown, status } = await buildVerdict(foreignReport({ commits_authored: t.commits }), [shallow], { authors: ["ada@example.com"] });
+    assert.equal(status, "not-checked", markdown);
+    assert.ok(markdown.includes("shallow clone, fetch full history"), markdown);
+    assertNoIdentifiers(markdown, shallow);
+  } finally {
+    await rm(shallow, { recursive: true, force: true });
+  }
+}));
+
+test("(n2) the CLI reads a foreign-format file with repeatable --author and prints a comparison", () => withForeign(async (dir, t) => {
+  const work = await mkdtemp(join(tmpdir(), "workproof-cli-"));
+  try {
+    const reportPath = join(work, "theirs.json");
+    await writeFile(reportPath, JSON.stringify(foreignReport({ commits_authored: t.commits + 1 })));
+    const run = spawnSync(process.execPath, [CLI, "verdict", reportPath, "--repo", dir, "--author", "Ada", "--author", "ada@example.com"], { encoding: "utf8" });
+    assert.equal(run.status, 0, run.stderr);
+    assert.ok(run.stdout.includes("**Do not trust as is.**"), run.stdout);
+    assert.ok(run.stdout.includes(`| commits_authored | ${t.commits + 1} | ${t.commits} |`), run.stdout);
+    assertNoIdentifiers(run.stdout, dir);
+  } finally {
+    await rm(work, { recursive: true, force: true });
+  }
+}));
