@@ -803,6 +803,17 @@ Cost (sum of `total_cost_usd`): T6 set $1.94 (24 runs), held-out set $17.74 (72 
 
 Scope: three held-out tasks and one public task, Sonnet, 2026-10-22, 3 runs per cell. Nothing about the benchmark is claimed publicly.
 
+## Rulings, round 8
+
+Recorded 2026-10-22 after the final gate, before any round 8 code change. The three held-out tasks H1 to H3 are seen; they serve diagnosis only and never again as held-out evidence.
+
+1. Public-looking repository (cause of the H1 loss). The skill never stops or asks for confirmation because a repository looks public. It builds `./evidence/` as asked and writes one line about the public look inside the package (README of the package or the report note), not in place of the package. Test: a skill-text test that the stop-and-ask instruction is absent and the one-line note is present; checked by the public T1 re-run and by the new held-out set.
+2. Foreign report format (cause of the H3 loss). When `workproof verdict` receives a report that is not workproof's own format, it does not stop at "not compared". It falls back to plain git: it names the figures it recognises in the report (commits, added lines, any author identifier), counts the same figures from the repository with read-only git (`git shortlog -sne --no-merges`, `git log --numstat`, `git blame -w -M` as the existing counter does), prints both side by side, and states which figures differ. It says that a hash in a foreign format cannot be checked. The skill says the same when the CLI is not used. Test: the CLI reads a foreign-format fixture and prints a comparison.
+3. Privacy in the chat answer (cause of the H2 criterion C4 loss). The final chat answer follows the same defaults as the files: no email addresses, and no names of other people unless the user asked for them. An exclusion is described by rule ("one similar name on a different address was left out"), not by the person's name or address. Test: a skill-text test that the instruction covers the final answer.
+4. Criteria, tasks, checkers, labels, grader prompts and the gate rules of the eight public tasks do not change. The Skill-call and command requirements stay process measures (final gate ruling 1).
+5. Final gate, second attempt, in this order: public set (ours, ruling of the measurement protocol below), then a new held-out set, then F9, then F6. The new held-out set is written by an agent that has not read our code, our public tasks or the first held-out set, in a folder outside the repository. It is committed on a new local branch that is not pushed. Nobody reads it before the product is frozen at its final commit; the product does not change after it is read. The agents of the runs work in a copy made with `git archive`, and the held-out runs use fixtures outside the repository working tree.
+6. If the public set fails after the product change, the held-out set is not run in this session (cost), and the report says so.
+
 ## Resume
 
 State: the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
