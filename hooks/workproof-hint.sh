@@ -1,12 +1,17 @@
 #!/bin/sh
 # workproof UserPromptSubmit hint. Reads the hook input JSON on stdin and prints one JSON
 # line only when the prompt matches a workproof task. No writes, no network, exit 0 always.
-# Only the first 4000 characters of the flattened, lowercased prompt are matched, so a
-# very large prompt costs the same as a short one.
-input=$(cat)
+# The input is capped at 300000 bytes. Of the flattened, lowercased prompt (JSON line-break escapes turned
+# into spaces) only the first 2000 and the last 2000 bytes are matched, because the request is often last.
+input=$(head -c 300000)
 flat=$(printf '%s' "$input" | tr '\n\r' '  ')
-prompt=$(printf '%s' "$flat" | sed -E -n 's/.*"prompt"[[:space:]]*:[[:space:]]*"((([^"\\]|\\.)*))".*/\1/p')
-lc=$(printf '%s' "$prompt" | tr '[:upper:]' '[:lower:]' | cut -c1-4000)
+prompt=$(printf '%s' "$flat" | sed -E -n 's/.*"prompt"[[:space:]]*:[[:space:]]*"((([^"\\]|\\.)*))".*/\1/p' | sed -E 's/\\[nrt]/ /g')
+lcfull=$(printf '%s' "$prompt" | tr '[:upper:]' '[:lower:]')
+if [ "$(printf '%s' "$lcfull" | wc -c)" -gt 4000 ]; then
+  lc="$(printf '%s' "$lcfull" | head -c 2000) $(printf '%s' "$lcfull" | tail -c 2000)"
+else
+  lc=$lcfull
+fi
 
 # Second route for email-address phrasings: all four parts must match the same prompt.
 has() { printf '%s\n' "$lc" | grep -Eq -e "$1"; }
@@ -44,6 +49,53 @@ if [ -n "$lc" ] && printf '%s\n' "$lc" | grep -Eq \
   match=1
 fi
 if [ "$addr" = 1 ]; then match=1; fi
+
+# Two-factor test, in addition to the patterns above (OR). History factor: a word about git history,
+# a repository or exported sessions, or a working directory inside a git work tree. Intent factor: one
+# or more intent classes. Generic verbs (check, verify, compare, summarise, report, audit, raise) are not
+# intent words alone: they count only through a person or business word (contractor, invoice, candidate,
+# quarter, promotion ...). A match whose history factor is only a repository word or the working directory
+# gets the weak answer: the pointer to the rules, without the instruction to run the tool.
+HIST_STRONG='(commit|repo|repository|git) history|git[[:space:]]log|(my|their|his|her) (own )?commits|history of (the|my|this|that) (repo|repository|project|commits)|(^|[^a-z])blame([^a-z]|$)|claude code|claude sessions?|session (exports?|folders?|logs?)|exported? (claude )?sessions?|transcripts?'
+HIST_WEAK='(^|[^a-z])(commits?|committed|repos?|repository|repositories|clone|cloned|branch|branches|codebase|pull requests?|git)([^a-z]|$)'
+I_WORK='contributions?|contributed|deliver|ship(ped|ping)?([^a-z]|$)|(^|[^a-z])(built|wrote|authored|implemented|finished|completed|produced)([^a-z]|$)|(^|[^a-z])(my|their|his|her|our|own) (work|part|role|features?)|work (i|they|he|she)|(i|we) (did|built|wrote|worked|led|owned|authored?|got done|finished)|what i (did|built|wrote|worked|made|delivered)|accomplish|achiev|(my|their) share|workload|responsib|get done|(who|how much of).*(wrote|write|built|did)|written by|done by|did the most|handover|hand-over|outsourc|predecessor|left behind|personally|(my|their|his|her) (own )?commits'
+I_REPORT='write.?up|statement|quarter|(^|[^a-z])q[1-4]([^a-z]|$)|half[- ]?year|year[- ]end|review (doc|file|packet)|recap|retrospective|self[- ]assessment'
+I_EVID='evidence|proof|(^|[^a-z])prove|attest|(my|the) case for|application|affidavit|testimony|lawyer|attorney|solicitor|immigration|visa|committee|promotion|performance review|portfolio (entry|piece|item|section)|appraisal|self[- ]?(review|assessment)'
+# Generic verbs and nouns: an intent word only together with a strong history word.
+I_GENERIC='summar|(^|[^a-z])report|overview|(^|[^a-z])(verify|check|compare|confirm|audit|trust)([^a-z]|$)'
+I_USAGE='usage|tok.ns?|per[- ]model|claude code|sessions?|prompts? (count|total)|co-?authored|ai[- ]assisted|assisted commits|copilot'
+I_CHECK='claims?|claimed|(^|[^a-z])(bill|bills|supplier|vendor|agency|consultant|contractors?)([^a-z]|$)|(did|really|actually) .*(do|done|deliver|commit|merge)|holds? up|backs?( it| this| that| them)? up|backed up|invoice|billed|billing|(^|[^a-z])hours([^a-z]|$)|freelanc|candidate|applicant|legit|exaggerat|inflat|overstat|double[- ]check|sanity[- ]check|(match(es)?|consistent with) (the |their |his |her )?(history|commits|claim)|(^|[^a-z])(says|said|states|stated) (he|she|they|i)|report (i|we) (received|got)|(received|got|sent) (me|us) (a|the|this) report'
+I_NOPERSON='(who|how much of).*(wrote|write|built|did)|written by|done by|did the most|handover|hand-over|outsourc|predecessor|left behind|(exported?|folder).*sessions?|sessions?.*(exported?|folder)'
+PERSON='(^|[^a-z])(i|my|me|mine|we|their|his|her|they|person|candidate|applicant|contractor|freelancer|vendor|supplier|agency|consultant|colleague|employee)([^a-z]|$)'
+cls=""
+weak=0
+cwdonly=0
+if [ -n "$lc" ] && [ "$match" = 0 ]; then
+  hist=0
+  strong=0
+  if has "$HIST_STRONG"; then
+    hist=1; strong=1
+  elif has "$HIST_WEAK"; then
+    hist=1; weak=1
+  else
+    cwd=$(printf '%s' "$flat" | sed -E -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"([^"\\]*)".*/\1/p')
+    case $cwd in ''|*[\\]*) ;; *)
+      GIT_OPTIONAL_LOCKS=0 git -C "$cwd" rev-parse --is-inside-work-tree >/dev/null 2>/dev/null && { hist=1; weak=1; cwdonly=1; } ;;
+    esac
+  fi
+  if [ "$hist" = 1 ]; then
+    has "$I_WORK" && cls="${cls:+$cls, }work or delivery"
+    has "$I_REPORT" && cls="${cls:+$cls, }report or summary"
+    has "$I_EVID" && cls="${cls:+$cls, }evidence or proof"
+    has "$I_USAGE" && cls="${cls:+$cls, }usage"
+    has "$I_CHECK" && cls="${cls:+$cls, }check of someone else's claim"
+    # The working directory alone is a weak history factor: it also needs a person word, a report word or a who-did-it phrase.
+    if [ "$cwdonly" = 1 ] && ! has "$PERSON" && ! has "$I_REPORT" && ! has "$I_NOPERSON"; then cls=""; fi
+    [ -n "$cls" ] || { [ "$strong" = 1 ] && has "$I_GENERIC" && cls="report or summary"; }
+    [ -z "$cls" ] || match=1
+  fi
+fi
+[ -n "$cls" ] || cls="work evidence"
 
 # addr_extra prints the plain-git sentence (and the address list when the prompt asks for it), or nothing
 # when the figures cannot be computed: not a repository, more than 20000 commits, no git identity, git missing.
@@ -126,7 +178,15 @@ if [ -n "$lc" ] && [ "$match" = 1 ]; then
   # The plugin root, so the model reads the skill's files from there and does not search the disk for them.
   root=${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)}
   root=$(printf '%s' "$root" | tr -d '[:cntrl:]"\\')
-  ctx="This request matches the workproof skill (evidence of the user's own work from git, a Claude Code usage report, tailoring CV bullets to a job description, or checking a report someone sent). Use the workproof skill and run \`npx workproof ...\` instead of counting or guessing by hand. If the user names a folder of exported Claude Code sessions, run \`npx workproof sessions --dir <folder>\` and do not answer from the default local logs. Plugin root: $root (skill, references and commands are under it; do not search the disk for them)."
+  if [ "$weak" = 1 ]; then
+    ctx="This request may concern someone's work in a repository (workproof skill: evidence from git, usage reports, CV bullets, checking a report someone sent). Use the rules below only if the request is about writing, summarising or checking a person's work from history."
+  else
+    ctx="This request matches the workproof skill (evidence of the user's own work from git, a Claude Code usage report, tailoring CV bullets to a job description, or checking a report someone sent). Use the workproof skill and run \`npx workproof ...\` instead of counting or guessing by hand."
+  fi
+  ctx="$ctx If the user names a folder of exported Claude Code sessions, run \`npx workproof sessions --dir <folder>\` and do not answer from the default local logs. Plugin root: $root (skill, references and commands are under it; do not search the disk for them)."
+  ctx="$ctx Intent class: $cls. The rules block below (also in $root/skills/workproof/references/core-rules.md) applies to any document about someone's work from the commit history or sessions, whether or not you run the tool; use the workproof CLI only for figures about the user's own work."
+  rules=$(head -c 3000 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
+  if [ -n "$rules" ]; then ctx="$ctx $rules"; fi
   if [ -n "$extra" ]; then ctx="$ctx $extra"; fi
   printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$ctx"
 fi

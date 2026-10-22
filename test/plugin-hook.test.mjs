@@ -126,18 +126,21 @@ test("email phrasings without any counting intent add nothing and exit 0", () =>
   assert.deepEqual(fired, []);
 });
 
-test("only the first 4000 characters are matched: a positive at 4000 is seen, one at 4500 is not", () => {
+test("only the first 2000 and the last 2000 characters are matched", () => {
   const phrase = "Tailor my resume to this job description. ";
   const pad = (n) => "x".repeat(n);
-  const early = run(hookInput(pad(3900) + phrase));
-  assert.equal(early.status, 0);
-  assertHint(early.stdout);
-  const late = run(hookInput(pad(4500) + phrase));
-  assert.equal(late.status, 0);
-  assert.equal(late.stdout, "");
+  const first = run(hookInput(phrase + pad(4500)));
+  assert.equal(first.status, 0);
+  assertHint(first.stdout);
+  const last = run(hookInput(pad(4500) + phrase));
+  assert.equal(last.status, 0);
+  assertHint(last.stdout);
+  const middle = run(hookInput(pad(2500) + phrase + pad(2500)));
+  assert.equal(middle.status, 0);
+  assert.equal(middle.stdout, "");
 });
 
-test("a 100 KB prompt with a positive in its first 4000 characters matches in under 150 ms (median of five)", () => {
+test("a 100 KB prompt with a positive in its first 2000 characters matches in under 150 ms (median of five)", () => {
   const input = hookInput("Tailor my resume to this job description. " + "lorem ipsum dolor sit amet ".repeat(4000));
   assert.ok(Buffer.byteLength(input) > 100 * 1024);
   const times = [];
@@ -229,7 +232,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   // Only the exact noreply phrase is removed, after joining, so a forbidden word on the same code line is still checked.
   const code = script
     .split("\n")
-    .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count"))
+    .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count") && !l.includes("If the user names a folder"))
     .join("\n")
     .replaceAll("a GitHub noreply address whose login matches the name or the address in git config", "");
 
@@ -255,7 +258,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   const npxLines = script.split("\n").filter((l) => l.includes("npx"));
   assert.ok(npxLines.length >= 1, "output text must mention npx");
   for (const line of npxLines) {
-    assert.ok(/This request matches|verifiable figures/.test(line), `npx outside the output text: ${line}`);
+    assert.ok(/This request matches|verifiable figures|If the user names a folder/.test(line), `npx outside the output text: ${line}`);
   }
 
   // Redirections: the only allowed targets are /dev/null and >&2.
@@ -263,9 +266,10 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   assert.ok(!withoutAllowed.includes(">"), "a redirection to a file is present");
 });
 
-test("hooks.json registers both scripts, under UserPromptSubmit and Stop, with the plugin root path", () => {
+test("hooks.json registers the scripts, under SessionStart, UserPromptSubmit and Stop, with the plugin root path", () => {
   const hooks = JSON.parse(readFileSync(hooksPath, "utf8")).hooks;
-  assert.deepEqual(Object.keys(hooks), ["UserPromptSubmit", "Stop"]);
+  assert.deepEqual(Object.keys(hooks), ["SessionStart", "UserPromptSubmit", "Stop"]);
+  assert.equal(hooks.SessionStart[0].hooks[0].command, '"${CLAUDE_PLUGIN_ROOT}/hooks/workproof-session.sh"');
   const command = hooks.UserPromptSubmit[0].hooks[0].command;
   assert.equal(command, '"${CLAUDE_PLUGIN_ROOT}/hooks/workproof-hint.sh"');
   assert.equal(hooks.Stop[0].hooks[0].command, '"${CLAUDE_PLUGIN_ROOT}/hooks/workproof-stop.sh"');

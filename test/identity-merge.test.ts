@@ -111,6 +111,8 @@ test("an explicit author is exact: nothing is merged and the warning stays", asy
     assert.equal(id.merged, undefined);
     assert.equal(id.possiblySplit?.count, 2, "the old warning path still runs");
     assert.equal(seen.length, 0, "no merge notice is printed for an explicit author");
+    assert.ok(id.possiblySplit?.reasons.length, "the candidates carry the rule that found them");
+    assert.match(renderMarkdown(buildReport([repo], { ...base, author: [SUBJECT_EMAIL] } as Params, meta)), /Candidates, not merged/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

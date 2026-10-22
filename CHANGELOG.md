@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+**Round 11: general rules for documents about someone's work, and a wider trigger.** The skill now carries eight general rules
+(identity candidates shown as "included: <rule>, please confirm", the window by author date, a separate "not counted" list, no
+commands in the body for a non-technical reader, counts run with the stated filter, licence headers and whitespace-only commits,
+checks of someone else's claim or invoice, author versus committer dates) in `skills/workproof/references/core-rules.md`. The
+prompt hint also matches by two factors (a git or session word, or a working directory inside a git repository, plus an intent
+class) and appends the rules to its context; a new SessionStart hook prints a three-line pointer to the file inside a git
+repository. With an explicit `--author` the report states that the other same-person addresses are "candidates, not merged". New
+trigger test with at least 40 phrasings per intent class and 40 negatives. `THIRD-PARTY-NOTICES.md` credits the Apache-2.0
+receipts plugin that the session miner derives from.
+
 **`workproof bullets --resume` writes the finished resume file.** It prints `# <name>`, `Target role:`, `## Summary`, `## Skills`,
 `## Experience` and/or `## Projects` (each entry's heading lines copied verbatim from the source, then the ranked bullets with their
 source tags), `## Gaps`, `## Keyword coverage` and `## Ordering check`, so the skill only saves it and adds at most one Summary

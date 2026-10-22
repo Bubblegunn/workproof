@@ -126,7 +126,7 @@ function mergedLine(merged: { count: number; reasons: string[]; emails?: string[
 function splitNotice(split: SplitRecord): string {
   const n = split.count ?? split.names.length;
   const reasons = split.reasons.map((r, i) => (i === 0 ? r.charAt(0).toUpperCase() + r.slice(1) : r)).join("; ");
-  const tail = "Every figure below therefore describes only the work under the identities named above. If they are the same person, re-run with each address passed to `--author`, or merge them in a `.mailmap`.";
+  const tail = "Candidates, not merged: nothing is merged without a decision. Every figure below therefore describes only the work under the identities named above. If they are the same person, re-run with each address passed to `--author`, or merge them in a `.mailmap`.";
   if (split.names.length === 0) {
     return `**${plural(n, "other address", "other addresses")} in this repository may be the same person and ${n === 1 ? "was" : "were"} not counted here.** ${split.hint ?? ""} Why: ${reasons}. ${tail}`;
   }

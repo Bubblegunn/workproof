@@ -56,7 +56,7 @@ test("SKILL.md has the name workproof and a description that names every situati
   ]) {
     assert.ok(d.includes(phrase.toLowerCase()), `description lacks: ${phrase}`);
   }
-  assert.ok(fm.description.startsWith("Use when someone asks how many commits are mine"), "description does not start with the commit-count request");
+  assert.ok(fm.description.startsWith("Use for any request to write, summarise, check or judge a person's work"), "description does not start with the intent classes");
   const usageAt = d.indexOf("claude code usage");
   const visaAt = d.indexOf("visa");
   assert.ok(usageAt >= 0 && visaAt >= 0, "description lacks Claude Code usage or visa");
@@ -280,12 +280,12 @@ test("the final chat answer follows the file privacy defaults: no addresses, no 
 
 test("SKILL.md rule 8: the last chat message of every task states the results of the checks and limits the file holds", () => {
   const b = read(`${skillDir}/SKILL.md`);
-  assert.ok(b.includes("8. The last chat message starts with every number and list the user asked for"), "SKILL.md lacks the asked-for-first rule");
+  assert.ok(b.includes("8. The last chat message starts with the numbers and lists the user asked for"), "SKILL.md lacks the asked-for-first rule");
   assert.ok(b.includes("states in plain text the result of every check and limit the file holds"), "SKILL.md lacks the closing-statement rule");
   for (const part of ["the gaps", "the figures that differ from the git counts", "the basis sentence for counts", "the exclusions by rule", "the path of the package with its one-line public-look note"]) {
     assert.ok(b.includes(part), `the closing-statement rule lacks: ${part}`);
   }
   assert.ok(b.includes("A turn never ends on a status note alone."), "SKILL.md lacks the no-status-note sentence");
   assert.ok(!/8\. The last chat message[^\n]*(@|\/Users\/)/.test(b), "the rule names no address or path");
-  assert.ok(Buffer.byteLength(b) < 17250, "SKILL.md grew past 17250 bytes (round 10 added the inline received-report, export and size rules)");
+  assert.ok(Buffer.byteLength(b) < 20000, "SKILL.md grew past 20000 bytes (round 11 added the general document rules)");
 });
