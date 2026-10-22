@@ -1,0 +1,86 @@
+# Git Contribution Summary
+
+Generated 2026-10-22 from `git log` of a local repository (package name `co`, v4.6.0). No source code or diffs are included.
+
+**Author identity:** Jonathan Ong <<email:d29caa5c>> (the identity configured in the repository)
+
+## Totals (this identity only)
+
+| Metric | Value |
+|---|---|
+| Commits authored | 68 (56 non-merge, 12 pull-request merge commits) |
+| Active period | 2013-11-07 to 2015-07-09 |
+| Commits by year | 2013: 22, 2014: 36, 2015: 10 |
+| Lines changed (non-merge commits) | 1,166 added, 1,060 deleted across 112 file changes |
+| Release/version commits | 15 (e.g. 3.0.0 through 4.6.0) |
+
+## Context (for accuracy)
+
+The repository has 299 commits in total from several authors (the largest share is by another author, TJ Holowaychuk, 145 commits). The figures above cover only commits under the identity named above. This identity authored about 24% of all commits (56 of 230 non-merge commits). The 12 merge commits show pull requests this identity merged, not code it wrote.
+
+## Non-merge commits
+
+| Commit | Date | Subject |
+|---|---|---|
+| 2a94e82 | 2013-11-07 | you never use toString() anymore |
+| 0a59d78 | 2013-11-09 | add generators and delegated generators benchmarks |
+| f3744c5 | 2013-11-07 | initial yield object support |
+| 063bfbe | 2013-11-08 | make co.join() private + refactoring |
+| 6a7e0eb | 2013-11-08 | npm test |
+| 0f193f0 | 2013-11-08 | benchmark: add `object` |
+| 7cb98de | 2013-11-08 | test: add a recursion test |
+| 17ccbaa | 2013-11-08 | fix copy |
+| 5e443cf | 2013-11-12 | Revert "you never use toString() anymore" |
+| e01efb5 | 2013-11-12 | travis |
+| ca86f5e | 2013-11-12 | component.json |
+| 2cf5fe0 | 2013-11-24 | add a test case for "Generator is already running" |
+| b0d40fe | 2013-11-24 | possible fix for "Generator is already running" |
+| cf27103 | 2013-11-24 | fix "Generator is already running" errors when no callback provided |
+| c5e389b | 2013-11-24 | no callback: only throw if there's no error! |
+| e83d8a7 | 2013-11-24 | make context and arguments be passed through thunk |
+| 4f02a4e | 2013-12-19 | readme: fix paragraph after list |
+| 9194353 | 2013-12-19 | Update Readme.md |
+| e198766 | 2013-12-19 | history: add 3.0.0 changes |
+| 31b4ab2 | 2013-12-19 | fixed: callback passed as an argument to generators |
+| bcbd0b8 | 2013-12-19 | refactor: remove unnecessary co.call() |
+| 9a02b9b | 2013-12-19 | 3.0.1 |
+| 41913fb | 2014-01-01 | 3.0.2 |
+| 0cb0263 | 2014-01-02 | readme: remove references to join |
+| e65c811 | 2014-02-08 | 3.0.3 |
+| 19ada57 | 2014-03-14 | fix #92 |
+| c2d24b2 | 2014-04-12 | benchmark: use setImmediate everywhere so we can bump mtime |
+| 1ddcda6 | 2014-05-03 | remove setImmediate shim, add platform compat notes to readme |
+| d55df9a | 2014-05-03 | remove unused toString |
+| cd850e7 | 2014-06-30 | use a closure instead of .bind() |
+| e0eebaf | 2014-06-30 | update deps, use bluebird instead of q |
+| 2f22986 | 2014-06-30 | better error message when a non-yieldable is yielded |
+| 8446e81 | 2014-06-30 | preserve key ordering |
+| 93fd2bb | 2014-06-30 | 3.1.0 |
+| b74b10a | 2014-10-05 | readme: remove performance sections |
+| eda952a | 2014-10-27 | remove benchmarks |
+| 6c88636 | 2014-10-27 | add test coverage |
+| f20460f | 2014-10-27 | add some sexy badges |
+| 4d2a63c | 2014-10-27 | switch to a promise implementation |
+| 2584641 | 2014-11-23 | beautify the gitter badge |
+| 2862556 | 2014-11-29 | 4.0.1 |
+| 5007a81 | 2014-12-18 | always wrap the result in a Promise.resolve() |
+| 6beb835 | 2014-12-18 | 4.0.2 |
+| dc350c3 | 2014-12-26 | add comment about the memory leak error |
+| 4176407 | 2014-12-26 | remove unnused request dependency |
+| b1533f0 | 2014-12-26 | 4.1.0 |
+| 735fd49 | 2015-01-20 | 4.2.0 |
+| 1c72388 | 2015-02-05 | test on iojs |
+| 145355c | 2015-02-06 | 4.3.0 |
+| f300378 | 2015-02-06 | 4.3.1 |
+| 2203ee5 | 2015-02-14 | 4.4.0 |
+| 9d996f2 | 2015-03-17 | support regular functions that throw |
+| 0f86d8e | 2015-03-17 | 4.5.0 |
+| a3d6007 | 2015-03-17 | 4.5.1 |
+| d8b7fda | 2015-04-17 | 4.5.2 |
+| b54d18f | 2015-07-09 | 4.6.0 |
+
+A full list including merges is in `commit-log.csv`.
+
+## Limits of this evidence
+
+Git author fields are set locally and can be edited, so this summary alone does not prove authorship. Pair it with a letter from the employer/client or a colleague, or with access to the hosted repository history.

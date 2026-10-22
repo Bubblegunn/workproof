@@ -1,0 +1,4 @@
+- Maintained and released versions 3.x through 4.6.0 of `co`, an open-source generator-based control-flow library for Node.js and the browser, authoring 72 commits between Nov 2013 and Jul 2015 alongside the original author and community contributors.
+- Led the v4 redesign, replacing the thunk-based core with a Promise-based implementation so `co()` returns a promise, and ensured results are always wrapped in `Promise.resolve()`, giving a stable bridge to the async/await proposal.
+- Improved reliability and developer experience: clearer errors when a non-yieldable value is yielded, preserved object key ordering, and support for regular functions that throw, while removing unused dependencies and shims.
+- Strengthened project quality and community health: added test coverage reporting, CI on io.js and later Node.js versions, and Gitter and status badges, and reviewed and merged community pull requests and documentation fixes.

@@ -1,0 +1,4 @@
+- Maintained co, an open-source generator-based control flow library for Node.js and the browser, with 72 of its 299 commits between 2013 and 2015.
+- Moved the library's core to a promise-based API for the 4.0.0 release, so `co()` returns a promise and `co.wrap()` converts generator functions into promise-returning functions.
+- Added features across the 4.x releases, including support for regular functions that return promises, passing extra arguments through to the generator, and clearer errors when a non-yieldable value is yielded.
+- Added test coverage reporting, expanded the test suite, and added Node.js and io.js versions to the CI matrix. Reviewed and merged community pull requests and updated the documentation.

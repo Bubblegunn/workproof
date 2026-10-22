@@ -1,0 +1,5 @@
+I saved four bullets to `cv-bullets.md`, but they come from the repo's git history, not from Claude Code activity.
+
+The receipts miner found almost no Claude Code work here: 2 sessions, 1 file and about 5 lines touched, and no commits carrying that work. That isn't enough to write CV bullets from. So I used `git log` instead. It shows 72 of the repo's 299 commits under "Jonathan Ong", from Nov 2013 to Jul 2015, in `co`, a generator-based async control-flow library. The git author name matches your configured git user. It could still be a different person with the same name, so please confirm those commits are yours.
+
+I didn't write the HTML receipt or the `~/claude-code-receipts-*.md` report. The miner ran locally and nothing was sent anywhere. The bullets don't include any invented metrics such as downloads, users or hours saved. If you have real figures, such as npm downloads, add them.

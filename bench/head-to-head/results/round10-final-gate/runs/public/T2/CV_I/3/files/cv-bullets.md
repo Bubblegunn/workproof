@@ -1,0 +1,4 @@
+- Migrated co, a generator-based async control-flow library for Node.js, from callbacks to a Promise-based core (v4.0.0) and added `co.wrap()` for turning generator functions into promise-returning functions.
+- Fixed a memory leak (#180) and the "Generator is already running" error, and made co accept regular functions that return promises or throw.
+- Extended co to resolve thunks, promises, arrays and objects (with key order preserved), and to pass extra arguments and context through to the generator.
+- Maintained the project from Nov 2013 to Jul 2015: released versions 3.0.1 through 4.6.0, merged community pull requests, added a mocha test suite with coverage reporting and Travis CI, and dropped Node versions below 0.12.

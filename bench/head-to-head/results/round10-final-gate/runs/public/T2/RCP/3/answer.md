@@ -1,0 +1,8 @@
+I saved four bullets to `cv-bullets.md`. I based them on your 72 commits in the git history (Nov 2013 – Jul 2015) and on `History.md`. The repo is the `co` library.
+
+- Maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from Nov 2013 to Jul 2015, including the 3.x and 4.x releases.
+- Led the v4.0 rewrite from thunks to a native Promise-based API, dropping the Bluebird dependency, to give a stepping stone toward async/await. Wrote the migration documentation and kept `co()` returning a promise.
+- Extended the API across releases 4.1–4.6. Added support for plain functions that return promises or throw, `co.wrap()` for reusable generator functions, and passing arguments through to generators. Made generator-function detection work with ES5 transpilers.
+- Fixed a memory leak, removed unused dependencies, added test coverage reporting and CI across Node.js and io.js, and triaged and merged community pull requests.
+
+I didn't check some details against the code. The bullets don't mention download numbers, stars or usage figures, and "widely used" is my own characterisation. I took "Bluebird dependency" from commit messages. The history says "switch to a promise implementation" and "use bluebird instead of q" but doesn't show every dependency change. The log also shows co's original author, tj, as the top contributor, so you may want "Maintained" or "Co-maintained" depending on your role. Add metrics if you have them, since numbers make CV bullets stronger.

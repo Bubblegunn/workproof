@@ -1,0 +1,4 @@
+- Maintained and released **co**, a widely used generator-based async control-flow library for Node.js and the browser, shipping versions 3.x through 4.6.0 across ~72 commits from 2013 to 2015.
+- Led the v4 redesign from a thunk/callback API to a promise-based one (`co()` returns a Promise), positioning the library as a stepping stone to native `async/await` and removing the legacy benchmarks and examples.
+- Fixed concurrency and correctness bugs, including "Generator is already running" errors, callback handling in generators, and regular functions that throw. Added `yield` support for objects, arrays and promises, plus context and argument passthrough.
+- Built the project's quality and compatibility tooling: a test suite covering arrays, objects, promises, thunks, recursion and wrapped functions, with Travis CI, test coverage reporting, and io.js support. Also reviewed and merged community pull requests.

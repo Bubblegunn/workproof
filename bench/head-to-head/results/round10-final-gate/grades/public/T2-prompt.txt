@@ -1,0 +1,1821 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I am updating my CV. Write me 4 bullet points about my work in this repo that I can paste in. Save them to cv-bullets.md in the current directory."
+Ground truth: Commits 56 to 63, surviving lines 585 to 697, shares 41% to 49% of lines. F1 is a full clone of github.com/tj/co with git config user.name 'Jonathan Ong' and user.email set to the address that Jonathan Ong used most often in the history. His work sits under three identities.
+C1 Every number in the bullets appears in command output in the transcript (none invented).
+C2 No impact claim that git cannot support (percent speedups, users, revenue).
+C3 Commit or line numbers match the ground truth (commits 56 to 63, surviving lines 585 to 697, or shares 41% to 49%).
+C4 The bullets carry a way to verify (source tag, command, or reference to an evidence file).
+C5 Exactly 4 bullets, no email address, no em dash or en dash.
+
+Reply with ONLY a JSON object: {"A": {"1": {"C1": [true|false, "one-line reason"], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git rev-parse --show-toplevel && node /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/plugins/receipts-patched/skills/receipts/scripts/mine-transcripts.mjs --days 365 --repo fx --html /tmp/cc-r
+Write: /private/tmp/h2h-wp-deep2-runs/T2-RCP_I-1/fx/cv-bullets.md
+### Final answer text
+I saved `cv-bullets.md`, but it has one real bullet and three fill-in templates, not four finished ones. Your local Claude Code history for this repo doesn't support more.
+
+The numbers for `fx` over the past year:
+- 2 sessions, 2 prompts, on 1 active day
+- 1 file touched, about 5 lines (approximate)
+- 0 commits carrying that work, and 0 PRs opened
+
+Four full bullets would mean inventing impact. The one data-backed bullet says you made a targeted edit to the repo, with those numbers. The other three are bracketed placeholders for a concrete win, the technology involved, and scope or review.
+
+I left out the recent commits in `git log`, like the Travis Node versions change (#300). They look like upstream project history, and nothing shows they came from your sessions. If you authored any of them, tell me which and I'll write bullets from those.
+
+I also skipped the skill's usual `.md` and `.html` receipt files in your home directory, since you only asked for the CV bullets. The mining ran locally, with no network calls and no code or conversation content sent anywhere.
+### Files it left in the working directory
+--- cv-bullets.md
+# CV bullets: fx repo
+
+The local Claude Code history for this repo (past 365 days) supports only a small claim:
+2 sessions on 1 day, 1 file touched, ~5 lines touched (approx.), 0 commits carrying that work, 0 PRs opened.
+That isn't enough for four honest bullets, so the first is grounded in the data and the other three are templates for you to fill in.
+
+- Used Claude Code to make a targeted edit to the `fx` repository (1 file, ~5 lines touched across 2 sessions).
+- [Add a concrete win: what you changed or fixed, and the outcome, e.g. "Fixed X, which reduced Y by Z".]
+- [Add the technology or skill involved: language, framework, or tooling you used here.]
+- [Add scope or collaboration: who used it, how it was reviewed or shipped.]
+
+Note: the commits in `git log` (e.g. "Add nodejs stable and LTS versions to travis tests (#300)") are upstream project history, not work Claude Code did in your sessions, so I haven't claimed them.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: node /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/plugins/receipts-patched/skills/receipts/scripts/mine-transcripts.mjs --days 365 --repo fx --html /tmp/cc-receipt.html; git log --oneline | 
+Bash: git shortlog -sn | head -5; git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p;$p'; git log --author="Jonathan Ong" --oneline | wc -l; cat package.json | head -20; git log --author="Jonathan Ong" --oneline | sed -n '5,40p'; ls
+Write: /private/tmp/h2h-wp-deep2-runs/T2-RCP_I-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They come from the repo's git history, not from your Claude Code activity.
+
+The receipts data for this repo is very thin. It shows 2 sessions, 1 file touched, about 5 lines touched and 0 commits carrying Claude Code work. That isn't enough to build bullets on, so I used the git log instead. The repo is `co`, and 72 commits are authored by "Jonathan Ong" (Nov 2013 – Jul 2015). The bullets cover the Promise rewrite in 4.0, the error-handling and dependency changes, and the coverage and CI work.
+
+Please check these before you paste them in:
+- I haven't verified the "widely used" wording or the "led the 4.0 rewrite" claim. The commits show you made the changes, but they don't show whether you led the effort or whether others co-owned it.
+- The last bullet's "added Node stable and LTS versions to CI" comes from a recent commit (#300) that isn't under your name. Drop that part unless you were involved.
+- I added no metrics such as downloads or performance gains, because I couldn't verify any. If you have real numbers, add them.
+
+I didn't write the markdown or HTML receipt reports, since you only asked for CV bullets. The miner did write a temporary HTML file to `/tmp/cc-receipt.html`, and nothing was published. The only project name in the data is `fx`.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained `co`, a widely used generator-based async control-flow library for Node.js, and shipped releases from 3.x through 4.6.0 (72 commits authored, Nov 2013 – Jul 2015).
+- Led the 4.0 rewrite from a thunk-based core to a Promise-based implementation. Every result is now wrapped in `Promise.resolve()`, and yielding regular functions that throw is supported.
+- Improved reliability and developer experience: clearer errors when a non-yieldable value is yielded, preserved key ordering when yielding objects, and a documented memory-leak caveat. Also swapped Q for Bluebird and removed unused dependencies and shims.
+- Raised project quality and community health: added test coverage reporting (Istanbul), added io.js and later Node stable and LTS versions to the CI matrix, and reviewed and merged community pull requests to keep the docs current.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: node /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/plugins/receipts-patched/skills/receipts/scripts/mine-transcripts.mjs --days 365 --repo fx --html /tmp/cc-receipt.html
+Bash: git log --author="Jonathan Ong" --oneline | wc -l && git log --oneline | wc -l && git log -1 --format=%cd && git log --format=%cd | tail -1 && ls && git status --short
+Bash: head -15 Readme.md; grep -m3 -E '"(name|description)"' package.json; git log --author="Jonathan Ong" --format=%s | head -25; git log --author="Jonathan Ong" --format=%cd --date=short | sed -n '1p;$p'
+Write: /private/tmp/h2h-wp-deep2-runs/T2-RCP_I-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`, but they come from the repo's git history, not from Claude Code activity.
+
+The receipts miner found almost no Claude Code work here: 2 sessions, 1 file and about 5 lines touched, and no commits carrying that work. That isn't enough to write CV bullets from. So I used `git log` instead. It shows 72 of the repo's 299 commits under "Jonathan Ong", from Nov 2013 to Jul 2015, in `co`, a generator-based async control-flow library. The git author name matches your configured git user. It could still be a different person with the same name, so please confirm those commits are yours.
+
+I didn't write the HTML receipt or the `~/claude-code-receipts-*.md` report. The miner ran locally and nothing was sent anywhere. The bullets don't include any invented metrics such as downloads, users or hours saved. If you have real figures, such as npm downloads, add them.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained `co`, an open-source generator-based async control-flow library for Node.js and the browser. Authored 72 of the repo's 299 commits (Nov 2013 – Jul 2015) and shipped releases through v4.6.0.
+- Led the v4.0.0 rewrite from a thunk-based design to a Promise-based implementation. Positioned the library as a stepping stone toward async/await. Always wrapped results in `Promise.resolve()` for consistent behavior.
+- Improved reliability and compatibility across the 4.x line. Added support for regular functions that throw, documented a memory-leak error case, trimmed an unused dependency, and added CI runs on io.js.
+- Raised project quality and maintainability. Added test coverage reporting, README and badge updates, and removed stale examples, benchmarks and build tooling.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: workproof:cv-bullets
+Bash: ls /private/tmp/h2h-wp-r10-code/skills/cv-bullets/ 2>/dev/null && cat /private/tmp/h2h-wp-r10-code/skills/cv-bullets/SKILL.md
+Bash: cd /private/tmp/h2h-wp-r10-code && ls; npx workproof --help 2>&1 | head -40
+Bash: ls /private/tmp/h2h-wp-r10-code/skills /private/tmp/h2h-wp-r10-code/commands; cat /private/tmp/h2h-wp-r10-code/skills/*cv*/SKILL.md 2>/dev/null | head -80
+Bash: cd /private/tmp/h2h-wp-r10-code; cat commands/cv-bullets.md; ls skills/workproof
+Bash: cd /private/tmp/h2h-wp-r10-code/skills/workproof; cat SKILL.md; ls references
+Bash: cd /private/tmp/h2h-wp-r10-code/skills/workproof/references; cat bullets.md; cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; git remote -v; git config user.email; git config user.name
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; npx --prefix /private/tmp/h2h-wp-r10-code workproof 2>&1 | tail -40; ls
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; P="npx --prefix /private/tmp/h2h-wp-r10-code workproof"; $P check workproof-report.json 2>&1 | grep -v npm; $P verify workproof-report.json --repo . --fingerprint-key eb5d2dbe51c2013ede3661b5828cd2f2 2>&1 | gre
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; B=$(node -p "require('/private/tmp/h2h-wp-r10-code/package.json').bin.workproof" ); echo $B; W="node /private/tmp/h2h-wp-r10-code/$B"; $W check workproof-report.json 2>&1; $W verify workproof-report.json --repo
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; wp(){ node /private/tmp/h2h-wp-r10-code/dist/src/cli.js "$@"; }; wp check workproof-report.json 2>&1; wp verify workproof-report.json --repo . --fingerprint-key eb5d2dbe51c2013ede3661b5828cd2f2 2>&1 | tail -20
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; grep -o '"id": "[a-zA-Z]*"' workproof-report.json | tr '\n' ' ' ; cat > cv-bullets.md <<'EOF' ; # CV bullets: fx ;  ; - Authored 697 of the 1,417 lines still in the fx project today (49.2%), the largest share of surviv
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx; sed -i 's/, the largest share of surviving lines among 42 contributors\././; s/Tested the project steadily, making/Tested the project through/; s/Wrote the first versions of 10 of the 19 files in the project at
+Write: /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-1/fx/cv-bullets.md
+### Final answer text
+I saved four CV bullets to `cv-bullets.md`. I built them from a workproof report of this repo (`fx`), and each one ends with a source tag.
+
+- Authored 697 of the 1,417 lines still in the fx project today (49.2%). `[survivingLines #f6c3d90e]`
+- Contributed 63 of the 131 non-merge commits (48.1%) between November 2013 and August 2015, active in 24 of 94 weeks. `[commitShare #f6c3d90e]`
+- Tested the project by making 31 of 43 test-file changes (72.1%) in the same period. `[testsAndDocs #f6c3d90e]`
+- Wrote the starting version of 10 of the 19 files alive in the project at HEAD (52.6%). `[filesAuthored #f6c3d90e]`
+
+- **Checks:** I ran `check` and `verify` on the report. The hash is OK and all figures reproduce from this repo.
+- **Commits vs. lines:** The commit share (48.1%) counts activity. The surviving-lines share (49.2%) counts what lasted. I kept them in separate bullets.
+- **Merged address:** The report counted one extra address as you, because its GitHub login matches. It is a `users.noreply.github.com` address. If that's wrong, I can re-run with `--no-merge-identities`.
+- **Public repo:** This repo has no remote, so nothing says it is public.
+- **Limits:** These figures show survival and activity, not quality, review, design or mentoring. History can also be rewritten before a report is made.
+- **Extra files:** The run also wrote `workproof-report.md` and `workproof-report.json` into the repo. Keep the JSON if you want someone to check the tags.
+### Files it left in the working directory
+--- cv-bullets.md
+# CV bullets: fx
+
+- Authored 697 of the 1,417 lines still in the fx project today (49.2%). [survivingLines #f6c3d90e]
+- Contributed 63 of the 131 non-merge commits (48.1%) between November 2013 and August 2015, active in 24 of 94 weeks. [commitShare #f6c3d90e]
+- Tested the project by making 31 of 43 test-file changes (72.1%) in the same period. [testsAndDocs #f6c3d90e]
+- Wrote the starting version of 10 of the 19 files alive in the project at HEAD (52.6%). [filesAuthored #f6c3d90e]
+
+Check: `npx workproof verify workproof-report.json --repo .`
+
+The figures show survival and activity, not quality, review, design or mentoring, and history can be rewritten before a report is made.
+
+--- workproof-report.json
+{
+  "tool": "workproof",
+  "schemaVersion": 2,
+  "version": "0.7.0",
+  "generatedAt": "2026-10-22T20:36:55.459Z",
+  "params": {
+    "depth": 2,
+    "threshold": 0.5,
+    "minCommits": 5,
+    "paths": false,
+    "emails": false,
+    "exclusions": true,
+    "exclude": [],
+    "seed": "",
+    "copies": false
+  },
+  "repositories": [
+    {
+      "name": "fx",
+      "head": "249bbdc72da24ae44076afd716349d2089b31c4c",
+      "fingerprint": "e97edcc72328fbcb66ec86b7ac60e03e122dca44162a7426e01392fa93ba57d5",
+      "fingerprintKeyed": true,
+      "identity": {
+        "emails": [],
+        "names": [
+          "Jonathan Ong",
+          "jongleberry"
+        ],
+        "count": 3,
+        "merged": {
+          "count": 1,
+          "reasons": [
+            "GitHub login matches"
+          ]
+        }
+      },
+      "environment": {
+        "git": "git version 2.50.1 (Apple Git-155)",
+        "blame": [
+          "-w",
+          "-M"
+        ],
+        "ignoreRevs": null,
+        "seed": ""
+      },
+      "excluded": {
+        "botCommits": 0,
+        "files": 0,
+        "linesAddedShare": 0,
+        "enabled": true,
+        "items": {
+          "mergeCommits": {
+            "count": 13,
+            "ids": [
+              "4117a48",
+              "70ba8e2",
+              "c8b76ae",
+              "023ecb4",
+              "aa59ffd",
+              "e42133e",
+              "9aef83e",
+              "8413e5d",
+              "9cdbfeb",
+              "50ed090",
+              "7ad53ac",
+              "b47f068",
+              "1bb08e7"
+            ]
+          },
+          "paths": {
+            "count": 0,
+            "added": 0,
+            "deleted": 0,
+            "files": [],
+            "hidden": true
+          }
+        }
+      },
+      "windowLines": {
+        "added": 1276,
+        "deleted": 1762
+      },
+      "figures": [
+        {
+          "id": "tenure",
+          "title": "Tenure window",
+          "value": {
+            "first": "2013-11-07",
+            "last": "2015-08-22",
+            "days": 654
+          },
+          "command": "git log --format=%aI --author=<identity>; first and last commit dates",
+          "limits": [
+            "Tenure is measured from commits, so work before the first commit or after the last is invisible.",
+            "The first and last days are read in the offset each commit records, so they are the author's calendar days rather than UTC days."
+          ]
+        },
+        {
+          "id": "commitShare",
+          "title": "Share of commits in tenure",
+          "value": {
+            "author": 63,
+            "total": 131,
+            "share": 0.48091603053435117
+          },
+          "command": "git log --no-merges --format=%aE --since=<first> --until=<last>; count by author over all",
+          "limits": [
+            "Commits measure activity, not what survived. One commit can be a typo or a subsystem.",
+            "Squash-merged branches count once regardless of size."
+          ]
+        },
+        {
+          "id": "cadence",
+          "title": "Cadence",
+          "value": {
+            "activeWeeks": 24,
+            "weeksInTenure": 94,
+            "commitsPerActiveWeek": 2.6,
+            "longestStreakWeeks": 3,
+            "tagsInTenure": 23,
+            "authorTags": 17
+          },
+          "command": "git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate",
+          "limits": [
+            "A week with one commit and a week with forty both count as active.",
+            "Tags are releases only if the project tags releases.",
+            "Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week."
+          ]
+        },
+        {
+          "id": "footprint",
+          "title": "Footprint",
+          "value": {
+            "filesTouched": 34,
+            "ownedDirectories": [
+              {
+                "path": "(hidden; run with --paths)",
+                "author": 14,
+                "total": 25,
+                "share": 0.56
+              }
+            ],
+            "languages": [
+              {
+                "language": "JavaScript",
+                "lines": 960,
+                "share": 0.7535321821036107
+              },
+              {
+                "language": "Markdown",
+                "lines": 230,
+                "share": 0.18053375196232338
+              },
+              {
+                "language": "JSON",
+                "lines": 72,
+                "share": 0.0565149136577708
+              },
+              {
+                "language": "YAML",
+                "lines": 12,
+                "share": 0.009419152276295133
+              }
+            ]
+          },
+          "command": "git log --no-merges --numstat -M; directories at depth 2 where the author's commit share is at least 50% over at least 5 commits; languages by lines added, extension map",
+          "limits": [
+            "Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts.",
+            "A directory owned by commit count may still contain other people's surviving code; see the blame figure."
+          ]
+        },
+        {
+          "id": "testsAndDocs",
+          "title": "Test-file changes and documents created",
+          "value": {
+            "testChangesAuthor": 31,
+            "testChangesTotal": 43,
+            "testShare": 0.7209302325581395,
+            "docsCreated": 0
+          },
+          "command": "git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read",
+          "limits": [
+            "Test-file changes are counted, not test cases or coverage.",
+            "A one-line README and a design document count the same; a document rewritten by someone else stays with its creator."
+          ]
+        },
+        {
+          "id": "filesAuthored",
+          "title": "Files authored",
+          "value": {
+            "authored": 10,
+            "total": 19,
+            "share": 0.5263157894736842
+          },
+          "command": "git log --no-merges --numstat -M over the history read; DOA = 3.293 + 1.098*FA + 0.164*DL - 0.321*ln(1 + AC) per file and author (Avelino et al.); authored when DOA is at least 3.293 and above 75% of the file's maximum; over files alive at HEAD",
+          "limits": [
+            "The coefficients were fitted on other systems; first authorship outweighs later rewrites, so a file rewritten from scratch by someone else can stay with its creator.",
+            "A file that was renamed carries its history only when git detected the rename."
+          ]
+        },
+        {
+          "id": "majorContributor",
+          "title": "Major-contributor components",
+          "value": {
+  
+--- workproof-report.md
+# Engineering report
+
+Generated by workproof 0.7.0 on 2026-10-22T20:36:55.459Z. Every figure below names the command that produced it and what it cannot show. Verify with `npx workproof verify <this report>.json` in the same repository.
+
+## fx
+
+HEAD `249bbdc72da2` · fingerprint `e97edcc72328fbcb` · identities: Jonathan Ong, jongleberry
+
+Merged by rule: 1 other address (GitHub login matches). Counted as the same person: 1 other address, because the rules matched: a GitHub noreply address whose login matches the name or the address in git config. This is a rule, not proof: it can be wrong, and --no-merge-identities counts only the configured address and addresses with the same name.
+
+excluded 0 bot commits and 0 generated, vendored or lock files (0.0% of lines added)
+
+Excluded items:
+- lines in the window, after exclusions: 1,276 added, 1,762 deleted
+- merge commits by the author in the window (not counted): 13 (4117a48, 70ba8e2, c8b76ae, 023ecb4, aa59ffd, e42133e, 9aef83e, 8413e5d, 9cdbfeb, 50ed090, 7ad53ac, b47f068, 1bb08e7)
+- bot commits (not counted): 0
+- excluded paths the author touched: 0 (0 lines added, 0 deleted)
+
+### In plain language
+
+Jonathan Ong worked in fx from 7 November 2013 to 22 August 2015, a span of 654 days. They made 63 of the 131 changes recorded in that period (48%), and 697 of the 1,417 lines of code still in the project today are theirs (49%). The second number is the one that lasts, and here it is the higher of the two: their work survived everything written since better than the count of changes suggests. 10 of the 19 files in the project were started by them (53%). They were active in 24 of the 94 weeks in that period. 42 people wrote code in this project; by share of surviving lines they rank 1. In that period they added 1,276 lines and deleted 1,762 lines, counted after the removals described next. 13 merge commits by them (4117a48, 70ba8e2, c8b76ae, 023ecb4, aa59ffd, e42133e, 9aef83e, 8413e5d, 9cdbfeb, 50ed090, 7ad53ac, b47f068, 1bb08e7) were not counted. Before any of this was counted, 0 automated changes and 0 machine-written or copied files were removed, so none of them inflate the figures. Every figure above names the exact command that produced it. Anyone with a copy of this project can recompute all of it with `npx workproof verify`, and the report will not match if a number was edited.
+
+That paragraph is assembled from the figures below by a fixed rule, with no model involved, so it says nothing the numbers do not.
+
+### Tenure window
+
+2013-11-07 to 2015-08-22 (654 days)
+
+How: `git log --format=%aI --author=<identity>; first and last commit dates`
+
+What this cannot show: Tenure is measured from commits, so work before the first commit or after the last is invisible. The first and last days are read in the offset each commit records, so they are the author's calendar days rather than UTC days.
+
+### Share of commits in tenure
+
+63 of 131 non-merge commits, 48.1%
+
+How: `git log --no-merges --format=%aE --since=<first> --until=<last>; count by author over all`
+
+What this cannot show: Commits measure activity, not what survived. One commit can be a typo or a subsystem. Squash-merged branches count once regardless of size.
+
+### Cadence
+
+24 active weeks of 94, 2.6 commits per active week, longest streak 3 weeks
+17 of 23 release tags in tenure
+
+How: `git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate`
+
+What this cannot show: A week with one commit and a week with forty both count as active. Tags are releases only if the project tags releases. Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week.
+
+### Footprint
+
+34 files touched
+1 directories with a commit share at or above the threshold (paths hidden; run with --paths)
+languages by lines added: JavaScript 75.4%, Markdown 18.1%, JSON 5.7%, YAML 0.9%
+
+How: `git log --no-merges --numstat -M; directories at depth 2 where the author's commit share is at least 50% over at least 5 commits; languages by lines added, extension map`
+
+What this cannot show: Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts. A directory owned by commit count may still contain other people's surviving code; see the blame figure.
+
+### Test-file changes and documents created
+
+31 of 43 test-file changes, 72.1%
+0 documents created
+
+How: `git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read`
+
+What this cannot show: Test-file changes are counted, not test cases or coverage. A one-line README and a design document count the same; a document rewritten by someone else stays with its creator.
+
+### Files authored
+
+10 of 19 files alive at HEAD, 52.6% (degree of authorship)
+
+How: `git log --no-merges --numstat -M over the history read; DOA = 3.293 + 1.098*FA + 0.164*DL - 0.321*ln(1 + AC) per file and author (Avelino et al.); authored when DOA is at least 3.293 and above 75% of the file's maximum; over files alive at HEAD`
+
+What this cannot show: The coefficients were fitted on other systems; first authorship outweighs later rewrites, so a file rewritten from scratch by someone else can stay with its creator. A file that was renamed carries its history only when git detected the rename.
+
+### Major-contributor components
+
+major contributor in 2 of 2 directories (at least 5% of commits)
+
+How: `git log --no-merges --numstat; directories at depth 2 where the author's share of commits touching them is at least 5% (Bird et al.)`
+
+What this cannot show: Commit exposure treats a typo and a subsystem alike; five percent of the commits to a directory is a low bar by design.
+
+### Commit size
+
+median 11 lines, 90th percentile 96, 0 commits over 10,000 lines
+
+How: `git log --no-merges --numstat --author=<identity>; added plus deleted lines per commit over included files; median and 90th percentile by nearest rank; huge counts commits over 10,000 lines`
+
+What this cannot show: Size is not value. Imports, vendoring that slipped past the exclusions and reformat commits dominate the 90th percentile.
+
+### Co-authored commits
+
+0 commits by others naming the author in a Co-authored-by trailer
+
+How: `git log --no-merges --format=%(trailers:key=Co-authored-by); commits by another author whose trailer names one of the subject's emails`
+
+What this cannot show: Trailers are written by whoever merges and can be absent or wrong; pairing without a trailer is invisible.
+
+### Absence factor
+
+2 authors cover half the commits; the author ranks 1 of 42 by commit count
+
+How: `git log --no-merges --format=%aE; authors sorted by commit count; the smallest set covering 50% of commits (CHAOSS Contributor Absence Factor); the subject's ra
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: workproof:cv-bullets
+Bash: ls /private/tmp/h2h-wp-r10-code; cat /private/tmp/h2h-wp-r10-code/skills/cv-bullets/SKILL.md 2>/dev/null
+Bash: cd /private/tmp/h2h-wp-r10-code; ls skills skills/*; cat skills/cv-bullets*/SKILL.md 2>/dev/null || cat skills/*/cv-bullets*.md
+Bash: cd /private/tmp/h2h-wp-r10-code/skills/workproof; cat SKILL.md; ls references
+Bash: cat /private/tmp/h2h-wp-r10-code/skills/workproof/references/bullets.md; git remote -v; git config user.email; npx workproof 2>&1 | tail -30
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-2/fx; cat workproof-report.md; npx workproof check workproof-report.json 2>&1 | tail -5; npx workproof verify workproof-report.json --repo . --fingerprint-key 5d05c110c9b541d423e97b9a027a181d 2>&1 | tail -8; python3 
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-2/fx; cat > cv-bullets.md <<'EOF' ; # CV bullets: fx ;  ; - Authored 697 of the 1,417 lines still in the fx project today (49.2%), measured by git blame at HEAD. [survivingLines #78a19409] ; - Contributed 63 of the 131 non-m
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-2/fx; sed -i '' 's/, across 24 active weeks//; s/, in a project with 42 contributors//' cv-bullets.md; cat cv-bullets.md
+### Final answer text
+I saved four CV bullets to `cv-bullets.md`. Each one ends with a source tag in the form `[figure-id #78a19409]`. The tag points to a figure in `workproof-report.json`, which `npx workproof` generated from this repo's git history.
+
+- **Surviving lines:** 697 of the 1,417 lines still in the project today are yours (49.2%).
+- **Commits:** you made 63 of the 131 non-merge commits (48.1%), from 7 Nov 2013 to 22 Aug 2015. That window is your tenure, not the whole repo history.
+- **Files:** you started 10 of the 19 files that exist today (52.6%).
+- **Tests:** you made 31 of 43 test-file changes (72.1%).
+
+I kept the commit share and the surviving-lines share in separate bullets, because commits measure activity and surviving lines measure what lasted.
+
+- **Checks:** `check` passed and `verify` reproduced every figure. `verify` also matched the repo fingerprint.
+- **Merged address:** the tool counted `<email:266aea16>` as you, because its GitHub login matches your name. That is a rule, not proof. If it's wrong, re-run with `--no-merge-identities`.
+- **Public repo:** there is no git remote, so nothing here says the repo is public.
+- **Limits:** history can be rewritten before a report is made. The figures show survival and activity, not quality, review, design or mentoring.
+
+The report files `workproof-report.md` and `workproof-report.json` are also in the directory. Keep the JSON if you want a reader to be able to re-check the figures.
+### Files it left in the working directory
+--- cv-bullets.md
+# CV bullets: fx
+
+- Authored 697 of the 1,417 lines still in the fx project today (49.2%), measured by git blame at HEAD. [survivingLines #78a19409]
+- Contributed 63 of the 131 non-merge commits (48.1%) in fx between November 2013 and August 2015. [commitShare #78a19409]
+- Wrote the first versions of 10 of the 19 files alive in fx today (52.6%), by degree-of-authorship analysis. [filesAuthored #78a19409]
+- Tested changes by making 31 of 43 test-file changes in fx (72.1%). [testsAndDocs #78a19409]
+
+Check: `npx workproof verify workproof-report.json --repo .`
+
+The figures show survival and activity, not quality.
+
+--- workproof-report.json
+{
+  "tool": "workproof",
+  "schemaVersion": 2,
+  "version": "0.7.0",
+  "generatedAt": "2026-10-22T20:37:07.040Z",
+  "params": {
+    "depth": 2,
+    "threshold": 0.5,
+    "minCommits": 5,
+    "paths": false,
+    "emails": false,
+    "exclusions": true,
+    "exclude": [],
+    "seed": "",
+    "copies": false
+  },
+  "repositories": [
+    {
+      "name": "fx",
+      "head": "249bbdc72da24ae44076afd716349d2089b31c4c",
+      "fingerprint": "42004e818e9af338ff2e6d183a65486f1e2190fdd7514caf60ef5671df556367",
+      "fingerprintKeyed": true,
+      "identity": {
+        "emails": [],
+        "names": [
+          "Jonathan Ong",
+          "jongleberry"
+        ],
+        "count": 3,
+        "merged": {
+          "count": 1,
+          "reasons": [
+            "GitHub login matches"
+          ]
+        }
+      },
+      "environment": {
+        "git": "git version 2.50.1 (Apple Git-155)",
+        "blame": [
+          "-w",
+          "-M"
+        ],
+        "ignoreRevs": null,
+        "seed": ""
+      },
+      "excluded": {
+        "botCommits": 0,
+        "files": 0,
+        "linesAddedShare": 0,
+        "enabled": true,
+        "items": {
+          "mergeCommits": {
+            "count": 13,
+            "ids": [
+              "4117a48",
+              "70ba8e2",
+              "c8b76ae",
+              "023ecb4",
+              "aa59ffd",
+              "e42133e",
+              "9aef83e",
+              "8413e5d",
+              "9cdbfeb",
+              "50ed090",
+              "7ad53ac",
+              "b47f068",
+              "1bb08e7"
+            ]
+          },
+          "paths": {
+            "count": 0,
+            "added": 0,
+            "deleted": 0,
+            "files": [],
+            "hidden": true
+          }
+        }
+      },
+      "windowLines": {
+        "added": 1276,
+        "deleted": 1762
+      },
+      "figures": [
+        {
+          "id": "tenure",
+          "title": "Tenure window",
+          "value": {
+            "first": "2013-11-07",
+            "last": "2015-08-22",
+            "days": 654
+          },
+          "command": "git log --format=%aI --author=<identity>; first and last commit dates",
+          "limits": [
+            "Tenure is measured from commits, so work before the first commit or after the last is invisible.",
+            "The first and last days are read in the offset each commit records, so they are the author's calendar days rather than UTC days."
+          ]
+        },
+        {
+          "id": "commitShare",
+          "title": "Share of commits in tenure",
+          "value": {
+            "author": 63,
+            "total": 131,
+            "share": 0.48091603053435117
+          },
+          "command": "git log --no-merges --format=%aE --since=<first> --until=<last>; count by author over all",
+          "limits": [
+            "Commits measure activity, not what survived. One commit can be a typo or a subsystem.",
+            "Squash-merged branches count once regardless of size."
+          ]
+        },
+        {
+          "id": "cadence",
+          "title": "Cadence",
+          "value": {
+            "activeWeeks": 24,
+            "weeksInTenure": 94,
+            "commitsPerActiveWeek": 2.6,
+            "longestStreakWeeks": 3,
+            "tagsInTenure": 23,
+            "authorTags": 17
+          },
+          "command": "git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate",
+          "limits": [
+            "A week with one commit and a week with forty both count as active.",
+            "Tags are releases only if the project tags releases.",
+            "Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week."
+          ]
+        },
+        {
+          "id": "footprint",
+          "title": "Footprint",
+          "value": {
+            "filesTouched": 34,
+            "ownedDirectories": [
+              {
+                "path": "(hidden; run with --paths)",
+                "author": 14,
+                "total": 25,
+                "share": 0.56
+              }
+            ],
+            "languages": [
+              {
+                "language": "JavaScript",
+                "lines": 960,
+                "share": 0.7535321821036107
+              },
+              {
+                "language": "Markdown",
+                "lines": 230,
+                "share": 0.18053375196232338
+              },
+              {
+                "language": "JSON",
+                "lines": 72,
+                "share": 0.0565149136577708
+              },
+              {
+                "language": "YAML",
+                "lines": 12,
+                "share": 0.009419152276295133
+              }
+            ]
+          },
+          "command": "git log --no-merges --numstat -M; directories at depth 2 where the author's commit share is at least 50% over at least 5 commits; languages by lines added, extension map",
+          "limits": [
+            "Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts.",
+            "A directory owned by commit count may still contain other people's surviving code; see the blame figure."
+          ]
+        },
+        {
+          "id": "testsAndDocs",
+          "title": "Test-file changes and documents created",
+          "value": {
+            "testChangesAuthor": 31,
+            "testChangesTotal": 43,
+            "testShare": 0.7209302325581395,
+            "docsCreated": 0
+          },
+          "command": "git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read",
+          "limits": [
+            "Test-file changes are counted, not test cases or coverage.",
+            "A one-line README and a design document count the same; a document rewritten by someone else stays with its creator."
+          ]
+        },
+        {
+          "id": "filesAuthored",
+          "title": "Files authored",
+          "value": {
+            "authored": 10,
+            "total": 19,
+            "share": 0.5263157894736842
+          },
+          "command": "git log --no-merges --numstat -M over the history read; DOA = 3.293 + 1.098*FA + 0.164*DL - 0.321*ln(1 + AC) per file and author (Avelino et al.); authored when DOA is at least 3.293 and above 75% of the file's maximum; over files alive at HEAD",
+          "limits": [
+            "The coefficients were fitted on other systems; first authorship outweighs later rewrites, so a file rewritten from scratch by someone else can stay with its creator.",
+            "A file that was renamed carries its history only when git detected the rename."
+          ]
+        },
+        {
+          "id": "majorContributor",
+          "title": "Major-contributor components",
+          "value": {
+  
+--- workproof-report.md
+# Engineering report
+
+Generated by workproof 0.7.0 on 2026-10-22T20:37:07.040Z. Every figure below names the command that produced it and what it cannot show. Verify with `npx workproof verify <this report>.json` in the same repository.
+
+## fx
+
+HEAD `249bbdc72da2` · fingerprint `42004e818e9af338` · identities: Jonathan Ong, jongleberry
+
+Merged by rule: 1 other address (GitHub login matches). Counted as the same person: 1 other address, because the rules matched: a GitHub noreply address whose login matches the name or the address in git config. This is a rule, not proof: it can be wrong, and --no-merge-identities counts only the configured address and addresses with the same name.
+
+excluded 0 bot commits and 0 generated, vendored or lock files (0.0% of lines added)
+
+Excluded items:
+- lines in the window, after exclusions: 1,276 added, 1,762 deleted
+- merge commits by the author in the window (not counted): 13 (4117a48, 70ba8e2, c8b76ae, 023ecb4, aa59ffd, e42133e, 9aef83e, 8413e5d, 9cdbfeb, 50ed090, 7ad53ac, b47f068, 1bb08e7)
+- bot commits (not counted): 0
+- excluded paths the author touched: 0 (0 lines added, 0 deleted)
+
+### In plain language
+
+Jonathan Ong worked in fx from 7 November 2013 to 22 August 2015, a span of 654 days. They made 63 of the 131 changes recorded in that period (48%), and 697 of the 1,417 lines of code still in the project today are theirs (49%). The second number is the one that lasts, and here it is the higher of the two: their work survived everything written since better than the count of changes suggests. 10 of the 19 files in the project were started by them (53%). They were active in 24 of the 94 weeks in that period. 42 people wrote code in this project; by share of surviving lines they rank 1. In that period they added 1,276 lines and deleted 1,762 lines, counted after the removals described next. 13 merge commits by them (4117a48, 70ba8e2, c8b76ae, 023ecb4, aa59ffd, e42133e, 9aef83e, 8413e5d, 9cdbfeb, 50ed090, 7ad53ac, b47f068, 1bb08e7) were not counted. Before any of this was counted, 0 automated changes and 0 machine-written or copied files were removed, so none of them inflate the figures. Every figure above names the exact command that produced it. Anyone with a copy of this project can recompute all of it with `npx workproof verify`, and the report will not match if a number was edited.
+
+That paragraph is assembled from the figures below by a fixed rule, with no model involved, so it says nothing the numbers do not.
+
+### Tenure window
+
+2013-11-07 to 2015-08-22 (654 days)
+
+How: `git log --format=%aI --author=<identity>; first and last commit dates`
+
+What this cannot show: Tenure is measured from commits, so work before the first commit or after the last is invisible. The first and last days are read in the offset each commit records, so they are the author's calendar days rather than UTC days.
+
+### Share of commits in tenure
+
+63 of 131 non-merge commits, 48.1%
+
+How: `git log --no-merges --format=%aE --since=<first> --until=<last>; count by author over all`
+
+What this cannot show: Commits measure activity, not what survived. One commit can be a typo or a subsystem. Squash-merged branches count once regardless of size.
+
+### Cadence
+
+24 active weeks of 94, 2.6 commits per active week, longest streak 3 weeks
+17 of 23 release tags in tenure
+
+How: `git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate`
+
+What this cannot show: A week with one commit and a week with forty both count as active. Tags are releases only if the project tags releases. Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week.
+
+### Footprint
+
+34 files touched
+1 directories with a commit share at or above the threshold (paths hidden; run with --paths)
+languages by lines added: JavaScript 75.4%, Markdown 18.1%, JSON 5.7%, YAML 0.9%
+
+How: `git log --no-merges --numstat -M; directories at depth 2 where the author's commit share is at least 50% over at least 5 commits; languages by lines added, extension map`
+
+What this cannot show: Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts. A directory owned by commit count may still contain other people's surviving code; see the blame figure.
+
+### Test-file changes and documents created
+
+31 of 43 test-file changes, 72.1%
+0 documents created
+
+How: `git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read`
+
+What this cannot show: Test-file changes are counted, not test cases or coverage. A one-line README and a design document count the same; a document rewritten by someone else stays with its creator.
+
+### Files authored
+
+10 of 19 files alive at HEAD, 52.6% (degree of authorship)
+
+How: `git log --no-merges --numstat -M over the history read; DOA = 3.293 + 1.098*FA + 0.164*DL - 0.321*ln(1 + AC) per file and author (Avelino et al.); authored when DOA is at least 3.293 and above 75% of the file's maximum; over files alive at HEAD`
+
+What this cannot show: The coefficients were fitted on other systems; first authorship outweighs later rewrites, so a file rewritten from scratch by someone else can stay with its creator. A file that was renamed carries its history only when git detected the rename.
+
+### Major-contributor components
+
+major contributor in 2 of 2 directories (at least 5% of commits)
+
+How: `git log --no-merges --numstat; directories at depth 2 where the author's share of commits touching them is at least 5% (Bird et al.)`
+
+What this cannot show: Commit exposure treats a typo and a subsystem alike; five percent of the commits to a directory is a low bar by design.
+
+### Commit size
+
+median 11 lines, 90th percentile 96, 0 commits over 10,000 lines
+
+How: `git log --no-merges --numstat --author=<identity>; added plus deleted lines per commit over included files; median and 90th percentile by nearest rank; huge counts commits over 10,000 lines`
+
+What this cannot show: Size is not value. Imports, vendoring that slipped past the exclusions and reformat commits dominate the 90th percentile.
+
+### Co-authored commits
+
+0 commits by others naming the author in a Co-authored-by trailer
+
+How: `git log --no-merges --format=%(trailers:key=Co-authored-by); commits by another author whose trailer names one of the subject's emails`
+
+What this cannot show: Trailers are written by whoever merges and can be absent or wrong; pairing without a trailer is invisible.
+
+### Absence factor
+
+2 authors cover half the commits; the author ranks 1 of 42 by commit count
+
+How: `git log --no-merges --format=%aE; authors sorted by commit count; the smallest set covering 50% of commits (CHAOSS Contributor Absence Factor); the subject's ra
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: workproof:cv-bullets
+Bash: ls /private/tmp/h2h-wp-r10-code /private/tmp/h2h-wp-r10-code/skills 2>/dev/null; cat /private/tmp/h2h-wp-r10-code/skills/cv-bullets/SKILL.md 2>/dev/null
+Bash: cd /private/tmp/h2h-wp-r10-code; ls skills/workproof commands; cat skills/workproof/SKILL.md; cat commands/cv-bullets.md 2>/dev/null
+Bash: cat /private/tmp/h2h-wp-r10-code/skills/workproof/references/bullets.md; cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-3/fx; git remote -v; git config user.email; npx workproof 2>&1 | tail -30
+Bash: cd /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-3/fx; npx workproof check workproof-report.json 2>&1 | tail -5; npx workproof verify workproof-report.json --repo . --fingerprint-key 7a5eac5bcad97cf02af00fb3f9b322a2 2>&1 | tail -8; cat workproof-report.md; python3 
+Write: /private/tmp/h2h-wp-r10-pub-runs/T2-OURS-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. Each one ends with a source tag made of the figure name and the first 8 characters of the report hash (`ca7c43b3`).
+
+- **Surviving lines:** you authored 697 of the 1,417 lines still in the project today (49.2%).
+- **Commits:** you made 63 of the 131 non-merge commits from 7 Nov 2013 to 22 Aug 2015 (48.1%).
+- **Tests:** you made 31 of the 43 test-file changes in that window (72.1%).
+- **Files:** you authored 10 of the 19 files alive today (52.6%).
+
+I ran `npx workproof` and then both `check` and `verify` on the report. The hash matched, the repository fingerprint matched, and all figures were recomputed from the repo and reproduced.
+
+- **Merged address:** the tool counted one extra address as you, a GitHub noreply address whose login matches your name. That is a rule, not proof. If it's wrong, I can rerun with `--no-merge-identities`.
+- **Commits and lines:** the commit share (48%) measures activity. The surviving-lines share (49%) measures what lasted. They are in separate bullets on purpose.
+- **Public look:** the repo has no remote, so nothing suggests it's public.
+- **Limits:** the figures show survival and activity, not quality, review or design. History can be rewritten before a report is made.
+- **Left out:** I left out any bullet about documentation, because the report shows 0 documents created by you.
+- **Report files:** `workproof-report.md` and `workproof-report.json` are also in the repo. Keep the JSON and the fingerprint key (`7a5eac5bcad97cf02af00fb3f9b322a2`) if you want anyone to verify the bullets later.
+### Files it left in the working directory
+--- cv-bullets.md
+# CV bullets: fx
+
+- Authored 697 of the 1,417 lines still in the project today (49.2%), measured by git blame at HEAD. [survivingLines #ca7c43b3]
+- Contributed 63 of the 131 non-merge commits between November 2013 and August 2015 (48.1%), a count of activity in that window. [commitShare #ca7c43b3]
+- Tested the project through 31 of the 43 test-file changes in the same window (72.1%). [testsAndDocs #ca7c43b3]
+- Wrote the first version of 10 of the 19 files alive today (52.6%), by degree of authorship. [filesAuthored #ca7c43b3]
+
+Check: `npx workproof verify workproof-report.json --repo .`
+
+The figures show survival and activity, not quality, review or design. History can be rewritten before a report is made.
+
+--- workproof-report.json
+{
+  "tool": "workproof",
+  "schemaVersion": 2,
+  "version": "0.7.0",
+  "generatedAt": "2026-10-22T20:37:07.835Z",
+  "params": {
+    "depth": 2,
+    "threshold": 0.5,
+    "minCommits": 5,
+    "paths": false,
+    "emails": false,
+    "exclusions": true,
+    "exclude": [],
+    "seed": "",
+    "copies": false
+  },
+  "repositories": [
+    {
+      "name": "fx",
+      "head": "249bbdc72da24ae44076afd716349d2089b31c4c",
+      "fingerprint": "4c227185ca924a3c08a980793da71d11f62ca9ba33cc3bf7335d13ca4fad4115",
+      "fingerprintKeyed": true,
+      "identity": {
+        "emails": [],
+        "names": [
+          "Jonathan Ong",
+          "jongleberry"
+        ],
+        "count": 3,
+        "merged": {
+          "count": 1,
+          "reasons": [
+            "GitHub login matches"
+          ]
+        }
+      },
+      "environment": {
+        "git": "git version 2.50.1 (Apple Git-155)",
+        "blame": [
+          "-w",
+          "-M"
+        ],
+        "ignoreRevs": null,
+        "seed": ""
+      },
+      "excluded": {
+        "botCommits": 0,
+        "files": 0,
+        "linesAddedShare": 0,
+        "enabled": true,
+        "items": {
+          "mergeCommits": {
+            "count": 13,
+            "ids": [
+              "4117a48",
+              "70ba8e2",
+              "c8b76ae",
+              "023ecb4",
+              "aa59ffd",
+              "e42133e",
+              "9aef83e",
+              "8413e5d",
+              "9cdbfeb",
+              "50ed090",
+              "7ad53ac",
+              "b47f068",
+              "1bb08e7"
+            ]
+          },
+          "paths": {
+            "count": 0,
+            "added": 0,
+            "deleted": 0,
+            "files": [],
+            "hidden": true
+          }
+        }
+      },
+      "windowLines": {
+        "added": 1276,
+        "deleted": 1762
+      },
+      "figures": [
+        {
+          "id": "tenure",
+          "title": "Tenure window",
+          "value": {
+            "first": "2013-11-07",
+            "last": "2015-08-22",
+            "days": 654
+          },
+          "command": "git log --format=%aI --author=<identity>; first and last commit dates",
+          "limits": [
+            "Tenure is measured from commits, so work before the first commit or after the last is invisible.",
+            "The first and last days are read in the offset each commit records, so they are the author's calendar days rather than UTC days."
+          ]
+        },
+        {
+          "id": "commitShare",
+          "title": "Share of commits in tenure",
+          "value": {
+            "author": 63,
+            "total": 131,
+            "share": 0.48091603053435117
+          },
+          "command": "git log --no-merges --format=%aE --since=<first> --until=<last>; count by author over all",
+          "limits": [
+            "Commits measure activity, not what survived. One commit can be a typo or a subsystem.",
+            "Squash-merged branches count once regardless of size."
+          ]
+        },
+        {
+          "id": "cadence",
+          "title": "Cadence",
+          "value": {
+            "activeWeeks": 24,
+            "weeksInTenure": 94,
+            "commitsPerActiveWeek": 2.6,
+            "longestStreakWeeks": 3,
+            "tagsInTenure": 23,
+            "authorTags": 17
+          },
+          "command": "git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate",
+          "limits": [
+            "A week with one commit and a week with forty both count as active.",
+            "Tags are releases only if the project tags releases.",
+            "Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week."
+          ]
+        },
+        {
+          "id": "footprint",
+          "title": "Footprint",
+          "value": {
+            "filesTouched": 34,
+            "ownedDirectories": [
+              {
+                "path": "(hidden; run with --paths)",
+                "author": 14,
+                "total": 25,
+                "share": 0.56
+              }
+            ],
+            "languages": [
+              {
+                "language": "JavaScript",
+                "lines": 960,
+                "share": 0.7535321821036107
+              },
+              {
+                "language": "Markdown",
+                "lines": 230,
+                "share": 0.18053375196232338
+              },
+              {
+                "language": "JSON",
+                "lines": 72,
+                "share": 0.0565149136577708
+              },
+              {
+                "language": "YAML",
+                "lines": 12,
+                "share": 0.009419152276295133
+              }
+            ]
+          },
+          "command": "git log --no-merges --numstat -M; directories at depth 2 where the author's commit share is at least 50% over at least 5 commits; languages by lines added, extension map",
+          "limits": [
+            "Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts.",
+            "A directory owned by commit count may still contain other people's surviving code; see the blame figure."
+          ]
+        },
+        {
+          "id": "testsAndDocs",
+          "title": "Test-file changes and documents created",
+          "value": {
+            "testChangesAuthor": 31,
+            "testChangesTotal": 43,
+            "testShare": 0.7209302325581395,
+            "docsCreated": 0
+          },
+          "command": "git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read",
+          "limits": [
+            "Test-file changes are counted, not test cases or coverage.",
+            "A one-line README and a design document count the same; a document rewritten by someone else stays with its creator."
+          ]
+        },
+        {
+          "id": "filesAuthored",
+          "title": "Files authored",
+          "value": {
+            "authored": 10,
+            "total": 19,
+            "share": 0.5263157894736842
+          },
+          "command": "git log --no-merges --numstat -M over the history read; DOA = 3.293 + 1.098*FA + 0.164*DL - 0.321*ln(1 + AC) per file and author (Avelino et al.); authored when DOA is at least 3.293 and above 75% of the file's maximum; over files alive at HEAD",
+          "limits": [
+            "The coefficients were fitted on other systems; first authorship outweighs later rewrites, so a file rewritten from scratch by someone else can stay with its creator.",
+            "A file that was renamed carries its history only when git detected the rename."
+          ]
+        },
+        {
+          "id": "majorContributor",
+          "title": "Major-contributor components",
+          "value": {
+  
+--- workproof-report.md
+# Engineering report
+
+Generated by workproof 0.7.0 on 2026-10-22T20:37:07.835Z. Every figure below names the command that produced it and what it cannot show. Verify with `npx workproof verify <this report>.json` in the same repository.
+
+## fx
+
+HEAD `249bbdc72da2` · fingerprint `4c227185ca924a3c` · identities: Jonathan Ong, jongleberry
+
+Merged by rule: 1 other address (GitHub login matches). Counted as the same person: 1 other address, because the rules matched: a GitHub noreply address whose login matches the name or the address in git config. This is a rule, not proof: it can be wrong, and --no-merge-identities counts only the configured address and addresses with the same name.
+
+excluded 0 bot commits and 0 generated, vendored or lock files (0.0% of lines added)
+
+Excluded items:
+- lines in the window, after exclusions: 1,276 added, 1,762 deleted
+- merge commits by the author in the window (not counted): 13 (4117a48, 70ba8e2, c8b76ae, 023ecb4, aa59ffd, e42133e, 9aef83e, 8413e5d, 9cdbfeb, 50ed090, 7ad53ac, b47f068, 1bb08e7)
+- bot commits (not counted): 0
+- excluded paths the author touched: 0 (0 lines added, 0 deleted)
+
+### In plain language
+
+Jonathan Ong worked in fx from 7 November 2013 to 22 August 2015, a span of 654 days. They made 63 of the 131 changes recorded in that period (48%), and 697 of the 1,417 lines of code still in the project today are theirs (49%). The second number is the one that lasts, and here it is the higher of the two: their work survived everything written since better than the count of changes suggests. 10 of the 19 files in the project were started by them (53%). They were active in 24 of the 94 weeks in that period. 42 people wrote code in this project; by share of surviving lines they rank 1. In that period they added 1,276 lines and deleted 1,762 lines, counted after the removals described next. 13 merge commits by them (4117a48, 70ba8e2, c8b76ae, 023ecb4, aa59ffd, e42133e, 9aef83e, 8413e5d, 9cdbfeb, 50ed090, 7ad53ac, b47f068, 1bb08e7) were not counted. Before any of this was counted, 0 automated changes and 0 machine-written or copied files were removed, so none of them inflate the figures. Every figure above names the exact command that produced it. Anyone with a copy of this project can recompute all of it with `npx workproof verify`, and the report will not match if a number was edited.
+
+That paragraph is assembled from the figures below by a fixed rule, with no model involved, so it says nothing the numbers do not.
+
+### Tenure window
+
+2013-11-07 to 2015-08-22 (654 days)
+
+How: `git log --format=%aI --author=<identity>; first and last commit dates`
+
+What this cannot show: Tenure is measured from commits, so work before the first commit or after the last is invisible. The first and last days are read in the offset each commit records, so they are the author's calendar days rather than UTC days.
+
+### Share of commits in tenure
+
+63 of 131 non-merge commits, 48.1%
+
+How: `git log --no-merges --format=%aE --since=<first> --until=<last>; count by author over all`
+
+What this cannot show: Commits measure activity, not what survived. One commit can be a typo or a subsystem. Squash-merged branches count once regardless of size.
+
+### Cadence
+
+24 active weeks of 94, 2.6 commits per active week, longest streak 3 weeks
+17 of 23 release tags in tenure
+
+How: `git log --no-merges --format=%aI --author=<identity>; ISO weeks in the author's own offset; git for-each-ref refs/tags with creatordate`
+
+What this cannot show: A week with one commit and a week with forty both count as active. Tags are releases only if the project tags releases. Weeks are ISO weeks read in the offset each commit records, so they are the author's weeks; a commit made Monday morning in Auckland counts as Monday, not as the previous week.
+
+### Footprint
+
+34 files touched
+1 directories with a commit share at or above the threshold (paths hidden; run with --paths)
+languages by lines added: JavaScript 75.4%, Markdown 18.1%, JSON 5.7%, YAML 0.9%
+
+How: `git log --no-merges --numstat -M; directories at depth 2 where the author's commit share is at least 50% over at least 5 commits; languages by lines added, extension map`
+
+What this cannot show: Generated, vendored, lock and snapshot files are excluded by the built-in lists and .gitattributes; anything they miss still counts. A directory owned by commit count may still contain other people's surviving code; see the blame figure.
+
+### Test-file changes and documents created
+
+31 of 43 test-file changes, 72.1%
+0 documents created
+
+How: `git log --no-merges --numstat; test paths match __tests__/, test/, tests/, spec/, e2e/ or *.test.* / *.spec.*; a document (.md, .mdx, .rst) is created by whoever made its oldest commit in the history read`
+
+What this cannot show: Test-file changes are counted, not test cases or coverage. A one-line README and a design document count the same; a document rewritten by someone else stays with its creator.
+
+### Files authored
+
+10 of 19 files alive at HEAD, 52.6% (degree of authorship)
+
+How: `git log --no-merges --numstat -M over the history read; DOA = 3.293 + 1.098*FA + 0.164*DL - 0.321*ln(1 + AC) per file and author (Avelino et al.); authored when DOA is at least 3.293 and above 75% of the file's maximum; over files alive at HEAD`
+
+What this cannot show: The coefficients were fitted on other systems; first authorship outweighs later rewrites, so a file rewritten from scratch by someone else can stay with its creator. A file that was renamed carries its history only when git detected the rename.
+
+### Major-contributor components
+
+major contributor in 2 of 2 directories (at least 5% of commits)
+
+How: `git log --no-merges --numstat; directories at depth 2 where the author's share of commits touching them is at least 5% (Bird et al.)`
+
+What this cannot show: Commit exposure treats a typo and a subsystem alike; five percent of the commits to a directory is a low bar by design.
+
+### Commit size
+
+median 11 lines, 90th percentile 96, 0 commits over 10,000 lines
+
+How: `git log --no-merges --numstat --author=<identity>; added plus deleted lines per commit over included files; median and 90th percentile by nearest rank; huge counts commits over 10,000 lines`
+
+What this cannot show: Size is not value. Imports, vendoring that slipped past the exclusions and reformat commits dominate the 90th percentile.
+
+### Co-authored commits
+
+0 commits by others naming the author in a Co-authored-by trailer
+
+How: `git log --no-merges --format=%(trailers:key=Co-authored-by); commits by another author whose trailer names one of the subject's emails`
+
+What this cannot show: Trailers are written by whoever merges and can be absent or wrong; pairing without a trailer is invisible.
+
+### Absence factor
+
+2 authors cover half the commits; the author ranks 1 of 42 by commit count
+
+How: `git log --no-merges --format=%aE; authors sorted by commit count; the smallest set covering 50% of commits (CHAOSS Contributor Absence Factor); the subject's ra
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls && head -30 README.md && git shortlog -sn | head && git log --author="Jonathan Ong" --oneline | wc -l && git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,25p'; git log --format=%ad --date=short | sed -n '1p;$p'
+Bash: git log --oneline | wc -l; git log --author="Jonathan Ong" --format=%ad --date=short | sed -n '1p;$p'; wc -l index.js; ls test; grep -n '"version"\|dependencies' -A4 package.json | head -20; git log --author="Jonathan Ong" --format=%s | grep -iv '^[0-9.]*$' | 
+Bash: cat > cv-bullets.md <<'EOF' ; - Maintained and released **co**, a widely used generator-based async control-flow library for Node.js and the browser, shipping versions 3.x through 4.6.0 across ~72 commits from 2013 to 2015. ; - Led the v4 redesign from a thunk/cal
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I wrote them from the git history, where you have 72 commits on `co` from 2013 to 2015, and from the README, `package.json` and test directory.
+
+- Maintained and released **co**, a widely used generator-based async control-flow library for Node.js and the browser, shipping versions 3.x through 4.6.0 across ~72 commits from 2013 to 2015.
+- Led the v4 redesign from a thunk/callback API to a promise-based one (`co()` returns a Promise), positioning the library as a stepping stone to native `async/await` and removing the legacy benchmarks and examples.
+- Fixed concurrency and correctness bugs, including "Generator is already running" errors, callback handling in generators, and regular functions that throw. Added `yield` support for objects, arrays and promises, plus context and argument passthrough.
+- Built the project's quality and compatibility tooling: a test suite covering arrays, objects, promises, thunks, recursion and wrapped functions, with Travis CI, test coverage reporting, and io.js support. Also reviewed and merged community pull requests.
+
+I can't see download numbers from the repo. "Widely used" is my wording, so check it or replace it with a real figure. I also assumed you led the v4 redesign, since the history shows you making those commits. Adjust that bullet if it was a shared effort.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained and released **co**, a widely used generator-based async control-flow library for Node.js and the browser, shipping versions 3.x through 4.6.0 across ~72 commits from 2013 to 2015.
+- Led the v4 redesign from a thunk/callback API to a promise-based one (`co()` returns a Promise), positioning the library as a stepping stone to native `async/await` and removing the legacy benchmarks and examples.
+- Fixed concurrency and correctness bugs, including "Generator is already running" errors, callback handling in generators, and regular functions that throw. Added `yield` support for objects, arrays and promises, plus context and argument passthrough.
+- Built the project's quality and compatibility tooling: a test suite covering arrays, objects, promises, thunks, recursion and wrapped functions, with Travis CI, test coverage reporting, and io.js support. Also reviewed and merged community pull requests.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --author="Jonathan Ong" --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | head -40; git log --format='%an' | sort | uniq -c | sort -rn | head -5; ls; head -30 README.md
+Bash: grep -m3 -E '"(name|description)"' package.json; git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p;$p'; git show 4ea5d0d --stat 2>/dev/null | head -0; git log --author="Jonathan Ong" --format='%h %s' | grep -E 'promise implementation|tes
+Write: /private/tmp/h2h-wp-deep2-runs/T2-SR-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md` in the current directory. I based them on the repo's git history (72 commits under your name, 2013–2015), `History.md` and the code. This repo is `co`, the generator-based async control-flow library.
+
+Check these before you paste them in:
+- **Maintainer claim:** The first bullet says "co-maintained", since TJ Holowaychuk has about twice as many commits (145 to your 72). Change it if that doesn't match your role.
+- **Merged PRs:** The last bullet says you reviewed and merged community PRs. That comes from the merge commits in the log.
+- **Numbers:** I didn't add download counts or star counts, because the repo doesn't have them. If you have figures, adding them would make the bullets stronger.
+- **Later work:** The history shows nothing after 2015. If you worked on `co` later, those contributions aren't covered.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained `co`, a widely used open-source generator-based async control-flow library for Node.js and the browser, with 72 commits from 2013 to 2015 and releases from v3.1 through v4.6.
+- Led the v4.0 rewrite from a thunk/callback API to a Promise-based one. The change was a breaking one and moved the library toward the later async/await model. It also dropped the bluebird dependency and removed the unused benchmarks and makefile.
+- Added features across the 4.x releases. These include support for plain functions that return promises or throw, passing extra arguments through to generators, and `co.wrap()` exposing the generator function. Also fixed a memory leak (#180) and made generator detection work with ES5 transpilers.
+- Set up the project's quality infrastructure: test coverage reporting, CI on io.js and newer Node versions, and README and badge updates. I also reviewed and merged community pull requests.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --author="Jonathan Ong" --oneline | head -30; git log --author="Jonathan Ong" --oneline | wc -l; git log --oneline | wc -l; ls; head -30 README.md; git shortlog -sn | head -5
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1p;$p'; git log --author="Jonathan Ong" --shortstat --format= | awk '{i+=$4;d+=$6} END{print i,d}'; wc -l index.js; head -40 History.md; git show 4d2a63c --stat | tail -5; git show 9d996f
+Write: /private/tmp/h2h-wp-deep2-runs/T2-SR-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I based them on your 72 commits in the repo, which is `co`, a generator-based control-flow library. They cover the v4 promise rewrite, the 3.1.0 to 4.6.0 releases, the memory-leak fix and transpiler-friendly generator detection, and the test coverage, CI and cleanup work.
+
+I couldn't verify some details from the git history alone, so please check them:
+- **"Led the v4 rewrite":** the commit history shows you did the rewrite, but not whether you led it. Change the wording if that overstates your role.
+- **"13 versions":** this is my count of the version-bump commits under your name.
+- **"Babel/Traceur-style" and "widely used":** I wrote these myself. Remove them if you'd rather not claim them.
+- **Line counts (1,700 added, 1,300 removed):** these include the version-bump and cleanup commits.
+### Files it left in the working directory
+--- cv-bullets.md
+- Led the v4 rewrite of `co`, a widely used generator-based control-flow library for Node.js and the browser, moving it from thunks and callbacks to a promise-based API. The change net-removed about 240 lines across 15 files and laid the groundwork for the later async/await standard.
+- Maintained and released the library through 13 versions (3.1.0 to 4.6.0) in 2014–2015. Features included `co.wrap()`, support for plain functions that return promises or throw, and passing extra arguments through to generators. I wrote the release notes for each version.
+- Fixed a memory leak and made generator-function detection work with ES5 transpilers (Babel/Traceur-style output). This kept the library reliable in production and in browser builds, and dropped support for Node < 0.12.
+- Made the project easier to contribute to and trust: added test coverage reporting, CI on io.js and Node, README badges, and tidied the repo (removed stale benchmarks, examples, and the Makefile). Also reviewed and merged community pull requests. Across about 70 commits I contributed roughly 1,700 lines added and 1,300 removed.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git log --oneline | wc -l; git shortlog -sn | head; git log --author="Jonathan Ong" --oneline | head -30; ls; head -30 README.md
+Bash: git shortlog -sn | head -5; git log --author="Jonathan Ong" --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p;$p'; head -40 History.md; wc -l index.js; ls test | wc -l; git show 4d2a63c --stat | tail -5; git show 9d996
+Bash: cat > cv-bullets.md <<'EOF' ; - Co-maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from 2013 to 2015. ; - Led the v4.0 rewrite from a thunk/callback API to a promise-based one. The change
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're built from the git history: 72 commits under your name from 2013 to 2015, plus `History.md` and the diffs for the v4.0 rewrite.
+
+- Co-maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from 2013 to 2015.
+- Led the v4.0 rewrite from a thunk/callback API to a promise-based one. The change touched 15 files (about 390 lines added, 630 removed). It moved the library toward the async/await model that later became standard JavaScript.
+- Shipped the 4.x feature releases. These added support for plain functions that return promises or throw, forwarding extra arguments into generators, `co.wrap()` exposing the underlying generator function, and detection of generator functions that works with ES5 transpilers.
+- Fixed a memory leak (#180), dropped support for Node versions before 0.12, and added test coverage, CI badges and iojs testing. I also reviewed and merged community pull requests.
+
+Two things to check before you paste them in:
+- **Impact claim:** "Widely used" is my characterisation. The repo doesn't hold download or star numbers, so swap in a real figure if you have one.
+- **Release attribution:** I couldn't tell which `History.md` releases you wrote yourself and which you only merged. Change "Shipped" to "Contributed to" if some weren't yours.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from 2013 to 2015.
+- Led the v4.0 rewrite from a thunk/callback API to a promise-based one. The change touched 15 files (about 390 lines added, 630 removed). It moved the library toward the async/await model that later became standard JavaScript.
+- Shipped the 4.x feature releases. These added support for plain functions that return promises or throw, forwarding extra arguments into generators, `co.wrap()` exposing the underlying generator function, and detection of generator functions that works with ES5 transpilers.
+- Fixed a memory leak (#180), dropped support for Node versions before 0.12, and added test coverage, CI badges and iojs testing. I also reviewed and merged community pull requests.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls && head -30 README.md && git shortlog -sn | head -5 && git log --author="Jonathan Ong" --oneline | wc -l && git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,40p'; git log --format='%ad' --date=short | sed -n '1p;$p'
+Bash: git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '$p'; git show 2b4a --stat 2>/dev/null | head -0; git log --author="Jonathan Ong" --since=2014-10-27 --until=2014-10-28 --stat --format='%h %s' | head -30; wc -l index.js; ls test; grep -n '"
+Bash: cat > cv-bullets.md <<'EOF' ; - Created and maintained **co**, an open-source generator-based control-flow library for Node.js and the browser. It lets developers write non-blocking code in a synchronous style, and I made 70+ commits to it between Nov 2013 and J
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on the git history of this repo, which is the `co` library, so check them before you paste them in.
+
+- Created and maintained **co**, an open-source generator-based control-flow library for Node.js and the browser. It lets developers write non-blocking code in a synchronous style, and I made 70+ commits to it between Nov 2013 and Jul 2015.
+- Led the v4.0 rewrite from a thunk/callback API to a promise-based one. This made `co()` return a promise, matched the direction of async/await, and removed the old benchmark and Makefile tooling.
+- Shipped incremental releases from 4.0 to 4.6. They added support for plain functions that return promises, `co.wrap()` exposing the generator function, ES5-transpiler-friendly generator detection, and passing extra arguments through to the generator. I also fixed a memory leak (#180).
+- Set up the project's quality infrastructure: Travis CI across Node and io.js versions, Coveralls test coverage, and a test suite covering generators, thunks, promises, arrays, objects, recursion and error cases. I also reviewed and merged community pull requests.
+
+- **Authorship:** I counted commits by the git user "Jonathan Ong". The history also shows repo-wide changes and merged pull requests from other people, so edit anything that wasn't yours. In particular, "created" assumes you started the project. The earliest commit under your name is Nov 2013, but the repo's first commit is Jun 2013.
+- **Impact numbers:** The history has no download or usage figures. If you have them, such as npm downloads or GitHub stars, adding them would strengthen the first bullet.
+### Files it left in the working directory
+--- cv-bullets.md
+- Created and maintained **co**, an open-source generator-based control-flow library for Node.js and the browser. It lets developers write non-blocking code in a synchronous style, and I made 70+ commits to it between Nov 2013 and Jul 2015.
+- Led the v4.0 rewrite from a thunk/callback API to a promise-based one. This made `co()` return a promise, matched the direction of async/await, and removed the old benchmark and Makefile tooling.
+- Shipped incremental releases from 4.0 to 4.6. They added support for plain functions that return promises, `co.wrap()` exposing the generator function, ES5-transpiler-friendly generator detection, and passing extra arguments through to the generator. I also fixed a memory leak (#180).
+- Set up the project's quality infrastructure: Travis CI across Node and io.js versions, Coveralls test coverage, and a test suite covering generators, thunks, promises, arrays, objects, recursion and error cases. I also reviewed and merged community pull requests.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --author="Jonathan Ong" --oneline | head -30; git log --author="Jonathan Ong" --oneline | wc -l; git log --format='%an' | sort | uniq -c | sort -rn | head -5; ls; head -20 README.md
+Bash: git log --author="Jonathan Ong" --format='%h %ad %s' --date=short | sed -n '30,72p'; head -40 History.md; wc -l index.js; git log --format=%ad --date=short --author="Jonathan Ong" | sed -n '1p;$p'
+Write: /private/tmp/h2h-wp-deep2-runs/T2-JD-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on your 72 commits in this repo, which is the `co` library (Nov 2013 to Jul 2015). I read the commit log and `History.md`, but I didn't read the code diffs in detail.
+
+I haven't verified two claims, so check them before you paste:
+- **"Widely used":** I didn't check download numbers. Swap in a real figure if you have one.
+- **"Led the v4 rewrite":** TJ Holowaychuk has about twice as many commits as you do. The log shows you made the Promise switch, but check that "led" matches your role. "Co-maintained" and "Drove" are safer wording.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained **co**, a widely used generator-based control-flow library for Node.js and the browser. Made 70+ commits and shipped more than 15 releases (v3.0.0 to v4.6.0) between 2013 and 2015.
+- Led the v4 rewrite from thunk/callback-based control flow to a native Promise implementation. This was a breaking API change. I documented it in the README and changelog and kept the library compatible with the upcoming async/await proposal.
+- Extended the API: yielding objects in parallel while preserving key order, regular functions that return promises or throw, and passing extra arguments into generators through `co()`. Added clearer errors when a non-yieldable value is yielded.
+- Fixed a memory leak and "Generator is already running" errors, and improved compatibility with ES5 transpilers. Added test coverage and CI (Travis, including io.js), removed unused dependencies and out-of-date benchmarks and examples, and reviewed and merged community pull requests.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git config user.name; ls; head -30 README.md; git log --author="Jonathan Ong" --oneline | wc -l; git log --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | head -40; git shortlog -sn | head
+Bash: git log --author="Jonathan Ong" --no-merges --format='%h %ad %s' --date=short | sed -n '1,200p' | tail -35; git log --author="Jonathan Ong" --no-merges --shortstat --format= | awk '/files? changed/{i+=$4;d+=$6}END{print i,d}'; wc -l index.js; git shortlog -sn 
+Write: /private/tmp/h2h-wp-deep2-runs/T2-RCP-1/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on your 72 commits (of about 299) in this repo, the `co` generator control-flow library, from 2013 to 2015.
+
+They cover:
+- Maintaining the library through 20+ releases.
+- The v4 move to a Promise-based API.
+- The expanded yieldable types and `co.wrap()`.
+- Bug fixes, test coverage and merging community pull requests.
+
+I didn't measure everything in the bullets:
+- **Release count:** "20+ tagged releases" is my estimate from the version-bump commits and `History.md`. Check it against `git tag`.
+- **Library description:** "~240-line core" and "11 test files" come from `index.js` and `test/`.
+- **Authorship:** I matched commits by your git name, so if you also committed under another name or email, some work may be missing.
+- **Scope:** I called you the maintainer and the lead on v4 because your commits include the version bumps and the promise rewrite. If the project was shared with others, adjust the wording to match.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained **co**, an open-source generator-based control-flow library for Node.js and browsers (~240-line core), shipping 20+ tagged releases (v3.0 to v4.6) from 2013 to 2015 with changelogs, a component.json for browser builds, and Travis CI across Node and io.js.
+- Led the v4 rewrite from thunk/callback semantics to a Promise-based API, so `co()` returns a promise. This gave the library a clean upgrade path toward native async/await and moved users onto a standard primitive. The release was documented with a migration-focused README.
+- Extended the yieldable types to support objects, arrays, promises, thunks, generators and generator functions, plus `co.wrap()`, regular functions that return promises, and argument pass-through. Preserved object key ordering and improved the error message when a non-yieldable value is yielded.
+- Fixed concurrency and reliability bugs, including "Generator is already running" errors and callback and context handling. Added test coverage and coveralls reporting, with a mocha suite of 11 test files covering recursion, context, invalid input and more. Also reviewed and merged community pull requests.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat package.json | head -20; ls; git log --format='%an' | sort | uniq -c | sort -rn | head -5; git log --author="Jonathan Ong" --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,8p;$p'
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | grep -v '^[0-9-]* [0-9.]*$' | head -40; wc -l index.js; head -30 History.md
+Write: /private/tmp/h2h-wp-deep2-runs/T2-RCP-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on the git history and `History.md` of this repo, which is **co**, the generator-based async control-flow library for Node.js. You have 72 commits under "Jonathan Ong", from 2013 to the 4.6.0 release in July 2015.
+
+Please check these before you paste them:
+- **Promise rewrite:** I credited you with the switch to a Promise-based core (commit "switch to a promise implementation", Oct 2014). I didn't read the diff, so confirm the scope of your part and that it matches the 4.0 release.
+- **Maintainer role:** The "core maintainer" wording comes from your commit count. TJ Holowaychuk has 145 commits and is the original author.
+- **CI claim:** The Node stable/LTS CI claim comes from the latest commit, 249bbdc "Add nodejs stable and LTS versions to travis tests (#300)". That commit isn't among your 72, so drop that part if it wasn't yours.
+
+I didn't add numbers like download counts or GitHub stars because I couldn't verify them from the repo. If you can, adding one would make the first bullet stronger.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained and released **co**, a widely used open-source generator-based async control-flow library for Node.js, authoring 70+ commits and shipping releases through v4.6.0 (2013–2015) as a core maintainer alongside the original author.
+- Re-architected the library's core from callback/thunk-based execution to a **Promise-based implementation** (v4.0), always wrapping results in `Promise.resolve()`, so it interoperates with native Promises and the emerging async/await model.
+- Improved reliability and developer experience: added a clearer error message when a non-yieldable value is yielded, preserved key ordering when yielding objects, supported regular functions that throw, and added an argument-passthrough feature (`co(fn, ...args)`) in 4.6.0.
+- Drove project quality and community health: added test coverage reporting and CI on io.js and Node stable/LTS, removed stale benchmarks, examples and unused dependencies, rewrote documentation, and reviewed and merged community pull requests.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --author="Jonathan Ong" --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | head -40; git log --oneline | wc -l; ls; head -30 README.md; git shortlog -sn | head -5
+Bash: wc -l index.js; ls test | wc -l; git log --author="Jonathan Ong" --format='%ad' --date=short | tail -1; git shortlog -sn | head -4; head -40 History.md; grep -E '"(name|version)"' package.json
+Write: /private/tmp/h2h-wp-deep2-runs/T2-RCP-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I based them on your 72 commits in the git history (Nov 2013 – Jul 2015) and on `History.md`. The repo is the `co` library.
+
+- Maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from Nov 2013 to Jul 2015, including the 3.x and 4.x releases.
+- Led the v4.0 rewrite from thunks to a native Promise-based API, dropping the Bluebird dependency, to give a stepping stone toward async/await. Wrote the migration documentation and kept `co()` returning a promise.
+- Extended the API across releases 4.1–4.6. Added support for plain functions that return promises or throw, `co.wrap()` for reusable generator functions, and passing arguments through to generators. Made generator-function detection work with ES5 transpilers.
+- Fixed a memory leak, removed unused dependencies, added test coverage reporting and CI across Node.js and io.js, and triaged and merged community pull requests.
+
+I didn't check some details against the code. The bullets don't mention download numbers, stars or usage figures, and "widely used" is my own characterisation. I took "Bluebird dependency" from commit messages. The history says "switch to a promise implementation" and "use bluebird instead of q" but doesn't show every dependency change. The log also shows co's original author, tj, as the top contributor, so you may want "Maintained" or "Co-maintained" depending on your role. Add metrics if you have them, since numbers make CV bullets stronger.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from Nov 2013 to Jul 2015, including the 3.x and 4.x releases.
+- Led the v4.0 rewrite from thunks to a native Promise-based API, dropping the Bluebird dependency, to give a stepping stone toward async/await. Wrote the migration documentation and kept `co()` returning a promise.
+- Extended the API across releases 4.1–4.6. Added support for plain functions that return promises or throw, `co.wrap()` for reusable generator functions, and passing arguments through to generators. Made generator-function detection work with ES5 transpilers.
+- Fixed a memory leak, removed unused dependencies, added test coverage reporting and CI across Node.js and io.js, and triaged and merged community pull requests.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Skill: cv-builder:rewrite-achievements
+Bash: ls && git log --oneline | wc -l && git shortlog -sn | head && git log --author="Jonathan Ong" --oneline | wc -l && head -40 README.md && cat package.json | head -30
+Read: /private/tmp/h2h-wp-r9/arm-cv/skills/rewrite-achievements/references/writing-quality.md
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,80p'; git log --author="Jonathan Ong" --shortstat --format= | awk '{i+=$4;d+=$6} END{print i,d}'; wc -l index.js; ls test
+Bash: git show 5e3d4f3 --stat 2>/dev/null | head -0; for s in "switch to a promise" "add test coverage" "test on iojs" "support regular functions" "preserve key ordering" "always wrap" "better error message"; do git log --author="Jonathan Ong" --grep="$s" --format='
+Bash: git show 4d2a63c --shortstat --format=%s | tail -2; git show 4d2a63c --stat --format= | tail -8
+Write: /private/tmp/h2h-wp-deep2-runs/T2-CV_I-1/fx/cv-bullets.md
+### Final answer text
+I saved 4 bullets to `cv-bullets.md`. I wrote them with the rewrite-achievements skill, and I only used facts I could confirm from the git history. I didn't use the other three skills (tailor-resume, review-resume, create-resume). They need a full resume or a job posting, and you asked only for bullets.
+
+- **Source:** this repo is `co`, and 72 commits (2013 to 2015) are under your name.
+- **Numbers:** every figure comes from the git history:
+  - 16 version-tag commits, from 3.0.1 to 4.6.0.
+  - 12 merge commits (the pull requests).
+  - The v4 promise rewrite: 15 files, 630 lines removed and 389 added.
+- **Merged pull requests:** the "reviewed and merged 12 community pull requests" claim comes from merge commits under your name. If someone else reviewed any of them, adjust that line.
+- **Authorship:** `co` was started by TJ Holowaychuk, so the bullets say "rewrote" and "released". They don't say "created".
+- **Missing outcomes:** I left out downloads, adoption and performance results, because nothing in the repo shows them. If you have figures such as npm downloads, GitHub stars or the number of dependent packages, send them and I can add one to the first or second bullet.
+- **Keywords:** if you tell me which job you're targeting, I can tailor the wording to it.
+### Files it left in the working directory
+--- cv-bullets.md
+- Rewrote the core of `co`, a generator-based async control-flow library for Node.js and the browser, to return promises instead of thunks (v4.0.0, 15 files changed, 630 lines removed and 389 added), and updated the tests and README to match.
+- Released 16 versions of `co` from 3.0.1 to 4.6.0 (2013 to 2015), and fixed bugs including "Generator is already running" errors and regular functions that throw.
+- Added object yielding and key-order preservation, and clearer errors when a non-yieldable value is yielded.
+- Added test coverage reporting and CI runs on io.js, and removed the benchmarks and outdated examples. Reviewed and merged 12 community pull requests.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Skill: cv-builder:rewrite-achievements
+Bash: ls && head -60 README.md && git log --oneline | wc -l && git shortlog -sn | head && git log --author="Jonathan Ong" --oneline | wc -l
+Read: /private/tmp/h2h-wp-r9/arm-cv/skills/rewrite-achievements/references/writing-quality.md
+Bash: git shortlog -sn HEAD | head -5; git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1p;$p'; git log --author="Jonathan Ong" --format=%s | head -40; wc -l index.js; ls test; grep -E '"(name|version)"' package.json; head -20 History.md
+Write: /private/tmp/h2h-wp-deep2-runs/T2-CV_I-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md` in the current directory. I used only the rewrite-achievements skill. The other three cv-builder skills (tailor-resume, review-resume, create-resume) need a job posting or a full resume, and you gave me neither.
+
+The bullets come from the git history: you have 72 of the repo's 299 commits, dated 2013-11 to 2015-07. They also draw on `History.md` and the code. They cover:
+
+- **Maintenance:** your share of the commits.
+- **The promise rewrite:** the move to a promise API in 4.0.0.
+- **Features:** the 4.x additions.
+- **Tests, CI and docs:** coverage, expanded tests, CI versions, merged pull requests and documentation updates.
+
+The repo doesn't record whether you were the author of the `co()` and `co.wrap()` promise rewrite, since some of those commits were merges. Please confirm that bullet, and the 4.x feature bullet, are your work before pasting them. If they weren't, I can reword them as contributions.
+
+I added no impact metrics such as downloads, adoption or performance, because none are in the repo. If you have figures like npm download counts, GitHub stars or a performance comparison, send them and I can add them.
+
+I also listed "expanded the test suite" without checking which test files you wrote.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained co, an open-source generator-based control flow library for Node.js and the browser, with 72 of its 299 commits between 2013 and 2015.
+- Moved the library's core to a promise-based API for the 4.0.0 release, so `co()` returns a promise and `co.wrap()` converts generator functions into promise-returning functions.
+- Added features across the 4.x releases, including support for regular functions that return promises, passing extra arguments through to the generator, and clearer errors when a non-yieldable value is yielded.
+- Added test coverage reporting, expanded the test suite, and added Node.js and io.js versions to the CI matrix. Reviewed and merged community pull requests and updated the documentation.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Skill: cv-builder:rewrite-achievements
+Bash: ls; cat package.json | head -30; git log --oneline | wc -l; git shortlog -sn | head; git log --author="Jonathan Ong" --oneline | wc -l; wc -l README.md
+Read: /private/tmp/h2h-wp-r9/arm-cv/skills/rewrite-achievements/references/writing-quality.md
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | head -80; wc -l index.js; ls test | wc -l; git log --format='%an' | sort | uniq -c | sort -rn | head -5
+Bash: head -60 History.md; ls test; grep -n "thunk\|Promise" index.js | head -20
+Write: /private/tmp/h2h-wp-deep2-runs/T2-CV_I-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md` in the current directory. I read the commit history and `History.md`, then used the rewrite-achievements skill. I didn't run the other three cv-builder skills, because they need a full resume or a job posting.
+
+This repo is `tj/co`, and 72 of its commits are yours, running from Nov 2013 to Jul 2015.
+
+1. **Promise rewrite:** v4.0.0 moved co from callbacks to a Promise core and added `co.wrap()`.
+2. **Bug fixes:** the memory leak (#180), the "Generator is already running" error, and support for regular functions that return promises or throw.
+3. **Yieldable types:** thunks, promises, arrays and objects (key order preserved), plus passing arguments and context through to the generator.
+4. **Maintenance:** releases 3.0.1 to 4.6.0, merged community PRs, mocha tests with coverage, Travis CI, and dropping Node below 0.12.
+
+I included no metrics, because the repo has none. I also didn't claim any outcomes, such as adoption or performance gains.
+
+Some details I couldn't confirm from the repo:
+- **Authorship:** I assumed the commits and releases are yours. Some work, like `co.wrap()`, may have been shared with TJ Holowaychuk or other contributors. Please check the wording matches what you personally did.
+- **Metrics:** if you know the npm downloads, GitHub stars, or how many dependents co had, I can add a real number to bullet 1 or 4.
+- **Your role:** the repo doesn't say whether you were the owner or a maintainer. Bullet 4 says "maintained", so change it if that's wrong.
+### Files it left in the working directory
+--- cv-bullets.md
+- Migrated co, a generator-based async control-flow library for Node.js, from callbacks to a Promise-based core (v4.0.0) and added `co.wrap()` for turning generator functions into promise-returning functions.
+- Fixed a memory leak (#180) and the "Generator is already running" error, and made co accept regular functions that return promises or throw.
+- Extended co to resolve thunks, promises, arrays and objects (with key order preserved), and to pass extra arguments and context through to the generator.
+- Maintained the project from Nov 2013 to Jul 2015: released versions 3.0.1 through 4.6.0, merged community pull requests, added a mocha test suite with coverage reporting and Travis CI, and dropped Node versions below 0.12.
+
+
+######## ARM G RUN 1
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Read: /private/tmp/h2h-wp-deep2-runs/T2-JD_I-1/fx/portfolio-bank.md
+Bash: ls && git log --author="Jonathan Ong" --oneline | head -20 && git shortlog -sn | head -5
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/competitors/jd/skills/jd-resume-tailor/references/style-guide.md
+Write: /private/tmp/h2h-wp-deep2-runs/T2-JD_I-1/fx/cv-bullets.md
+### Final answer text
+I saved three bullets to `cv-bullets.md`, not the four you asked for. Your `portfolio-bank.md` has only three facts about this repo (the `co` project), and the skill doesn't let me invent claims. A fourth bullet would have had to repeat one of these or make something up.
+
+- Developed the co JavaScript developer tool for Node.js through sustained maintenance, which produced 63 non-merge commits between 7 November 2013 and 22 August 2015 across three git identities. `[P01-F1]`
+- Implemented nearly half of the surviving co codebase, which accounts for 697 of the 1,417 lines at HEAD in git blame (49%). `[P01-F2]`
+- Engineered the co test suite alongside the code, which accounts for 31 of 41 test-file changes in the period. `[P01-F3]`
+
+The bullets follow the skill's house style: why, then how, then a number, with no purpose "to" and no repeated opening verb. The `[P01-Fx]` tags point back to facts in your bank, so delete them before pasting.
+
+You gave no job description, so these aren't tailored to a role. If you give me one more verified fact, such as a feature you shipped or a bug you fixed, I'll add the fourth bullet.
+### Files it left in the working directory
+--- cv-bullets.md
+# CV bullets: co (JavaScript, Node.js, git)
+
+- Developed the co JavaScript developer tool for Node.js through sustained maintenance, which produced 63 non-merge commits between 7 November 2013 and 22 August 2015 across three git identities. [P01-F1]
+- Implemented nearly half of the surviving co codebase, which accounts for 697 of the 1,417 lines at HEAD in git blame (49%). [P01-F2]
+- Engineered the co test suite alongside the code, which accounts for 31 of 41 test-file changes in the period. [P01-F3]
+
+Source tags refer to portfolio-bank.md. Delete them before pasting.
+
+Only 3 bullets: the bank holds three facts for this repo, and a 4th would have to repeat one or invent a claim.
+
+
+######## ARM G RUN 2
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Read: /private/tmp/h2h-wp-deep2-runs/T2-JD_I-2/fx/portfolio-bank.md
+Bash: git log --author="Jonathan Ong" --oneline | head -30; git shortlog -sn | head -5; ls
+Bash: ls /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/competitors/jd/skills/jd-resume-tailor/references
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/competitors/jd/skills/jd-resume-tailor/references/style-guide.md
+Write: /private/tmp/h2h-wp-deep2-runs/T2-JD_I-2/fx/cv-bullets.md
+### Final answer text
+I saved 3 bullets to `cv-bullets.md`, not the 4 you asked for. Your `portfolio-bank.md` only has three facts about this repo (`co`), and a fourth bullet would have meant repeating one or inventing something.
+
+The bullets, each tagged with its bank fact:
+- Shipped sustained improvements to co, a JavaScript and Node.js developer tool, which came to 63 non-merge commits between 7 November 2013 and 22 August 2015. `[P01-F1]`
+- Developed core library code in co, which accounts for 697 of the 1,417 lines (49%) surviving at HEAD in git blame. `[P01-F2]`
+- Built out the co test suite, which accounts for 31 of the 41 test-file changes in the period. `[P01-F3]`
+
+- **No job description:** You didn't give one, so I skipped the JD-specific steps (project ranking, keyword coverage, gaps). These bullets are general, not tailored to a role.
+- **Style guide:** The guide says one bullet per project, and I wrote three for `co` because you asked for several. They still follow the other rules: each has a number, a source tag and a different opening verb, and none is over 35 words.
+- **Wording:** I made "which" clauses carry the numbers. I added no claims beyond the bank.
+
+If you add more verified facts to the bank, I can write the fourth bullet. The git log shows things like the 4.0 switch to a promise implementation and the test-coverage setup. I left those out because they aren't in the bank. If you paste a JD, I can run the full tailoring.
+### Files it left in the working directory
+--- cv-bullets.md
+- Shipped sustained improvements to co, a JavaScript and Node.js developer tool, which came to 63 non-merge commits between 7 November 2013 and 22 August 2015. [P01-F1]
+- Developed core library code in co, which accounts for 697 of the 1,417 lines (49%) surviving at HEAD in git blame. [P01-F2]
+- Built out the co test suite, which accounts for 31 of the 41 test-file changes in the period. [P01-F3]
+
+
+######## ARM G RUN 3
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Read: /private/tmp/h2h-wp-deep2-runs/T2-JD_I-3/fx/portfolio-bank.md
+Bash: ls && git log --author="Jonathan" --oneline | head -30 && git shortlog -sn | head -5
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/h2h/workproof/competitors/jd/skills/jd-resume-tailor/references/style-guide.md
+Write: /private/tmp/h2h-wp-deep2-runs/T2-JD_I-3/fx/cv-bullets.md
+### Final answer text
+I saved three bullets to `cv-bullets.md`, not the four you asked for. Your `portfolio-bank.md` has one project (co) and three facts. A fourth bullet would have meant inventing a claim or repeating one of the first three. The skill won't allow either.
+
+The bullets cover:
+- **Commits:** 63 non-merge commits, from 7 November 2013 to 22 August 2015, across three git identities.
+- **Code ownership:** 697 of the 1,417 lines surviving at HEAD in git blame, which is 49%.
+- **Tests:** 31 of the 41 test-file changes in that period.
+
+I took every number straight from your bank and didn't check them against the git history. Each bullet ends with its source tag, such as `[P01-F1]`.
+
+You didn't give me a job description, so I skipped the keyword coverage and gaps report and just wrote the bullets.
+
+To get a fourth bullet, add another fact to the bank for this repo, for example a specific feature you shipped, a release you cut, or a measurable effect on users. I can then write and tag it.
+### Files it left in the working directory
+--- cv-bullets.md
+# CV bullets: co (JavaScript, Node.js, git)
+
+- Developed core features of the co JavaScript and Node.js library across three git identities, which produced 63 non-merge commits between 7 November 2013 and 22 August 2015. [P01-F1]
+- Engineered nearly half of the library's live codebase, which accounts for 697 of the 1,417 lines surviving at HEAD in git blame (49%). [P01-F2]
+- Built out the automated test suite, which covers 31 of the 41 test-file changes made in the period. [P01-F3]
+
+
+######## ARM H RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls && head -30 README.md && git log --format='%an' | sort | uniq -c | sort -rn | head && git log --author="Jonathan Ong" --oneline | wc -l && git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1p;$p'
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | head -75; wc -l index.js; ls test; git log --author="jongleberry" --format='%ad %s' --date=short
+Bash: cat > cv-bullets.md <<'EOF' ; - Co-maintained **co**, a generator-based control-flow library for Node.js and the browser (72 commits, Nov 2013 – Jul 2015), working alongside the original author on a widely used open-source package. ; - Led the **v4.0 rewrite** fro
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I based them on the git history, where you have 72 commits on `co` from Nov 2013 to Jul 2015.
+
+- Co-maintained **co**, a generator-based control-flow library for Node.js and the browser (72 commits, Nov 2013 – Jul 2015), working alongside the original author on a widely used open-source package.
+- Led the **v4.0 rewrite** from a callback/thunk model to a Promise-based core. `co()` now returns a promise, a stepping stone toward `async/await`. I also added test coverage, CI badges and updated docs, and removed outdated examples, benchmarks and build files.
+- Added **yieldable object support** and preserved key ordering. I improved the error message when a non-yieldable value is yielded, and made regular functions that throw behave correctly.
+- Fixed hard concurrency and error-handling bugs, including "Generator is already running" errors and callback/context passing. I also cut dependencies (replaced Q with Bluebird, then removed unused ones). I shipped 20+ tagged releases (3.0.x → 4.6.0) and extended CI to cover io.js and newer Node versions.
+
+- **Check "widely used":** I couldn't confirm it from the repo, so swap in a download or star count if you have one.
+- **Check "co-maintained":** the history shows you with 72 commits against 145 from TJ Holowaychuk, who started the library. Change the wording if that doesn't match your role.
+- **Check "20+ releases":** I estimated it from the version-bump commits and didn't count them exactly.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained **co**, a generator-based control-flow library for Node.js and the browser (72 commits, Nov 2013 – Jul 2015), working alongside the original author on a widely used open-source package.
+- Led the **v4.0 rewrite** from a callback/thunk model to a Promise-based core. `co()` now returns a promise, a stepping stone toward `async/await`. I also added test coverage, CI badges and updated docs, and removed outdated examples, benchmarks and build files.
+- Added **yieldable object support** and preserved key ordering. I improved the error message when a non-yieldable value is yielded, and made regular functions that throw behave correctly.
+- Fixed hard concurrency and error-handling bugs, including "Generator is already running" errors and callback/context passing. I also cut dependencies (replaced Q with Bluebird, then removed unused ones). I shipped 20+ tagged releases (3.0.x → 4.6.0) and extended CI to cover io.js and newer Node versions.
+
+
+######## ARM H RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an' | sort | uniq -c | sort -rn | head; git log --author="Jonathan Ong" --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,25p'; ls; head -30 README.md
+Bash: git log --author="Jonathan Ong" --format='%h %ad %s' --date=short | sed -n '25,72p'; git log --author="Jonathan Ong" --shortstat --format= | awk '{i+=$4;d+=$6} END{print i,d}'; wc -l index.js; ls test; grep -m3 -i -E 'download|dependents' Readme.md; sed -n 1,2
+Bash: cat > cv-bullets.md <<'EOF' ; - Co-authored and maintained **co**, a widely used open-source generator-based control-flow library for Node.js and the browser, contributing 72 commits across 2013–2015 and shipping releases from v3.0 through v4.6. ; - Led the v4 red
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I based them on your 72 commits in this repo's git history (2013–2015), plus the History file.
+
+- Co-authored and maintained **co**, a widely used open-source generator-based control-flow library for Node.js and the browser, contributing 72 commits across 2013–2015 and shipping releases from v3.0 through v4.6.
+- Led the v4 redesign from thunk/callback-based to promise-based, so `co()` returns a native Promise. This was a breaking API change that served as a stepping stone toward async/await, and I wrote the migration docs.
+- Extended the library's core features: yielding objects, arrays and regular functions, preserving key ordering, passing context and arguments through, and clearer errors when a non-yieldable value is yielded.
+- Fixed hard concurrency bugs, including "Generator is already running" errors and callback-handling edge cases. Added regression and recursion tests, and set up Travis CI, coverage reporting and `io.js` test runs. Also removed unused dependencies and stale benchmarks, and triaged and merged community pull requests.
+
+- **Authorship:** Most commits in the repo are by TJ Holowaychuk (145 vs. your 72). I wrote "co-authored and maintained" rather than "created". Change it if your role was different.
+- **Claims to check:** "Widely used" comes from the download badge in the Readme, not an actual figure. I didn't add one. If you have the real npm download count, putting it in would make the first bullet stronger.
+- **Migration docs:** The Readme has a "Co v4" section explaining the change. The git log doesn't show who wrote it, so check that claim before you paste it.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-authored and maintained **co**, a widely used open-source generator-based control-flow library for Node.js and the browser, contributing 72 commits across 2013–2015 and shipping releases from v3.0 through v4.6.
+- Led the v4 redesign from thunk/callback-based to promise-based, so `co()` returns a native Promise. This was a breaking API change that served as a stepping stone toward async/await, and I wrote the migration docs.
+- Extended the library's core features: yielding objects, arrays and regular functions, preserving key ordering, passing context and arguments through, and clearer errors when a non-yieldable value is yielded.
+- Fixed hard concurrency bugs, including "Generator is already running" errors and callback-handling edge cases. Added regression and recursion tests, and set up Travis CI, coverage reporting and `io.js` test runs. Also removed unused dependencies and stale benchmarks, and triaged and merged community pull requests.
+
+
+######## ARM H RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --author="Jonathan Ong" --oneline | head -30; git log --author="Jonathan Ong" --oneline | wc -l; git log --oneline | wc -l; ls; head -30 README.md; git shortlog -sn | head -5
+Bash: git shortlog -sn | head -5; head -40 History.md; wc -l index.js; ls test; grep -E '"(version|name)"' package.json; git log --format='%ad' --date=short | sed -n '1p;$p'
+Write: /private/tmp/h2h-wp-deep2-runs/T2-CV-3/fx/cv-bullets.md
+Bash: git tag | wc -l; grep -cE '^[0-9]+\.[0-9]+\.[0-9]+ /' History.md
+Edit: /private/tmp/h2h-wp-deep2-runs/T2-CV-3/fx/cv-bullets.md
+### Final answer text
+I'm wrapping up. I just corrected a release count in the bullets, and I'm about to give you the summary.
+
+I saved four bullets to `cv-bullets.md`. They're based on the `co` repo's git history, `History.md` and the code:
+
+1. **Creator and maintainer of `co`.** It's an open-source generator-based async control-flow library, with 70+ commits and 30+ releases since 2013.
+2. **v4.0 redesign.** I describe it as making the API Promise-based, so `co()` returns a Promise instead of a thunk.
+3. **Feature work through v4.6.** This covers `co.wrap()`, support for plain functions that return promises or throw, argument passing into generators, and detection that works with ES5 transpilers.
+4. **Maintenance.** This covers the memory leak fix (#180), Travis CI and coverage setup, cleanup of old examples and dependencies, and merging community PRs.
+
+My first draft said "100+ releases". I checked and found 36 tags and 30 changelog entries, so I changed it to "30+".
+
+Check two things before you paste:
+- **Authorship.** `git shortlog` printed nothing, so I couldn't confirm who wrote what. Your name is on the version-bump and API commits. I didn't check whether you wrote the individual features, so bullet 3 may overclaim.
+- **Numbers.** I left out download counts and stars because I can't verify them from the repo. If you have them, adding them would make the bullets stronger.
+### Files it left in the working directory
+--- cv-bullets.md
+- Created and maintained **co**, an open-source generator-based control-flow library for Node.js and the browser. It lets developers write asynchronous code in a synchronous style, and I have made 70+ commits and 30+ releases since 2013.
+- Redesigned the core API in v4.0 to be Promise-based. `co()` now returns a native Promise instead of a thunk, giving the library a smaller surface and a path toward async/await. I also shipped the follow-up v4.x releases (4.1–4.6).
+- Extended the library's features while keeping it backward-compatible. I added `co.wrap()`, support for plain functions that return promises or throw, and argument passing into generators. I also made generator detection work with ES5 transpilers.
+- Fixed a memory leak (#180), set up CI on Travis and test coverage reporting, and removed outdated examples, benchmarks and unused dependencies. I also reviewed and merged community pull requests.
+
+
+######## ARM I RUN 1
+### Commands/tools the agent used (in order)
+Skill: gaptogrowth:gaptogrowth
+Bash: ls; ls Instructions 2>/dev/null; git log --author="Jonathan Ong" --oneline | wc -l; git log --format='%an' | sort | uniq -c | sort -rn | head -5; git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,15p;$p'; git log --author="Jonathan Ong
+Bash: git log --author="Jonathan Ong" --format='%h %ad %s' --date=short | grep -v -E ' [0-9]+\.[0-9]+\.[0-9]+$' | head -40; git log --author="Jonathan Ong" --shortstat --format= | awk '{i+=$4;d+=$6} END{print i,d}'; grep -E '"(version|name)"' package.json; wc -l ind
+Write: /private/tmp/h2h-wp-deep2-runs/T2-GAP_I-1/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I wrote them from the git history of this repo, the `co` library, using the 72 commits authored as Jonathan Ong from Nov 2013 to Jul 2015.
+
+1. Maintained and released versions 3.x through 4.6.0 of `co`.
+2. Led the v4 redesign from thunks to a Promise-based core.
+3. Improved error messages, key ordering and handling of regular functions that throw, and removed unused dependencies.
+4. Added coverage reporting, CI on io.js and Node.js, and badges, and merged community pull requests.
+
+- **Skipped setup:** The GapToGrowth skill normally starts by setting up a project folder with a profile and knowledge files. I skipped that because you only asked for four bullets, and it would have added many files to this repo. I can run the full setup if you want it.
+- **Check the claims:** I only used what the git history shows, so I added no download counts or user numbers. "Led the v4 redesign" is my reading of your commits, such as "switch to a promise implementation". "Stable bridge to the async/await proposal" comes from the README. TJ Holowaychuk has more commits (145), so cut "led" if it overstates your role. If you have real adoption or usage numbers, add them to the first bullet.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained and released versions 3.x through 4.6.0 of `co`, an open-source generator-based control-flow library for Node.js and the browser, authoring 72 commits between Nov 2013 and Jul 2015 alongside the original author and community contributors.
+- Led the v4 redesign, replacing the thunk-based core with a Promise-based implementation so `co()` returns a promise, and ensured results are always wrapped in `Promise.resolve()`, giving a stable bridge to the async/await proposal.
+- Improved reliability and developer experience: clearer errors when a non-yieldable value is yielded, preserved object key ordering, and support for regular functions that throw, while removing unused dependencies and shims.
+- Strengthened project quality and community health: added test coverage reporting, CI on io.js and later Node.js versions, and Gitter and status badges, and reviewed and merged community pull requests and documentation fixes.
+
+
+######## ARM I RUN 2
+### Commands/tools the agent used (in order)
+Skill: gaptogrowth:gaptogrowth
+Bash: ls; ls Instructions 2>&1 | head; git log --author="Jonathan Ong" --oneline | wc -l; git log --author="Jonathan Ong" --format='%h %ad %s' --date=short | head -40; git shortlog -sn | head -5; cat package.json | head -30; ls
+Bash: git log --author="Jonathan Ong" --format=%ad --date=short | sed -n '1p;$p'; wc -l index.js; ls test | wc -l; git log --author="Jonathan Ong" --merges --oneline | wc -l; git log --format='%an' | sort | uniq -c | sort -rn | head -4; sed -n 1,40p History.md; git 
+Write: /private/tmp/h2h-wp-deep2-runs/T2-GAP_I-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They come from the git history of this repo, which is the `co` library, where you have 72 commits from Nov 2013 to Jul 2015.
+
+I skipped GapToGrowth's full onboarding, because you only asked for bullets. That means no profile or Learning Hub folders were created and no keyword review was run.
+
+Check these before you paste them:
+- **Roles and dates:** I described you as co-maintainer. That is inferred from the commits, the releases and the merged PRs, so use whichever title is accurate.
+- **Numbers:** The 72 commits and the 15 files (about 390 lines added and 630 removed) come from git. I added no impact metrics, such as download counts or users, because I couldn't verify any.
+- **The 4.0 rewrite:** The bullet says you led it. That rests on commit `4d2a63c`, so confirm it is accurate.
+- **The `async` interoperability claim:** The second bullet says the promise rewrite works with `async` tooling. That is my inference from the move to promises, not something in the repo, so cut it if you can't back it up.
+
+If you have real adoption numbers or other details, send them and I'll tighten the bullets.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained `co`, an open-source JavaScript library for generator-based async control flow, with 72 commits (Nov 2013 – Jul 2015) alongside the original author, and shipped releases from 3.1.0 through 4.6.0.
+- Led the 4.0 rewrite from a thunk-based to a promise-based core, removing the benchmarks and Makefile and reworking the test suite (15 files, roughly 390 lines added and 630 removed). The result was a simpler API that interoperates with native Promises and `async` tooling.
+- Fixed a memory leak (#180), made `co` always wrap results in `Promise.resolve()`, and added support for plain functions that throw or return promises. Together these made error handling and edge cases more predictable for downstream users.
+- Improved compatibility and developer workflow: added `co.wrap()` and argument passing into generators, detected generator functions in a way that works with ES5 transpilers, added test coverage reporting, and ran CI on io.js and newer Node versions. Reviewed and merged community pull requests.
+
+
+######## ARM I RUN 3
+### Commands/tools the agent used (in order)
+Skill: gaptogrowth:gaptogrowth
+Bash: ls; ls Instructions 2>&1 | head; cat package.json | head -30; git log --author="Jonathan Ong" --oneline | wc -l; git log --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,15p;$p'; git log --author="Jonathan Ong" --fo
+Bash: git shortlog -sn HEAD | head -5; head -40 README.md
+Bash: head -60 History.md; git log --author="Jonathan Ong" --format='%s' | head -60; ls test | wc -l; git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p'
+Write: /private/tmp/h2h-wp-deep2-runs/T2-GAP_I-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I wrote them from the repo history, which is `tj/co`. It shows 72 of 299 commits under your name, running from Nov 2013 to Jul 2015. I used `History.md` and the commit messages to describe what you did.
+
+I didn't run the full GapToGrowth workflow. It builds a profile and an evidence bank from your past resumes, and none were in this folder. I used the skill's honesty rule instead: every bullet comes from the commits or changelog, and I made up no metrics.
+
+Please check these before you paste them in:
+- **Credit:** I credited you with the v4.0 Promise rewrite and `co.wrap()`. The commits ("switch to a promise implementation", "4.0.0") suggest you did it, but `git shortlog` shows TJ Holowaychuk with more commits, so say "led" only if that's accurate.
+- **Role:** "Maintained" matches your release commits (3.0.x to 4.6.0), but confirm it fits your role.
+- **Numbers:** If you have real figures, such as npm downloads or GitHub stars, I can add them.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained `co`, an open-source generator-based async control flow library for Node.js and the browser (72 commits, 2013 to 2015), shipping releases from 3.0 through 4.6 under semver.
+- Led the v4.0 rewrite from thunks to a Promise-based core, adding `co.wrap()` to turn generator functions into promise-returning functions. This moved the library toward the async/await model.
+- Fixed a memory leak (#180) and "Generator is already running" errors, and improved error messages when a non-yieldable value is yielded.
+- Widened compatibility and extended the API: ES5-transpiler-friendly generator detection, support for regular functions that return promises, forwarding extra arguments into generators, and CI testing on io.js and newer Node versions.
+
+
+######## ARM J RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls && cat package.json | head -40 && git log --oneline | wc -l && git shortlog -sn --all | head && git log --author="Jonathan Ong" --oneline | wc -l && git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '1,25p;$p'
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | sed -n '26,72p'; git log --author="Jonathan Ong" --shortstat --format= | awk '/changed/{i+=$4;d+=$6}END{print i,d}'; wc -l index.js; ls test | wc -l
+Write: /private/tmp/h2h-wp-deep2-runs/T2-GAP-1/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on your git history, where you have about 72 commits, and I didn't run the code.
+
+- Maintained and released `co` (tj/co), shipping 15+ versions from 3.0 to 4.6 over 2013–2015.
+- Led the 4.0 Promise-based rewrite and added test coverage and CI.
+- Added object-yield support and key-order preservation, fixed generator and error-handling bugs, and improved the error message for non-yieldable values.
+- Reviewed and merged community pull requests and kept dependencies and docs current.
+
+Check these claims before you paste them:
+- **Scope:** The commits show you as a major contributor, but TJ Holowaychuk has more commits (145) and is the original author. I used "maintained" and "led the 4.0 rewrite" because the history supports them. Change the wording if you'd describe your role differently.
+- **Numbers:** "15+ versions" and "~70 commits" come from version-tag commits and a commit count. I didn't include download or usage figures because the repo doesn't show them. If you have them (npm downloads, GitHub stars), adding one would strengthen the first bullet.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained and released `co`, a widely used generator-based async control-flow library for Node.js and the browser (tj/co), shipping 15+ versions from 3.0 to 4.6 across 2013–2015 and authoring about 70 commits.
+- Led the 4.0 rewrite onto a Promise-based core and replaced the benchmarks and outdated examples with test coverage and CI (Travis on io.js and Node).
+- Added yieldable-object support and key-order preservation. Fixed "Generator is already running" errors, callback handling and error propagation for functions that throw, and improved the error message when a non-yieldable is yielded.
+- Reviewed and merged community pull requests, kept dependencies and docs current, and supported a ~240-line dependency-light library through multiple API and platform-compatibility changes.
+
+
+######## ARM J RUN 2
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git log --author="Jonathan Ong" --oneline | wc -l; git log --oneline | wc -l; git log --author="Jonathan Ong" --format='%ad %s' --date=short | head -40; ls; head -30 README.md
+Bash: git log --format='%an' | sort | uniq -c | sort -rn | head -5; wc -l index.js; ls test | wc -l; git show 6a8b0e4 --stat 2>/dev/null | head -0; git log --author="Jonathan Ong" --format='%h %s' | grep -iE 'promise|throw|bluebird|coverage|ordering|error' ; grep -n
+Write: /private/tmp/h2h-wp-deep2-runs/T2-GAP-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on your 72 commits in this repo, which is `co`, from 2014 to 2015 (v3.1.0 to v4.6.0).
+
+- **Maintainer:** you maintained the library across the 4.x line.
+- **Promise rewrite:** you led the v4.0 move from thunks and callbacks to a Promise-based API.
+- **Fixes:** the bullet lists the specific bugs and behaviors you fixed.
+- **Project health:** it covers coverage reporting, CI on io.js, removing unused dependencies, benchmarks and examples, and merging community pull requests.
+
+TJ Holowaychuk wrote most of the repo's history (145 commits) and created `co`. I called you a maintainer and didn't say you created it. I also left out numbers like stars or downloads because I couldn't verify them from the repo. If you know the current npm download figures, adding them would make the first bullet stronger.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits across the 4.x line (v3.1.0 to v4.6.0, 2014–2015).
+- Led the v4.0 rewrite from a thunk/callback API to a Promise-based one. `co()` now returns a promise, which made the library interoperable with native Promises and prepared it for async/await.
+- Hardened core behavior: fixed "Generator is already running" errors, added support for regular functions that throw, always wrap results in `Promise.resolve()`, preserved object key ordering, and improved the error message when a non-yieldable value is yielded.
+- Improved project health and release hygiene: added test coverage reporting, added CI testing on io.js, removed unused dependencies and out-of-date benchmarks and examples, and reviewed and merged community pull requests.
+
+
+######## ARM J RUN 3
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git log --author="Jonathan Ong" --oneline | wc -l; git log --oneline | wc -l; git log --author="Jonathan Ong" --format='%h %ad %s' --date=short | head -40; ls; head -30 package.json; git log --format='%an' | sort | uniq -c | sort -rn | he
+Bash: git show 4d2a63c --stat --format=%B | head -15; git show 9d996f2 --stat --format=%B | head; git show 5007a81 --format=%B --stat | head; wc -l index.js; ls test | wc -l; git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p;$p'; head -30 Hist
+Bash: cat > cv-bullets.md <<'EOF' ; - Co-maintained `co`, a widely used open-source JavaScript library for generator-based async control flow, contributing 70+ commits (2013–2015) and cutting releases from v3.1 through v4.6. ; - Led the v4.0 rewrite onto a native Promis
+### Final answer text
+I saved four bullets to `cv-bullets.md`. This is the `co` repo (`tj/co`), where you have 72 of 299 commits, from Nov 2013 to Jul 2015.
+
+- Co-maintained `co`, a widely used open-source JavaScript library for generator-based async control flow, contributing 70+ commits (2013–2015) and cutting releases from v3.1 through v4.6.
+- Led the v4.0 rewrite onto a native Promise-based core, replacing the callback/thunk implementation and cutting `index.js` to about 240 lines. I rewrote the test suite to match and added coverage reporting through Istanbul and Travis CI.
+- Extended the API across the 4.x releases: `co.wrap()`, regular functions that return promises or throw, forwarding extra arguments into generators, and ES5-transpiler-friendly generator detection. I kept the changes backward compatible and documented each in the changelog.
+- Maintained the project: reviewed and merged community pull requests, trimmed dependencies (swapped Q for Bluebird, then dropped it), removed outdated benchmarks and examples, and set up CI across Node.js and io.js.
+
+I built these from the git log, `History.md` and the commit diffs, so please check a few points before you paste them:
+- "Widely used" is my wording. The repo doesn't contain download or star counts, so add real numbers if you have them.
+- I'm not certain "co-maintained" matches your role. The history shows TJ Holowaychuk as the main author, and your commits are mostly releases and the v4 work. Change it to "maintainer" or "core contributor" if that fits better.
+- I treated the Promise rewrite and the later 4.x features as yours, since the commits are under your name. I didn't check how much of that was your own design versus others' ideas.
+- The commit messages say "update deps, use bluebird instead of q" and "remove unnused request dependency". I took "then dropped it" for Bluebird from the v4 move to native Promises, and I didn't check that commit.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained `co`, a widely used open-source JavaScript library for generator-based async control flow, contributing 70+ commits (2013–2015) and cutting releases from v3.1 through v4.6.
+- Led the v4.0 rewrite onto a native Promise-based core, replacing the callback/thunk implementation and cutting `index.js` to about 240 lines. I rewrote the test suite to match and added coverage reporting through Istanbul and Travis CI.
+- Extended the API across the 4.x releases: `co.wrap()`, regular functions that return promises or throw, forwarding extra arguments into generators, and ES5-transpiler-friendly generator detection. I kept the changes backward compatible and documented each in the changelog.
+- Maintained the project: reviewed and merged community pull requests, trimmed dependencies (swapped Q for Bluebird, then dropped it), removed outdated benchmarks and examples, and set up CI across Node.js and io.js.
+
+
+######## ARM K RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls && head -30 README.md && git log --oneline | wc -l && git shortlog -sn --all | head && git log --author="Jonathan Ong" --oneline | head -40
+Bash: git log --author="Jonathan Ong" --format='%ad %s' --date=short | tail -3; git log --author="Jonathan Ong" --shortstat --format= | awk '{i+=$4;d+=$6}END{print i,d}'; git log --author="Jonathan Ong" --oneline | sed -n '40,80p'; grep -c . History.md; sed -n 1,40p
+Bash: cat > cv-bullets.md <<'EOF' ; - Co-maintained **co**, a widely used open-source generator-based control-flow library for Node.js and the browser (npm package), with 70+ commits across 2013–2015 and about 1,700 lines added. ; - Led the v4.0 rewrite from thunks to a
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on your 73 commits to `co` (the generator-based control-flow library) and the changelog. The commits run from November 2013 to 2015.
+
+Please check these before you paste them in:
+- **"Led the v4.0 rewrite":** your commits show you did the switch to a promise implementation. I'm inferring that you led it, so soften it to "Drove" or "Implemented" if you'd rather.
+- **"Widely used":** I haven't checked download numbers, and the repo doesn't show them. Replace it with a real figure if you have one.
+- **Commit and line counts:** the "about 1,700 lines" figure is lines added across your commits. It includes the benchmarks and examples you later removed, so you may prefer to drop it.
+- **4.x releases:** some of the 4.x features (for example 4.6.0's extra arguments) may have been merged from other contributors. You tagged those releases, so "shipped" is accurate, but I haven't confirmed you wrote every feature.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained **co**, a widely used open-source generator-based control-flow library for Node.js and the browser (npm package), with 70+ commits across 2013–2015 and about 1,700 lines added.
+- Led the v4.0 rewrite from thunks to a Promise-based API, as a stepping stone to async/await. This was a breaking change that kept the library small and made it interoperable with the wider Promise ecosystem.
+- Shipped the 4.x releases (4.0–4.6). Added support for plain functions that return promises or throw, forwarded extra arguments into generators, and fixed a memory leak.
+- Improved reliability and developer experience: fixed "Generator is already running" errors, added clearer errors for non-yieldable values, and added object-yielding with preserved key order. Also set up CI on Travis, coverage reporting and release docs.
+
+
+######## ARM K RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls && head -30 README.md && git log --oneline | wc -l && git shortlog -sn --all | head && git log --author="Jonathan Ong" --oneline | head -40
+Bash: git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p;$p'; git show --stat 4d2a63c | tail -8; git show --stat 6c88636 | tail -5; wc -l index.js; grep -n "4.0.0\|4.6.0" History.md | head
+Write: /private/tmp/h2h-wp-deep2-runs/T2-BASE-2/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. I based them on the 73 commits under your name (Jonathan Ong) in this repo, `co`, a generator-based control-flow library. Those commits run from Nov 2013 to Jul 2015.
+
+1. **Maintainer:** co-maintained a widely used library, with 70+ commits and releases through v4.6.0.
+2. **v4.0.0 rewrite:** moved the library from thunks and callbacks to a promise-based core. The change touched 15 files, adding about 390 lines and removing about 630.
+3. **Reliability and developer experience:** plain functions that throw now reject as promises, key order is preserved when yielding objects, results are always wrapped in `Promise.resolve()`, and yielding a non-yieldable value gives a clear error.
+4. **Tooling and releases:** added coverage reporting, Travis CI (including io.js) and README badges. Also removed stale benchmarks, examples and dependencies, and shipped the 4.x releases.
+
+I haven't verified two details, so please check them before you paste the bullets in. The "widely used" claim in bullet 1 comes from the project's public profile, not from anything in the repo. And bullet 2 describes the effect of the rewrite as a simpler API and a path toward `async/await`, based on the README's own wording.
+
+I can also adjust the tone, shorten the bullets, or add numbers such as npm downloads if you have them.
+### Files it left in the working directory
+--- cv-bullets.md
+- Co-maintained **co**, a widely used generator-based control-flow library for Node.js and the browser, with 70+ commits from 2013 to 2015 and releases through v4.6.0.
+- Led the v4.0.0 rewrite from a thunk/callback design to a promise-based core. The change touched 15 files (about 390 lines added and 630 removed). It gave the library a simpler public API and a path toward native `async/await`.
+- Improved reliability and developer experience: made generators and plain functions that throw reject cleanly as promises, preserved key ordering when yielding objects, always wrapped results in `Promise.resolve()`, and replaced unclear errors with a descriptive message when a non-yieldable value is yielded.
+- Ran the project's release and quality tooling: added test coverage reporting, CI on Travis (including io.js), and README badges. Removed outdated benchmarks, examples and unused dependencies, and shipped the 4.x releases (4.0 to 4.6).
+
+
+######## ARM K RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --author="Jonathan Ong" --oneline | head -30; git log --author="Jonathan Ong" --oneline | wc -l; git log --format='%an' | sort | uniq -c | sort -rn | head -5; ls; head -30 README.md; git log --reverse --format='%ad' | head -1; git log -1 --format='%ad'
+Bash: git log --author="Jonathan Ong" --format='%ad' --date=short | sed -n '1p;$p'; git log --author="Jonathan Ong" --format='%s' | sed -n '30,72p'; wc -l index.js; ls test | wc -l; grep -m3 -n '"version"\|downloads' package.json
+Write: /private/tmp/h2h-wp-deep2-runs/T2-BASE-3/fx/cv-bullets.md
+### Final answer text
+I saved four bullets to `cv-bullets.md`. They're based on the 72 commits under your name in this repo, `co`, a generator-based control-flow library, between 2013 and 2015:
+
+- **Maintainer:** released versions 3.0 through 4.6 of the library.
+- **v4.0 rewrite:** moved the API from thunks and callbacks to promises.
+- **Bug fixes:** fixed "Generator is already running" errors, argument pass-through, and plain functions that throw, with a test for each.
+- **Quality work:** added coverage reporting and Travis CI (including io.js), clearer errors, key-order preservation for yielded objects, and trimmed dependencies. It also covers merging community pull requests.
+
+I left out download or usage numbers because the repo doesn't have any. I also don't know whether you want to claim credit for the original design, since most of the commits are TJ Holowaychuk's. The bullets say "maintained", not "created". If you have real download figures, adding them to the first bullet would make it stronger.
+### Files it left in the working directory
+--- cv-bullets.md
+- Maintained and released versions 3.0 through 4.6 of `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, across about 70 commits from 2013 to 2015.
+- Led the v4.0 re-architecture from thunk-based callbacks to a Promise-based API. `co()` now returns a promise, which made the library interoperable with native promises and a precursor to async/await.
+- Fixed concurrency and error-handling bugs, including "Generator is already running" errors, callback and argument pass-through, and support for plain functions that throw. Added regression tests for each fix.
+- Improved project quality and developer experience. Added test coverage reporting, CI on Travis (including io.js), clearer errors for non-yieldable values, key-order preservation for yielded objects, and trimmed dependencies. Reviewed and merged community pull requests.

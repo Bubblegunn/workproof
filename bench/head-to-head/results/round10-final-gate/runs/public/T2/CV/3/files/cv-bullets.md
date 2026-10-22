@@ -1,0 +1,4 @@
+- Created and maintained **co**, an open-source generator-based control-flow library for Node.js and the browser. It lets developers write asynchronous code in a synchronous style, and I have made 70+ commits and 30+ releases since 2013.
+- Redesigned the core API in v4.0 to be Promise-based. `co()` now returns a native Promise instead of a thunk, giving the library a smaller surface and a path toward async/await. I also shipped the follow-up v4.x releases (4.1–4.6).
+- Extended the library's features while keeping it backward-compatible. I added `co.wrap()`, support for plain functions that return promises or throw, and argument passing into generators. I also made generator detection work with ES5 transpilers.
+- Fixed a memory leak (#180), set up CI on Travis and test coverage reporting, and removed outdated examples, benchmarks and unused dependencies. I also reviewed and merged community pull requests.

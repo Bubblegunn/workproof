@@ -1,0 +1,3 @@
+I saved the tailored resume to `resume.md` (243 words, under the 450 limit). I started from the `npx workproof bullets` output and then edited it. I wrote a real summary, added your contact line, education and certification, and removed the source tags and the coverage tables.
+
+Gaps: the JD's nice-to-haves Rust and gRPC appear nowhere in your past resume, so I left them out rather than invent experience.

@@ -1,0 +1,4 @@
+- Maintained and released `co`, a widely used generator-based async control-flow library for Node.js and the browser (tj/co), shipping 15+ versions from 3.0 to 4.6 across 2013–2015 and authoring about 70 commits.
+- Led the 4.0 rewrite onto a Promise-based core and replaced the benchmarks and outdated examples with test coverage and CI (Travis on io.js and Node).
+- Added yieldable-object support and key-order preservation. Fixed "Generator is already running" errors, callback handling and error propagation for functions that throw, and improved the error message when a non-yieldable is yielded.
+- Reviewed and merged community pull requests, kept dependencies and docs current, and supported a ~240-line dependency-light library through multiple API and platform-compatibility changes.

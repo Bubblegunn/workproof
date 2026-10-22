@@ -1,0 +1,4 @@
+- Co-maintained `co`, a widely used open-source JavaScript library for generator-based async control flow, contributing 70+ commits (2013–2015) and cutting releases from v3.1 through v4.6.
+- Led the v4.0 rewrite onto a native Promise-based core, replacing the callback/thunk implementation and cutting `index.js` to about 240 lines. I rewrote the test suite to match and added coverage reporting through Istanbul and Travis CI.
+- Extended the API across the 4.x releases: `co.wrap()`, regular functions that return promises or throw, forwarding extra arguments into generators, and ES5-transpiler-friendly generator detection. I kept the changes backward compatible and documented each in the changelog.
+- Maintained the project: reviewed and merged community pull requests, trimmed dependencies (swapped Q for Bluebird, then dropped it), removed outdated benchmarks and examples, and set up CI across Node.js and io.js.

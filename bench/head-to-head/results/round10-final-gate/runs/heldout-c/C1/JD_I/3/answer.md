@@ -1,0 +1,3 @@
+This skill only tailors resumes. It can't write promotion evidence, so I've stopped there and haven't written `promotion-evidence.md`.
+
+I can still do the task without the skill. I'd filter the git history to your commits (dana.reyes@acme-corp.example) from January to June 2025. Then I'd write the evidence file, summarising what you delivered and its approximate size in plain terms for readers who haven't seen the code. Want me to go ahead?

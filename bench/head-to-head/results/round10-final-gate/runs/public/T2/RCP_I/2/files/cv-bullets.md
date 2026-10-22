@@ -1,0 +1,4 @@
+- Maintained `co`, a widely used generator-based async control-flow library for Node.js, and shipped releases from 3.x through 4.6.0 (72 commits authored, Nov 2013 – Jul 2015).
+- Led the 4.0 rewrite from a thunk-based core to a Promise-based implementation. Every result is now wrapped in `Promise.resolve()`, and yielding regular functions that throw is supported.
+- Improved reliability and developer experience: clearer errors when a non-yieldable value is yielded, preserved key ordering when yielding objects, and a documented memory-leak caveat. Also swapped Q for Bluebird and removed unused dependencies and shims.
+- Raised project quality and community health: added test coverage reporting (Istanbul), added io.js and later Node stable and LTS versions to the CI matrix, and reviewed and merged community pull requests to keep the docs current.

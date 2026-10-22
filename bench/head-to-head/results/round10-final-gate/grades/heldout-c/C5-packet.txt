@@ -1,0 +1,1731 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; git log --format='%h %an <%ae> %ad %s' --date=iso --stat | head -150
+Bash: git branch -a; git stash list; git log --all --oneline | head -3; grep -ril hreflang . --exclude-dir=.git | head; git show 80590c4 --stat --format=%B | head -20; git show 61504bc | head -30; cat lib/jekyll/sitemap_cache.rb | head -20
+Bash: git log main..feature/hreflang --format='%h %an %ad %s' --date=iso --stat; git branch --contains 1e4185b
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP-1/fx/invoice-check.md
+### Final answer text
+I wrote the note for finance in `invoice-check.md`. In short, the history shows work behind every invoice line, but it can't confirm the hours. Git records what changed and when, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** There are three small commits by Luka on 9 September, spread over about 2 hours. The work is real, but 20 hours is hard to match to it.
+- **Multi-language support (24 h):** The work is only on an unmerged side branch, `feature/hreflang`, and the last commit is marked "WIP". It isn't in the main product.
+- **Sitemap caching (12 h):** The commit was written by Nora Fisher, not Luka. Her email is on the same company domain as Luka's, so she may work for his firm. Check that the contract allows that.
+- **CI fix for Ruby 3.3 (6 h):** The commit is dated 3 October, after the billing period.
+
+The note ends with questions for Luka, including a request for time logs.
+
+I only read the git history, including the side branch. I didn't run the code or judge its quality.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows real work for most line items, but it can't confirm the hours. Two items have wrinkles worth asking Luka about before paying in full.
+
+Git history records *what* was changed and *when*. It doesn't record how long anything took, so none of the hour counts can be verified from it. The notes below only say whether each item has matching work.
+
+| # | Invoice item | Hours billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep 2025 (feature, tests, README note), about 2 hours apart (10:05 to 12:19). About 58 lines added. | Work exists. The commits are small and span about 2 hours, so 20 h is hard to match to them. Ask what else took the time. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep), but **only on the unmerged branch `feature/hreflang`**, not on `main`. The last commit is labelled "WIP". | Work started but not finished or delivered. Billing the full 24 h for a feature that isn't in the product is questionable. |
+| 3 | Performance: cache generated sitemap | 12 | One commit (22 Sep, 40 lines), authored by **Nora Fisher**, not Luka. Her email is on the same company domain as Luka's (lp-dev.example). | Work exists, but Luka didn't write it. It may be fine if Nora works for LP Dev and the contract allows subcontracting. Confirm that. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka dated **3 Oct 2025**, which is outside the September billing period. It rewrote the CI file (8 lines added, 52 removed). | Work exists, but it is dated after the period. Ask whether it belongs on the October invoice. |
+
+Also in September: a "Update dependencies" commit by Luka (15 Sep) that isn't billed as its own line. It adds a 306-line `Gemfile.lock`.
+
+## What the history supports
+- Luka made commits on 9, 15, 17, 18 and 26 Sep, and 3 Oct. Each of the four items has at least some matching work.
+- Luka's own work visible in September covers items 1 and 2 (the latter unmerged).
+
+## What it doesn't support
+- **Any specific number of hours.** Commit timestamps show when work was saved, not how long it took.
+- **Item 2 as a finished deliverable.** It's only on a side branch and ends in a WIP commit.
+- **Item 3 as Luka's personal work.** Someone else wrote it.
+- **Item 4 as September work.** It's dated 3 Oct.
+- Work that doesn't leave commits (research, meetings, debugging, review) wouldn't show up either. That could account for some hours, but only Luka can say.
+
+## Suggested questions for Luka
+1. How were the 20 h for item 1 spent, given the commits span about 2 hours?
+2. Is the hreflang work finished? Will it be merged, and is the full 24 h due for work in progress?
+3. Did Nora Fisher do the caching work, and is she covered by your agreement with LP Dev?
+4. Should the CI fix (3 Oct) be on the October invoice instead?
+5. Can you provide time logs or notes backing the hours?
+
+## Caveats
+This check used only the git history in this repo (including the `feature/hreflang` branch). I didn't run the code or judge its quality. Commit dates and authors can be set by the committer, so they're good evidence but not proof.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h %an <%ae> %ad %s' --date=iso --numstat
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat
+Bash: git branch -a; git log --all --oneline -i --grep='hreflang\|language\|i18n' | head; grep -ril 'hreflang' . --exclude-dir=.git | head; git show 80590c4 --stat | head -20; git show 80590c4 -- .github/workflows/ci.yml | head -40
+Bash: git log feature/hreflang --not main --format='%h | %an | %ad | %s' --date=iso --numstat; git log feature/hreflang --not main --format=%h | wc -l
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP-2/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The history shows real work behind all four invoice lines, but it can't confirm any of the hours. Git records what was delivered and when, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** Luka made three commits on 9 Sep, about 58 lines in total. The work is real, but 20 h looks high for that amount. The note suggests asking Luka what else the time covered.
+- **Multi-language support (24 h):** Luka's three commits are on an unmerged side branch, and the last is marked "work in progress". So this feature isn't actually delivered.
+- **Sitemap caching (12 h):** The one commit was written by Nora Fisher, not Luka. Her email is on the same company domain as Luka's, so she's probably a colleague. Check whether the contract allows that and whether her hours belong on this invoice.
+- **CI fix (6 h):** It's dated 3 Oct, after the invoice period ended on 30 Sep. It also cut the test configuration from 56 lines to 12, which is worth a technical check.
+
+The note ends with suggested questions for Luka, and leaves the decision on what to pay to you and finance.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows real work for each of the four invoice lines. It supports some of them better than others, and it can't confirm the hours on any of them. Commits show what was delivered and when, not how long it took.
+
+## Line by line
+
+| # | Invoice line | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep: the feature (32 lines), tests (20 lines) and a README note (6 lines). All fall within about 2 hours of each other. | **Work is real, but small.** 20 h looks high for roughly 58 lines of code, tests and docs. This may include design, research or review that never shows up in commits. Ask Luka. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka, 17–26 Sep, but only on a side branch (`feature/hreflang`). They have not been merged into the main code. The last one is labelled "WIP" and adds only 2 lines. | **Partly supported, unfinished.** There is a start (60 lines) and tests (40 lines), but nothing delivered. Billing 24 h for a feature that isn't in the product needs an explanation. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit, 22 Sep (40 lines). The author is **Nora Fisher**, not Luka. Her email is on the same lp-dev.example domain as Luka's. | **Work is real, but not by Luka.** Nora appears to be a colleague at LP Dev. Confirm that the contract allows subcontracting or other staff, and that these hours are meant to be on Luka's invoice. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct 2025**, which is after the invoice period ends (30 Sep). It replaced the 56-line CI configuration with a 12-line one. | **Outside the billing period.** It belongs on October's invoice, or Luka should explain the date. Separately, the change removed a lot of existing test coverage (older Ruby versions and branch rules), so it is worth a technical check that this was intended. |
+
+## What I'd say the history supports
+
+- Luka authored work on lines 1 and 2 in September.
+- Line 3's work happened in September but was done by someone else.
+- Line 4's work happened in October.
+- The only line that is clearly Luka's own, finished and inside the period is line 1 (20 h). Even that is a high number for the amount of code.
+- Another commit, "Update dependencies" (15 Sep, Luka), isn't on the invoice at all. It's not a problem, just a sign the invoice doesn't map exactly to the history.
+
+## What the history cannot tell us
+
+- **Hours.** Git records when a change was saved, not how long it took. Research, meetings, debugging and unmerged experiments leave no trace. Luka's 62 h could be honest, but the repo can't prove it.
+- Work done outside this repository (other tools, calls, other branches not shared with us).
+- Dates are set by the person committing and can be edited, so they are good evidence but not proof.
+
+## Suggested next steps
+
+1. Ask Luka for a short breakdown of the 20 h on line 1 and the 24 h on line 2, and whether the hreflang work will be finished and merged.
+2. Ask who Nora Fisher is and whether line 3 should be on this invoice.
+3. Ask whether line 4 (6 h) should move to October.
+4. Until those are answered, consider paying only what is clearly supported and holding the rest. That is a finance and contract decision for you.
+
+*Basis: the full commit history of this repository, including the unmerged `feature/hreflang` branch, compared with docs/billing/INV-0042.txt.*
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP-3/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h %an <%ae> %ad %s' --date=iso --numstat
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat
+Bash: git log --all --oneline -i --grep='hreflang\|language\|i18n' ; grep -ril hreflang . --exclude-dir=.git | head; git branch -a; git show 80590c4 --stat --format=%B | head -20; git show 382dbdb --format=%B | head -60; git show 61504bc | head -20
+Bash: git log feature/hreflang --not main --format='%h | %an | %ad | %s' --date=iso --numstat; git show 88610e7 | head -50
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP-3/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP-3/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The repo history shows real work behind each line item, but it doesn't back up the invoice as written. Only the 20 h exclusion-flag item is cleanly supported, and even that looks like a lot of hours for the code involved. The other 42 h need questions answered.
+
+- **Sitemap exclusion flag (20 h):** Luka made three commits on 9 Sep, all within about 2 hours of each other. The amount of code is small, so I'd ask for a time log.
+- **Multi-language (hreflang) support (24 h):** The work is on a side branch that was never merged, and the last commit is marked "WIP" (work in progress). The feature isn't delivered.
+- **Sitemap caching (12 h):** The only matching commit was written by Nora Fisher, not Luka. Her email is on Luka's company domain, so she may be a colleague or subcontractor.
+- **CI fix (6 h):** The commit is dated 3 Oct, after the September billing period, so it belongs on October's invoice.
+
+Commit history can't prove hours worked, only when changes were saved. I also didn't check code quality or whether the features work. The note ends with four questions you can send to Luka.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repository history shows real work behind each line item, but it does not support the invoice as written. Two items have problems with dates or authorship, and one is unfinished. The history can't prove hours either way, because it records when changes were saved, not how long they took.
+
+## Line by line
+
+| # | Item | Billed | What the history shows |
+|---|------|--------|------------------------|
+| 1 | Sitemap exclusion flag | 20 h | **Supported.** Luka made 3 commits on 9 Sep 2025 (flag, tests, docs) on the main branch, all within about 2 hours of each other. That is a small amount of code, so 20 h is worth asking about. |
+| 2 | Multi-language (hreflang) | 24 h | **Partly supported, not finished.** Luka made 3 commits (17, 18 and 26 Sep) on a side branch, `feature/hreflang`. They were never merged into the main code. The last one is labelled "WIP" (work in progress) and adds only 2 lines. Billing the full 24 h for a feature that isn't delivered needs an explanation. |
+| 3 | Cache the sitemap | 12 h | **Not supported as Luka's work.** The only matching commit (22 Sep) was written by **Nora Fisher**, not Luka. Her email is on the same company domain (lp-dev.example), so she may be a colleague or subcontractor of Luka's. Ask whether this was agreed and who is being billed for it. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | **Work exists, but outside the billing period.** The commit is by Luka, dated **3 Oct 2025**, after the September invoice period ended. It should appear on October's invoice. |
+
+## Other notes
+
+- A "Update dependencies" commit by Luka (15 Sep) is not on the invoice. It does not offset anything, but it shows some other activity.
+- Only item 1 (20 h) is cleanly supported. Items 2, 3 and 4 (42 h) are the ones to query.
+- Commit dates can be set by the person committing, so they are indicative, not proof.
+
+## Suggested questions for Luka
+
+1. Who did the sitemap caching work, and is Nora covered by your agreement with us?
+2. What is the status of hreflang support, and will it be finished? Is the 24 h for work done so far?
+3. Please move the CI fix to the October invoice, or explain the date.
+4. Can you give a time log or breakdown for the 20 h on the exclusion flag?
+
+*Based on the git history in this repository as of the commit "Add contractor invoice INV-0042 for reference". I did not review the code quality or test whether the features work.*
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-1/fx/docs/billing/INV-0042.txt
+Bash: git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat | head -200
+Bash: git show 1e4185b 80590c4 --stat --format='%h %s' | head; git show 1e4185b | tail -15; git show 80590c4 | head -80; git status --short; ls
+Bash: head -12 lib/jekyll/hreflang.rb; head -12 lib/jekyll/sitemap_cache.rb; head -8 lib/jekyll/exclude_flag.rb
+Bash: git branch -a; git log --oneline -3 -- lib/jekyll/hreflang.rb; git show 69ee453 | head -20; git branch --contains 1e4185b
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-1/fx/invoice-check.md
+### Final answer text
+I've finished the check and written the note to `invoice-check.md`. The history shows work on all four invoice items, but it doesn't support the hours or the billing as written.
+
+- **Hours:** History only records when changes were saved, so it can't confirm any number of hours. Item 1 (the sitemap exclusion flag, billed at 20 h) was committed by Luka in about 2 hours on 9 Sep.
+- **Multi-language support (24 h):** Luka's commits are on a side branch, `feature/hreflang`, and aren't in the main code. The last one is labelled "WIP" (work in progress).
+- **Sitemap caching (12 h):** The one commit was written by Nora Fisher, not Luka.
+- **CI fix (6 h):** It was committed on 3 Oct, outside the September invoice period. It also removed most of the old test setup.
+
+The note ends with questions to put to Luka. If items 3 and 4 were dropped, at most 44 h would remain, and that is still unconfirmed.
+
+I'm not a substitute for a developer review. Some of the code looks like repetitive placeholder functions, which the note flags for a technical person to check.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history supports the *existence* of work on all four line items, but not the hours. Two items have problems worth raising with Luka before paying in full.
+
+Note: the repo history records when changes were saved, not how long they took. It can show that work happened, but it can never confirm a number of hours. Hours would need timesheets or similar from Luka.
+
+## Line by line
+
+| # | Invoice item | Hours billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 | Three commits by Luka on 9 Sep 2025 (10:05–12:19): the feature (32 lines), tests (20 lines), and a README note (6 lines). | **Work is present and in the right month.** All of it was committed within about 2 hours of the first commit, which is a lot less than 20 h. Ask what the rest of the time covered. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka, 17–26 Sep: initial code (60 lines), tests (40 lines), and a final commit labelled "WIP" (work in progress, 2 lines, only a comment). | **Partly supported, and not finished.** The work is only on a side branch (`feature/hreflang`) and has **not** been merged into the main codebase. The last commit says it is still in progress. Confirm with Luka whether it is complete and delivered. |
+| 3 | Cache generated sitemap | 12 | One commit on 22 Sep (40 lines), **authored by Nora Fisher** (nora@lp-dev.example), not Luka. | **Questionable as billed by Luka.** The work is real and in September, but someone else wrote it. Ask whether Nora is a subcontractor and whether her time is meant to be on Luka's invoice at his rate. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka on **3 Oct 2025** (8 lines added, 52 removed). | **Outside the invoice period** (1–30 Sep). The work looks real but was done in October. It also deleted most of the previous test setup (older Ruby versions, gem-build check), so the client may want to ask whether that was intended. |
+
+## Other observations
+
+- Luka's September history is 8 commits over about 4 working days (9, 15, 17, 18, 22 and 26 Sep). A "Update dependencies" commit on 15 Sep (a generated file of 306 lines) is not an invoiced line item.
+- The code is quite small overall (roughly 250 lines in total across all items), and some of the code files contain very repetitive placeholder-style functions (for example `hreflang_1`, `hreflang_2`, ...). I'm not a substitute for a developer review, but a technical reviewer should confirm the code does something useful.
+- The invoice file itself was added to the repo on 6 Oct 2025 by Maya Chen, so it is not evidence of work.
+
+## Suggested next steps
+
+1. Ask Luka for timesheets or a breakdown supporting the 62 h, especially item 1 (20 h) against roughly 2 h of visible activity.
+2. Ask about item 2's status and have it merged or reviewed if it's meant to be delivered.
+3. Ask who Nora Fisher is and whether item 3 should be billed under Luka's name.
+4. Move item 4 (6 h) to October's invoice, or get agreement to include it in September.
+
+If items 3 and 4 were removed, the supportable total would be at most 44 h (20 + 24), before the questions above on hours.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h %an <%ae> %ad %s' --date=iso --numstat
+Bash: git log --format='%h | %an <%ae> | %ad | %cn | %s' --date=iso --numstat; git log --all --oneline | wc -l; git branch -a
+Bash: git log --all -i --grep='hreflang\|language\|i18n' --oneline | head; git grep -il hreflang | head; git log --all --since=2025-08-01 --oneline | wc -l; git show 80590c4 --stat --format=%b | head -20; git show 382dbdb --format='%an %cn%n%b' | head -60
+Bash: git branch -a --contains 1e4185b; git log --all --since=2025-08-01 --format='%h | %an | %ad | %s | %D' --date=iso --numstat --graph | head -50; git merge-base --is-ancestor 1e4185b main && echo merged || echo not-in-main
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-2/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-2/fx/invoice-check.md
+### Final answer text
+I've written the note for finance in `invoice-check.md`. The history shows real work on all four invoice items, but it can't confirm the 62 hours. Git records when changes were saved, not how long they took. Several lines also have problems.
+
+- **Sitemap exclusion flag (20 h):** Luka made three small commits on 9 Sep, about 2 hours apart from first to last. They are merged. 20 h looks high for the visible work, so the note suggests asking for a breakdown.
+- **Multi-language support (24 h):** The work sits on a separate branch, `feature/hreflang`, and was never merged. The last commit is marked "WIP" (work in progress), so the feature looks unfinished and isn't in the product.
+- **Sitemap caching (12 h):** The one commit was written by Nora Fisher, not Luka. She uses an @lp-dev.example address but isn't the invoicing contractor. The code is placeholder-looking functions (`cache_1`, `cache_2`, …) that just add numbers, so it doesn't appear to cache anything.
+- **CI fix (6 h):** The commit is dated 3 Oct 2025, outside the September billing period.
+
+The note also recommends asking Luka for time logs and for the status of the hreflang work. It suggests asking who Nora is and who actually wrote the cache. It also suggests asking why October work is on the September invoice.
+
+Commit dates and authors are set on the contractor's own computer and can be edited, so treat them as indicative rather than proof.
+### Files it left in the working directory
+--- invoice-check.md
+# Check of Invoice INV-0042 (Luka Petrovic, September 2025, 62 h) against repo history
+
+**Bottom line:** The history shows real work for each of the four invoice items. It can't confirm the hours. Git records when changes were saved, not how long they took. Three items also have issues worth raising with Luka before paying in full.
+
+| # | Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 | 3 commits by Luka on 9 Sep (10:05–12:19): the feature (32 lines), tests (20 lines), README note (6 lines). Merged to main. | Work is present and small. The commits span about 2 hours of clock time. 20 h is not obviously supported, though there may be unrecorded work (design, testing, meetings). **Ask for an explanation.** |
+| 2 | Multi-language (hreflang) | 24 | 3 commits by Luka (17, 18 and 26 Sep) on a separate branch, `feature/hreflang`. **Not merged into main.** The last commit is labelled "WIP" (work in progress), and the feature file is about 60 lines. | Work started but unfinished and not delivered. Billing the full 24 h for a feature that isn't in the product is questionable. **Ask for status and whether it is complete.** |
+| 3 | Cache generated sitemap | 12 | One commit on 22 Sep, authored by **Nora Fisher** (a different person, though with an @lp-dev.example address). The code is 40 lines of placeholder-looking functions (`cache_1`, `cache_2`, … that just add numbers). It doesn't appear to do any real caching. | Not Luka's commit, and the content doesn't look like a working cache. **Ask who did the work, whether Nora is covered by the contract and rate, and what the code actually does.** |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka on **3 Oct 2025**, which is **outside the invoice period** (1–30 Sep). It changes the automated-test setup file (8 lines added, 52 removed). | Work is real, but dated after September. It belongs on an October invoice, or Luka should explain the date. |
+
+## Other observations
+- A commit on 15 Sep ("Update dependencies", 306 lines) is **not on the invoice**. It is an automatically generated file, so it likely took little time.
+- In total, 8 commits are dated within September (5 on main, 3 on the unmerged hreflang branch), plus the 3 Oct one. All are small.
+- Commit dates and authors come from the contractor's own computer and can be edited, so they are indicative rather than proof.
+
+## What the history can and can't support
+- **Supports:** work on all four topics took place, mostly in September, with the exclusion flag finished and merged.
+- **Doesn't support:** the 62 hours total. Nothing records time spent. Visible clock time on the commits is far below 62 h, though that is normal since much work isn't committed.
+- **Contradicts or complicates:** item 2 is unfinished and unmerged, item 3 was authored by someone else, and item 4 is dated October.
+
+## Suggested next step
+Before approving, ask Luka for: (a) time logs or a breakdown behind each line, (b) the status of the hreflang work, (c) who Nora Fisher is and who wrote the cache, and (d) why the 3 Oct work is on the September invoice. Hours for items 2–4 (42 h) are the ones most in question; item 1 (20 h) is also higher than the visible work suggests.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-3/fx/docs/billing/INV-0042.txt
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -200
+Bash: git branch -a; git stash list; grep -rli hreflang . --exclude-dir=.git | head; git log --all -i --grep='hreflang\|language\|i18n' --format='%h %s' | head; git show 80590c4 --stat --format=%B | head -20; git show 80590c4 | head -90; cat lib/jekyll/sitemap_cache
+Bash: git log feature/hreflang --not main --format='%h|%an|%ad|%s' --date=iso --numstat; git merge-base main feature/hreflang; git branch -r; git show 88610e7 | head -50
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-SR-3/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. In short, the history shows work on some of the invoiced items, but it doesn't back up the 62 hours. It also can't prove or disprove hours either way, because it records what changed and when, not time spent.
+
+- **Exclusion flag (20 h):** The work is there. Luka committed it in three commits on 9 Sep, between 10:05 and 12:19. The code is small, so 20 h looks high, though prep or debugging time wouldn't show up in the history.
+- **Multi-language support (24 h):** This is only partly done. It sits on an unmerged branch, `feature/hreflang`, and the last commit is labelled "WIP" (work in progress). It was never merged into the main code.
+- **Sitemap caching (12 h):** The work is there, but the commit was by Nora Fisher, not Luka. She has the same company email domain, so she's probably on Luka's team. It's worth confirming her time is meant to be billed on this invoice.
+- **CI fix (6 h):** The commit is dated 3 Oct, outside the September billing period. It also removed most of the old test setup, leaving a single Ruby 3.3 run, which reduces test coverage.
+
+The note ends with four questions you could put to Luka.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history confirms that work was done on some of the invoiced items. It does not confirm the hours, and two line items don't match the history cleanly. I'd ask Luka for more detail before paying in full.
+
+**Caveat:** Repo history shows what changed and when. It doesn't record time spent. Hours can't be proven or disproven from it, and commit dates can be set by whoever makes the commit. Other work (research, meetings, debugging) leaves no trace in it.
+
+| # | Invoice item | Billed | What the history shows |
+|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | **Supported that the work exists.** Feature, tests and docs were committed by Luka on 9 Sep, in three commits between 10:05 and 12:19 (about 2 hours apart, start to finish). The code is small (about 60 lines). 20 h is a lot more than the history suggests, though prep or debugging time might not show up. |
+| 2 | Multi-language (hreflang) support | 24 h | **Partly supported, and not delivered.** The work is on a separate branch (`feature/hreflang`) and has never been merged into the main code. Three commits by Luka, 17–26 Sep. The last is labelled "WIP" (work in progress) and is 2 lines long. So there's evidence of a start, but not of a finished feature. |
+| 3 | Cache generated sitemap | 12 h | **Supported, but not by Luka.** The commit on 22 Sep was authored by **Nora Fisher** (also a `lp-dev.example` address, so probably Luka's firm). That's fine if Nora's time is billed through LP Dev. It's worth confirming. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | **Outside the period.** Committed 3 Oct, after the invoice period ended on 30 Sep. It also deleted most of the old test setup (the older Ruby versions tested, and the gem-build check) in favour of a single Ruby 3.3 run. That fixes the problem, but it reduces test coverage. Someone technical should confirm that was intended. |
+
+**Other history in September:** a "Update dependencies" commit on 15 Sep (Luka). It isn't on the invoice.
+
+## What's supported
+- Items 1 and 3: the work exists in the main code.
+- Item 2: partial work exists, on an unmerged branch.
+
+## What isn't
+- The hour counts for any item. The commit timing suggests far less than 62 h of visible work.
+- Item 2 as a completed feature.
+- Item 4 as September work.
+- Item 3 as Luka's own work. It's Nora Fisher's.
+
+## Suggested questions for Luka
+1. How were the 20 h on the exclusion flag spent, given the commits span about 2 hours?
+2. Is hreflang finished? If not, should the 24 h be billed in full now, or when it's merged?
+3. Is Nora Fisher part of LP Dev and covered by this invoice?
+4. Item 4 is dated October. Should it move to the October invoice? Was the reduced CI coverage intended?
+
+Based on the repo history only. I did not review code quality or the contract terms.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --format='%h|%an|%ae|%ad|%s' --date=iso --shortstat
+Bash: cat docs/billing/INV-0042.txt | cut -c1-300 | head -60; wc -l docs/billing/INV-0042.txt; git show --stat --format=%h 61504bc 80590c4 382dbdb | head -30; git grep -il hreflang | head; git log --all --oneline -i --grep=hreflang --grep=language | head
+Bash: git branch -a --contains 1e4185b; git log --all --format='%h|%an|%ad|%s' --date=short --shortstat 69ee453^..1e4185b; git branch -a --no-merged main -v
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP_I-1/fx/invoice-check.md
+### Final answer text
+I wrote the note for finance to `invoice-check.md`. I didn't run the receipts skill's report. It's a Claude Code usage report and can't check an invoice against repo history.
+
+The history shows work on all four invoiced items. It can't confirm the 62 hours, because commits show what changed and when, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** Luka made three commits on 9 Sep, about 58 lines in total, within roughly 2 hours of each other. 20 h looks high for that size, but the history can't show time spent.
+- **Multi-language (hreflang) support (24 h):** The three commits by Luka are only on an unmerged `feature/hreflang` branch, and the last one is labelled "WIP". The work is started but not delivered.
+- **Cache the sitemap (12 h):** The one commit was written by Nora Fisher, not Luka. She uses the same email domain as Luka, so she may work for LP Dev, but that needs confirming.
+- **Fix CI on Ruby 3.3 (6 h):** The commit is dated 3 Oct, after the September billing period.
+
+The note ends with four questions for Luka: a timesheet behind the hours, whether the hreflang work is finished, who Nora is, and when the CI fix was done.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows that work happened on all four invoiced items. It cannot confirm the hours. Two items have complications, and one is unfinished work.
+
+Commit history records what changed and when. It does not record time spent. A small commit can take a day, and a large one can take minutes (for example, an auto-generated file). So "supported" below means the work exists, not that the hours are right.
+
+| Invoice item | Hours billed | What the history shows | Assessment |
+|---|---|---|---|
+| 1. Sitemap exclusion flag | 20 | 3 commits by Luka on 9 Sep (feature, tests, docs), about 58 lines in total, made within roughly 2 hours of each other. | Work is real. 20 h looks high for the size of the change, but there is no way to see the time from history. |
+| 2. Multi-language (hreflang) support | 24 | 3 commits by Luka (17, 18 and 26 Sep), about 100 lines. They are **only on the unmerged branch `feature/hreflang`, not on `main`**. The last commit is labelled "WIP". | Work started but not finished or delivered. Billing 24 h in full for it is a question to raise with Luka. |
+| 3. Cache generated sitemap | 12 | One commit of 40 lines on 22 Sep, **authored by Nora Fisher** (a different person, though with the same `lp-dev.example` email domain). | The work exists, but it is not Luka's commit. Ask whether Nora is part of LP Dev and whether her time is meant to be on Luka's invoice. |
+| 4. Fix CI on Ruby 3.3 | 6 | One commit by Luka on 3 Oct, which is **after the September billing period**. It is a small config change. | Work is real but is dated October. Check whether it belongs on this invoice. |
+
+## Other observations
+- Luka's "Update dependencies" commit (15 Sep) is 306 lines. That is an auto-generated lock file, so the size says little about effort. It matches no invoice line.
+- Total committed activity by Luka in September is 6 commits on 4 days (9, 15, 17, 18 and 26 Sep, counting the unmerged branch). This is light for 62 hours, but people also spend time on design, research, debugging and meetings that never show up in commits.
+
+## Suggested questions for Luka
+1. Can you share a timesheet or breakdown behind the 62 hours, especially the 20 h for item 1 and the 24 h for item 2?
+2. Item 2 is unmerged and marked WIP. Is it finished? Should it be billed in full now?
+3. Who is Nora Fisher, and is item 3 her work?
+4. Item 4 was committed on 3 Oct. Was the work done in September?
+
+*Based only on the git history in this repo, including the `feature/hreflang` branch. Work done elsewhere (other repos, private branches, non-code work) would not appear here.*
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -150; echo; git shortlog -sne --all
+Bash: git branch -a; git stash list; git grep -il hreflang; git log --all --oneline -i --grep=hreflang --grep=language; git show 80590c4 -- .github/workflows/ci.yml | head -90; git show 382dbdb | head -70; git log --format='%h %an committer=%cn %cd' --date=iso -8
+Bash: git log feature/hreflang --format='%h|%an|%ad|%s' --date=iso -5 --numstat; git branch --contains feature/hreflang; git merge-base --is-ancestor feature/hreflang main && echo merged || echo NOT-merged
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP_I-2/fx/invoice-check.md
+### Final answer text
+I've written the note for finance to `invoice-check.md` in this folder. I didn't run the `/receipts` skill's miner, because it builds a report of Claude Code usage on this machine and says nothing about Luka's hours. I read the repo's git history directly instead.
+
+The history shows some real work for each invoice item, but it can't confirm the 62 hours. Git records what was saved and when, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** The work is there and on the main branch. The three commits were all made on 9 September within about 2¼ hours, so 20 hours is hard to see from the history alone.
+- **Multi-language hreflang support (24 h):** The work was only started. It sits on a side branch that was never merged, and the last commit is marked "WIP" and adds 2 lines.
+- **Cache the sitemap (12 h):** The one commit was written by Nora Fisher, not Luka. She uses the same company email domain as Luka. The code is ten near-identical placeholder functions, not a working cache.
+- **Fix CI on Ruby 3.3 (6 h):** The commit is dated 3 October, which is outside the September billing period. It also deleted most of the old test setup.
+
+The note ends with four questions to put to Luka. These cover a time breakdown for the first two items, whether the hreflang work is finished, who Nora is, and why the CI commit is dated after the period.
+
+The note covers only what the commit history shows. I didn't run or review the code, and commit dates can be edited, so they are indicative, not proof.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 (Luka Petrovic, September 2025): check against repo history
+
+**Bottom line:** The history shows real work for each of the four items. It cannot confirm the 62 hours. Git records what was saved and when. It doesn't record how long anything took. Several points deserve a question to Luka before payment.
+
+## What the history shows, item by item
+
+| Invoice item | Hours billed | What the history shows | Assessment |
+|---|---|---|---|
+| 1. Sitemap exclusion flag | 20 | 3 commits by Luka on 9 Sep, between 10:05 and 12:19 (code, tests, docs). About 58 lines added. | Work is present and on `main`. The commits span about 2 hours 15 minutes. 20 hours is a lot for that, unless there was unrecorded effort such as design, review or testing. |
+| 2. Multi-language (hreflang) | 24 | 3 commits by Luka (17, 18 and 26 Sep) on a side branch, `feature/hreflang`. **Never merged into `main`.** The last commit is labelled "WIP" and adds only 2 lines. | Partly supported. Work started, but it is unfinished and not delivered. Ask whether 24 h is for finished work. |
+| 3. Cache generated sitemap | 12 | One commit, 22 Sep, adding a 40-line file. **Authored by Nora Fisher, not Luka** (same `lp-dev.example` email domain). The content is 10 near-identical placeholder functions (`cache_1` to `cache_10`, each just adds a number). It doesn't look like a working cache. | Weak. Someone other than the contractor wrote it, and it doesn't look like real caching code. |
+| 4. Fix CI on Ruby 3.3 | 6 | One commit by Luka, **3 Oct 2025, which is outside the September billing period**. It replaces the whole CI configuration (52 lines removed, 8 added). That removes the old Ruby/Jekyll version testing and the gem-build check. | Work is present, but it is dated after the period. Also check whether you wanted the old test coverage removed. |
+
+## Other observations
+
+- **Total activity is small.** Luka made 6 commits on `main` in September, plus 3 on the unmerged branch. Another commit, "Update dependencies" (15 Sep), is a generated lockfile and isn't on the invoice.
+- **Timestamps are not hours.** Commits on a single day or two cannot show 62 hours of effort. Work like research, meetings or debugging leaves no commit.
+- **Nora Fisher** appears only on the caching commit. Ask whether Nora is a subcontractor and whether you agreed to that.
+- The invoice file was added to the repo by Maya Chen on 6 Oct. Nothing in the repo ties it to the commits.
+
+## Suggested questions for Luka
+
+1. Can you give a breakdown of time for items 1 and 2? What was the work beyond the committed code?
+2. Is the hreflang work finished? Where is it, and why isn't it merged?
+3. Who is Nora Fisher, and is the caching code the real implementation?
+4. Why is the CI fix dated 3 Oct, and why were the older test setups removed?
+
+## Limits of this check
+
+This is based only on this repository's git history (author, date, files changed). I did not run the code or review its quality. Commit dates are set by the committer's computer and could be edited, so treat them as indicative, not proof. Nothing here proves the hours are wrong. The history just doesn't prove them, and it raises the questions above.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -200; echo ----; git shortlog -sne --all
+Bash: git log --all --author='lp-dev.example' --format='%h|%an|%cn|%ad|%s' --date=iso --numstat; echo ----; git log -5 --format='%h|%an|%ad|%s' --date=iso; git log --all --committer='lp-dev' --format='%h %cn' | head
+Bash: cat lib/jekyll/hreflang.rb; git show 80590c4 --stat --format=%b | tail -3; git show 80590c4 | head -40; git branch -a
+Bash: git log --oneline main..feature/hreflang; git branch --contains 1e4185b; git branch --contains 69ee453; git ls-tree -r main --name-only | grep -E 'hreflang|exclude_flag|sitemap_cache'
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-RCP_I-3/fx/invoice-check.md
+### Final answer text
+I've written the note for finance to `invoice-check.md` in this folder. The history shows that most of the billed work exists, but it can't confirm the 62 hours, because commits don't record time spent.
+
+I didn't use the receipts skill's report, because it summarizes your own Claude Code usage and doesn't compare an invoice with commit history. I checked the git history directly instead.
+
+| Invoice item | Hours | What the history shows |
+|---|---|---|
+| Sitemap exclusion flag | 20 | Work exists. Three commits by Luka on 9 September, about 2 hours apart, and it's in the main code. |
+| Multi-language (hreflang) support | 24 | Partly there. Three commits by Luka, the last marked "WIP". They sit only on a side branch (`feature/hreflang`) and were never merged into the main code. |
+| Cache the generated sitemap | 12 | Work exists, but **Nora Fisher** wrote it, not Luka. Her email is at Luka's company. |
+| Fix CI on Ruby 3.3 | 6 | The commit is dated **3 October**, outside the September billing period. It also deletes most of the existing test setup. |
+
+The note suggests asking Luka for timesheets and whether Nora worked under this contract. It also suggests asking whether the multi-language work is finished, and moving the October item to the next invoice.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 (Luka Petrovic, September 2025): check against repo history
+
+**Invoice:** 62 hours across four items. **Source checked:** the git history of this repo (all branches).
+
+**Important limit:** commit history shows what code was saved and when. It does not record time spent. It can show whether the billed work exists. It cannot confirm or refute the hours. Hours would need timesheets or similar.
+
+## Item by item
+
+| # | Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Feature, tests and README note committed by Luka on 9 Sep (3 commits within about 2 hours, about 58 lines). Merged into `main`. | **Work exists.** The commits cover roughly 2 hours of activity. Whether it took 20 hours is not shown. Worth asking about. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep, about 100 lines). The last is labelled "WIP". They sit only on the side branch `feature/hreflang`. They are **not in `main`**, and the file is not in the delivered code. | **Partly supported, not delivered.** It is unfinished work that has not been merged. Ask whether it is complete before paying in full. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit (22 Sep, 40 lines), authored by **Nora Fisher**, not Luka. Her email is at the same company as Luka (`lp-dev.example`). | **Work exists, but someone else wrote it.** It may be a colleague at Luka's firm, which would be legitimate if it is permitted under the contract. Ask Luka to confirm. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct 2025**, which is outside the invoice period (1–30 Sep). It replaces the CI configuration with a much shorter one (8 lines added, 52 removed). | **Outside the billing period.** It also removes most of the existing test setup. It does not obviously add Ruby 3.3, which is worth a technical look. |
+
+## Other points
+
+- Luka also made a "Update dependencies" commit on 15 Sep (an automatically generated lock file). It is not on the invoice.
+- Luka's commits are dated 9 Sep and 15–26 Sep. There is nothing between 27 and 30 Sep, and nothing on 1–8 Sep.
+- Total commit activity from Luka and Nora in September is small: 8 commits, about 570 lines, most of them a generated lock file.
+
+## Summary for finance
+
+- **Supported by history (work exists):** item 1 (20 h) and, with a caveat about who wrote it, item 3 (12 h).
+- **Partly supported:** item 2 (24 h). The work is unfinished and not merged.
+- **Not supported as billed for September:** item 4 (6 h). It is dated October.
+- **Hours:** none of the hour figures can be verified from history. The visible commit activity looks small for 62 hours, but people also spend time on design, review and testing that leaves no commits.
+
+## Suggested next steps
+
+1. Ask Luka for timesheets or a breakdown of the hours for items 1 and 2.
+2. Ask whether Nora Fisher worked on item 3 under this contract.
+3. Ask whether item 2 is finished and when it will be merged.
+4. Move item 4 to the October invoice, or confirm why it was billed for September.
+5. Ask someone technical to look at the CI change in item 4.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%cn|%s' --date=iso --numstat | head -200; echo ----; git shortlog -sne --all
+Bash: git log --all --author='lp-dev' --format='%h|%an|%ad|%cd|%s' --date=iso --numstat; echo ----; git log -8 --format='%h|%an|%ad|%s' --date=iso; echo; git log --all --author='Maya Chen' --format='%h|%an|%ad|%s' --date=iso --numstat
+Bash: cat lib/jekyll/hreflang.rb; echo ----; head -15 lib/jekyll/sitemap_cache.rb; echo ----; git show 382dbdb --format='%an %ae%n%b' --stat | head; git branch -a | head
+Bash: git log main..feature/hreflang --format='%h %an %ad %s' --date=short; git log --format=%h -1 --merges --since=2025-09-01
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV_I-1/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The history supports only part of the 62 hours. I did not commit it.
+
+I didn't use the cv-builder skills, since they are for resumes and this was an invoice check.
+
+- **Line 1, exclusion flag (20 h):** The work is real and is on the main branch. Luka's commits for it all land on 9 Sept, within about 2 hours of each other. 20 h looks high for that, so the note suggests asking for a breakdown.
+- **Line 2, hreflang (24 h):** The work exists but is unfinished. It sits on a separate `feature/hreflang` branch that was never merged, and the last commit is marked "WIP".
+- **Line 3, sitemap caching (12 h):** The only commit was written by Nora Fisher, not Luka. Her email is at the contractor's firm, so this may be subcontracted work.
+- **Line 4, CI fix (6 h):** The commit is dated 3 Oct, after the invoice period ended on 30 Sept.
+
+So 20 h are straightforward and 42 h need an answer from Luka. That isn't proof of overbilling. Git records neither hours nor work that never produced a commit, and commit dates can be edited. The note ends with four questions for Luka.
+
+I did not review code quality in depth. The caching file looks like placeholder code, so you may want a technical person to look at it.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 (Luka Petrovic, September 2025, 62 h): history check
+
+**Bottom line:** The repo history supports part of the invoice, not all of it. Git records *what* was changed and *when*. It does not record hours, so no line can be confirmed or disproved on hours alone. The history does show that two of the four lines have problems that need an answer from the contractor.
+
+| # | Invoice line | Billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 h | Luka made 3 commits on 9 Sept (flag, tests, README note). About 70 lines of new content, all within roughly 2 hours of commit timestamps. | **Work is real and on main.** 20 h looks high for what is visible. Ask for a breakdown. |
+| 2 | Multi-language (hreflang) support | 24 h | Luka made 3 commits (17, 18 and 26 Sept) on a separate branch, `feature/hreflang`. They are not merged into main. The last one is labelled "WIP". | **Partly supported.** Work exists but is unfinished and not delivered to main. Ask whether it is meant to be billed as complete. |
+| 3 | Performance work: cache generated sitemap | 12 h | The only commit (22 Sept) was authored by **Nora Fisher** (nora@lp-dev.example), not Luka. | **Not Luka's work in the history.** Nora appears to be at the contractor's firm. Ask whether this is subcontracted work and whether it is correctly billed under Luka's invoice. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | The commit is dated **3 Oct 2025**, after the invoice period (1–30 Sept). | **Outside the period.** It likely belongs on an October invoice. |
+
+There is also an unbilled item. Luka's "Update dependencies" commit (15 Sept) is not on the invoice. It's a single commit of generated lock-file content, so it was probably quick.
+
+## Rough tally
+- Clearly in period, by Luka, on main: line 1 (20 h).
+- In period, by Luka, but unmerged and unfinished: line 2 (24 h).
+- In period, but authored by someone else: line 3 (12 h).
+- Dated outside the period: line 4 (6 h).
+
+So only 20 of the 62 hours are straightforward. The other 42 h need clarification. That is not proof of overbilling. For example, work may have been done offline, or the commit dates may not match when the effort happened.
+
+## Limits of this check
+- Commit dates are set by the author's computer and can be edited. They are a good guide, not proof.
+- Git doesn't show time spent on research, meetings, debugging or review that never produced a commit.
+- I looked at commit dates, authors, sizes and branches. I did not review code quality in depth. The cache file looks like placeholder-style code, which may be worth a technical look.
+
+## Suggested questions for Luka
+1. Can you give an hour breakdown for line 1 (20 h)?
+2. Is the hreflang work finished? Why is it on an unmerged branch marked "WIP"?
+3. Did Nora Fisher do line 3? If so, is she a subcontractor, and is the rate the same?
+4. Should the Ruby 3.3 CI fix (3 Oct) move to the October invoice?
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV_I-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -200; echo ---; git shortlog -sne --all
+Bash: git log --all --author='lp-dev.example' --author='Maya Chen' --format='%h|%an|%ae|%ad|%s' --date=iso --numstat; echo ---; git log -8 --format='%h|%an|%ad|%s' --date=short; git branch -a
+Bash: git branch --contains 1e4185b; git branch --contains 69ee453; git log main..feature/hreflang --format='%h %s'; git show 1e4185b --stat --format=%B | head; cat lib/jekyll/hreflang.rb 2>/dev/null | head -5; git show 1e4185b | tail -15
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV_I-2/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The cv-builder skills are for resumes, so I didn't use them. Git history shows what was committed and when, but not hours worked. It can't confirm or dispute the 62 hours.
+
+| Invoice line | Hours | What the history shows |
+|---|---|---|
+| Sitemap exclusion flag | 20 | Delivered and merged. It is three commits by Luka on 9 Sep, about 2 hours of commit activity and 58 lines added. This is plausible, but 20 hours is a lot for that size. |
+| Multi-language (hreflang) | 24 | Only partly supported. Luka made three commits, but they are on an unmerged `feature/hreflang` branch, and the last one is marked "WIP" and adds 2 lines. Nothing has been delivered to `main`. |
+| Cache the sitemap | 12 | The work is real, but the commit was made by Nora Fisher (same company email domain as Luka), not Luka. |
+| Fix CI on Ruby 3.3 | 6 | The commit is dated 3 Oct, which is outside the September billing period. |
+
+That works out to 20 hours clearly backed by delivered work, 24 partly backed, and 18 with an authorship or date question. None of that proves the hours are wrong.
+
+The note also lists follow-up questions for Luka: a timesheet per line, who Nora is, why the CI fix is dated October, and the status of the hreflang branch. Commit dates are set by the committer's own computer, so they're good evidence but can be changed.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Caveat:** Git history shows *what* was committed and *when*. It cannot show hours worked. This note says whether the history is consistent with each line item. It does not confirm or dispute the hours.
+
+| # | Invoice line | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep (code, tests, README), about 58 lines added, all within roughly 2 hours of commit timestamps. Merged to `main`. | **Work is real and delivered.** The size looks small next to 20 h, but time spent on design, investigation or review wouldn't appear in git. Worth asking Luka to explain. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18, 26 Sep) on the unmerged branch `feature/hreflang`. The 26 Sep commit is labelled "WIP" and adds 2 lines, one of them a comment. Nothing is on `main`. | **Only partly supported.** Work exists and was started, but it is unfinished and not delivered. The commits don't show 24 h of finished work. Ask for status and for what the 24 h covers. |
+| 3 | Performance: cache generated sitemap | 12 | One commit (22 Sep, 40 lines) on `main`, authored by **Nora Fisher** (`nora@lp-dev.example`), not Luka. | **Work is real, but not by Luka in the history.** Nora uses the same company email domain, so she may be a colleague at LP Dev. Ask whether it is billable under this invoice and who did the work. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct 2025**. It changed one CI file (8 lines added, 52 removed). | **Outside the billing period.** The commit is dated after 30 Sep, so September history doesn't support it. It may have been worked on in September and committed late, so ask. |
+| | Update dependencies (15 Sep, one lockfile) | not invoiced | Present in history, but not listed on the invoice. | Nothing to check. |
+
+## Summary
+
+- **Clearly supported:** item 1 (20 h) is real and merged. Even there, the history shows only about 2 hours of commit activity, so the hours are plausible but not proven.
+- **Partly supported:** item 2 (24 h) is unfinished work on an unmerged branch.
+- **Not supported as stated:** item 3 (12 h) was committed by a different person. Item 4 (6 h) was committed in October.
+- That leaves 20 h clearly backed by delivered work, 24 h partly backed, and 18 h with an authorship or date question. None of this proves the hours are wrong.
+
+## Suggested next steps
+
+1. Ask Luka for a timesheet or time log per line item. Git can't confirm hours.
+2. Ask who Nora Fisher is and whether her work belongs on this invoice.
+3. Ask why the CI fix is dated October, and whether it should be on the October invoice instead.
+4. Ask whether `feature/hreflang` is meant to be finished and merged, and whether payment for item 2 should wait until it is.
+
+*Source: repository history on all branches, checked against docs/billing/INV-0042.txt. Dates are the commit timestamps recorded by the contractor's own machine, which can be set or rewritten by the committer. They are good evidence but not tamper-proof.*
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV_I-3/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -200; echo ---; git shortlog -sne --all
+Bash: git log --all --author='lp-dev' --author='Luka' --format='%h|%an|%ad|%s' --date=iso --numstat; echo ---; git log -12 --format='%h|%an <%ae>|%ad|%s' --date=iso; echo; git branch -a
+Bash: git branch --contains 1e4185b; git branch --contains 69ee453; git branch --contains c544074; git log main..feature/hreflang --format='%h %s'; cat lib/jekyll/hreflang.rb; git show 1e4185b --stat --format=%B | head; git show 80590c4 | head -40
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV_I-3/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. I didn't use the cv-builder skills, because they're for resumes and this was an invoice check.
+
+**Bottom line:** The history shows real work behind all four invoice items, but it can't confirm the 62 hours. A commit records what changed and when, not how long it took. Three items have problems:
+
+- **Hreflang (24 h):** The work is on a side branch, `feature/hreflang`, and was never merged into `main`. It's about 100 lines, and the last commit is labelled "WIP". The feature looks unfinished.
+- **Sitemap cache (12 h):** The only commit was written by Nora Fisher, a colleague at Luka's company, not by Luka. Finance should ask whether her time was meant to be billed on Luka's invoice.
+- **Ruby 3.3 CI fix (6 h):** The commit is dated 3 October, outside the September invoice period. It also replaces most of the CI configuration, so someone technical should check that testing wasn't reduced.
+
+**Exclude flag (20 h):** The three commits for this item span about 2¼ hours on one morning (9 September). That doesn't match 20 hours, though Luka may have done other work that wasn't committed.
+
+Commit dates can also be set by whoever makes the commit, so they're indicative rather than proof. The note ends with questions to put to Luka and a suggested way to handle each item.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows real work behind each of the four line items. It cannot confirm the hours, because a commit records what changed and when, not how long it took. Two items don't match the invoice as written, and one is incomplete. We suggest asking Luka about those before paying in full.
+
+## Line by line
+
+| # | Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits on 9 Sep, 10:05–12:19: the feature (32 lines), tests (20 lines) and a README note (6 lines). All of it is merged to `main`. | **Work is real, but the hours look high.** The commits span about 2h15m in one morning. About 58 lines of code and tests in total. Luka may have worked outside those commits (design, investigation), so ask. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits on 17, 18 and 26 Sep, all on the side branch `feature/hreflang`. They are **not merged to `main`**. They add about 100 lines. The last commit is labelled "WIP" and adds 2 lines. | **Partly supported, unfinished.** There is a start and some tests, but the feature isn't delivered. The `main` branch contains no hreflang code. 24 h for this much visible output is hard to confirm. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit on 22 Sep (40 lines), authored by **Nora Fisher** (an `@lp-dev.example` address), not Luka. | **Work is real, but not by Luka.** Ask whether Nora's time is meant to be billed under Luka's invoice, and whether that was agreed. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct 2025**. | **Outside the invoice period** (1–30 Sep). It belongs on an October invoice. The commit also replaces the whole CI configuration (about 50 lines removed, 8 added) instead of adding Ruby 3.3, so it is worth a technical check that testing coverage wasn't reduced. |
+
+Not on the invoice: a 15 Sep "Update dependencies" commit (a generated lockfile). It's minor and consistent with some unbilled housekeeping.
+
+## What the history can and cannot tell us
+
+- **Supports:** Luka was active on 9, 15, 17, 18 and 26 Sep, and the features described exist in some form.
+- **Does not support:** the 62 total hours. Commit timestamps give no measure of effort. Nothing here shows time spent on meetings, research or debugging.
+- **Overall pattern:** There were 7 commits by Luka in September, on 5 separate days, plus Nora's one. Even allowing generously for work not captured in commits, that is light for 62 h. The historical record for the last two weeks of September is thin (one WIP commit on the 26th).
+- Commit dates can be set by the author, so they are indicative rather than proof.
+
+## Suggested questions for Luka
+
+1. Can you provide a time log or breakdown behind the 20 h and 24 h entries?
+2. Is the hreflang work finished? If so, where is it? It's on a side branch and is not in `main`.
+3. Was Nora Fisher's cache work meant to be billed on your invoice, and was she approved to work on our project?
+4. Should the Ruby 3.3 CI fix (3 Oct) move to the October invoice?
+
+## Suggested handling
+
+- Items 1 and 3: pay once Luka explains the hours (and, for item 3, who did the work).
+- Item 2: hold until we know whether the feature is complete and merged, or agree a reduced amount for work delivered.
+- Item 4: move to October.
+- The items in question total 42 h (items 2, 3 and 4 at 24 + 12 + 6 h). Item 1 (20 h) is a query, not a dispute.
+
+*Source: git history of this repository, compared against `docs/billing/INV-0042.txt`. This is a review of the records, not an audit of the hours worked.*
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; git log --format='%h %an <%ae> %ad %s' --date=iso --shortstat | head -100
+Bash: git branch -a; git stash list; git log --all --oneline -i --grep='hreflang\|language\|i18n' | head; git grep -il hreflang $(git rev-list --all | head -50) 2>/dev/null | head -3; git show --stat 61504bc 80590c4 382dbdb | cat
+Bash: git log feature/hreflang --not main --format='%h %an %ad %s' --date=iso --shortstat | cat
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-1/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The history shows work behind every line on the invoice, but it can't confirm the 62 hours. Commits show what was saved and when, not how long it took.
+
+| Item | Billed | What the history shows |
+|---|---|---|
+| Sitemap exclusion flag | 20 h | Luka made three commits on 9 Sep, spanning about 2 hours. The work is merged. 20 h looks high for what's visible, though time before the first commit wouldn't show. |
+| Multi-language (hreflang) | 24 h | Luka's three commits are on a side branch, `feature/hreflang`, and aren't merged into `main`. The last one is marked "WIP" (work in progress). This looks started but not delivered. |
+| Cache generated sitemap | 12 h | The commit is real, but it was authored by Nora Fisher, not Luka. Her email is on the same company domain as Luka's. |
+| Fix CI on Ruby 3.3 | 6 h | The commit is dated 3 Oct, outside the September billing period. |
+
+The note also lists questions to put to Luka. For example, is the hreflang work finished, is Nora covered by the contract, and should the CI fix move to October's invoice?
+
+Commit dates and authors are set by whoever commits, so they're good evidence but not proof. I only looked at this repo, so work kept elsewhere wouldn't appear.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows real work behind every line item, but it can't confirm the hours. Two items have clear gaps (hreflang is unfinished and unmerged; the caching work was committed by someone else). One item was committed in October. Treat this as "work exists, hours unverified" and ask Luka a few questions before paying in full.
+
+Note: commit history records *when and what* was saved, not how long it took. Even in the best case it can only show that work happened, not that it took the billed hours.
+
+| # | Invoice item | Billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | 3 commits by Luka on 9 Sep (feature, tests, docs), about 2 hours apart from first to last. About 58 lines added in total. | Work is real and merged. 20 h looks high for what is visible, though time spent before the first commit wouldn't show. |
+| 2 | Multi-language (hreflang) | 24 h | 3 commits by Luka on 17, 18 and 26 Sep, **only on a side branch (`feature/hreflang`), not merged into `main`**. The last commit is labelled "WIP" (work in progress). About 100 lines. | Started, not delivered. Not part of the working product. |
+| 3 | Cache generated sitemap | 12 h | 1 commit (40 lines) on 22 Sep, **authored by Nora Fisher**, not Luka. Her email is on the same company domain (lp-dev.example). | Work is real, but Luka didn't commit it. Ask whether Nora is a subcontractor and whether her time is meant to be on Luka's invoice. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | 1 commit by Luka dated **3 Oct 2025**, which is outside the September billing period. | Work is real but dated after the period. Should be on October's invoice, or Luka should explain the date. |
+
+**Not on the invoice:** Luka also made a "Update dependencies" commit on 15 Sep (a generated lockfile). It's routine, and it doesn't correspond to any line item.
+
+## Suggested questions for Luka
+1. Hreflang: is it finished? If so, where is the code, and can it be merged? If not, should the 24 h be billed in full?
+2. Sitemap caching: who did the work, and is Nora covered by this contract?
+3. CI fix: why is it dated 3 Oct, and should it move to the October invoice?
+4. Exclusion flag: can Luka explain the 20 h given what's visible in the repo (about 2 h of commits)?
+
+## What I could not check
+- Actual time spent (meetings, research, design and debugging leave no commits).
+- Commit dates and authors are set by the person committing, so they're good evidence but not proof.
+- I looked only at this repo's history, including the `feature/hreflang` branch. Work kept elsewhere wouldn't appear.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h %an <%ae> %ad %s' --date=iso --numstat
+Bash: git log --format='%h | %an <%ae> | author %ad | commit %cd | %s' --date=iso --numstat; git log --all --oneline | wc -l; git branch -a; grep -rni hreflang . --exclude-dir=.git | head
+Bash: git log --all --oneline | wc -l; git branch -a; grep -rnli hreflang . --exclude-dir=.git | head; git log --all --since=2025-08-01 --oneline; git show 80590c4 | head -80; cat lib/jekyll/sitemap_cache.rb | head -20; ls
+Bash: git log main..feature/hreflang --format='%h | %an | %ad | %s' --date=iso --numstat; git branch --contains 1e4185b; git log -1 --format=%P 69ee453
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-2/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-2/fx/invoice-check.md
+### Final answer text
+I wrote the note for finance in `invoice-check.md`. The history shows some real work, but it doesn't support 62 hours. Git records what was committed and when, not hours worked, so it can't confirm hours.
+
+- **Sitemap exclusion flag (20 h):** The work is real and delivered. Luka made 4 commits on 9 Sep, spanning about 2 hours. The 20 h can't be confirmed from the history.
+- **Multi-language support (24 h):** This is on a side branch (`feature/hreflang`) that was never merged. The last commit is marked "WIP". It was started but not delivered.
+- **Sitemap caching (12 h):** The one commit was written by a different person, Nora Fisher, not Luka. The code looks like placeholder functions rather than a working cache.
+- **CI fix (6 h):** The commit is dated 3 Oct, outside September. It also removed older test setups instead of just fixing the Ruby 3.3 problem.
+
+The note recommends asking Luka for timesheets and explanations. It also suggests holding the 42 h on the last three items until those are answered.
+
+Commit dates can be set by whoever commits, so treat them as indicative rather than proof. I also haven't checked that the caching code is really a placeholder beyond reading its first lines.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows that *some* work happened, but it does not support the 62 hours as billed. Version history records what was committed and when. It does not record hours worked. So it can confirm that work exists, but it can never confirm hours. Several line items also have specific problems, listed below.
+
+| # | Invoice item | Hours billed | What the history shows | Verdict |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | 4 commits by Luka on 9 Sep (10:05 to 12:19), about 60 lines of code, tests and docs. | Work is real and delivered. Commits span about 2 hours; 20 h is not visible, though planning or review time wouldn't show. Ask Luka. |
+| 2 | Multi-language (hreflang) support | 24 | 3 commits by Luka (17, 18 and 26 Sep) on a side branch, `feature/hreflang`. It was **never merged into the main code**. The last commit is labelled "WIP" and adds 2 lines. | Started but not delivered. Not in the product. Questionable to bill 24 h as complete. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit on 22 Sep, 40 lines. It was written by **Nora Fisher** (also a lp-dev.example address), not Luka. The code in it looks like placeholder functions (`cache_1`, `cache_2`... each just adding a number), not a working cache. | Not Luka's commit, and doesn't appear to do what the item says. Needs explanation. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct**, which is outside the September billing period. It replaced the test setup with a much shorter one. It dropped the older Ruby versions, the Jekyll 3.x test and the gem-build check, and tests now run on every push rather than only the main branch. | Wrong period. Also a reduction in test coverage rather than a plain fix. |
+
+**Other observations**
+- A "Update dependencies" commit by Luka on 15 Sep (a lockfile, 306 lines) is not an invoice line. It is minor work and doesn't change the picture.
+- Luka authored 8 commits in total: 3 for the exclude flag, 1 dependency update, 3 unmerged hreflang commits and the 3 Oct CI commit. Commit counts say nothing about hours, so none of this confirms or refutes the 62 h.
+
+**Suggested next steps**
+1. Ask Luka for time records (timesheet or tracker) for each item. The commit history can't substitute for them.
+2. Ask why the hreflang work was not merged and whether it is finished.
+3. Ask who Nora Fisher is, and why her cache commit is billed under Luka. Ask for a technical review of that code.
+4. Query the 6 h for CI, since it was done in October, and confirm whether removing the test coverage was agreed.
+5. Consider holding payment on items 2 to 4 (42 h) until answered. Item 1 (20 h) is supported as work, with the hours still to be confirmed.
+
+*Basis: git history of this repository, including the `feature/hreflang` branch. Dates are commit timestamps, which the committer can set themselves, so they are indicative rather than proof.*
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-3/fx/docs/billing/INV-0042.txt
+Bash: git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat | head -200
+Bash: git show 1e4185b 69ee453 --format='== %h %s' | head -120; git show 80590c4 --stat --format='%h %cd %s' --date=iso | head; git show 80590c4 | head -90
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-3/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-OURS-3/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The repo history doesn't back up the 62 hours as billed. It also can't prove or disprove hours either way, because it records what was saved and when, not time spent.
+
+- **Sitemap exclusion flag (20 h):** The work is there, in three commits on 9 Sep. It's about 58 lines of change, so 20 h looks high, but there may be unrecorded work.
+- **Multi-language support (24 h):** This is weakly supported. The main file is 15 near-identical placeholder functions (`x + 1`, `x + 2`, and so on). The last commit is labelled "WIP" and only adds a comment.
+- **Cache the sitemap (12 h):** This commit was written by Nora Fisher, not Luka. Nora uses the same company email domain as Luka, so she may be a colleague or subcontractor.
+- **Fix CI on Ruby 3.3 (6 h):** The commit is dated 3 Oct, outside the September billing period.
+
+At most 44 h are visible under Luka's name in September, and that's a ceiling because the multi-language work looks unfinished. 12 h are Nora's and 6 h are from October.
+
+The note ends with questions to put to Luka and a suggestion to hold payment on the last three items until he answers. It also flags that the CI commit deletes the old multi-version test setup instead of just adding Ruby 3.3.
+
+I didn't test whether the code works.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows real work for items 1 and 4, partial work for item 2, and item 3 was written by someone else. It cannot confirm the hours for any item. Git records what was saved and when. It doesn't record time spent, so it can't prove or disprove a number of hours.
+
+## Item by item
+
+| # | Invoice item | Billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 h | 9 Sep 2025: three commits by Luka, about 2 hours apart (10:05–12:19). They add the feature (32 lines), tests (20 lines) and a README note (6 lines). | Work is present and in September. 20 h looks high for about 58 lines of change, but there may be unrecorded work such as design, testing or review. Ask Luka. |
+| 2 | Multi-language (hreflang) support | 24 h | 17–18 Sep and 26 Sep: three commits by Luka. The tests are 40 lines. The main file is 60 lines of repeated placeholder functions (`x + 1`, `x + 2`, … `x + 15`). These don't appear to do anything related to language links. The last commit, labelled "WIP", adds a comment line and nothing else. | **Weakly supported.** The history shows a started, unfinished feature, not finished "support". 24 h is the hardest figure to justify from the repo. Ask Luka what was delivered and what the 24 h covered. |
+| 3 | Performance work: cache generated sitemap | 12 h | 22 Sep 2025: one commit, 40 lines, **authored by Nora Fisher** (nora@lp-dev.example), not Luka. | **Not Luka's work in the history.** Nora uses the same company email domain, so she may be a colleague or subcontractor of Luka's. Whether to pay for 12 h of her work depends on your contract. Ask Luka to explain. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | One commit by Luka, dated **3 Oct 2025**. It replaces the old test setup with a shorter one (8 lines added, 52 removed). | **Outside the billing period** (1–30 Sep). The work is real, but it belongs on an October invoice, not this one. It also removes the old multi-version test setup rather than just adding Ruby 3.3, which is worth a question to Luka. |
+
+## Other points
+
+- The 15 Sep "Update dependencies" commit (a generated lock file, 306 lines) isn't listed on the invoice. It's routine and not much work.
+- The history has about 9 commits by Luka in September, concentrated on 9, 17–18 and 26 Sep, plus Nora's one commit.
+- The history is not a timesheet. Commit times are when changes were saved, and commit dates can be set by the author. Meetings, research, debugging and review leave no trace.
+
+## Hours by how well the history supports them
+
+| Category | Hours |
+|---|---|
+| Work visible in September under Luka's name (item 1, and item 2 only in part) | up to 44 h |
+| Authored by someone else (item 3) | 12 h |
+| Dated outside September (item 4) | 6 h |
+
+Even the 44 h is a ceiling. Item 2 appears to be unfinished and partly placeholder code.
+
+## Suggested next steps
+
+1. Ask Luka for a breakdown of hours per item (dates and what was done), and for any time tracking.
+2. Ask who Nora Fisher is and whether her work is covered by your agreement.
+3. Ask Luka to explain what the hreflang commits deliver, and whether the 24 h includes work that isn't in the repo.
+4. Move the CI fix to the October invoice, or agree to accept it on this one.
+5. Consider holding payment of items 2–4 (42 h) until these are answered. Item 1 looks reasonable to pay, though 20 h is on the high side.
+
+*Based on the repository's commit history as of 22 Oct 2026. I haven't tested whether the code works.*
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso --shortstat
+Bash: git show 80590c4 --stat --format='%h %s%n%b' | head -20; git show 382dbdb --format='%h %an %cn %s%n%b' --stat | head; git show 1e4185b 69ee453 --stat --format='%h %s' ; git show 1e4185b | head -30; git log --all --since=2025-09-01 --until=2025-10-01 --format='
+Bash: git branch --contains 1e4185b; git branch --contains 69ee453; git log main..feature/hreflang --oneline; cat docs/billing/INV-0042.txt | head -12
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD_I-1/fx/invoice-check.md
+### Final answer text
+I wrote the note for finance in `invoice-check.md`. The repo history does not support the full 62 hours. I didn't use the jd-resume-tailor skill because it only tailors resumes, so I read the invoice and the git history directly.
+
+The history shows what changed and when, not how long the work took, so only a timesheet can confirm hours. By invoice line:
+
+- **Sitemap exclusion flag (20 h):** The work is real. It is three commits by Luka on 9 Sept, and 20 hours looks high for that amount of change.
+- **hreflang multi-language support (24 h):** This is partly supported. Luka's commits are on a side branch (`feature/hreflang`) and were never merged into main, and the last commit is marked "WIP".
+- **Cache generated sitemap (12 h):** The only commit was written by Nora Fisher, not Luka. She uses an `@lp-dev.example` email address, the same domain as Luka.
+- **Fix CI on Ruby 3.3 (6 h):** The commit is dated 3 Oct, outside the September billing period.
+
+Only the first item, 20 hours, is clearly Luka's finished September work. The note suggests asking Luka for time records, about Nora's authorship, about the October date, and about where the hreflang work stands. It frames these as questions, since there may be innocent explanations, such as work done outside the repo.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows real work for items 1 and 2 (partly), but it does not support the full 62 hours. Two line items don't match the history as invoiced, and the history can't confirm hours at all.
+
+## What the history can and can't tell us
+Git records *what* was changed and *when*. It does not record time spent. So it can show that work happened, not that it took 62 hours. Any hours figure needs Luka's timesheet or notes.
+
+## Line by line
+
+| # | Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 | Three commits by Luka on 9 Sept (flag, tests, docs), about 58 lines added, all within roughly 2 hours of commit times. | **Work is real. 20 h looks high** for what was delivered. Needs explanation. |
+| 2 | Multi-language (hreflang) | 24 | Three commits by Luka on 17, 18 and 26 Sept (about 100 lines). The last is marked "WIP" and adds only a comment. All of it sits on a side branch (`feature/hreflang`) and was **never merged into main**. | **Partly supported.** Work started but is unfinished and not delivered. Ask whether 24 h should be billed for incomplete work. |
+| 3 | Cache generated sitemap | 12 | The one commit was written by **Nora Fisher** (also an `@lp-dev.example` address), not Luka, on 22 Sept. | **Not Luka's work in the record.** Ask whether Nora's time is being billed under Luka's invoice, and whether that was agreed. |
+| 4 | Fix CI on Ruby 3.3 | 6 | Commit is dated **3 Oct 2025**, outside the September billing period. | **Outside the period.** It may belong on the October invoice. |
+
+## Other observations
+- A 15 Sept "Update dependencies" commit (an auto-generated lockfile, 306 lines) isn't on the invoice. It also doesn't justify extra hours.
+- Of the 62 hours, only item 1 (20 h) is clearly Luka's finished September work in the history. Items 2 to 4 (42 h) are unfinished, someone else's, or dated outside September.
+
+## Suggested next steps
+1. Ask Luka for the timesheet or time-tracking records behind each line.
+2. Ask about item 3 (Nora's authorship) and item 4 (October date).
+3. Ask whether the hreflang work is complete, and if so, where it is. It isn't on main.
+4. Hold payment on the disputed lines until answered. These are questions, not an accusation: there may be an innocent explanation, such as work done outside the repo, pair work, or a commit made later than the work.
+
+*Based on the git history of this repository and docs/billing/INV-0042.txt, checked 22 Oct 2026.*
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD_I-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat; echo ---; git log --format='%an' | sort | uniq -c
+Bash: git log --author="Luka" --format='%n%h | %an <%ae> | author %ad | commit %cd | %s' --date=iso --stat; echo; git log --since=2025-09-01 --until=2025-10-01 --format='%h | %an | %ad | %s' --date=short | head -50; echo; git log -3 --format='%h %an %ad %s' --date=i
+Bash: git show 382dbdb --stat --format='%an %ae %s%n%b'; git log --all --oneline -i --grep='hreflang\|language\|i18n' | head; grep -ril hreflang --include=* . 2>/dev/null | grep -v '^./.git/' | head; git branch -a; git show 80590c4 | head -40
+Bash: git log feature/hreflang --not main --format='%h | %an <%ae> | %ad | %s' --date=short --stat; git log main --format='%h %an %ad' --date=short | grep -c .; git merge-base main feature/hreflang | xargs git log -1 --format='base %h %ad'
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD_I-2/fx/invoice-check.md
+### Final answer text
+I checked the history and wrote the note for finance in `invoice-check.md`. I didn't use the jd-resume-tailor skill, because it only tailors resumes to job descriptions and doesn't cover an invoice check.
+
+The history backs up some of the work but none of the 62 hours. It shows what changed and when, not time spent, so every line rests on Luka's own estimate.
+
+| Invoice line | Hours | What the history shows |
+|---|---|---|
+| Sitemap exclusion flag | 20 | The work is real: 3 commits on 9 Sep, about 58 lines in total. The hours look high for that. |
+| Multi-language (hreflang) | 24 | The work is only on an unmerged side branch, and the last commit is marked "WIP". It was never delivered. |
+| Cache the sitemap | 12 | The commit was written by **Nora Fisher**, not Luka, though her email is at Luka's company. |
+| Fix CI on Ruby 3.3 | 6 | The commit is dated **3 Oct**, which is after the September billing period. |
+
+The last two lines, 18 hours in total, aren't supported as billed. The note suggests asking Luka for time logs, asking who Nora is, and holding payment on those two lines until that's answered.
+
+Commit dates and authors can be set by whoever makes the commit, so they are a good guide but not proof.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history confirms that work happened on some of the invoiced items. It does not confirm any of the hours, and two line items have problems that need an answer from Luka before payment.
+
+The history records *what* changed and *when*. It does not record time spent, so no line can be verified in hours.
+
+| # | Invoice line | Hours | What the history shows | Status |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep 2025: the feature (32 lines), its tests (20 lines) and a README note (6 lines). All on the main branch. | Work is real. About 58 lines in total, all committed within about 2 hours on one day. 20 h looks high; ask what else the time covered. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep) on a side branch, `feature/hreflang`. It was never merged into main. The last commit is labelled "WIP" and changes 2 lines. | Partly supported. Work exists but is unfinished and is not in the delivered product. Ask whether it is meant to be billed as complete. |
+| 3 | Performance: cache generated sitemap | 12 | The commit exists (22 Sep, `382dbdb`), but its author is **Nora Fisher** (nora@lp-dev.example), not Luka. | Not attributable to Luka. The email domain matches Luka's company, so it may be a colleague. Ask who did the work and whether Nora's time is meant to be on this invoice. |
+| 4 | Fix CI on Ruby 3.3 | 6 | Luka's commit is dated **3 Oct 2025**, which is after the invoice period (1–30 Sep). | Outside the billing period. It belongs on October's invoice, or needs an explanation. The change also rewrites the CI settings heavily (8 lines added, 52 removed), and it drops the older Ruby versions the project was tested against. Worth a technical look. |
+
+**Other things in the history**
+- Luka also has an "Update dependencies" commit on 15 Sep. It adds a 306-line lock file and is not on the invoice. It does not offset any of the hours above.
+- Luka has 5 commits on main, and the 3 in September are all on 9 Sep. Their other September work is on the unmerged branch.
+
+**Summary**
+- Fully supported by history: none.
+- Supported in part: line 1 (work is real, hours unproven) and line 2 (unfinished, not merged).
+- Not supported as billed: line 3 (another author) and line 4 (outside the period). Together they are 18 h.
+- The hours on all four lines are Luka's own estimates.
+
+**Suggested next steps**
+1. Ask Luka for time logs or a breakdown by day for the 62 h.
+2. Ask who Nora Fisher is and whether line 3 is subcontracted work.
+3. Move line 4 to October, or ask Luka to explain it.
+4. Decide whether to pay for unmerged "WIP" work on line 2.
+5. Consider holding payment on lines 3 and 4 (18 h) until these are answered.
+
+*Basis: git history in this repository, including the `feature/hreflang` branch. Commit dates come from the commit records, which the committer can set, so they are a good guide but not proof.*
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -150
+Bash: git grep -il hreflang; git log --all --oneline -i --grep=hreflang --grep=language; git branch -a; git stash list; git show 80590c4 --stat --format=%B | head; git show 382dbdb | head -60; git show 61504bc --stat | head -5
+Bash: git log feature/hreflang --format='%h|%an|%ad|%s' --date=iso -6 --numstat; git branch --contains 1e4185b; git merge-base main feature/hreflang
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD_I-3/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD_I-3/fx/invoice-check.md
+### Final answer text
+I've written the note for finance in `invoice-check.md`. I didn't use the jd-resume-tailor skill, because it only tailors resumes to job descriptions. I checked the invoice against the git history directly.
+
+The history shows some work behind every line item, but it can't confirm the 62 hours. It records what was changed and when, not time spent.
+
+| Invoice item | Hours | What the history shows |
+|---|---|---|
+| Sitemap exclusion flag | 20 | Three commits by Luka on 9 Sept (code, tests, docs). The work is real but small for 20 hours. |
+| Multi-language (hreflang) | 24 | Luka's commits are only on a side branch that was never merged into the main code. The last commit is marked "WIP". The feature looks unfinished. |
+| Cache the generated sitemap | 12 | The one commit is by Nora Fisher, not Luka, though her email is at the same company. The code looks like placeholder filler. |
+| Fix CI on Ruby 3.3 | 6 | Luka's commit is dated 3 Oct, outside the September billing period. |
+
+Only 44 of the 62 hours (the first two items) trace to Luka's own September commits, and one of those is unfinished. The note suggests asking Luka for a time breakdown, the status of the hreflang work, and who Nora is. It also suggests moving the CI fix to the October invoice and having an engineer look at the caching code.
+
+I can't judge from here whether the caching code works. The note says so.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows real work for most line items, but it can't confirm the hours. Two items have caveats worth raising with the contractor before paying in full.
+
+Commit history shows *that* work happened and roughly when. It does not record time spent, so none of these hour figures can be verified from it. This check only tests whether each line item has matching work.
+
+| # | Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sept (code, tests, docs), about 2 hours apart, roughly 58 lines added in total. | **Work is there.** The output is small for 20 h, but time spent on design or investigation wouldn't show up in commits. Ask for a breakdown. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka on 17, 18 and 26 Sept, but only on a separate branch (`feature/hreflang`). It was never merged into `main`. The last commit is labelled "WIP" and is a 2-line change. | **Partly supported.** Work was started, but it's unfinished and not delivered in the main code. Ask whether the 24 h is meant to cover finished work, and what the status is. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit on 22 Sept, by **Nora Fisher**, not Luka. Her address is also at lp-dev.example, so she looks like someone at Luka's company. The file is 40 lines of repetitive placeholder-style functions (`cache_1`, `cache_2` and so on). | **Weak.** The work is attributed to someone else, and the content doesn't look like a real caching feature. Ask who did it and whether it works. A non-technical read can't judge the code; have an engineer review it. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka on **3 Oct 2025**, which is outside the invoice period (1–30 Sept). It changes one config file (8 lines added, 52 removed). | **Date mismatch.** The work exists but was done in October. Ask why it's billed in September. It could be billed in the October invoice instead. |
+
+## Other observations
+
+- A "Update dependencies" commit by Luka on 15 Sept (a 306-line lock file) doesn't match any invoice line. It's likely a routine automated change, so it isn't a concern by itself.
+- 44 of the 62 hours (items 1 and 2) are tied to Luka's own September commits, though item 2 is unfinished. The other 18 hours (items 3 and 4) are attributed to someone else or dated outside September.
+- All work activity in September falls on 9, 15, 17, 18, 22 and 26 Sept. That's a few days, which isn't inconsistent with 62 h but doesn't demonstrate it either.
+
+## Suggested next steps
+
+1. Ask Luka for a short time log or breakdown per item.
+2. Ask about the status of the hreflang work (item 2) and whether it will be delivered.
+3. Ask who Nora Fisher is, and whether subcontractor work is covered by the contract (item 3).
+4. Ask for item 4 to be moved to the October invoice.
+5. Consider having an engineer review the caching code (item 3).
+
+*Prepared from the repository's git history and docs/billing/INV-0042.txt.*
+
+
+######## ARM G RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; git log --format='%h %an <%ae> %ad %s' --date=iso --shortstat | head -100; git shortlog -sne --all
+Bash: git branch -a; git stash list; git log --all --oneline --since=2025-08-01 | cat; git show --stat --format='%h %s' 61504bc 80590c4 382dbdb | cat; git show 61504bc | head -40; git show 80590c4 382dbdb | head -150; grep -rli hreflang . --exclude-dir=.git | head
+Bash: git log feature/hreflang --format='%h %an %ad %s' --date=iso -5 | cat; git show --stat --format='%h %s' 69ee453 c544074 1e4185b | cat; git branch --contains 1e4185b
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV-1/fx/invoice-check.md
+### Final answer text
+I've written the note for finance to `invoice-check.md`. The repo history shows work happened on all four invoice items, but it can't confirm the 62 hours. It records when changes were saved, not how long they took.
+
+- **Exclusion flag (20 h):** The work is real and on the main codebase. All three commits fall within about 2 hours on 9 Sep, so the other ~18 hours are unexplained.
+- **hreflang (24 h):** The work is on an unmerged side branch, so it isn't in the main codebase. The last commit is labelled "WIP" (work in progress), so the feature looks unfinished and undelivered.
+- **Sitemap cache (12 h):** The commit was made by Nora Fisher, not Luka. She uses the same company email domain, so she may be a subcontractor. That's worth checking against your contract.
+- **CI fix (6 h):** The commit is dated 3 Oct, which is outside the September billing period. It also mostly deletes the old test setup, so a developer should check nothing was lost.
+
+The note ends with suggested questions for Luka, starting with a per-item timesheet.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows that work happened on all four invoice items. It does not show how many hours it took. It can't confirm or refute the 62 h. Several items need a question put to Luka before we pay in full.
+
+A note on method: the history records *when* changes were saved and *how big* they were. It has no timesheet. Commit dates give a rough floor for elapsed time, but they say nothing about research, meetings, or work that was never saved.
+
+| # | Invoice item | Billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | 3 commits by Luka, all on 9 Sep between 10:05 and 12:19 (about 2 h 15 min apart). About 58 lines added (code, tests, docs). | Work is real and on the main codebase. The commits cover roughly 2 hours, against 20 billed. Ask what the other time was spent on. |
+| 2 | Multi-language (hreflang) support | 24 h | 3 commits by Luka (17, 18 and 26 Sep), about 100 lines. They are only on a side branch, `feature/hreflang`, and **not in the main codebase**. The last one is labelled "WIP" (work in progress). | Work started but is **unfinished and not delivered**. Billing the full 24 h for a complete feature isn't supported. |
+| 3 | Cache the sitemap | 12 h | 1 commit, 22 Sep, about 40 lines. It was made by **Nora Fisher**, not Luka (same company email domain, `lp-dev.example`). | Work exists, but someone else did it. Ask whether Nora is a subcontractor and whether our contract allows that. A reviewer should also check that the code does what the title says. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | 1 commit by Luka, dated **3 Oct**, which is outside the September billing period. It is a small edit that mostly **deletes** the old test setup (net 44 lines removed). | Outside the stated period. The change also removes the earlier tests on older Ruby versions, so it needs a technical check that nothing was lost. |
+
+## Other things we noticed
+- A 15 Sep commit, "Update dependencies" (Luka), isn't on the invoice. It is one generated file of about 300 lines, so it likely took little effort. It doesn't explain the gaps above.
+- The only commits by Luka in September are on 9, 15, 17, 18 and 26 Sep. Nothing in the history shows the amount of work per day.
+- The invoice itself was added to the repo by Maya Chen on 6 Oct, for reference only.
+
+## Suggested next steps
+1. Ask Luka for a timesheet or a breakdown of hours per item, especially item 1 (20 h) and item 2 (24 h).
+2. Ask whether Nora Fisher worked on this under the contract (item 3).
+3. Ask whether item 4 (3 Oct) should be billed in September or moved to the next invoice.
+4. Ask whether hreflang is finished. If not, consider paying only for completed work or holding that line.
+5. If wanted, have a developer review the code quality for items 3 and 4.
+
+*Based only on the repository's git history as of 22 Oct 2026. No time-tracking records were available.*
+
+
+######## ARM G RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; git log --format='%h %an <%ae> %ad %s' --date=iso --stat | head -150
+Bash: grep -ril hreflang . --exclude-dir=.git | head; git log --all --oneline | wc -l; git branch -a; git stash list; git log -S hreflang --oneline | head; git show 80590c4 --stat --format='%cd %ad' --date=iso | head -5
+Bash: git log main..feature/hreflang --format='%h %an %ad %s' --date=iso --stat; git log -1 --format=%H feature/hreflang
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV-2/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The history shows work for all four invoice items, but it can't confirm the 62 hours. Git records what was saved and when, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** The work is there. It's three commits on 9 Sep, spread over about 2 hours, and the code is small. 20 h looks high for it, but off-record work is possible.
+- **Hreflang multi-language support (24 h):** This is only partly supported. The work sits on an unmerged branch, `feature/hreflang`, and its last commit is labelled "WIP" (work in progress). The delivered code doesn't have the feature.
+- **Sitemap caching (12 h):** The work is there, but the commit was written by Nora Fisher, not Luka. Nora's email is on the same company domain as Luka's, so ask whether she's covered by your agreement.
+- **CI fix for Ruby 3.3 (6 h):** The work is there, but it's dated 3 Oct, outside the September billing period.
+
+The note also lists follow-up questions for Luka: time logs, who Nora is, the status of the hreflang work, and which month the CI fix belongs in. I only looked at the repository, not contracts or time-tracking records. Commit dates and authors can be set by whoever makes the commit.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repository history shows real work for every line item, but it can't confirm the hours. Git records *what* was saved and *when*. It doesn't record how long the work took. Some items also have caveats, listed below.
+
+| # | Invoice item | Billed | What the history shows |
+|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | **Work is present.** On 9 Sep, Luka made three commits: the feature, its tests, and the documentation. They were made between 10:05 and 12:19. The code is about 58 lines in total. 20 h looks high for this. The commits only span about 2 h 15 min, though that doesn't rule out work done off-record. |
+| 2 | Multi-language (hreflang) | 24 h | **Partly supported, and unfinished.** None of this is on the main code line. It's on a separate branch, `feature/hreflang`. It has three commits by Luka (17, 18 and 26 Sep). The last is labelled "WIP" (work in progress). The branch holds about 100 lines of code and tests. It hasn't been merged, so the delivered product doesn't have this feature. |
+| 3 | Cache generated sitemap | 12 h | **Work is present, but by a different person.** The only commit (22 Sep, 40 lines) was authored by **Nora Fisher**, not Luka. Her email is on the same company domain (lp-dev.example). She may be a colleague at LP Dev. Check whether the contract allows subcontracting or another person's work billed under Luka's name. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | **Work is present, but dated outside the period.** The commit is dated **3 Oct 2025**, after the invoice period (1–30 Sep). It mostly deletes configuration: 8 lines added, 52 removed. |
+
+Another commit, "Update dependencies" (15 Sep), isn't on the invoice. It's an automatically generated file of about 300 lines, so it doesn't indicate much effort.
+
+## What the history does not support
+- **The hours themselves.** Nothing in git measures time. The commit timestamps cover only a few short windows and show no sign of 62 h of work. Luka may have spent time on research, design, testing or meetings that leave no commits, so this doesn't prove the hours are wrong. It means we can't verify them from this source.
+- **A finished multi-language feature** (item 2).
+- **Luka personally doing item 3**, and **item 4 falling in September**.
+
+## Suggested next steps
+1. Ask Luka for time logs or a short breakdown of hours per item. Ask for an explanation of the 20 h on the exclusion flag.
+2. Ask who Nora Fisher is, and whether her work is covered by the agreement.
+3. Ask about the status of the hreflang work. Decide whether to pay for it in full while it's unfinished and unmerged.
+4. Decide whether the 3 Oct CI fix should be billed in October rather than September.
+
+*Scope: this note is based on the commit history of this repository, including the `feature/hreflang` branch. I didn't see time-tracking records, contracts or messages. The commit dates and authors come from the commits themselves, and the person who made a commit can set them.*
+
+
+######## ARM G RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; git log --format='%h %an <%ae> %ad %s' --date=iso --since=2026-08-25 --until=2026-10-05 --numstat | head -200; git log --format='%an' | sort | uniq -c
+Bash: git log --author="Luka Petrovic" --format='--- %h %an <%ae>%n%ad (committer %cd)%n%s%n%b' --date=iso --stat; git log -8 --format='%h %an %ad %s' --date=short
+Bash: git show 382dbdb --format='%h %an <%ae> %cn %ad%n%s%n%b' --stat | head -20; git log --since=2025-09-01 --until=2025-10-01 --format='%h %an %ad %s' --date=short; grep -ril hreflang . --exclude-dir=.git | head; git log --all --oneline -i --grep=hreflang --grep=l
+Bash: git log --all --format='%h %an %ad %s' --date=short -n5 --grep=hreflang; git branch -a --contains 1e4185b; git log --all --format='%h %an <%ae> %ad' --date=iso --grep=hreflang --stat
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-CV-3/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The history shows that work happened on all four invoice items, but it can't confirm any of the hours, because commits record what changed and when, not time spent.
+
+- **Item 1, sitemap exclusion flag (20 h):** The work is there and merged. Luka made three commits on 9 Sep, about 58 lines in total.
+- **Item 2, hreflang (24 h):** Luka's three commits are on a separate branch, `feature/hreflang`, and were never merged. The last one is marked "WIP", so it looks unfinished.
+- **Item 3, sitemap cache (12 h):** The commit was authored by Nora Fisher, not Luka. Her email is at the same domain as Luka's, so she may be a colleague.
+- **Item 4, CI fix (6 h):** The commit is dated 3 Oct 2025, which is outside the September billing period.
+
+I'd ask Luka for time logs, whether the hreflang work is finished, who Nora is and whether her time is in these hours, and why the CI fix is dated October. The note lists these questions for finance.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows that work happened for all four invoice items, but it cannot confirm the hours. Two items have questions worth asking before payment: item 2 (hreflang) is unmerged and looks unfinished, and item 3 (sitemap cache) was committed by someone else.
+
+Commit history records *what* changed and *when*. It does not record time spent, so no line below confirms or refutes a number of hours.
+
+## Item by item
+
+| # | Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | 3 commits by Luka on 9 Sep 2025: the feature (32 lines), tests (20 lines), README note (6 lines). | Work is present and merged into main. It is small and all done within about 2 hours of commit timestamps. 20 h is not contradicted, but it is not shown either. |
+| 2 | Multi-language (hreflang) support | 24 | 3 commits by Luka (17, 18 and 26 Sep) on a separate branch `feature/hreflang`, **not merged into main**. The last commit is labelled "WIP" and changes 2 lines. | Work exists but is unfinished and not delivered to the main code. About 100 lines in total. Ask whether it is complete and working. |
+| 3 | Performance work: cache generated sitemap | 12 | The commit "Cache generated sitemap between builds" (22 Sep, 40 lines) is authored by **Nora Fisher**, not Luka. Her email is at the same domain as Luka's (lp-dev.example). | The work exists, but Luka did not author it. Ask whether Nora is part of LP Dev, and whether her time is meant to be billed under this invoice. |
+| 4 | Fix CI on Ruby 3.3 | 6 | Commit by Luka dated **3 Oct 2025**, which is after the September billing period. It edits one CI file (8 lines added, 52 removed). | The work is real, but the date is outside the invoice period. It should be billed in October, or Luka should explain the date. |
+
+There was also an "Update dependencies" commit by Luka on 15 Sep (one generated file). It is not an invoice line.
+
+## Overall
+
+- **Supported by history:** item 1 (delivered). Items 2 to 4 have activity, with the caveats above.
+- **Not supported or unclear:** all hour counts; delivery of item 2; authorship of item 3; the period of item 4 (6 h).
+- Luka's own commits total 8 across the whole period, on 5 working days. Amounts of code are small relative to 62 h. That is not proof of over-billing, since time may go on design, meetings, debugging and review that leave no commits.
+
+## Suggested questions for Luka
+
+1. Can you provide time logs or a timesheet behind the 62 h?
+2. Is the hreflang feature finished? Why was it not merged?
+3. Who is Nora Fisher, and is her work on the sitemap cache included in your hours?
+4. The CI fix is dated 3 October. Should it be on the October invoice?
+
+## Limits of this check
+
+This is based only on the repository's commit log (authors, dates, files changed). I did not run the code or judge its quality. Commit dates and author names are set by whoever commits and can be edited, so they are a good indicator, not proof.
+
+
+######## ARM H RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP-1/fx/docs/billing/INV-0042.txt
+Bash: git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat | head -300
+Bash: git show 1e4185b 80590c4 --format='--- %h %s' | head -90; echo ====; git show 69ee453:lib/jekyll/hreflang.rb | head -70; git branch -a
+Bash: git show 69ee453:lib/jekyll/hreflang.rb | head -30; git branch -a; git status --short
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP-1/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP-1/fx/invoice-check.md
+### Final answer text
+Date fix is done. The note for finance is saved as `invoice-check.md`. The history doesn't back up the full 62 hours.
+
+- **Sitemap exclusion flag (20 h):** The work is there. Luka made three commits on 9 Sep, spanning about 2 hours of timestamps. The 20 h looks high.
+- **Hreflang (24 h):** This is partial and looks unfinished. Luka's last commit is labelled "WIP" and only adds a comment. The main file holds placeholder functions rather than real logic. It's on a separate `feature/hreflang` branch, not in the main code.
+- **Sitemap cache (12 h):** The work exists, but a different person, Nora Fisher, wrote it. Her email is on Luka's company domain. Finance should confirm that's covered.
+- **CI fix (6 h):** The commit is dated 3 Oct, outside the September billing period. It also deleted most of the existing test setup.
+
+Git records when code was saved, not how long it took. Commit dates can also be edited, so the note treats them as a guide, not proof. The note ends with five questions to put to Luka.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows real work for item 1, only partial or questionable support for items 2 and 4, and nothing by Luka for item 3. It cannot confirm hours. Git records what was saved and when, not how long it took. I'd ask Luka a few questions before paying in full.
+
+## Line by line
+
+| # | Invoiced item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 | Three commits by Luka on 9 Sep 2025 (10:05 to 12:19): the feature (32 lines), tests (20 lines), and a README note (6 lines). | **Work is there.** The commits span about 2 hours, and about 58 lines were added. 20 h looks high unless there was a lot of unrecorded work. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep): a 60-line file, a 40-line test file, and a 2-line "WIP" change. | **Partly supported, and it looks unfinished.** The 26 Sep commit is labelled work in progress and only adds a comment. The main hreflang file contains numbered placeholder functions (`hreflang_1`, `hreflang_2`, and so on, each just adding a number). It doesn't contain real language-link logic. The work is also on a separate branch (`feature/hreflang`), so it isn't in the main code. |
+| 3 | Cache generated sitemap | 12 | One commit on 22 Sep (a 40-line file), authored by **Nora Fisher**, not Luka. Her email is on the same lp-dev.example domain. | **Work exists, but not under Luka's name.** If Nora is Luka's colleague or subcontractor, this may be fine. Finance should confirm that the 12 h is not Nora's time billed as Luka's, and that the contract allows it. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka dated **3 Oct 2025**. It replaces the old test setup with a much shorter one (8 lines added, 52 removed). | **Outside the billing period.** The commit is dated after 30 Sep. Either the work was done in October and billed early, or the commit was made late. The change also removes most of the existing test coverage (older Ruby versions, Jekyll 3.x, and the gem-build check), which was probably not intended. |
+
+## Other observations
+
+- **Dependency update (15 Sep):** Luka made a commit "Update dependencies" (a 306-line lock file). It isn't billed as its own line, so it may be included in another item. It is a generated file and says little about effort.
+- **Activity pattern:** Luka's September commits fall on 9, 15, 17, 18 and 26 Sep (5 days). Nora's is on 22 Sep. That is thin evidence for 62 h, though much work, such as thinking, debugging and meetings, leaves no commits.
+- **Commit dates are self-reported** by the committer's computer and can be edited. Treat them as a guide, not proof.
+
+## What the history can and can't support
+
+- **Supports:** The sitemap flag was built, tested and documented. Hreflang work was started and tested. A sitemap cache was added by someone at LP Dev.
+- **Doesn't support:** The hour counts, a finished hreflang feature, Luka personally doing item 3, or item 4 falling in September.
+
+## Suggested questions for Luka
+
+1. Can you give a time log or breakdown behind the 20 h for item 1 and the 24 h for item 2?
+2. Is hreflang finished? Where is the working code, and has it been merged?
+3. Who is Nora Fisher, and is her work covered by your agreement?
+4. When was the CI fix actually done, and should it be billed in October?
+5. Did the CI change intentionally drop the older Ruby and Jekyll tests?
+
+*Based on the git history in this repo as of 22 Oct 2026, including the `feature/hreflang` branch. I did not run the code or review its quality in detail.*
+
+
+######## ARM H RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%s' --date=iso --numstat
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=iso --numstat; git log --all --oneline | wc -l; git branch -a
+Bash: git log --all -i --grep='hreflang\|language\|i18n' --oneline; grep -ril 'hreflang' . --exclude-dir=.git | head; git log --all --format='%h %cn %cd' --date=iso -8; git show 80590c4 --stat --format='%an %ad | committer %cn %cd'; git show 382dbdb --format='%an | 
+Bash: git branch -a --contains 1e4185b; git branch -a; git log --all --format='%h %an %ad %s' --date=short --numstat 69ee453^..1e4185b | head -30; git log main --oneline | grep -c .
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP-2/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The history can't confirm or refute any of the 62 hours, because it shows what changed and when, not how long it took. Only 20 of the 62 hours match clearly.
+
+- **Line 1, sitemap exclusion flag (20 h):** supported. Luka made three commits on 9 Sep, and they're all in the main code.
+- **Line 2, multi-language support (24 h):** only partly supported. Luka's three commits are on a side branch, `feature/hreflang`, and aren't in the main code. The last one is labelled "WIP" (work in progress), so the feature looks unfinished.
+- **Line 3, sitemap caching (12 h):** not supported as Luka's work. The commit was written by Nora Fisher, who has an email at the same company domain as Luka. She may be a colleague, but the invoice is in Luka's name only.
+- **Line 4, CI fix (6 h):** the commit is dated 3 Oct, after the September billing period. Commit dates can be set to anything, so this is a flag, not proof.
+
+The note also lists questions to put to Luka, including a request for time records. It only covers the commits. Work that wasn't committed, such as meetings or investigation, wouldn't show up in the history.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+Source: the repository's commit history. Commit history shows what changed and when. It does not show how long the work took, so none of the hour counts can be confirmed or refuted from it.
+
+| Invoice line | Hours | What the history shows |
+|---|---|---|
+| 1. Sitemap exclusion by front-matter flag | 20 | **Supported.** Three commits by Luka on 9 Sep 2025 (feature, tests, documentation) are on the main branch. They are small (about 58 lines added) and all fall within about 2 hours of each other. History can't show whether 20 h is reasonable. |
+| 2. Multi-language (hreflang) support | 24 | **Partly supported, and unfinished.** Three commits by Luka (17, 18 and 26 Sep) exist, but only on a separate branch, `feature/hreflang`. They are not in main. The last one is labelled "WIP" (work in progress) and adds 2 lines. The history shows a started feature, not a delivered one. |
+| 3. Cache generated sitemap | 12 | **Not supported as Luka's work.** The one matching commit (22 Sep) was written by a different person, **Nora Fisher**, who has an `@lp-dev.example` address (same domain as Luka). It may be a colleague at Luka's company, but the invoice is in Luka's name only. |
+| 4. Fix CI on Ruby 3.3 | 6 | **Dated outside the billing period.** The commit is by Luka but dated **3 Oct 2025**, after the period ends on 30 Sep. The commit date could be set to anything, so this is a flag, not proof. |
+
+Also in September: Luka's "Update dependencies" commit (15 Sep) is not on the invoice. It is a machine-generated lock file, so it likely took little time.
+
+## Summary
+
+- Hours with a clear match in September, in Luka's name and in main: line 1 only (20 h).
+- Hours that need a question to Luka: line 2 (24 h, unmerged and unfinished), line 3 (12 h, authored by Nora Fisher) and line 4 (6 h, dated October). Together that is 42 h.
+- The history can't confirm or refute any of the 62 total hours. Hours would have to be backed by timesheets or similar records.
+
+## Suggested questions for Luka
+
+1. Is the hreflang feature finished? If so, where is the final code? If not, should line 2 be billed in full?
+2. Did Nora Fisher do the caching work, and is she authorised to work on this account? Is she billed under this invoice?
+3. Was the CI fix done in September and committed late, or done in October (which would belong on the next invoice)?
+4. Can you provide time records for the 62 hours?
+
+*Limit of this check: only the git history was reviewed. Work not committed (meetings, investigation, review) would not appear. Commit dates and authors are self-reported by the committer's tools.*
+
+
+######## ARM H RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --format='%h|%an|%ae|%ad|%s' --date=iso --stat | head -150
+Bash: git branch -a; git stash list; grep -ril hreflang . --exclude-dir=.git | head; git show 80590c4 | head -90; git show 382dbdb | head -60
+Bash: git log main..feature/hreflang --format='%h|%an|%ad|%s' --date=iso --stat; git show 88610e7 | tail -40; git show 61504bc | head -30; git show 1030fb4 | tail -12
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP-3/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The history shows that all four invoiced items exist in some form, but it can't confirm the 62 hours. Commit dates only show when work was saved, not how long it took. Only a timesheet can show that.
+
+- **Exclusion flag (20 h):** This was delivered and is in the product. The history shows three small commits by Luka within about 2 hours on 9 Sep, so 20 h looks high.
+- **Hreflang (24 h):** This is only partly supported. The work sits on an unmerged branch, and the last commit is labelled "WIP". It isn't in the product yet.
+- **Sitemap cache (12 h):** This was delivered, but the commit was authored by Nora Fisher, not Luka. She has the same company email domain. The code also looks like filler (numbered placeholder functions), so a developer should check that it does real caching.
+- **CI fix (6 h):** This was committed on 3 Oct, outside the September billing period. It also removed older test checks.
+
+The note ends with suggested questions for Luka. I only read the commit history, and I didn't run or review the code.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows that all four invoiced pieces of work exist in some form. It cannot confirm the hours, and it supports the items to different degrees. Hreflang is not finished or merged. The history is evidence of *what was produced*, not of *how long it took*.
+
+## What was checked
+The commit history (dates, authors, size of changes) on the main branch and on one unmerged branch, `feature/hreflang`. Nobody ran the code or judged its quality beyond reading the commits.
+
+## Line by line
+
+| Invoice item | Hours | What the history shows | Assessment |
+|---|---|---|---|
+| Sitemap exclusion flag | 20 | 9 Sep 2025: three commits by Luka within about 2 hours (flag code, 32 lines; tests, 20 lines; README note, 6 lines). Merged to main. | **Delivered**, but the visible work is small. 20 h is high compared with ~2 h of commit timestamps. Ask for an explanation (research, design, review time not visible in the history). |
+| Multi-language (hreflang) | 24 | Three commits by Luka (17, 18 and 26 Sep) on `feature/hreflang`, **not merged to main**. The last is labelled "WIP" and is 2 lines. | **Partly supported.** Real work exists, but it is unfinished and not in the product. Ask whether it is billable in full as work in progress, and when it will be completed and merged. |
+| Cache generated sitemap | 12 | One commit on 22 Sep, **authored by Nora Fisher, not Luka** (same company email domain, lp-dev.example). 40 lines, merged. | **Delivered, but by someone else.** Confirm that Nora is covered by the contract and that her time is billable at Luka's rate. Also, the file's contents look like placeholder code (numbered `cache_1`, `cache_2` ... functions), so it's worth asking a developer whether it does any real caching. |
+| Fix CI on Ruby 3.3 | 6 | One commit by Luka on 3 Oct 2025 (**after** the September billing period). It replaces the whole CI configuration (about 50 lines removed, 8 added) with a much shorter one. | **Delivered, but dated outside the invoice period**, and the change removed earlier test coverage (older Ruby versions, the gem build check). Ask why it was billed in September and whether removing those checks was intended. |
+
+## Other observations
+- **"Update dependencies" (15 Sep, Luka)** is a 306-line file that appears to be auto-generated, and it is not an invoice line. It does not add support for any billed item.
+- Several of the code files read as filler (numbered, repetitive functions) rather than real logic. A developer should review whether they do what the invoice says before payment.
+- Commit timestamps only show when work was saved, not hours spent. Two hours of commits could sit within 20 hours of work, or not. Only a timesheet can show that.
+
+## Suggested next steps
+1. Ask Luka for a timesheet or breakdown behind each line, particularly the 20 h exclusion flag.
+2. Ask about the hreflang status and whether it is billable before completion.
+3. Confirm Nora Fisher's involvement and rates.
+4. Ask why the CI fix dated 3 Oct was billed under September.
+5. Have a developer review whether the code does what is claimed.
+
+Until these are answered, the history clearly supports **some** of the 62 hours but it cannot confirm all of them. Items 3 and 4 and part of item 2 are the clearest concerns.
+
+
+######## ARM I RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD-1/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h %an <%ae> %ad %s' --date=iso --numstat
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat; git branch -a; git log --all --oneline | wc -l
+Bash: git log --all -i --grep='hreflang\|language\|i18n' --oneline | head; grep -ril hreflang . --exclude-dir=.git | head; git branch -a; git stash list; git show 80590c4 | head -90; git show 382dbdb | head -60
+Bash: git log feature/hreflang --not main --format='%h | %an | %ad | %s' --date=iso --numstat; git merge-base main feature/hreflang; git show 88610e7 --stat | head; git show 61504bc | head -20
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD-1/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The history shows work behind each of the four invoice items. It can't confirm any of the 62 hours, because it records what changed and when, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** The work is there, in four commits by Luka on 9 Sep that span about 2 hours. The note suggests asking Luka to account for the rest of the time.
+- **Multi-language support (24 h):** Luka's work is on a side branch, `feature/hreflang`, that was never merged into the main code. The last commit is marked "WIP". The note suggests asking whether it's finished.
+- **Sitemap caching (12 h):** The only commit was written by Nora Fisher, not Luka. Nora uses the same `lp-dev.example` email domain, so she's probably another LP Dev person. The code also looks like placeholder filler rather than real caching, and I didn't test it.
+- **CI fix (6 h):** The commit is dated 3 Oct, after the billing period. It also replaced the whole test setup and dropped older Ruby versions and the gem-build check.
+
+The note ends with questions to put to Luka.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows real work for some line items but cannot confirm hours. Two items have caveats worth raising with Luka before paying in full.
+
+The history only records *what changed and when*, not how long it took. It can support "this work happened". It can't prove "this took 20 hours".
+
+| # | Invoice item | Billed | What the history shows |
+|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | **Supported (work exists).** Luka made 4 commits on 9 Sep 2025 (10:05–12:19): the feature, tests and documentation. About 58 lines of new code, tests and docs. The commits span about 2 hours, so 20 h would mean most of the effort wasn't visible in the history. Ask Luka to explain. |
+| 2 | Multi-language (hreflang) support | 24 h | **Partly supported, unfinished.** Luka's work (17–26 Sep) is on a separate branch, `feature/hreflang`, and was **never merged into the main codebase**. The last commit is labelled "WIP" and adds 2 lines. The feature is not delivered in the main product. Confirm with Luka whether it's finished and whether it should be billed in full. |
+| 3 | Cache generated sitemap | 12 h | **Work exists, but not by Luka.** The only commit (22 Sep) was authored by **Nora Fisher**, who uses the same `lp-dev.example` email domain, so probably another LP Dev person. The invoice lists only Luka. The code is also placeholder-looking: 10 near-identical functions (`cache_1` … `cache_10`) that don't appear to do any real caching. Worth asking whether the work is real and who did it. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | **Work exists, but is dated outside the period.** Committed 3 Oct 2025, after the September billing period. It replaced the whole test setup (56 lines removed, 12 added), so it dropped older Ruby versions and the gem-build check rather than just adding 3.3 support. Check that this was intended. |
+
+Another commit, "Update dependencies" (15 Sep), is not on the invoice. It's a single added lockfile, so it adds little evidence of effort.
+
+## What we can and can't say
+
+- **Supported:** Luka did commit work on the flag (item 1) and started hreflang (item 2) in September.
+- **Not supported by history:** any of the hour counts. Total commits are few and small for 62 h, though much work (research, debugging, meetings) leaves no trace in the history.
+- **Questionable:** item 3 (different author, placeholder-looking code), item 2 (unmerged), item 4 (October date).
+
+## Suggested next steps
+
+1. Ask Luka for time logs or a short breakdown behind each line item.
+2. Ask who Nora Fisher is and whether item 3 should be billed under this invoice.
+3. Ask whether the hreflang branch is complete and should be merged, or whether to pay only for finished work.
+4. Ask about the October date and the reduced CI setup for item 4.
+
+*Basis: git history of this repo, including the `feature/hreflang` branch, compared with docs/billing/INV-0042.txt. I haven't tested whether the code works.*
+
+
+######## ARM I RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -200
+Bash: git log --all --format='%h|%an|%ae|%ad|%s' --date=iso --numstat; echo; git branch -a; git log --all --grep=hreflang -i --oneline; grep -rli hreflang . --exclude-dir=.git | head
+Bash: git show 80590c4 --stat -p | head -90; git show 1e4185b | tail -15; cat lib/jekyll/hreflang.rb | head -80; git log --all --since=2025-08-01 --format=%h | wc -l
+Bash: git branch -a; git ls-files lib spec; git log --oneline --all -- lib/jekyll/hreflang.rb; git status --short | head; git show 69ee453 | head -40; git show 382dbdb --format='%an %cn %ce' -s
+Bash: git show c544074 | sed -n 1,30p; git show 88610e7 | sed -n 8,40p; git show 382dbdb | sed -n 8,30p
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD-2/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The history doesn't back up the 62 hours as billed.
+
+- **Hours:** the history shows when changes were saved, not how long they took, so it can neither prove nor disprove 62 hours.
+- **Sitemap exclusion flag (20 h):** this is Luka's work and it's in the product. The commits cover about 2 hours on 9 September, so ask what the rest of the time was.
+- **Multi-language support (24 h):** this was started but never finished or merged. The last commit is labelled "WIP" and sits on a side branch.
+- **Sitemap caching (12 h):** the commit is by a different person, Nora Fisher, using an `lp-dev.example` email address. Ask whether her time is part of Luka's billing.
+- **CI fix (6 h):** the commit is dated 3 October, after the invoice period. It also removed several of the older test setups.
+
+I didn't run the code or judge its quality. It looks like placeholder content, so someone technical should check that the features actually work. The note also lists questions to put to Luka.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows that work happened on three of the four invoiced items. It cannot confirm the hours. One item (multi-language support, 24 h) is not finished or delivered. One item (caching, 12 h) was committed by someone else.
+
+## What the history shows, item by item
+
+| # | Invoiced item | Hours | What the history shows | Verdict |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 | Three commits by Luka on 9 Sep (feature, tests, README note), 10:05–12:19. The feature is on the main branch. | Work is present. About 2 h of commit activity against 20 h billed. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep). The last one is labelled "WIP". They are on a side branch (`feature/hreflang`) and were never merged into main. | Not delivered. Started, but unfinished and not in the product. |
+| 3 | Cache generated sitemap | 12 | One commit on 22 Sep, authored by **Nora Fisher** (nora@lp-dev.example), not Luka. It is on main. | Work is present, but not by Luka. Ask whether Nora's time is part of Luka's firm's billing. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka on 3 Oct, which is **after** the invoice period (1–30 Sep). It replaces the whole CI setup with a much shorter one. It drops the older Ruby versions and the "build the package" check that were tested before. | Work is present, but dated outside September. It also removed existing test coverage, which is worth asking about. |
+
+## What the history cannot show
+
+- **Hours.** Git records when a change was saved, not how long it took. Reading and planning, meetings and debugging leave no trace. The history neither proves nor disproves 62 h.
+- **Quality.** The code in these commits looks like placeholder content (short repeated stub functions). I did not run or assess it. Someone technical should check that the features work.
+- **Unbilled work.** A "Update dependencies" commit (15 Sep) is not an invoice line. It may be covered elsewhere or inside another item.
+
+## Suggested questions for Luka
+
+1. Item 2: Is hreflang support finished? If not, what is the status, and should the 24 h be billed in full or held until it is merged?
+2. Item 3: Nora Fisher made this change. Is she part of LP Dev, and is her time included in the 62 h?
+3. Item 4: Why is it dated 3 Oct, and should it be billed in October's invoice? Why were the older Ruby versions and the package-build check removed?
+4. Item 1: 20 h is a lot for a change that shows about 2 h of commit activity. Can Luka describe the other time?
+5. Can Luka provide time logs or notes behind the hours?
+
+## Bottom line
+
+On the history alone, about **6 h (CI) look out of period**, **24 h (hreflang) look undelivered**, and **12 h (caching) were done by a different person**. Only the 20 h exclusion-flag item is cleanly Luka's and in the product, and even its hours are unverified. I would not pay in full until the questions above are answered.
+
+
+######## ARM I RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; git log --format='%h %an <%ae> %ad %s' --date=iso --numstat | head -150
+Bash: grep -rniE "hreflang|lang" lib spec README.md 2>/dev/null | head; git log --all --oneline -i --grep=hreflang --grep=language; git branch -a; git stash list; git show 80590c4 | head -90
+Bash: git log feature/hreflang --format='%h %an %ad %s' --date=iso -6 --numstat; git branch --contains 69ee453; git log main..feature/hreflang --oneline; cat lib/jekyll/sitemap_cache.rb | head -20
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-JD-3/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The history supports part of the 62 hours and leaves the rest open. It shows when work was saved, not how long it took.
+
+- **Sitemap exclusion flag (20 h):** Supported. Luka made three commits on 9 Sep covering the feature, its tests and the documentation. They were all saved within about two hours, so I suggested asking for a breakdown of the time.
+- **Multi-language support (24 h):** Only partly supported. The work is on a separate branch that was never merged into the main code. The last commit is labelled "WIP" (work in progress), so the feature looks unfinished.
+- **Cache generated sitemap (12 h):** Not supported as Luka's work. The commit was written by Nora Fisher, who has an email at the same company as Luka. The history doesn't show whether Luka directed or reviewed it.
+- **Fix CI on Ruby 3.3 (6 h):** Supported, with two caveats. The commit is dated 3 Oct, after the billing period. It also replaced the whole test setup with a much simpler one that only tests Ruby 3.3.
+
+I didn't run the code or judge its quality. I only looked at this repository's main branch and the one other branch. The note ends with questions you could put to Luka before paying in full.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows real work for items 1 and 4 and unfinished work for item 2. For item 3 it shows a commit by a different person. The history can't prove hours worked, only that work was saved and when. I recommend asking Luka for clarification on items 2 and 3 before paying in full.
+
+| # | Invoice item | Billed | What the history shows |
+|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | **Supported.** Three commits by Luka on 9 Sep 2025: the feature (32 lines), tests (20 lines) and README docs (6 lines). All were saved within about 2 hours (10:05 to 12:19). That is a small amount of code for 20 h, so ask for a breakdown of the time (design, testing and so on). |
+| 2 | Multi-language (hreflang) support | 24 h | **Only partly supported.** The work is not in the main code. It sits on a separate branch, `feature/hreflang`, and has never been merged. Luka made three commits there (17, 18 and 26 Sep): a first version, tests, and a last one labelled "WIP" (work in progress) that adds only 2 lines. The history shows a started feature, not a finished one. |
+| 3 | Cache generated sitemap | 12 h | **Not supported as Luka's work.** The one matching commit (22 Sep, "Cache generated sitemap between builds") was written by **Nora Fisher**, not Luka. Her email is at the same company (lp-dev.example), so she may be a colleague or subcontractor. Luka may have reviewed or directed it, but the history doesn't show that. The code is also short (40 lines). |
+| 4 | Fix CI on Ruby 3.3 | 6 h | **Supported, with a caveat.** Luka made one commit on 3 Oct 2025. That is after the billing period ended (30 Sep), though it could be September work saved late. It also replaced the whole test setup with a much simpler one (52 lines removed, 8 added). The earlier setup tested several Ruby versions and checked that the package builds. The new one tests Ruby 3.3 only. Someone technical should confirm that is acceptable. |
+
+**Also, "Update dependencies" (15 Sep, Luka).** This commit isn't on the invoice. It is a generated lock file, so it doesn't indicate much effort.
+
+## What the history can't tell us
+- **Hours.** A commit has a date, not a duration. Work done off the computer, such as research, meetings or debugging that left no changes, wouldn't appear.
+- **Quality.** I checked who did what and when, not whether the code is good. I haven't run the tests.
+- **Other branches and other repositories.** I looked at this repository's `main` branch and its one other branch. Work kept elsewhere wouldn't appear here.
+
+## Suggested questions for Luka
+1. Item 3: who wrote the caching code, and is Nora Fisher part of your team? Were her hours included in the 12 h?
+2. Item 2: is the hreflang work finished? If not, what is left, and should it be billed at 24 h now?
+3. Item 4: was the Ruby 3.3 work done in September, and was dropping the older-Ruby tests agreed?
+4. Item 1: can you give a time breakdown for the 20 h?
+
+*Prepared from the git history and docs/billing/INV-0042.txt. Times in the history are in Luka's local timezone (UTC+9).*
+
+
+######## ARM J RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat docs/billing/INV-0042.txt; echo ----; git log --format='%h|%an|%ae|%ad|%s' --date=iso --stat | head -150; git shortlog -sne --all
+Bash: git branch -a; git stash list; git log --all -i --grep='hreflang\|lang' --format='%h %an %s' | head; grep -ril hreflang . --exclude-dir=.git | head; git show 80590c4 --stat -p | head -120; cat lib/jekyll/sitemap_cache.rb | head -50; git log --all --since=2025-
+Bash: git diff --stat main...feature/hreflang; git log feature/hreflang -3 --format='%h %ad %s' --date=iso; git branch --contains 69ee453; git show 69ee453 c544074 1e4185b --stat --format='%h %ad %s' --date=iso | head -30
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-1/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The short version is that the history shows some real work but can't confirm the hours, and it doesn't support two of the four items as billed.
+
+The history records what was saved and when, not time spent, so only Luka's own timesheets can confirm any hours figure.
+
+- **Sitemap exclusion flag (20 h):** This is real, finished work. It is about 58 lines of code, committed in a roughly two-hour window on 9 Sep, so 20 h looks high.
+- **Multi-language support (24 h):** This was started and left unfinished. It sits on a side branch that was never merged, and the last commit is labelled "WIP" (work in progress).
+- **Sitemap caching (12 h):** The commit is under a different person's name, Nora Fisher, who has the same company email domain. The code looks like placeholder functions rather than a working cache. I only read the first 50 lines of that file, so this is my reading and not a test.
+- **CI fix (6 h):** The commit is dated 3 Oct, outside the September billing period. It also deleted a lot of the existing test setup, including older Ruby versions and the gem-build check.
+
+The note ends with questions to put to Luka and suggests holding payment on the unsupported parts. I didn't run any of the code. Commit dates also come from Luka's own computer and can be set to anything.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice INV-0042 check: Luka Petrovic, September 2025 (62 h)
+
+**Short version:** The repo history shows that real work was done on some items. It cannot confirm the hours, and it does not support the invoice as written for two of the four items. I'd suggest asking Luka for an explanation before paying in full.
+
+A note on method: the history records *what* was saved and *when*. It does not record time spent. Even in the best case it can only show that work happened, not that it took 20 hours or 62. Hours need Luka's timesheets or other records.
+
+| # | Invoice item | Billed | What the history shows | Verdict |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 h | Three commits by Luka on 9 Sep, 10:05–12:19 (Japan time): the feature (32 lines), tests (20 lines) and a README note (6 lines). A small, complete piece of work on `main`. | Work is real and finished. 20 h looks high for roughly 58 lines, and the commits cover about 2¼ hours. |
+| 2 | Multi-language (hreflang) support | 24 h | Three commits by Luka (17, 18 and 26 Sep) exist only on a side branch, `feature/hreflang`. They were never merged into `main`. The last commit is labelled "WIP" (work in progress). | Started but **not finished or delivered**. Billing it as a completed item isn't supported. |
+| 3 | Performance: cache generated sitemap | 12 h | One commit on 22 Sep, 40 lines, authored by **Nora Fisher** (same company email domain), not Luka. The file contains only ten near-identical placeholder functions (`cache_1`, `cache_2`, …) and doesn't look like a working cache. | Not Luka's commit, and the content doesn't look like real caching. Needs explanation. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | One commit by Luka on **3 Oct**, which is outside the September billing period. It replaced the whole test-automation file with a much shorter one. Earlier tests on Ruby 2.5–3.0 and Jekyll 3.9, and the gem-build check, were removed. | Dated October, not September. It also removed existing test coverage rather than just adding Ruby 3.3, which we may want to check. |
+
+## Other observations
+
+- A 15 Sep "Update dependencies" commit by Luka (a 306-line lockfile) isn't an invoice line. It may be folded into one of the items.
+- Luka's 8 commits in total are spread over only 5 working days: 9, 15, 17, 18 and 26 Sep (plus 3 Oct). Nothing in the history shows continuous work across the month. Work that leaves no commits, such as meetings, research or review, wouldn't show up either, so that alone isn't proof of over-billing.
+- Dates and times are the ones Luka's computer recorded. They can be set to anything, so treat them as indicative.
+
+## Suggested next steps
+
+1. Ask Luka for timesheets or a breakdown supporting the 62 hours.
+2. Ask whether the hreflang work (24 h) is finished. If so, where is it? If not, it shouldn't be billed as complete.
+3. Ask why the caching commit is under Nora Fisher's name and why it contains placeholder functions. Also ask whether Nora is a separate billable person.
+4. Ask why the CI fix is dated 3 Oct and why earlier test coverage was removed. It could be billed in October instead.
+5. Consider paying only the part that is supported until these are answered. Item 1 is clearly delivered, but the number of hours is still unverified.
+
+*Prepared from the git history of this repository (commits up to 6 Oct 2025). I haven't run the code or tested whether any feature works.*
+
+
+######## ARM J RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-2/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h|%an|%ae|%ad|%s' --date=iso --numstat | head -200; echo ---; git shortlog -sne --all
+Bash: git log --all --author='lp-dev.example' --author='client-corp' --format='%h|%an|%cn|%ad|%cd|%s' --date=iso --numstat; echo; git log -8 --format='%h|%an|%ad|%cd|%s' --date=short; git branch -a
+Bash: git log main..feature/hreflang --format='%h|%an|%ad|%s' --date=iso; git branch --contains 1e4185b; git branch --contains 69ee453; echo; git show 1e4185b | tail -15; git show 382dbdb --stat --format=%B | head; git show 80590c4 | head -40
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-2/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-2/fx/invoice-check.md
+### Final answer text
+I've written the note for finance in `invoice-check.md`. The repo history doesn't back up the 62 hours as invoiced. Git shows what was saved and when, not how long it took, so it can't prove or disprove hours either way. It can only show whether the work exists and when it happened.
+
+| Item | Hours | What the history shows |
+|---|---|---|
+| 1. Sitemap exclusion flag | 20 | The work exists. Luka made three commits on 9 Sep, about two hours apart. The hours look high for that much activity, but they can't be disproved. |
+| 2. Hreflang (multi-language) | 24 | Luka started it, but it's only on a side branch (`feature/hreflang`) and was never merged. The last commit only adds a "WIP" comment, so the feature looks unfinished. |
+| 3. Cache the sitemap | 12 | The work exists, but the commit was written by Nora Fisher, not Luka. Her email is at Luka's company, so this may be legitimate subcontracting. |
+| 4. Fix CI on Ruby 3.3 | 6 | The commit is dated 3 Oct, outside September. It also deleted most of the existing CI (test automation) setup instead of just adding Ruby 3.3 support, so a developer should look at it. |
+
+The note suggests asking Luka for time logs and checking whether Nora is an approved subcontractor. It also suggests asking where the hreflang work stands, and moving item 4 to an October invoice.
+
+Commit dates come from the author's own computer, so treat them as indicative rather than proof.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Short version:** The repo history shows real work for items 1 and 2, but it does not back up the hours claimed, and items 3 and 4 don't match September work by Luka. Git records *what was saved and when*, not *how long it took*, so it can never prove or disprove hours directly. It can only show whether the claimed work exists and when it happened.
+
+## Line by line
+
+| # | Invoiced item | Hours | What the history shows | Verdict |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep 2025 (code, tests, README note), all within about 2 hours of each other (10:05–12:19). About 70 lines added. | Work exists and is dated correctly. 20 h looks high compared with the visible activity, but time spent outside commits (design, review, testing) wouldn't show. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep), about 100 lines. They are **only on a side branch (`feature/hreflang`), not merged into `main`**. The last commit just adds a comment ("WIP language fallback"), and the code is not finished. | Partly supported. Work was started but is unfinished and not delivered. Worth asking whether 24 h should be billed in full for an incomplete feature. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit, 22 Sep 2025, 40 lines. **The author is Nora Fisher (nora@lp-dev.example), not Luka.** | Work exists, but someone else did it. Nora appears to be at Luka's company, so this may be legitimate subcontracting. Confirm that is allowed and whether her time is what is being billed. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct 2025**, which is outside the invoice period (1–30 Sep). It also deleted most of the CI configuration (8 lines added, 52 removed), replacing it with a much shorter one. | Not a September item. Also worth a technical review, since it appears to have removed the previous test setup rather than only adding Ruby 3.3. |
+
+## What the history does support
+- Luka made commits on 5 separate days in September (9, 15, 17, 18 and 26 Sep), plus one on 3 Oct.
+- Items 1 and 3 are present on `main`. Item 2 exists on a branch.
+- The "Update dependencies" commit (15 Sep) is not on the invoice at all. It is a generated lockfile.
+
+## What it does not support
+- **The 62 hours total.** There is no time tracking in the repo. Commit counts and sizes are small for that many hours (about 8 commits from Luka in the whole period).
+- **Item 2 being complete.**
+- **Item 3 being Luka's own work.**
+- **Item 4 belonging to September.** If billed, it belongs on an October invoice.
+
+## Rough effect on the total
+- Clearly questionable on the history alone: item 4 (6 h, wrong month) and item 2 (24 h, unfinished and unmerged).
+- Needs a conversation: item 3 (12 h, authored by a colleague).
+- Item 1 (20 h) is supported as work done, though the hours are unverified.
+
+## Suggested next steps
+1. Ask Luka for time logs or a breakdown of hours per item, since git cannot provide this.
+2. Ask whether Nora Fisher is an approved subcontractor and whether item 3 hours are hers.
+3. Ask Luka to confirm the status of the hreflang work and whether it will be merged.
+4. Move item 4 to the October invoice, and ask a developer to check what happened to the CI configuration.
+
+*Basis: `git log` across all branches. Commit dates are as recorded by the author's machine and could in principle be set to anything, so treat them as indicative rather than proof.*
+
+
+######## ARM J RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-3/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --format='%h %an <%ae> %ad %s' --date=iso --numstat | head -200
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --stat | head -150; echo; git log --all --oneline | wc -l; git branch -a
+Bash: git log main..feature/hreflang --format='%h | %an | %ad | %s' --date=iso --stat; echo ---; git show 80590c4 --format='%B' | head -90; echo ---; git show 382dbdb --format=%B | head -60; git show 61504bc --stat --format=%B | head; head -20 Gemfile.lock; grep -rl
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-3/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-3/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-BASE-3/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. The repo history shows that some work was done on each item, but it doesn't record hours. It can't confirm the 62 hours either way.
+
+- **Sitemap exclusion flag (20 h):** The work is real and is in the product. It's a small change, and all three commits were made in about 2¼ hours on 9 Sep. Any time beyond that isn't visible, and 20 h looks high.
+- **Multi-language support (24 h):** This isn't delivered. The work (about 100 lines) sits on a side branch, `feature/hreflang`, that was never merged. The last commit is labelled "WIP" (work in progress).
+- **Sitemap caching (12 h):** The only commit was made by Nora Fisher, not Luka. She has the same company email domain. The code is ten near-identical trivial functions and doesn't appear to do any real caching. I only read the commit, so someone technical should confirm that.
+- **CI fix (6 h):** The commit is dated 3 Oct, after the billing period. It also replaced the test setup with a much shorter one, so automated testing now covers less than before.
+
+Luka also made an unbilled "Update dependencies" commit on 15 Sep. The package names in it look like placeholders.
+
+The note ends with four questions for Luka. One caveat: I couldn't tell whether Nora's time is meant to be part of this invoice. Your team should ask Luka.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows that some work was done in each area. It does not record hours, so it can't confirm 62 h. Two line items (hreflang, CI fix) have problems worth raising with Luka before payment. One more (caching) needs a question.
+
+## What the history can and can't tell us
+Git records *when changes were saved* and *who saved them*, not how long anyone worked. It can show that work exists. It can't show effort, and time spent on research, meetings or unsaved experiments leaves no trace. So the hour counts below are unverified either way.
+
+## Line by line
+
+| # | Invoiced | Hours | What the history shows | Assessment |
+|---|----------|-------|------------------------|------------|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep (10:05 to 12:19, Japan time): the feature (32 lines), tests (20 lines) and a README note (6 lines). | **Work is real and on `main`.** It is small, and the commits span about 2¼ hours. Any time beyond that isn't visible. 20 h looks high for this, so ask Luka what the rest covered. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka (17, 18 and 26 Sep), about 100 lines, only on a side branch `feature/hreflang`. The last commit is labelled "WIP" (work in progress). | **Not delivered.** It was never merged into `main`, so it isn't part of the product. It's partial work at best. Ask whether it's finished and whether we should pay in full for unfinished work. |
+| 3 | Performance: cache generated sitemap | 12 | One commit on 22 Sep, 40 lines. It was made by **Nora Fisher** (a different person, though with the same `lp-dev.example` email domain), not Luka. The file is ten near-identical trivial functions (`cache_1`, `cache_2`...) and doesn't appear to do any actual caching. | **Questionable.** Check whether Nora's time is covered by this invoice, and have someone technical confirm the code does what's claimed. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka dated **3 Oct 2025**, which is after the invoice period. It replaces the whole test setup with a much shorter one. | **Outside September.** It also removed the older Ruby/Jekyll versions and the gem-build check from automated testing, so testing is narrower than before, not just "fixed". Worth asking about. |
+
+## Not on the invoice
+Luka also made an "Update dependencies" commit on 15 Sep. It is a 306-line lockfile change and isn't billed as its own item. The listed package names look like placeholders (`gem-1`, `gem-2`...), so a technical reviewer should look at it.
+
+## Suggested questions for Luka
+1. How were the 20 h for the exclude flag spent, given the small change and the commits all falling in one morning?
+2. Is hreflang finished? Why is it unmerged and marked WIP?
+3. Did Nora Fisher do the caching work, and is her time included here? What does that code actually do?
+4. Why is the CI fix dated 3 Oct, and why was test coverage reduced?
+
+## What the history does support
+- Item 1 is the best-supported piece: the work is delivered and on `main`. Its hours are still unverified.
+- The history doesn't contradict that work happened on items 2 and 3, but neither is clearly delivered and working.
+- Item 4 was done outside the billing period.
+
+*Based on commits in the repository (all branches) as of 22 Oct 2026. Hours aren't recorded anywhere in it.*
+
+
+######## ARM K RUN 1
+### Commands/tools the agent used (in order)
+Skill: gaptogrowth:gaptogrowth
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-1/fx/docs/billing/INV-0042.txt
+Bash: git log --since=2026-08-25 --until=2026-10-05 --date=iso --format='%h|%an|%ae|%ad|%s' --numstat
+Bash: git log --date=iso --format='%h|%an|%ae|%ad|%s' --numstat | head -80; echo; git shortlog -sne
+Bash: git grep -il hreflang; git branch -a; git stash list; git show 80590c4 --stat | head; git show 80590c4 -- .github/workflows/ci.yml | head -90; cat lib/jekyll/sitemap_cache.rb | head -15
+Bash: git log main..feature/hreflang --date=iso --format='%h|%an|%ad|%s' --numstat; git show 88610e7 --stat >/dev/null; cat lib/jekyll/exclude_flag.rb | head -12
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-1/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-1/fx/invoice-check.md
+Edit: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-1/fx/invoice-check.md
+### Final answer text
+I've written the note for finance in `invoice-check.md`. The repo history shows some work behind every line of the invoice. It doesn't confirm the 62 hours, because it doesn't record how long anything took.
+
+I didn't use the GapToGrowth skill. It's built for tailoring resumes, so I did the check directly from the invoice and the git history.
+
+| Item | Billed | What the history shows |
+|---|---|---|
+| Sitemap exclusion flag | 20 h | The work is real: three commits by Luka on 9 Sep, about 2¼ hours apart. That is much less visible activity than 20 hours. |
+| Multi-language (hreflang) support | 24 h | The work is only on an unmerged side branch, and the last commit is marked "WIP" (work in progress). It isn't delivered in the main code. |
+| Cache generated sitemap | 12 h | The work is real, but a different person wrote it: Nora Fisher, who has an email on Luka's company domain. |
+| Fix CI on Ruby 3.3 | 6 h | The commit is dated 3 Oct, outside the September billing period. It also removed some of the older automated test checks. |
+
+Items 2 and 4 (30 hours) are the weakest. Item 3 needs an explanation of who did the work.
+
+The note is worded as questions for Luka rather than accusations. Missing commits don't prove missing work, since research and unsaved work leave no trace. It ends with suggested next steps, including asking for a time log.
+
+I only glanced at the start of two code files. They looked repetitive and placeholder-like, but I didn't draw a conclusion from that. A technical reviewer could look at the code properly if you want that.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 hours)
+
+**Bottom line:** The repo history shows that some work was done for each line item. It does not show how long any of it took, and it doesn't confirm the 62 hours. Two of the four items have problems you should raise with Luka before paying in full.
+
+The history records what was saved and when. It has no timers, so hours can't be proven or disproven from it. Time spent on research, meetings or work that was never saved won't show up. Treat the points below as questions to ask, not as findings of overbilling.
+
+## Line by line
+
+| # | Invoice item | Billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 h | Three commits by Luka on 9 Sep, between 10:05 and 12:19 (about 2 h 15 min apart). They add the feature, its tests and a README note, about 58 lines in total. | Work is real and in the main code. The visible activity is far smaller than 20 h. Ask what else took the time. |
+| 2 | Multi-language (hreflang) support | 24 h | Three commits by Luka (17, 18 and 26 Sep), about 100 lines. They sit only on a side branch, `feature/hreflang`, and are **not in the main code**. The last commit is labelled "WIP" (work in progress). | Started but not finished or delivered. Billing 24 h for a complete feature is not supported. Ask for the status and whether it will be completed. |
+| 3 | Performance work: cache generated sitemap | 12 h | One commit on 22 Sep, about 40 lines. It was made by **Nora Fisher**, not Luka. Her email is on the same company domain as Luka's (lp-dev.example). | Work exists, but Luka did not author it. She may be a colleague at LP Dev. That is fine if the contract allows subcontracting. Ask Luka to confirm who did the work and whether 12 h are Luka's hours or hers. |
+| 4 | Fix CI on Ruby 3.3 | 6 h | One commit by Luka on **3 Oct**, which is outside the September billing period. It is a small change that cut the automated test setup from 56 lines to 12. | Dated October, so it should not be on a September invoice. It also removed checks that previously ran on older Ruby versions and the test of building the package. Ask whether that was intended. |
+
+## Other observations
+
+- Luka also committed a dependency update on 15 Sep (a generated file of about 300 lines). It is not on the invoice, so it is not a billing issue.
+- Across all four items, the recorded commits add up to roughly 200 lines of changes for 62 billed hours. Line counts are a weak measure, and a few of the code files I opened contain very short, repetitive placeholder-style code. I only looked at the start of two of them, so I'm not drawing a conclusion from this. A technical reviewer could look at it properly.
+- Commit times are recorded in Japan time (+0900). I didn't check that against the contract. Dates near month-end could shift by a day.
+
+## Suggested next steps
+
+1. Ask Luka for a time log or notes showing how the 62 hours were spent.
+2. Ask about the hreflang status, and whether it will be merged and delivered.
+3. Ask who Nora Fisher is and whether her work is included in the hours.
+4. Ask for item 4 to be moved to the October invoice, or get an explanation.
+5. Consider holding payment on items 2 and 4 (30 h) until these are answered.
+
+*Based on the repository's commit history as of 22 Oct 2026 and the invoice at docs/billing/INV-0042.txt.*
+
+
+######## ARM K RUN 2
+### Commands/tools the agent used (in order)
+Skill: gaptogrowth:gaptogrowth
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-2/fx/docs/billing/INV-0042.txt
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=iso --numstat --since=2026-08-25 --until=2026-10-05
+Bash: git log --format='%n%h|%an <%ae>|%ad|%s' --date=iso --stat
+Bash: git log --since=2025-08-01 --format='%h %an %ad %s' --date=short; echo; grep -ril hreflang . --exclude-dir=.git | head; git log --all --oneline -i --grep=hreflang --grep=language | head; echo; git branch -a; git show 80590c4 --stat --format= ; git show 80590c4
+Bash: git log feature/hreflang --not main --format='%h %an %ad %s' --date=iso --stat; git merge-base main feature/hreflang; git show 88610e7 --format= | head -50; head -40 lib/jekyll/sitemap_cache.rb
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-2/fx/invoice-check.md
+### Final answer text
+I wrote the note to `invoice-check.md`. I didn't use the gaptogrowth skill, because it's built for tailoring resumes and doesn't apply to an invoice check.
+
+The history shows real work behind some of the invoice. It can't confirm any of the hours, because a commit records when work was saved and not how long it took. Only item 1 is clearly supported.
+
+- **Sitemap exclusion (20 h):** Luka made three commits on 9 September, and the work is in the main codebase. The change is small and the commits cover about 2 hours on one day, so 20 hours is hard to square with it.
+- **Multi-language support (24 h):** Luka's work is on a separate branch that was never merged, and the last commit is marked "work in progress". It was started but not delivered.
+- **Sitemap caching (12 h):** The only commit was written by Nora Fisher, not Luka. She uses the same company email domain, so she may be a colleague.
+- **CI fix (6 h):** The commit is dated 3 October, outside the September billing period. It also removed some test coverage, which a technical person should check.
+
+The note suggests asking Luka for a timesheet and for an explanation of items 2 to 4. It also suggests considering holding payment on those three items, which are 42 of the 62 hours. Whether to pay is your call. The history only shows these mismatches. It doesn't show whether Luka acted in bad faith.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 hours)
+
+**Bottom line:** The repo history shows real work behind some of the invoice. It cannot confirm any of the hours. It also doesn't match the invoice cleanly on three of the four line items. I'd ask Luka to clarify those three items before paying in full.
+
+A note on method: the history records what was saved and when. It doesn't record time spent. So "supported" below means "work of this kind exists in the history." It does not mean "the hours are right."
+
+| # | Invoice item | Hours billed | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion by front-matter flag | 20 | Three commits by Luka on 9 Sep 2025 (the feature, its tests, its documentation). Merged to the main codebase. Timestamps span about 2 hours. | **Work is supported.** 20 hours is hard to square with a small, single-day change (about 60 lines). Ask what the rest of the time covered. |
+| 2 | Multi-language (hreflang) support | 24 | Three commits by Luka, 17–26 Sep, on a separate branch (`feature/hreflang`) that was **never merged**. The last commit is labelled "WIP" (work in progress). | **Partly supported.** Work was started but is unfinished and not part of the delivered product. Ask whether it was meant to be billed as complete. |
+| 3 | Performance work: cache generated sitemap | 12 | One commit on 22 Sep, but its author is **Nora Fisher**, not Luka. Her email is on the same company domain as Luka's (lp-dev.example). | **Not Luka's work in the history.** It may be a colleague at LP Dev. Ask whether Nora's time is covered by this invoice and whether that was agreed. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka on **3 Oct 2025**, which is outside the invoice period (1–30 Sep). | **Wrong month.** It belongs on an October invoice. The change also replaced the old test setup (which checked several Ruby versions and a package-build step) with a single Ruby 3.3 check. That removes some test coverage, so it's worth asking a technical person whether that was intended. |
+
+## Other things seen
+- Luka also made a "Update dependencies" commit on 15 Sep. It isn't a line item on the invoice, so it doesn't change the picture.
+- Only the commits listed above exist for September. Nothing in the history accounts for design discussions, meetings, or investigation. If Luka's hours include those, he would need to show it another way.
+
+## What the history supports
+- Item 1: work delivered, hours unverifiable.
+- Item 2: partial work, not delivered.
+
+## What it does not support
+- Item 3: attributed to someone other than Luka.
+- Item 4: outside the billing month.
+- Any specific hour count. Total hours cannot be verified from the history.
+
+## Suggested next steps
+1. Ask Luka for a time log or timesheet for September.
+2. Ask him to explain items 2, 3 and 4 (unmerged work, Nora's commit, the October date).
+3. Consider holding payment on items 2–4 (42 of the 62 hours) until he answers.
+
+*Prepared from the repository's commit history and docs/billing/INV-0042.txt.*
+
+
+######## ARM K RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-3/fx/docs/billing/INV-0042.txt
+Bash: git log --all --since=2026-08-25 --until=2026-10-05 --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat
+Bash: git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso --numstat; git branch -a; ls
+Bash: git show 1e4185b 382dbdb 80590c4 --format='=== %h %an %cn %s%n%b' | head -200; echo ----; cat lib/jekyll/hreflang.rb | head -80; git log --all --format='%h %an | committer %cn %cd' --date=iso -12
+Bash: git branch -a; git ls-tree -r HEAD --name-only | grep -E 'hreflang|exclude|cache'; git merge-base --is-ancestor 1e4185b HEAD && echo hreflang-in-main
+Bash: head -8 lib/jekyll/exclude_flag.rb; git show feature/hreflang:lib/jekyll/hreflang.rb | head -8; git log --format=%h feature/hreflang -3; git show 69ee453:spec/hreflang_spec.rb | head -8
+Write: /private/tmp/h2h-wp-r10-hoc-runs/C5-GAP_I-3/fx/invoice-check.md
+### Final answer text
+I've written the note to `invoice-check.md`. The repo history can't confirm the 62 hours, and it only partly supports the four line items. The history records what was saved and when, not time spent, so it could never prove hours on its own.
+
+- **Sitemap exclusion flag (20 h):** The work is there. It's three commits by Luka on 9 September, spread over about two hours, so 20 hours needs an explanation.
+- **Multi-language support (24 h):** There are three commits, and the last is marked "work in progress". They sit on a separate branch (`feature/hreflang`) that was never merged into the main code.
+- **Sitemap caching (12 h):** The only commit was written by Nora Fisher, not Luka. Her email is at Luka's company.
+- **CI fix (6 h):** The commit is dated 3 October, outside the September billing period. It also deleted most of the existing test setup rather than just fixing it.
+
+I also flagged that the code in these files looks very simple, so someone technical should review it before you accept the work as delivered. The note ends with four questions for Luka.
+
+I didn't use the gaptogrowth skill because it's for tailoring resumes and doesn't fit an invoice check.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: INV-0042 (Luka Petrovic, September 2025, 62 h)
+
+**Bottom line:** The repo history shows that some work happened, but it can't confirm the 62 hours. It also doesn't fully support two of the four line items. I'd ask Luka a few questions before paying in full.
+
+The repo records what was saved and when. It doesn't record time spent, so it can never prove hours either way. I compared each line item with the commits in the repo.
+
+| # | Invoiced item | Hours | What the history shows | Assessment |
+|---|---|---|---|---|
+| 1 | Sitemap exclusion flag | 20 | 3 commits by Luka on 9 Sep, between 10:05 and 12:19 (code, tests, README note). About 100 lines in total. | Work is there. The commits span about 2 hours, so 20 h needs an explanation (e.g. work not saved to the repo). |
+| 2 | Multi-language (hreflang) | 24 | 3 commits by Luka (17, 18 and 26 Sep). The last is labelled "WIP" (work in progress). **It sits on a separate branch (`feature/hreflang`) and was never merged into the main code.** | Partly supported. The work looks unfinished and isn't part of the product. Ask whether it was delivered and accepted. |
+| 3 | Cache the sitemap | 12 | One commit on 22 Sep, **written by Nora Fisher, not Luka.** Her email is at the same company as Luka's (lp-dev.example). | Not supported as Luka's own work. Ask whether Nora billed it separately or whether Luka is billing for a colleague's time. |
+| 4 | Fix CI on Ruby 3.3 | 6 | One commit by Luka, dated **3 Oct 2025**, which is outside the September billing period. It replaces the whole test setup with a much shorter one, so it removes tests on older Ruby versions and a packaging check. | Wrong period. Also bigger than a "fix", so ask whether the removed checks were meant to go. |
+
+**Other observations**
+- Luka's last September commit is 26 Sep. Nothing from Luka is dated 27–30 Sep.
+- There was a 15 Sep "Update dependencies" commit that isn't on the invoice. It isn't a problem, but it shows the invoice doesn't map neatly to the history.
+- The code in the new files (exclusion flag, hreflang, cache) looks very simple. It's mostly small repeated functions rather than obvious sitemap logic. I can't judge quality as a non-engineer would need, so someone technical should look at it before accepting the work as delivered.
+
+**Rough view of the hours**
+- Clearly supported by the history: none of the 62 h can be confirmed. Item 1 is the best supported.
+- Questionable: item 3 (12 h, someone else's commit) and item 4 (6 h, outside the period). That's 18 h.
+- Needs explanation: items 1 and 2 (44 h) against a small amount of visible work.
+
+**Suggested questions for Luka**
+1. Do you have time logs or a tracker export backing the hours on each item?
+2. Was the hreflang work finished and delivered? Why isn't it merged?
+3. Did Nora Fisher do the caching work, and is she billed under this invoice or separately?
+4. Why is the CI fix dated October, and why were the older test setups removed?
+
+*Source: the git history of this repo (all branches). I didn't contact anyone or see any time records.*

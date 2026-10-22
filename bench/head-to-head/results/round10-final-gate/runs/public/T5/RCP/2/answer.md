@@ -1,0 +1,6 @@
+I saved the paragraph to `self-review.md`. It's 100 words, and I pulled every figure from git history (`git log` and `git blame`). I haven't opened any commit diffs, so please check it before you send it.
+
+- **Code:** you own about 50% of the current JavaScript lines (472 of 950) and about 52% of `index.js` (125 of 239). TJ Holowaychuk, who started the project, owns about 38%.
+- **Commits:** you have about 63 of 230 non-merge commits (~27%). TJ has 90, so by commit count you're second.
+- **Aliases:** your commits appear under three identities: "Jonathan Ong", "jongleberry", and an `<email:4132b6bd>` address. I counted all of them as you. If any of them aren't yours, the commit count would be lower.
+- **Wording:** the paragraph says TJ created the library and that the core design is TJ's. Your manager will see that in the history anyway. The last sentence ("code and tests added or rewritten since then, plus Readme work") is a loose summary, not something I checked commit by commit. Adjust it if it doesn't match what you did.

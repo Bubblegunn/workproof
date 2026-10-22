@@ -1,0 +1,4 @@
+- Maintained `co`, an open-source generator-based async control-flow library for Node.js and the browser. Authored 72 of the repo's 299 commits (Nov 2013 – Jul 2015) and shipped releases through v4.6.0.
+- Led the v4.0.0 rewrite from a thunk-based design to a Promise-based implementation. Positioned the library as a stepping stone toward async/await. Always wrapped results in `Promise.resolve()` for consistent behavior.
+- Improved reliability and compatibility across the 4.x line. Added support for regular functions that throw, documented a memory-leak error case, trimmed an unused dependency, and added CI runs on io.js.
+- Raised project quality and maintainability. Added test coverage reporting, README and badge updates, and removed stale examples, benchmarks and build tooling.

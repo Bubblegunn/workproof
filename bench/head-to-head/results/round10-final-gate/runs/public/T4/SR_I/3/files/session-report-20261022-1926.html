@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>claude usage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* anthropic / claude-code palette */
+    --ivory: #FAF9F5;
+    --term-bg: #1a1918;
+    --term-fg: #d1cfc5;
+    --titlebar: #252321;
+    --outline: rgba(255,255,255,0.08);
+    --hover: rgba(255,255,255,0.035);
+    --clay: #D97757;
+    --dim: rgb(136,136,136);
+    --subtle: rgb(80,80,80);
+    --green: rgb(78,186,101);
+    --red: rgb(255,107,128);
+    --blue: rgb(177,185,249);
+    --yellow: rgb(255,193,7);
+    --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, Menlo, Monaco, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html { background: var(--ivory); }
+  body {
+    margin: 0; padding: 48px 24px 80px;
+    font: 13px/1.55 var(--mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--term-fg);
+  }
+
+  /* ——— terminal window chrome ——— */
+  .term {
+    max-width: 1180px; margin: 0 auto;
+    background: var(--term-bg);
+    border-radius: 8px;
+    outline: 1px solid var(--outline);
+    box-shadow: 0 20px 60px rgba(20,20,19,0.22);
+  }
+  .titlebar {
+    background: var(--titlebar);
+    border-radius: 8px 8px 0 0;
+    border-bottom: 1px solid var(--outline);
+    padding: 11px 14px;
+    display: flex; align-items: center; gap: 7px;
+  }
+  .titlebar .dot { width: 11px; height: 11px; border-radius: 50%; background: #3a3836; }
+  .titlebar .path { margin-left: 14px; color: var(--dim); font-size: 11px; }
+  .term-body { padding: 22px 30px 30px; }
+
+  /* ——— command + hero ——— */
+  .cmd { color: var(--dim); margin-bottom: 6px; }
+  .cmd .prompt { color: var(--clay); }
+  .cmd .flag { color: var(--blue); }
+  #meta-line { color: var(--subtle); font-size: 11px; }
+
+  #hero { margin: 14px 0 6px; }
+  #hero-total { font-size: 56px; font-weight: 700; line-height: 1; }
+  #hero-total .unit { color: var(--clay); }
+  #hero-total .label { font-size: 18px; font-weight: 400; color: var(--dim); margin-left: 8px; }
+  #hero-split { color: var(--dim); margin-top: 8px; }
+  #hero-split b { color: var(--term-fg); font-weight: 500; }
+  #hero-split .ok { color: var(--green); }
+  #hero-split .warn { color: var(--yellow); }
+
+  /* ——— sections ——— */
+  section { margin-top: 26px; }
+  .hr { color: var(--subtle); overflow: hidden; white-space: nowrap;
+        user-select: none; margin-bottom: 8px; }
+  .hr::after { content: '────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────'; }
+  h2 { all: unset; display: block; color: var(--clay); font-weight: 500; }
+  h2::before { content: '▸ '; }
+  h2 .hint { color: var(--subtle); font-size: 11px; font-weight: 400; margin-left: 10px; }
+  .section-body { margin-top: 10px; }
+
+  /* ——— overall stat grid ——— */
+  #overall-grid { display: grid; gap: 4px 28px;
+                  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .stat { padding: 4px 0; }
+  .stat .label { font-size: 11px; color: var(--dim); }
+  .stat .val { font-size: 20px; font-weight: 500; }
+  .stat .detail { font-size: 11px; color: var(--subtle); }
+
+  /* ——— takeaways ——— */
+  .take { display: grid; grid-template-columns: 9ch 1fr; gap: 18px;
+          padding: 6px 0; align-items: baseline; }
+  .take .fig { text-align: right; font-weight: 700; font-size: 15px; }
+  .take .txt { color: var(--dim); }
+  .take .txt b { color: var(--term-fg); font-weight: 500; }
+  .take.bad  .fig { color: var(--red); }
+  .take.good .fig { color: var(--green); }
+  .take.info .fig { color: var(--blue); }
+
+  /* ——— callouts (recommendations) ——— */
+  .callout { padding: 6px 0 6px 14px; border-left: 2px solid var(--subtle);
+             color: var(--dim); margin: 6px 0; }
+  .callout b, .callout code { color: var(--term-fg); }
+
+  /* ——— day pills + session gantt ——— */
+  .days { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .dpill { flex: 1; min-width: 84px; max-width: 140px; background: none;
+           border: 1px solid var(--subtle); border-radius: 4px;
+           padding: 9px 6px; font: inherit; color: var(--dim);
+           cursor: pointer; text-align: center; }
+  .dpill:hover { border-color: var(--dim); background: var(--hover); }
+  .dpill .dow { font-size: 10px; color: var(--subtle); display: block; }
+  .dpill .date { font-size: 11px; color: var(--term-fg); font-weight: 500;
+                 display: block; margin: 2px 0 4px; }
+  .dpill .pct { font-size: 16px; font-weight: 700; color: var(--term-fg); display: block; }
+  .dpill .ns { font-size: 10px; color: var(--subtle); display: block; margin-top: 2px; }
+  .dpill.heaviest .pct { color: var(--clay); }
+  .dpill.sel { border-color: var(--clay); background: rgba(217,119,87,0.10); }
+  .gantt-hd { display: flex; justify-content: space-between; align-items: baseline;
+              margin-bottom: 6px; }
+  .gantt-hd .day { color: var(--term-fg); font-weight: 500; }
+  .gantt-hd .stats { font-size: 11px; color: var(--dim); }
+  .gantt-hd .stats b { color: var(--clay); }
+  .gantt { position: relative; border-top: 1px solid var(--outline);
+           border-bottom: 1px solid var(--outline); min-height: 32px; }
+  .lane { position: relative; height: 16px;
+          border-bottom: 1px dashed rgba(255,255,255,0.04); }
+  .seg { position: absolute; top: 2px; height: 12px; border-radius: 2px;
+         opacity: .85; cursor: crosshair; }
+  .seg:hover { opacity: 1; outline: 1px solid var(--term-fg); z-index: 2; }
+  .gantt-rule { position: absolute; top: 0; bottom: 0; width: 0;
+                border-left: 1px dashed var(--subtle); opacity: .4;
+                pointer-events: none; }
+  .gantt-axis { display: flex; justify-content: space-between;
+                font-size: 10px; color: var(--subtle); padding: 4px 0; }
+  .gantt-leg { font-size: 10px; color: var(--subtle); margin-top: 8px;
+               display: flex; gap: 14px; flex-wrap: wrap; }
+  .gantt-leg .sw { display: inline-block; width: 14px; height: 10px;
+                   border-radius: 2px; vertical-align: middle; margin-right: 4px; }
+
+  /* ——— block-char bars ——— */
+  .bar { display: grid; grid-template-columns: 26ch 1fr 8ch; gap: 14px;
+         padding: 2px 0; align-items: center; }
+  .bar .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .bar .blocks { color: var(--clay); white-space: pre; overflow: hidden; }
+  .bar .blocks .empty { color: var(--subtle); }
+  .bar .pct { text-align: right; color: var(--dim); }
+  .bar:hover .name { color: var(--clay); }
+
+  /* ——— drill-down lists (top prompts, cache breaks) ——— */
+  .drill details { border-top: 1px solid var(--outline); }
+  .drill details:last-of-type { border-bottom: 1px solid var(--outline); }
+  .drill summary { list-style: none; cursor: pointer;
+    display: grid; grid-template-columns: 8ch 1fr; gap: 16px;
+    padding: 9px 4px; align-items: baseline; }
+  .drill summary::-webkit-details-marker { display: none; }
+  .drill summary:hover { background: var(--hover); }
+  .drill .amt { font-weight: 700; text-align: right; color: var(--clay); }
+  .drill .desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .drill .meta { grid-column: 2; font-size: 11px; color: var(--subtle); }
+  .drill details[open] summary .desc { white-space: normal; }
+  .drill .body { padding: 4px 4px 14px calc(8ch + 20px); font-size: 12px; color: var(--dim); }
+
+  /* ——— transcript context (±2 user msgs) — light inset for legibility ——— */
+  .ctx { margin: 8px 0 12px; padding: 10px 14px;
+         background: #F0EEE6; color: #1a1918;
+         border-radius: 6px; font-size: 12px; }
+  .ctx-msg { padding: 4px 0; white-space: pre-wrap; }
+  .ctx-msg .who { color: #87867F; font-size: 11px; }
+  .ctx-msg .ts { color: #87867F; font-size: 10px; margin-left: 8px; }
+  .ctx-msg.here { margin: 2px -14px; padding: 6px 11px 6px 14px;
+                  border-left: 3px solid var(--clay);
+                  background: rgba(217,119,87,0.10); }
+  .ctx-msg.here .who { color: var(--clay); font-weight: 500; }
+  .ctx-gap { color: #87867F; font-size: 11px; padding: 3px 0 3px 7ch; }
+  .ctx-gap::before { content: '⟨ '; }
+  .ctx-gap::after  { content: ' ⟩'; }
+  .ctx-break { margin: 2px -14px; padding: 8px 11px 8px 14px;
+               border-left: 3px solid #BD5E6D;
+               background: rgba(189,94,109,0.12); color: #A63244; }
+  .ctx-break b { color: #1a1918; margin-right: 6px; }
+
+  .more-btn { display: block; width: 100%; margin-top: 10px; padding: 9px;
+              background: none; border: 1px dashed var(--subtle); cursor: pointer;
+              font: 500 11px/1 var(--mono); letter-spacing: 0.06em;
+              color: var(--dim); }
+  .more-btn:hover { border-color: var(--dim); color: var(--term-fg); }
+
+  /* ——— tables ——— */
+  .scroll { max-height: 440px; overflow: auto;
+            border-top: 1px solid var(--outline); border-bottom: 1px solid var(--outline); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 6px 10px; }
+  td { border-top: 1px solid rgba(255,255,255,0.04); }
+  th { position: sticky; top: 0; background: var(--term-bg); z-index: 1;
+       font-weight: 500; font-size: 11px; color: var(--subtle);
+       cursor: pointer; user-select: none;
+       border-bottom: 1px solid var(--outline); }
+  th:hover { color: var(--dim); }
+  th.sorted { color: var(--clay); }
+  th.sorted::after { content: ' ↓'; }
+  th.sorted.asc::after { content: ' ↑'; }
+  td.num, th.num { text-align: right; }
+  tbody tr:hover td { background: var(--hover); }
+
+  footer { margin-top: 28px; color: var(--subtle); font-size: 11px;
+           display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+
+  code { color: var(--blue); }
+  a { color: var(--clay); }
+  ::selection { background: var(--clay); color: var(--term-bg); }
+
+  @media (max-width: 760px) {
+    body { padding: 20px 12px 48px; }
+    .term-body { padding: 16px 16px 24px; }
+    #hero-total { font-size: 40px; }
+    .bar { grid-template-columns: 14ch 1fr 7ch; gap: 8px; }
+    .drill summary { grid-template-columns: 6ch 1fr; }
+    .drill .body { padding-left: 12px; }
+    .take { grid-template-columns: 7ch 1fr; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="term">
+  <div class="titlebar">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+    <span class="path" id="title-path">~/.claude — session-report</span>
+  </div>
+  <div class="term-body">
+
+    <div class="cmd"><span class="prompt">&gt;</span> claude usage <span id="cmd-flags"></span></div>
+    <div id="meta-line">loading…</div>
+
+    <div id="hero">
+      <div id="hero-total">—</div>
+      <div id="hero-split"></div>
+    </div>
+
+    <!-- ====================================================================
+         FINDINGS — agent fills this. 3–5 one-line takeaways. Use .bad for
+         waste/anomalies, .good for healthy signals, .info for neutral.
+         ==================================================================== -->
+    <section>
+      <div class="hr"></div>
+      <h2>findings</h2>
+      <div class="section-body" id="takeaways">
+        <div class="take info"><div class="fig">40</div><div class="txt"><b>40 sessions</b>, 417 API calls and 64 human messages between 2026-09-24 and 2026-10-21, all in one project (<b>sample</b>)</div></div>
+        <div class="take good"><div class="fig">97.1%</div><div class="txt"><b>Cache hit rate</b> was healthy, with no cache breaks over 100k tokens</div></div>
+        <div class="take bad"><div class="fig">48.9%</div><div class="txt"><b>"what changed in the pricing API?"</b> was asked in 17 sessions and used about half of all tokens</div></div>
+        <div class="take bad"><div class="fig">44.4%</div><div class="txt"><b>"add the thing"</b> was a vague prompt used in 19 sessions, at roughly 406k tokens each</div></div>
+        <div class="take info"><div class="fig">0</div><div class="txt"><b>Subagents and skills</b> were not used in this period</div></div>
+        <div class="take"><div class="fig">—</div><div class="txt">No findings generated yet.</div></div>
+        <!-- /AGENT -->
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         Everything below renders automatically from #report-data.
+         ==================================================================== -->
+    <section>
+      <div class="hr"></div>
+      <h2>summary</h2>
+      <div class="section-body" id="overall-grid"></div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>tokens by project<span class="hint">share of total</span></h2>
+      <div class="section-body" id="project-bars"></div>
+    </section>
+
+    <section id="timeline-section">
+      <div class="hr"></div>
+      <h2>session timeline by day<span class="hint">click a day · ←/→ to navigate</span></h2>
+      <div class="section-body">
+        <div class="days" id="day-pills"></div>
+        <div class="gantt-hd">
+          <span class="day" id="g-day">—</span>
+          <span class="stats" id="g-stats"></span>
+        </div>
+        <div class="gantt-axis"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+        <div class="gantt" id="gantt"></div>
+        <div class="gantt-leg" id="gantt-leg"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>most expensive prompts<span class="hint">click to expand context</span></h2>
+      <div class="section-body drill" id="top-prompts"></div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>cache breaks<span class="hint">&gt;100k uncached · click for context</span></h2>
+      <div class="section-body drill" id="cache-breaks"></div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>projects</h2>
+      <div class="section-body scroll"><table id="tbl-projects"></table></div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>subagent types</h2>
+      <div class="section-body scroll"><table id="tbl-subagents"></table></div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>skills &amp; slash commands</h2>
+      <div class="section-body scroll"><table id="tbl-skills"></table></div>
+    </section>
+
+    <section>
+      <div class="hr"></div>
+      <h2>recommendations</h2>
+      <div class="section-body">
+        <div class="callout">The pricing-API question was re-asked in 17 sessions (48.9% of tokens). Save the answer to a doc or CLAUDE.md so it isn't re-researched each time.</div>
+        <div class="callout">"add the thing" ran 19 times at ~406k tokens each (44.4%). Name the feature and the target files in the prompt to cut exploration.</div>
+        <div class="callout">This report measures usage only. It does not record outcomes such as PRs merged or features shipped. Add those from your git/PR history before sending it to your manager.</div>
+        <div class="callout">No suggestions generated yet.</div>
+        <!-- /AGENT -->
+      </div>
+    </section>
+
+    <footer>
+      <span id="foot-gen"></span>
+      <span id="foot-stats"></span>
+    </footer>
+
+  </div>
+</div>
+
+<!-- ========================================================================
+     DATA — agent replaces the {} below with the full --json output.
+     ======================================================================== -->
+<script id="report-data" type="application/json">{"root": "/private/tmp/h2h-wp-r7/F4/home/user/projects", "generated_at": "2026-10-22T16:26:53.457Z", "overall": {"sessions": 40, "api_calls": 417, "input_tokens": {"uncached": 375300, "cache_create": 0, "cache_read": 12510000, "total": 12885300, "pct_cached": 97.1}, "output_tokens": 131050, "human_messages": 64, "hours": {"wall_clock": 0, "active": 0}, "cache_breaks_over_100k": 0, "subagent": {"calls": 0, "total_tokens": 0, "avg_tokens_per_call": 0}, "skill_invocations": {}, "span": {"from": "2026-09-24T11:15:00.000Z", "to": "2026-10-21T08:15:00.000Z"}}, "cache_breaks": [], "by_project": {"sample": {"sessions": 40, "api_calls": 417, "input_tokens": {"uncached": 375300, "cache_create": 0, "cache_read": 12510000, "total": 12885300, "pct_cached": 97.1}, "output_tokens": 131050, "human_messages": 64, "hours": {"wall_clock": 0, "active": 0}, "cache_breaks_over_100k": 0, "subagent": {"calls": 0, "total_tokens": 0, "avg_tokens_per_call": 0}, "skill_invocations": {}, "span": {"from": "2026-09-24T11:15:00.000Z", "to": "2026-10-21T08:15:00.000Z"}}}, "by_subagent_type": {}, "by_skill": {}, "top_prompts": [{"ts": "2026-10-20T09:15:00.000Z", "project": "sample", "session": "s-acme-api-1", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-20T09:15:00.000Z", "calls": 13, "here": true}, {"text": "open the PR", "ts": "2026-10-20T09:15:00.000Z", "calls": 1, "here": false}]}, {"ts": "2026-10-19T10:15:00.000Z", "project": "sample", "session": "s-acme-api-2", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-19T10:15:00.000Z", "calls": 13, "here": true}]}, {"ts": "2026-10-17T12:15:00.000Z", "project": "sample", "session": "s-acme-api-3", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-17T12:15:00.000Z", "calls": 13, "here": true}]}, {"ts": "2026-10-16T07:15:00.000Z", "project": "sample", "session": "s-acme-api-4", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-16T07:15:00.000Z", "calls": 13, "here": true}, {"text": "open the PR", "ts": "2026-10-16T07:15:00.000Z", "calls": 1, "here": false}]}, {"ts": "2026-10-13T10:15:00.000Z", "project": "sample", "session": "s-acme-api-5", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-13T10:15:00.000Z", "calls": 13, "here": true}]}, {"ts": "2026-10-10T07:15:00.000Z", "project": "sample", "session": "s-acme-api-6", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-10T07:15:00.000Z", "calls": 13, "here": true}]}, {"ts": "2026-10-06T11:15:00.000Z", "project": "sample", "session": "s-acme-api-7", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-06T11:15:00.000Z", "calls": 13, "here": true}, {"text": "open the PR", "ts": "2026-10-06T11:15:00.000Z", "calls": 1, "here": false}]}, {"ts": "2026-10-02T09:15:00.000Z", "project": "sample", "session": "s-acme-api-8", "text": "add the thing", "api_calls": 13, "subagent_calls": 0, "total_tokens": 405900, "input": {"uncached": 11700, "cache_create": 0, "cache_read": 390000}, "output": 4200, "context": [{"text": "add the thing", "ts": "2026-10-02T09:15:00.000Z", "calls": 13, "here": 
+[truncated at 20000 chars]

@@ -1,0 +1,4 @@
+- Rewrote the core of `co`, a generator-based async control-flow library for Node.js and the browser, to return promises instead of thunks (v4.0.0, 15 files changed, 630 lines removed and 389 added), and updated the tests and README to match.
+- Released 16 versions of `co` from 3.0.1 to 4.6.0 (2013 to 2015), and fixed bugs including "Generator is already running" errors and regular functions that throw.
+- Added object yielding and key-order preservation, and clearer errors when a non-yieldable value is yielded.
+- Added test coverage reporting and CI runs on io.js, and removed the benchmarks and outdated examples. Reviewed and merged 12 community pull requests.

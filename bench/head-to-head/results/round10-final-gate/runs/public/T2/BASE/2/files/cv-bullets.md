@@ -1,0 +1,4 @@
+- Co-maintained **co**, a widely used generator-based control-flow library for Node.js and the browser, with 70+ commits from 2013 to 2015 and releases through v4.6.0.
+- Led the v4.0.0 rewrite from a thunk/callback design to a promise-based core. The change touched 15 files (about 390 lines added and 630 removed). It gave the library a simpler public API and a path toward native `async/await`.
+- Improved reliability and developer experience: made generators and plain functions that throw reject cleanly as promises, preserved key ordering when yielding objects, always wrapped results in `Promise.resolve()`, and replaced unclear errors with a descriptive message when a non-yieldable value is yielded.
+- Ran the project's release and quality tooling: added test coverage reporting, CI on Travis (including io.js), and README badges. Removed outdated benchmarks, examples and unused dependencies, and shipped the 4.x releases (4.0 to 4.6).

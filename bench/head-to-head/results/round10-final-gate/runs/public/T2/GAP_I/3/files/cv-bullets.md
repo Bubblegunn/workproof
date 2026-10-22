@@ -1,0 +1,4 @@
+- Maintained `co`, an open-source generator-based async control flow library for Node.js and the browser (72 commits, 2013 to 2015), shipping releases from 3.0 through 4.6 under semver.
+- Led the v4.0 rewrite from thunks to a Promise-based core, adding `co.wrap()` to turn generator functions into promise-returning functions. This moved the library toward the async/await model.
+- Fixed a memory leak (#180) and "Generator is already running" errors, and improved error messages when a non-yieldable value is yielded.
+- Widened compatibility and extended the API: ES5-transpiler-friendly generator detection, support for regular functions that return promises, forwarding extra arguments into generators, and CI testing on io.js and newer Node versions.

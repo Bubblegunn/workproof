@@ -1,0 +1,3 @@
+- Shipped sustained improvements to co, a JavaScript and Node.js developer tool, which came to 63 non-merge commits between 7 November 2013 and 22 August 2015. [P01-F1]
+- Developed core library code in co, which accounts for 697 of the 1,417 lines (49%) surviving at HEAD in git blame. [P01-F2]
+- Built out the co test suite, which accounts for 31 of the 41 test-file changes in the period. [P01-F3]

@@ -1,0 +1,4 @@
+- Maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits from Nov 2013 to Jul 2015, including the 3.x and 4.x releases.
+- Led the v4.0 rewrite from thunks to a native Promise-based API, dropping the Bluebird dependency, to give a stepping stone toward async/await. Wrote the migration documentation and kept `co()` returning a promise.
+- Extended the API across releases 4.1–4.6. Added support for plain functions that return promises or throw, `co.wrap()` for reusable generator functions, and passing arguments through to generators. Made generator-function detection work with ES5 transpilers.
+- Fixed a memory leak, removed unused dependencies, added test coverage reporting and CI across Node.js and io.js, and triaged and merged community pull requests.

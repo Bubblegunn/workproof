@@ -1,0 +1,4 @@
+- Co-maintained **co**, a widely used generator-based control-flow library for Node.js and the browser. Made 70+ commits and shipped more than 15 releases (v3.0.0 to v4.6.0) between 2013 and 2015.
+- Led the v4 rewrite from thunk/callback-based control flow to a native Promise implementation. This was a breaking API change. I documented it in the README and changelog and kept the library compatible with the upcoming async/await proposal.
+- Extended the API: yielding objects in parallel while preserving key order, regular functions that return promises or throw, and passing extra arguments into generators through `co()`. Added clearer errors when a non-yieldable value is yielded.
+- Fixed a memory leak and "Generator is already running" errors, and improved compatibility with ES5 transpilers. Added test coverage and CI (Travis, including io.js), removed unused dependencies and out-of-date benchmarks and examples, and reviewed and merged community pull requests.

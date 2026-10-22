@@ -1,0 +1,1 @@
+Not in your facts: Python, PyTorch, Pinecone, FAISS, Docker, edge deployment. Add them to your bank if they are true.

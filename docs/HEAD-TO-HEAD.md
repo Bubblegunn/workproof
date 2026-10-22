@@ -1078,6 +1078,51 @@ F9 and F6 run only if both gates pass and budget remains below 30 USD. F9: Haiku
 
 Evidence: `bench/head-to-head/results/round10-final-gate/` per `EVIDENCE-SPEC.md` (SUMMARY, PROTOCOL, arms.json, env.json, tasks/, runs/ redacted by a tested script, grades/, score.py that recomputes SUMMARY's tables, REPRODUCE.md, VERIFY.md, SHA256SUMS).
 
+## Results, round 10 and final gate
+
+On 8 public and 5 held-out tasks, Sonnet (claude-sonnet-5-5), Agent SDK path, 2026-10-22, 3 runs per cell, workproof passes the public gate (34.67 of 35 against 25.00 for the best rival) and fails the held-out set c gate (18.33 of 25 against 22.33); the full gate is not passed and no first-place claim is made.
+
+Product commit `523ddc4` (harness `effaed4`, rulings `f9f4d00`, protocol `5468312`). Outcome criteria only; the public rival cells are the deep-round transcripts of the same day (same pins, regraded with the new OURS cells in one blind round); held-out set c is new, all cells new.
+
+Public set (T1 to T8):
+
+| Task (max) | OURS | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I | SR | SR_I | CV | CV_I |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| T1 (4) | 3.67 (3-4, n=3) | 1.33 (1-2, n=3) | 0.67 (0-2, n=3) | 1.33 (1-2, n=3) | 1.33 (1-2, n=3) | 1.00 (0-2, n=3) | 1.67 (1-2, n=3) | 2.00 (2-2, n=3) | 1.00 (0-2, n=3) | n/a | 1.67 (1-2, n=3) | 1.67 (1-2, n=3) |
+| T2 (4) | 4.00 (4-4, n=3) | 0.67 (0-1, n=3) | 0.33 (0-1, n=3) | 1.00 (0-2, n=3) | 1.33 (1-2, n=3) | 3.00 (3-3, n=3) | 0.00 (0-0, n=3) | 1.67 (1-2, n=3) | 0.33 (0-1, n=3) | n/a | 0.67 (0-2, n=3) | 2.00 (2-2, n=3) |
+| T3 (4) | 4.00 (4-4, n=3) | 3.00 (3-3, n=3) | 3.33 (3-4, n=3) | 3.67 (3-4, n=3) | 3.33 (3-4, n=3) | 3.33 (3-4, n=3) | 3.33 (3-4, n=3) | 4.00 (4-4, n=3) | 3.00 (2-4, n=3) | n/a | 3.33 (3-4, n=3) | 3.33 (3-4, n=3) |
+| T4 (4) | 4.00 (4-4, n=3) | 3.33 (3-4, n=3) | 4.00 (4-4, n=3) | 4.00 (4-4, n=3) | 3.67 (3-4, n=3) | 2.00 (0-3, n=3) | 3.33 (3-4, n=3) | 3.67 (3-4, n=3) | 1.00 (1-1, n=3) | 1.00 (1-1, n=3) | 4.00 (4-4, n=3) | 3.33 (3-4, n=3) |
+| T5 (5) | 5.00 (5-5, n=3) | 3.33 (3-4, n=3) | 3.33 (3-4, n=3) | 3.67 (3-4, n=3) | 3.00 (3-3, n=3) | 2.67 (2-3, n=3) | 3.67 (3-5, n=3) | 3.00 (3-3, n=3) | 3.00 (2-4, n=3) | n/a | 2.67 (2-3, n=3) | 3.67 (3-4, n=3) |
+| T6 (4) | 4.00 (4-4, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | n/a | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) |
+| T7 (5) | 5.00 (5-5, n=3) | 4.00 (4-4, n=3) | 4.00 (4-4, n=3) | 2.67 (2-4, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 1.00 (0-3, n=3) | 3.67 (3-4, n=3) | n/a | 4.00 (4-4, n=3) | 4.00 (4-4, n=3) |
+| T8 (5) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 0.00 (0-0, n=3) | 2.00 (2-2, n=3) | 3.33 (0-5, n=3) | 0.00 (0-0, n=3) | 5.00 (5-5, n=3) | n/a | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) |
+| Total (35) | 34.67 | 22.67 | 22.33 | 23.33 | 17.67 | 19.00 | 20.33 | 17.33 | 19.00 | 1.00 | 23.33 | 25.00 |
+
+- Rule A: ours 34.67, lost 0.33; best rival CV_I 25.00, lost 10.00; limit 8.00 (1.2x form: needs 30.00): PASS.
+- Rule B: PASS on all 8 tasks (ceiling ruling on T3, T4, T8). Gate: PASS.
+
+Held-out set c (C1 to C5), written by a fresh Sonnet agent that was shown only the README user-problem sentence and the template format; now seen:
+
+| Task (max) | OURS | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I | SR | CV | CV_I |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| C1 (5) | 2.00 (2-2, n=3) | 2.67 (2-3, n=3) | 4.67 (4-5, n=3) | 2.33 (2-3, n=3) | 4.00 (4-4, n=3) | 1.67 (0-5, n=3) | 2.67 (2-3, n=3) | 3.33 (2-5, n=3) | 3.33 (1-5, n=3) | 3.00 (2-4, n=3) | 2.00 (2-2, n=3) |
+| C2 (5) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 4.33 (4-5, n=3) | 4.67 (4-5, n=3) | 4.67 (4-5, n=3) | 4.33 (4-5, n=3) | 5.00 (5-5, n=3) |
+| C3 (5) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.33 (3-4, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) | 3.00 (3-3, n=3) |
+| C4 (5) | 4.00 (3-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 4.33 (4-5, n=3) | 5.00 (5-5, n=3) | 3.00 (2-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) |
+| C5 (5) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 4.67 (4-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) | 5.00 (5-5, n=3) |
+| Total (25) | 18.33 | 20.33 | 22.33 | 19.33 | 21.67 | 17.67 | 20.00 | 21.00 | 21.00 | 20.33 | 20.00 |
+
+- Rule A: ours 18.33, lost 6.67; best rival RCP 22.33, lost 2.67; limit 2.13 (1.2x form: needs 26.80): FAIL.
+- Rule B: FAIL on C1 to C5. Gate: FAIL. Ours lost points on identity coverage and padding (C1), counting (C2, C4, C5) and third-party content and line counts (C3); details in the results folder.
+
+Departures from the protocol (full list, 11 items, in the results folder): the run queue died once and was restarted; the shared shim switched to a second API key while the queue ran, which made 24 public OURS cells and 6 held-out cells fail before any model call (re-run, never graded), and the first grading round made with those cells present was discarded and redone once; a wrong path in the 429 detection (no 429 occurred); `pkill` commands that may have matched other sessions' processes; three unscored diagnosis runs on seen held-out b tasks before the freeze; the public rival cells are reused deep-round transcripts, so "no cell is reused" holds only for set c and OURS; two statements of the deep-round report were corrected; the controller read the set c README after the writer finished; killed whole-disk `find` scans; the `assemble.py` change for set c and the exclusion of `portfolio-bank.md`.
+
+Cost: 23.93 USD in `workproof-r10-cost.tsv` (cap 34 USD): runs 13.41 (set c 11.70, public OURS 1.71), grading 5.10 (including one discarded round), writer, implementer, reviewer, diagnosis and evidence agents 5.42.
+
+Not run: F9 (Haiku and Opus) and F6 (independent re-run of 10 percent of cells), because the held-out gate failed.
+
+Evidence: `bench/head-to-head/results/round10-final-gate/` (`SUMMARY.md`, `PROTOCOL.md`, `arms.json`, `env.json`, `tasks/`, `runs/`, `grades/`, `score.py`, `REPRODUCE.md`, `VERIFY.md`, `SHA256SUMS`).
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.

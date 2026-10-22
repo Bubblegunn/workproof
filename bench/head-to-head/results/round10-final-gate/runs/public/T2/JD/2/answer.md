@@ -1,0 +1,9 @@
+I saved four bullets to `cv-bullets.md`. They're based on the git history of this repo, which is the `co` library, so check them before you paste them in.
+
+- Created and maintained **co**, an open-source generator-based control-flow library for Node.js and the browser. It lets developers write non-blocking code in a synchronous style, and I made 70+ commits to it between Nov 2013 and Jul 2015.
+- Led the v4.0 rewrite from a thunk/callback API to a promise-based one. This made `co()` return a promise, matched the direction of async/await, and removed the old benchmark and Makefile tooling.
+- Shipped incremental releases from 4.0 to 4.6. They added support for plain functions that return promises, `co.wrap()` exposing the generator function, ES5-transpiler-friendly generator detection, and passing extra arguments through to the generator. I also fixed a memory leak (#180).
+- Set up the project's quality infrastructure: Travis CI across Node and io.js versions, Coveralls test coverage, and a test suite covering generators, thunks, promises, arrays, objects, recursion and error cases. I also reviewed and merged community pull requests.
+
+- **Authorship:** I counted commits by the git user "Jonathan Ong". The history also shows repo-wide changes and merged pull requests from other people, so edit anything that wasn't yours. In particular, "created" assumes you started the project. The earliest commit under your name is Nov 2013, but the repo's first commit is Jun 2013.
+- **Impact numbers:** The history has no download or usage figures. If you have them, such as npm downloads or GitHub stars, adding them would strengthen the first bullet.

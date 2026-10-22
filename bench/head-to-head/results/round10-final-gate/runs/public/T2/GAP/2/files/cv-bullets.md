@@ -1,0 +1,4 @@
+- Maintained `co`, a widely used open-source generator-based control-flow library for Node.js and the browser, with 72 commits across the 4.x line (v3.1.0 to v4.6.0, 2014–2015).
+- Led the v4.0 rewrite from a thunk/callback API to a Promise-based one. `co()` now returns a promise, which made the library interoperable with native Promises and prepared it for async/await.
+- Hardened core behavior: fixed "Generator is already running" errors, added support for regular functions that throw, always wrap results in `Promise.resolve()`, preserved object key ordering, and improved the error message when a non-yieldable value is yielded.
+- Improved project health and release hygiene: added test coverage reporting, added CI testing on io.js, removed unused dependencies and out-of-date benchmarks and examples, and reviewed and merged community pull requests.
