@@ -903,6 +903,36 @@ Grading. One blind packet per task with ALL arms together in a shuffled letter o
 
 Gate and budget. The gate is the same as in round 8 (Rule B with the ceiling rule, Rule A, outcome criteria only, better of plain and invoked arm for every competitor), now including the four new arms. Controller limit 6 USD (`--max-budget-usd`); all `claude -p` runs and the grading of this session are recorded in `workproof-r9-cost.tsv`; no new run starts at 22.4 USD, the total stops at 28 USD, and the report lists the steps not run. Final gate (held-out set on the local branch `heldout-2026-10-b`, F9, F6) runs only if the public gate passes and the budget stop leaves room for all arms x3; a partial final gate is not reported as a pass.
 
+## Round deep design (frozen before code)
+
+Recorded 2026-10-22 after `docs/RESEARCH-DEEP-2026-10-22.md` (commit `fb0e173`) and before any product change of this round. Nothing in this section changes after a result is seen. The tasks, criteria, labels, graders and gate rules of the eight public tasks do not change. The old held-out tasks H1 to H3 are seen and serve only for diagnosis. The new held-out set (`~/claude-kredi-runs/2026-10-22/heldout-r8/`, written by an agent that did not read our code) has not been opened by this session and stays unopened until the product is frozen.
+
+Rules for every change: (a) it is general and names no file, person, address or repository of a seen task; (b) code is taken only from MIT, Apache-2.0, BSD or CC0 sources, with attribution in `THIRD-PARTY-NOTICES.md`; GPL, AGPL, MPL and unlicensed sources give ideas only; (c) every change has a test, `npm test` passes, and a reviewer reads the diff.
+
+Loss classes addressed (from Phase 1): final chat answer lacks what only the file holds; privacy applies to files only; tool-only dependency with no fallback (parser strictness on unseen formats); model rewrites deterministic output.
+
+### Selected
+
+1. **Answer check at the end of the turn (Stop hook).** A new `Stop` hook runs `workproof stop-check` on the hook input (transcript path, `stop_hook_active`). It acts only when the transcript shows that a workproof command ran in the turn, and it blocks at most once (`stop_hook_active` true means allow). It blocks when the last assistant message (i) contains an email address that appears in the repository's author data (`git log --format=%ae%n%ce`, read-only) or any email address the transcript's workproof output printed, or (ii) follows a `workproof bullets` run whose output has a Gaps section and the message contains neither the Gaps items nor a sentence that says every requirement is covered. The block reason is one sentence that states what to change. Source of the idea: the fixed, mandatory closing sections of JD Resume Tailor (`SKILL.md:47,78-87`, MIT) and the "never send the email" rule of receipts (`README.md:64-65`, Apache-2.0); the mechanism (a deterministic check, not a prompt rule) is our own. Classes: final answer incomplete; privacy in chat; model rewrites output.
+2. **Closing statement for every task type.** `SKILL.md` gets one short rule that generalises round 9 ruling 1: the last chat message states, in the chat, the result of every check and limit that the file holds (gaps, differing figures with the git counts, the basis sentence, exclusions described by rule, the path of the package and its one-line public-look note), and a turn never ends on a status note. Test: skill-text test.
+3. **Tolerant foreign-report reader.** `src/foreign.ts` matches figures by normalised key (case, separators, common synonyms for commits, added lines, author, hash), walks nested JSON, and for non-JSON input (markdown, CSV, plain text) extracts "N commits" and "N lines" patterns. When nothing is recognised it says so and the skill counts with plain git. It never stops at "not compared". Idea sources: the manuals of `git shortlog`, `git log --numstat`, `.mailmap` (git); no code taken. Class: tool-only dependency, parser strictness.
+4. **Tolerant job-description reader with hard-requirement flags.** `parseJd` in `src/bullets.ts` falls back to sentence and clause splitting when no requirement lines are found, and flags lines with must-have, work-authorisation, citizenship, visa, degree or clearance wording as hard requirements that are reported as gap lines when no fact covers them, without blocking the run. Idea source: cv-builder `tailor-resume/SKILL.md:32-36,63-67` (MIT); text is rewritten, not copied. Class: parser strictness; gap quality.
+
+### Rejected, with reason
+
+- Adding `-C` (copy detection) to `git blame` and `--ignore-revs-file`: changes the surviving-line figures against the frozen truth files of the public tasks, and the effect on unseen tasks is unmeasured.
+- Presidio, scrubadub, KeyBERT, jobbert, spaCy skill matchers: Python or model dependencies for a dependency-light Node CLI; some have no licence. The email deny list from git data is deterministic and enough for the observed leak.
+- Name-based masking in the final answer (colleague names): no reliable list of "other people" without the user's intent; kept as a skill rule (round 8 ruling 3), not a hook.
+- session-report ideas (active time with idle cutoff, prompt-to-subagent attribution): session-report does not threaten T4; no T4 criterion needs them.
+- Trigger widening of `workproof-hint.sh`: no new evidence of a miss in the latest rounds; widening risks false triggers (round 4 fixed 14).
+- gitinspector (GPL-3.0), pyresparser (GPL-3.0), OpenResume (AGPL-3.0), git-fame (MPL-2.0): licence; ideas only.
+- Fit score with verdict bands (cv-builder, 40/40/20): needs weights we cannot validate; the existing coverage table already reports the same facts.
+- cv-builder's "ask before drafting" gate: stalls non-interactive runs; the opposite of ruling 1 of round 8.
+
+### Tests
+
+`test/` gets: stop-check unit tests (email in the author data blocks once; allowed on the second call; no workproof command in the turn means allow; Gaps present in the message means allow; Gaps missing means block); foreign-report tests on JSON with other key names, nested JSON, markdown and CSV; `parseJd` tests on prose and on a hard-requirement line; a skill-text test for the closing statement; the hooks.json test lists both hooks.
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
