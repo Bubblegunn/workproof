@@ -875,6 +875,16 @@ In T7 run 3 and T8 run 3 the resume file is correct, but the final chat answer n
 
 Cost (sum of `total_cost_usd`): public 24 runs 3.87 USD, T3 repeat 0.07 USD; grading about 1.4 USD (estimate, `grade.sh` does not record cost).
 
+## Rulings, round 9
+
+Recorded 2026-10-22 on the owner's go ("fastest and highest quality benchmark result, objective first place against the strongest alternatives"), after round 8 and before any round 9 code change. Nothing in this section is changed after a result is seen.
+
+1. Tailoring and gap answers (cause of the T7 and T8 loss, 1 run of 3 each). When a task produces a Gaps list (a tailored resume, a CV or bullets against a job description), the last chat message of the turn says the Gaps list in one sentence ("Not in your facts: X, Y. Add them to your bank if they are true."; "every requirement is covered by a fact" when Gaps says "None."). The sentence stands in the final message itself, after any background step has finished. A turn never ends on a status note alone. Change: the skill rule in `references/tailor.md` and `SKILL.md`; test: a skill-text test for both. The command output is not changed.
+2. The 6 older archive tests in `test/head-to-head-doc.test.mjs` (rounds 2 to 7) fail only because `bench/head-to-head/results/round*.tar.gz` were left out of the squashed branch on purpose (raw transcripts, see HANDOFF-CLOUD). They are unrelated to the product. The archive-existence assertion is made conditional on the archive being present; every other assertion of those tests stays.
+3. Criteria, tasks, checkers, labels, grader prompts and gate rules of the eight public tasks do not change.
+4. New competitor arms, from the scan `workproof-scan.md` (2026-10-22): `session-report@claude-plugins-official` (sha `af59ee3`, task T4 field) and `cv-builder` (sha `f7c8c3b`, skills only, the `.mcp.json` removed so that no network server runs; its invoked arm `_I` too). Set up like the existing arms: `git archive` of the pinned sha, hash guard around every run.
+5. Final gate order stays: public set, new held-out set (local branch `heldout-2026-10-b`, not pushed), F9, F6. The product does not change after the held-out files are opened.
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
