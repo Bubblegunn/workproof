@@ -814,6 +814,33 @@ Recorded 2026-10-22 after the final gate, before any round 8 code change. The th
 5. Final gate, second attempt, in this order: public set (ours, ruling of the measurement protocol below), then a new held-out set, then F9, then F6. The new held-out set is written by an agent that has not read our code, our public tasks or the first held-out set, in a folder outside the repository. It is committed on a new local branch that is not pushed. Nobody reads it before the product is frozen at its final commit; the product does not change after it is read. The agents of the runs work in a copy made with `git archive`, and the held-out runs use fixtures outside the repository working tree.
 6. If the public set fails after the product change, the held-out set is not run in this session (cost), and the report says so.
 
+## Round 8 measurement protocol (frozen 2026-10-22, owner decision)
+
+Written and committed before any round 8 benchmark run. This section is not changed after a result is seen.
+
+Rule. On a task that did not change (task text, fixture, check script, labels, grader and its prompt, model, competitor arm version identical to the last published round), the scores of the competitor arms and of the baseline (plain Claude) are taken as they stand in the last published round. On those tasks only our arm (OURS) is run again, 3 runs, and graded with the same grader script, prompt and model (Sonnet). On a changed or new task, all arms run 3 times. Rule A, Rule B and the ceiling ruling are computed as before on the combined table. This workproof gate has no cost rule. Reused cells are marked in the result table with their source round (for example "r7 reused").
+
+Unchanged public tasks (source: the tables in this document at commit `04052f3`; round 7 code commit `0cc1159`; T6 from "Results, final gate"; `tasks.json`, `labels.json`, `score.py`, `assemble.py`, `grade.sh` and the competitor plugin directories are byte-identical to those of that round). Outcome criteria, mean of 3 runs:
+
+| Task (max) | Source | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I |
+|---|---|---|---|---|---|---|---|---|
+| T1 (4) | r7 | 0.67 | 0.00 | 1.67 | 0.00 | 0.67 | 0.00 | 0.67 |
+| T2 (4) | r7 | 1.67 | 1.00 | 0.00 | 1.00 | 3.00 | 1.00 | 1.33 |
+| T3 (4) | r7 | 3.33 | 3.67 | 4.00 | 3.00 | 3.67 | 3.67 | 3.33 |
+| T4 (4) | r7 | 3.67 | 4.00 | 4.00 | 3.33 | 4.00 | 3.67 | 4.00 |
+| T5 (5) | r7 | 2.00 | 2.00 | 2.67 | 2.00 | 3.00 | 2.00 | 1.33 |
+| T6 (4) | final gate | 2.00 | 2.00 | 2.33 | 2.00 | 2.00 | 2.00 | 2.00 |
+| T7 (5) | r7 | 4.00 | 3.67 | 3.67 | 4.00 | 4.00 | 3.00 | 3.00 |
+| T8 (5) | r7 | 5.00 | 5.00 | 5.00 | 0.00 | 2.67 | 5.00 | 0.00 |
+
+The best other arm total is then 23.33 (RCP_I), as published. If any of these eight tasks is changed before the run, the changed task runs with all arms. Competitor arms are not re-run on these tasks.
+
+Grading of the reused set. The round 7 and final gate transcripts of the competitor arms are not part of the new grading packet; our new runs are graded as one blind packet per task, ours only, with the same grader prompt template, criteria and ground truth. This differs from rounds 2 to 7, where one call pooled all arms of a task; the difference is recorded as a caveat in the results.
+
+Held-out tasks, F9 (Haiku and Opus) and F6 are exempt from this rule: all arms run in full there.
+
+Budget stop. The sum of `total_cost_usd` of all `claude -p` runs of this session is written to `workproof-cost.tsv`; no new run starts once it reaches 28.8 USD, and the report says which steps were not run.
+
 ## Resume
 
 State: the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
