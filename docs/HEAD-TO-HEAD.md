@@ -933,6 +933,25 @@ Loss classes addressed (from Phase 1): final chat answer lacks what only the fil
 
 `test/` gets: stop-check unit tests (email in the author data blocks once; allowed on the second call; no workproof command in the turn means allow; Gaps present in the message means allow; Gaps missing means block); foreign-report tests on JSON with other key names, nested JSON, markdown and CSV; `parseJd` tests on prose and on a hard-requirement line; a skill-text test for the closing statement; the hooks.json test lists both hooks.
 
+## Round deep measurement protocol (frozen 2026-10-22, owner decision, budget-bound)
+
+Written and committed before any run of this round. It replaces the round 9 protocol (which was frozen but never run: no round 9 result exists). Nothing in this section changes after a result is seen.
+
+Code under test: the commit that carries this section (product commit `e4d9057`, docs-only commits after it), run from an immutable `git archive` copy built with `npm ci && npm run build`; `--help` must list `sessions`, `verdict`, `bullets`, `mine` and `stop-check`. Sonnet (`claude-sonnet-5-5`), parallelism 2, temporary HOME for every run, `guard.sh` check around every run. Billing: `apiKeySource` read from the first run's init event must be `ANTHROPIC_API_KEY`.
+
+Why the scope is smaller than round 9: the owner's total limit for this session is 14 USD, of which about 5.0 USD went to research, design and implementation. The round 9 plan (96 new-arm runs, pooled grading of all arms, held-out set with all arms) costs more than 25 USD. This protocol keeps what the budget allows and states what is not run.
+
+Runs:
+1. OURS x3 on all eight public tasks (24 runs).
+2. New arms, invoked variants only, on the task each one is built for: SR_I on T4, CV_I on T7 and T8, 3 runs each (9 runs). Plain SR and CV, other tasks for the new arms, and the CV_I run on T2 are not run. Arm setup as in the round 9 protocol: `session-report` sha `af59ee3a1051a29dda4a2e7a2af221aa457ae08b` (path `plugins/session-report`), `cv-builder` sha `f7c8c3b6d379f8d12ca1c70fc7576652dcdfe16c` without `.mcp.json`, both by `git archive`, run with `--strict-mcp-config`.
+3. Existing arms (BASE, RCP, RCP_I, JD, JD_I, GAP, GAP_I) are not re-run. Their scores are the published ones listed in "Round 8 measurement protocol" (best other arm 23.33, RCP_I).
+
+Grading: one blind packet per task, shuffled letters, same grader script, prompt template and model (Sonnet). Tasks T1, T2, T3, T5, T6: ours only. T4: ours and SR_I. T7 and T8: ours and CV_I. The reused arms are not in the packets (cost); this differs from the round 9 plan and is a stated caveat. Outcome criteria only. Rule A, Rule B and the ceiling rule are evaluated against the published reused table plus the new-arm cells; the new arms count as competitors only on the tasks where they ran, and an arm not run on a task is not part of that task's comparison.
+
+Held-out set, F9 and F6: not run in this session. The set in `~/claude-kredi-runs/2026-10-22/heldout-r8/` stays unopened and unused, so it can serve a later session whose budget covers all arms x3 (about 18 USD for 72 runs). No "first place" claim is made from this round.
+
+Budget stops: no run starts when `spend.sh` prints a first number above 160, or when the session total in `workproof-deep-cost.tsv` reaches 13.0 USD. A run that fails (error result, rate limit) is repeated and not graded as a failure of the product. The report lists every step not run.
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
