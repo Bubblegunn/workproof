@@ -12,7 +12,22 @@ ARMS_ORDER = ["OURS", "BASE", "RCP", "RCP_I", "JD", "JD_I", "GAP", "GAP_I", "SR"
 KEEP_OUT = {".git", "test", "tests", ".gitignore", ".travis.yml", "History.md", "LICENSE", "Readme.md", "component.json", "index.js", "package.json", "received", "report.json", "src", "portfolio-bank.md", "resumes"}
 os.makedirs(OUT, exist_ok=True)
 
-def one(d):
+def changed_files(fx, pristine):
+    """Held-out set c (fixtures HCn, repositories of any ecosystem): list the files the agent added or changed
+    relative to the pristine fixture, instead of the KEEP_OUT filter of the older fixtures. .git is skipped."""
+    out = []
+    for root, dirs, names in os.walk(fx):
+        dirs[:] = sorted(x for x in dirs if x != ".git")
+        for nm in sorted(names):
+            q = os.path.join(root, nm); rel = os.path.relpath(q, fx); o = os.path.join(pristine, rel)
+            try:
+                data = open(q, "rb").read()
+                if os.path.exists(o) and open(o, "rb").read() == data: continue
+                out.append((rel, data.decode("utf-8")[:7000]))
+            except (UnicodeDecodeError, OSError): pass
+    return out[:12]
+
+def one(d, pristine=None):
     res, cmds = "", []
     for line in open(os.path.join(d, "out.jsonl")):
         try: o = json.loads(line)
@@ -25,6 +40,8 @@ def one(d):
                     cmds.append(b["name"] + ": " + str(i.get("command") or i.get("file_path") or i.get("skill") or "")[:260].replace("\n", " ; "))
     files = []
     fx = os.path.join(d, "fx")
+    if pristine:
+        return res, cmds, changed_files(fx, pristine)
     for f in sorted(os.listdir(fx)):
         if f in KEEP_OUT: continue
         p = os.path.join(fx, f)
@@ -50,7 +67,8 @@ for t, spec in cfg["tasks"].items():
         runs = sorted(x for x in os.listdir(RUNS) if re.fullmatch(rf"{t}-{arm}-\d+", x))
         for r in runs:
             n = r.rsplit("-", 1)[1]
-            res, cmds, files = one(os.path.join(RUNS, r))
+            pristine = os.path.join(FIXTURES, spec["fixture"]) if spec["fixture"].startswith("HC") and FIXTURES else None
+            res, cmds, files = one(os.path.join(RUNS, r), pristine)
             parts.append(f"\n\n######## ARM {letter} RUN {n}\n### Commands/tools the agent used (in order)\n" + "\n".join(cmds[:40]) +
                          "\n### Final answer text\n" + res[:3500] + "\n### Files it left in the working directory\n" +
                          ("\n".join(f"--- {name}\n{text}" for name, text in files) or "(none)"))
