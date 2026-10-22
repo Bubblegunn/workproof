@@ -2,5 +2,5 @@
 # Used for the OURS arm only: `npx workproof ...` runs the local build instead of the published package.
 # H2H_WORKPROOF_CLI is the path of dist/src/cli.js in the checkout under test.
 if [ "$1" = "workproof" ] && [ -n "${H2H_WORKPROOF_CLI:-}" ]; then shift; exec node "$H2H_WORKPROOF_CLI" "$@"; fi
-if [ "$1" = "-y" ] && [ "$2" = "workproof" ] && [ -n "${H2H_WORKPROOF_CLI:-}" ]; then shift 2; exec node "$H2H_WORKPROOF_CLI" "$@"; fi
+if { [ "$1" = "-y" ] || [ "$1" = "--yes" ]; } && [ "$2" = "workproof" ] && [ -n "${H2H_WORKPROOF_CLI:-}" ]; then shift 2; exec node "$H2H_WORKPROOF_CLI" "$@"; fi
 exec "$H2H_REAL_NPX" "$@"
