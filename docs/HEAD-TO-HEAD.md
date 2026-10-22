@@ -1182,3 +1182,36 @@ Criteria:
 
 Round 1 result (3 runs per arm): every arm 5.00. Fixture files: `bench/head-to-head/fixtures/F3-round1/`.
 
+
+---
+
+## Rulings, round 11 (frozen 2026-10-23, owner decision, before any round 11 code change)
+
+Source: `docs/BEST-RIVAL-r11.md` (committed `9d0b0be`, read-only analysis of set c and of the rival code). Set c and the public tasks are seen: they serve only for diagnosis and for the development gate. Criteria, checks, tasks, labels, grader prompt and the win rules do not change. Every rule below is general: it names no file, person, address, repository or figure of a seen task. Nothing here is changed after a result is seen.
+
+Finding that shapes the round: on set c the strongest rival cells are the unplugged model reading git by hand; the plain RCP, JD, SR and BASE arms never called their skills. A product that loads rules only when its skill is called gives no benefit on 9 of 9 cells where the skill was not called. The rules must therefore also reach the model when the skill is not called.
+
+General rules (loss classes L1 to L8 of the analysis):
+
+R1 Identity. When the history has addresses or names that point to the same person by a stated rule (same local part on another domain, same author name, a trailer naming the person, same committer), a document that shows what the user delivered includes them, lists them as "included: <rule>, please confirm", and does not drop them while waiting for an answer. If the user says one is not theirs, re-run without it. An explicit author option still reports such candidates (candidates only; never merged without a decision).
+R2 Window. A commit authored before the window and present only because of a rebase or replay is outside the window; one line says so, and which date (author date) was used.
+R3 Deliverables versus other changes. A deliverables list holds distinct pieces of user-visible work. Merge commits, reverted pairs, vendored or third-party content, generated files and whitespace-only or formatter-only commits go in a separate "not counted" list with one line of reason each. A stated commit total names its filter (author, window, branch, merges excluded) next to it.
+R4 Audience. When the reader is not technical (committee, lawyer, finance, manager), the document body has no shell commands, code, file, branch, function or tool names. How to verify goes into the chat answer and a separate sidecar file or a clearly separate appendix. Tool output files are written only into `./evidence/` or when asked.
+R5 Count with a command. Before any count is written (commits, sessions, days, files, hours), run the count with the same filter the sentence states and copy it. Exported sessions: unique by content, inside the window, about the named work; a session for another purpose is left out and not named. Rule 8 of the skill asks for the numbers the user asked for, not every number.
+R6 Provenance and whitespace. When sizing someone's own contribution: read the first lines of each large added file for licence, copyright or source-URL headers and treat such files as third-party; measure each commit again with whitespace ignored and report commits whose figure drops to near zero as not substantive; say which figure is hand-written and which is raw.
+R7 Claims by someone else. For a claim, an invoice or a bill checked against history: say in plain words that history shows what was committed, by whom and when, not time spent or quality; check per claimed item author, branch (merged into the main line or not) and commit date against the claimed period; list what history cannot show; give a next step; do not decide for the reader.
+R8 Dates. Author date versus committer date; an impossible or future date is flagged and kept out of dated lists; a timeline built from author dates alone is not verified by the clone.
+
+Trigger and always-loaded rules:
+T1 The hint hook matches by two factors in addition to the existing patterns (OR): a history factor (git, commit, history, repo, clone, branch, session export, or the hook's cwd inside a git work tree) and an intent-class factor (work or delivery; report or summary; evidence or proof; usage; check of someone else's claim). Recall matters more than precision; a false positive costs a few lines of context.
+T2 The skill description states the intent classes in plain words first, then the use-case list.
+T3 `skills/workproof/references/core-rules.md` (at most about 1,500 characters; R1 to R8, one line each, no examples) is appended to the hint context when the hint matches. A SessionStart hook prints a three-line pointer to the same file, only when cwd is inside a git work tree. Exact paths are given in the hint and the skill (`${CLAUDE_PLUGIN_ROOT}/skills/workproof/...`) so no model scans the disk.
+T4 A plugin-root `CLAUDE.md` or `AGENTS.md` is not added unless a smoke test shows it is loaded into the model context.
+T5 A trigger test file with at least 40 phrasings per intent class, written for the classes and not copied from any seen task, and a script that runs the hint hook on each and reports misses, ships with the plugin tests.
+T6 Attribution for any adapted rival technique goes into `THIRD-PARTY-NOTICES.md` (the file is missing at the repo root; the session miner is derived from the Apache-2.0 receipts plugin).
+
+Owner decision recorded: R4 puts check commands in a sidecar so the figures stay recomputable while the body contains no commands. The owner may reverse it later; it is applied now.
+
+Rules for every change: general; `npm test` and `claude plugin validate .` pass; each change has a test; a Sonnet reviewer reads the diff. Rejected: any fixture-specific entry.
+
+Development gate (BEST-RIVAL-SPEC item 6, before any new held-out measurement): ours x3 on the five tasks of set c (seen, not scored, same blind grading method as round 10 on a packet of the new OURS cells; same grader prompt), compared with the round 10 published scores of the best rival of each task. Passing requires, on every task, ours strictly above the best other arm's published score, or ours at the task maximum together with the rival. No tie below the maximum. If not met: analyse the lost criteria, make a general fix, test, review, rerun; at most three iterations, each recorded with its cost. The results go into a separate section of the evidence folder and do not enter the score tables.
