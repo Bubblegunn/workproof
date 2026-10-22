@@ -1054,6 +1054,30 @@ Loss classes, root causes (general) and rulings:
 
 Rules for every change: general; code only from MIT, Apache-2.0, BSD or CC0 sources with attribution in `THIRD-PARTY-NOTICES.md`; every change has a test; `npm test` and `claude plugin validate .` pass; a Sonnet reviewer reads the diff. After the new held-out set (c) is opened the product does not change.
 
+## Round 10 measurement protocol (frozen 2026-10-22, owner decision, before any round 10 run)
+
+Written and committed before any scored round 10 run. Not changed after a result is seen. The only runs made before this commit are three diagnosis runs of the new code on seen held-out tasks (H1, H2, H3 of set b, 1 run each, not scored, 0.34 USD).
+
+Code under test: product commit `523ddc4` (harness commit `effaed4`, rulings `f9f4d00`), from an immutable `git archive` copy built with `npm ci && npm run build`; `--help` lists `sessions`, `verdict`, `bullets`, `mine`, `stop-check`. Sonnet (`claude-sonnet-5-5`), parallelism 3, temporary HOME per run, `guard.sh` around every run, no checkout/restore/stash/reset/clean in the working tree, rival code only from `git archive` copies, Vaara never run. Billing: `apiKeySource` of the first run is `ANTHROPIC_API_KEY` (checked, shim path).
+
+Run path. Every `claude -p` call (runs, grading, writer, implementer, reviewer) goes through the Agent SDK shim (`claude_agent_sdk.query()`, same installed CLI 2.1.308, same stream-json output). The only measured difference from the older plain-CLI path is that the desktop app's `Artifact` tool and `artifact-diagramming` skill are absent on the SDK path; the benchmark tasks do not use them. Cells of older rounds (CLI path) are not used anywhere in the scored tables. Public competitor cells of this round come from the deep round (SDK path, same day, same pinned arms, same tasks, 3 runs each) and are marked "deep round transcripts" in the table; no cell of any other earlier round is reused.
+
+Held-out set c: 5 tasks (C1 to C5), written by a fresh Sonnet agent that was given only the README's user-problem sentence and the task-template format (prompt, fixture build script, truth script, 5 outcome criteria); it was not shown the product code, `docs/HEAD-TO-HEAD.md`, the research report or any earlier held-out set, and it worked in an empty folder. Local branch `heldout-2026-10-c` (not pushed); the set is published only in the results folder after the gate. The controller read the set's README (hazard summary) after the writer finished; nothing from it was given to the implementer or the reviewer, and no product change was derived from it. All 25 criteria are outcome criteria. Fixtures are built by the writer's scripts (truth files reproduced exactly).
+
+Runs.
+1. HELD-OUT c: all arms x 3 new runs: OURS, BASE, RCP, RCP_I, JD, JD_I, GAP, GAP_I, SR, CV, CV_I (165 runs). Order: by task C1..C5, all arms within a task.
+2. PUBLIC (8 tasks T1..T8): OURS x 3 new runs (24 runs). Rival cells (BASE, RCP, RCP_I, JD, JD_I, GAP, GAP_I, SR, CV, CV_I on all eight tasks; SR_I on T4) are the deep-round SDK-path transcripts, unchanged.
+
+Grading. One common grading round in this session: for each task of each set one blind packet with ALL arms of that task together (public: the new OURS cells and the deep-round rival cells), arms in a shuffled letter order (seed recorded), all runs of an arm under its letter, one grader call per task (Sonnet, no tools, the grader prompt template of `assemble.py` unchanged; for set c the file listing uses `assemble.py` as committed in `effaed4` plus the exclusion of the harness file `portfolio-bank.md`, which only the JD_I arm receives). The deep-round scores are not used; every score in the tables comes from this round's grading. A malformed grader output is re-asked once, both outputs are kept, the second is scored. Outcome criteria only.
+
+Gate. Rule A and Rule B (with the ceiling ruling) on the public set and on held-out set c, each separately; both must pass. Competitor = the better of its plain and invoked arm. An incomplete cell (error, rate limit) is re-run, never graded as a failure of the product.
+
+Budget (owner): at most 34 USD for this session (runs, grading, writer, implementer, reviewer, sub-agents) in `workproof-r10-cost.tsv`; controller limit 6 USD. The run queue starts no new run when the session total reaches 26.5 USD (so grading fits); nothing new starts at 30 USD, the result and evidence folder are then written from the data collected and the steps not run are listed. Order of priority: set c all arms, public OURS, common grading, then F9 and F6.
+
+F9 and F6 run only if both gates pass and budget remains below 30 USD. F9: Haiku and Opus, 1 run per task: OURS, the best rival arm of that task, BASE; public and set c. F6: 10 percent of cells re-run by an agent that has not read the code, graded independently, agreement rate reported. A partial final gate is not reported as a pass.
+
+Evidence: `bench/head-to-head/results/round10-final-gate/` per `EVIDENCE-SPEC.md` (SUMMARY, PROTOCOL, arms.json, env.json, tasks/, runs/ redacted by a tested script, grades/, score.py that recomputes SUMMARY's tables, REPRODUCE.md, VERIFY.md, SHA256SUMS).
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.

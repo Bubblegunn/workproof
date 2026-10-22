@@ -19,6 +19,7 @@ def changed_files(fx, pristine):
     for root, dirs, names in os.walk(fx):
         dirs[:] = sorted(x for x in dirs if x != ".git")
         for nm in sorted(names):
+            if nm == "portfolio-bank.md": continue   # the JD_I arm gets this file from the harness; listing it would reveal the arm
             q = os.path.join(root, nm); rel = os.path.relpath(q, fx); o = os.path.join(pristine, rel)
             try:
                 data = open(q, "rb").read()
