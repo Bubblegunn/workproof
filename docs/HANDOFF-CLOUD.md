@@ -64,7 +64,7 @@ Read `docs/HEAD-TO-HEAD.md` in each repository: tasks, rulings, results per roun
 
 | Repository | Latest result | Next step |
 |---|---|---|
-| workproof | passes every public task (34.33 vs 23.33 of 35) | final gate: T6 re-run for ours, held-out tasks (in this branch), Haiku/Opus runs, then the 10 percent audit |
+| workproof | public 34.33 vs 23.33 of 35 (passes); final gate 2026-10-22 **failed** on held-out: 7.67 vs 12.67 of 15 (H1, H3 lost; H2 won) | round 8: no stop on a public-looking repo, a git fallback for verdicts on foreign report formats, privacy in the chat answer; then a new held-out set and the final gate again (see HEAD-TO-HEAD.md "Resume") |
 | surviving-lines | 49.00 vs 41.33 of 51; rule A passes; rule B fails only T3 | round 4: T3 writes the `.mailmap` as proposals and hedges; re-run T3 for all arms plus ours on all tasks; then the final gate |
 | product-engineer | core 23.00 vs 21.33 (lost 7.00, needs at most 6.93); fails T2, T3, T4, H4, H5 | round 3 (see Resume): act-and-unstage rule for H5, release notes without code identifiers, verdict-only answers, replace T3, fixed H4 answer shape |
 | ai-slop-linter | 54.33 vs 56.33 of 60 (blader humanizer, invoked): behind | round 2: `--compare` flags first-person words and new claims, a prompt hook, an agent-checked catalog for tells a regex cannot catch (MIT sources, attribution kept) |

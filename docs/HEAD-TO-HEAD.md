@@ -756,9 +756,60 @@ Gate: FAIL.
 1. The hook cannot make the model write the basis. The computed context could carry the basis sentence in the exact form for the file ("Counted as the same person because ..."), so a run that uses the hint without the skill still has the sentence to paste; and the gate rule for T6 could require the outcome criteria and report the skill-call rate separately. The second part is a change of the frozen gate and needs a ruling.
 2. Caveats: three runs per cell is a small sample; one grader call pools the runs of a task; F6 and the held-out tasks were not done.
 
+## Results, final gate
+
+Date: 2026-10-22, in a Claude Code cloud session. Code under test: commit `bf54483` (the squashed branch commit that carries the hook's paste-ready basis sentence, the product of `4564186` before the squash), run from an immutable `git archive` copy of it, built with `npm ci && npm run build`. Before the first run, `--help` listed `sessions`, `verdict`, `bullets` and `mine`, and the hook held the "Counted as the same person ..." sentence. The product was not changed during or after the runs. Sonnet (`claude-sonnet-5-5`), 3 runs per cell, parallelism 2, a temporary HOME for every run. The guard stayed clean: `~/.claude/settings.json` does not exist in this container and stayed absent, and the hash of `mcpServers` in `~/.claude.json` did not change. `failed-cells.py` listed nothing before grading. Blind grading used one Sonnet call per task over the pooled arms. Score summaries: `bench/head-to-head/results/final-gate-T6.md` and `final-gate-heldout.md`. Raw transcripts are not committed.
+
+Setup differences from earlier rounds, all in the harness and none in the product:
+
+- The round 7 transcripts (`results/round7.tar.gz`) and the frozen F3 files (`fixtures/F3-round3/`) are not on this branch, because the squash left them out. So T6 was re-run and graded blind for all eight arms (24 new runs) instead of being pooled with round 7 cells. F3 was rebuilt by the same recipe: `forge3.mjs` applied to a fresh report of F1, where the honest report gave 63 commits and 697 lines, the forged one 103 and 1,197, and `check` passes. F3 is used only by F9, which was not run.
+- `failed-cells.py` and `grade.sh` matched only `T<n>` task ids. That would have skipped the held-out runs, so they were fixed before any held-out run was graded (commit `fix(bench): match held-out run names ...`).
+- Each child `claude -p` ran through a wrapper that removes the parent cloud session's variables, so every run is its own session.
+- Isolation caveat: the runs could see the repository working tree on the same disk. Six runs of ours (H2 and H3) read skill reference files from it. Those files are byte-identical to the archived commit, and no run of any arm read a benchmark, truth, criteria or held-out file. Even so, the next run should hide the working tree from the agents.
+
+### Public T6, re-run (outcome criteria only)
+
+| Task (max) | OURS | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I |
+|---|---|---|---|---|---|---|---|---|
+| T6 (4) | 3.67 (3-4, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.33 (2-3, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) | 2.00 (2-2, n=3) |
+
+T6 passes (3.67 against 2.33). Every run of ours made a Skill call. Two runs pasted the basis sentence. One run (2) rewrote the CLI output into a table of addresses without the basis, so it fails C5. With the round 7 cells of the other seven tasks, the public set stays at 34.33 of 35 for ours. The best other arm is now RCP_I at 23.33 (its T6 rose from 2.00 to 2.33), and JD_I falls to 23.00 (its T6 fell from 2.33 to 2.00). Rules A and B pass on the public set.
+
+### Held-out tasks (outcome criteria only; all 15 criteria are outcome criteria)
+
+| Task (max) | OURS | BASE | RCP | RCP_I | JD | JD_I | GAP | GAP_I |
+|---|---|---|---|---|---|---|---|---|
+| H1 (5) | 1.67 (0-5, n=3) | 4.33 (4-5, n=3) | 4.00 (3-5, n=3) | 4.33 (3-5, n=3) | 3.67 (3-4, n=3) | 4.33 (4-5, n=3) | 4.33 (3-5, n=3) | 4.67 (4-5, n=3) |
+| H2 (5) | 4.00 (4-4, n=3) | 2.33 (1-3, n=3) | 1.67 (1-2, n=3) | 2.00 (2-2, n=3) | 2.67 (2-4, n=3) | 3.33 (3-4, n=3) | 3.67 (3-4, n=3) | 3.67 (3-4, n=3) |
+| H3 (5) | 2.00 (2-2, n=3) | 4.67 (4-5, n=3) | 4.33 (4-5, n=3) | 4.67 (4-5, n=3) | 4.00 (4-4, n=3) | 5.00 (5-5, n=3) | 4.00 (3-5, n=3) | 3.67 (3-4, n=3) |
+| Total (15) | 7.67 | 11.33 | 10.00 | 11.00 | 10.33 | 12.67 | 12.00 | 12.00 |
+
+Skill calls in our runs: H1 1, 1, 1; H2 2, 2, 2; H3 1, 1, 2.
+
+- H1: ours 1.67, best competitor 4.67 (GAP_I): FAIL
+- H2: ours 4.00, best competitor 3.67 (GAP): PASS
+- H3: ours 2.00, best competitor 5.00 (JD_I, at the maximum): FAIL
+- Rule A: ours lost 7.33 points, best other arm (JD_I) lost 2.33. Ours needs at least 15.20 of 15 by the 20 percent rule, so FAIL. Rule B: FAIL.
+
+**Final gate: FAIL.** The held-out set fails on H1 and H3, and the product may not be changed against these tasks. F9 (Haiku and Opus) and F6 (independent 10 percent audit) were not run: they cannot turn a failed gate into a pass, and the rulings of rounds 5 and 6 run F9 only after a passing gate.
+
+Cost (sum of `total_cost_usd`): T6 set $1.94 (24 runs), held-out set $17.74 (72 runs). Mean per held-out run: ours $0.14, other arms $0.23 to $0.31.
+
+### Why the held-out tasks fail (from the transcripts and the grader's reasons)
+
+1. **H1: the skill declined the task.** In two of three runs the skill noticed that the repository is the public Express project (the fixture is a public clone with history added). It told the user the repository looks public, did not build `./evidence/`, and asked for confirmation instead. All five criteria need the package, so those runs scored 0. The third run built it and scored 5. The bare model and every competitor built the package. The public-repository warning should be a line inside the package, not a stop.
+2. **H3: `workproof verdict` handles only workproof's own report format.** The received `report.json` is a different format (`commits_authored`, `lines_added`, `figures_sha256`). The verdict command rejected it before comparing anything, and the agent passed that on as "not compared". It never counted the figures with git. Every run missed the altered commit and line figures and confirmed none of the true ones (C1 to C3). The bare model counted them with git and scored 4.67. A report in a foreign format needs a git-derived comparison path, with the CLI or the skill falling back to plain counting.
+3. **H2 passes, but C4 fails in every run:** the chat answer listed email addresses and named the lookalike colleague (Deldycke-Martin) while explaining the exclusions. The privacy defaults have to cover the final chat answer, not only the files.
+
+Scope: three held-out tasks and one public task, Sonnet, 2026-10-22, 3 runs per cell. Nothing about the benchmark is claimed publicly.
+
 ## Resume
 
-State at the handoff: the final gate was stopped before any result was graded. Product code under test: commit `4564186` (hook paste-ready basis sentence). Commits after it only add benchmark files. No run result from the interrupted attempt is kept, and partial results must not be graded.
+State: the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
+
+Next step (round 8, needs the owner's go): first freeze rulings for the three causes above (no stop on a public-looking repository, a git fallback for verdicts on foreign report formats, privacy in the chat answer). Then change the product and re-run the public set. Then have an agent that has not read our code write a **new** held-out set on a new branch, and repeat the final gate in order: held-out, then F9, then F6. Run the agents where they cannot see the repository working tree.
+
+The earlier resume notes stay below for the harness layout.
 
 What exists on this branch:
 
