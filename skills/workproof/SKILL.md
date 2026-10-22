@@ -26,6 +26,7 @@ Requirements: Node 22 or newer, and git.
 5. For git reports, run both `check` and `verify` on the report you hand over and say that you did.
 6. In a git report, state the two limits every time: history can be rewritten before a report is made, and the figures do not show quality, review, design or mentoring.
 7. The final chat answer follows the same privacy defaults as the files: no email addresses and no names of other people unless the user asked for them. Describe an exclusion by rule ("one similar name on a different address was left out"), not by naming the person or the address.
+8. The last chat message of every task states in plain text the result of every check and limit the file holds: the gaps (when tailoring, as the one sentence of the tailoring step), the figures that differ from the git counts, the basis sentence for counts, the exclusions by rule, and the path of the package with its one-line public-look note. A turn never ends on a status note alone.
 
 ## Before you produce a document: does the repository look public?
 

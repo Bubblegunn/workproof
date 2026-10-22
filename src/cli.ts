@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from "node:fs/promises";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -8,8 +8,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor, newFingerprintKey, writeStatement, signLocal, countersignStatement, signCountersignature, readCountersignature, COUNTERSIGN_PROVES, COUNTERSIGN_DOES_NOT_PROVE } from "./index.js";
 import type { Params, Report, RepoReport, CountersignatureReading, MergeNotice } from "./index.js";
-import { buildVerdict } from "./verdict.js";
+import { buildVerdict, parseReportText } from "./verdict.js";
 import { buildBullets } from "./bullets.js";
+import { stopCheck } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
@@ -394,7 +395,22 @@ export async function runMine(args: string[]): Promise<number> {
   }
 }
 
+/** `workproof stop-check`: the Stop hook. Reads the hook JSON on stdin, prints a block decision or nothing, and always exits 0. */
+function runStopCheck(): void {
+  let line = "";
+  try {
+    line = stopCheck(readFileSync(0, "utf8"));
+  } catch {
+    line = "";
+  }
+  if (line) process.stdout.write(`${line}\n`);
+}
+
 async function main() {
+  if (process.argv[2] === "stop-check") {
+    runStopCheck();
+    return;
+  }
   if (process.argv[2] === "sessions") runSessions(process.argv.slice(3));
   if (process.argv[2] === "bullets") {
     process.exitCode = await runBullets(process.argv.slice(3));
@@ -474,7 +490,7 @@ async function main() {
     process.exit(failed ? 1 : 0);
   }
   if (verdictFile) {
-    const report = JSON.parse(await readFile(verdictFile, "utf8")) as Report;
+    const report = parseReportText(await readFile(verdictFile, "utf8"));
     const { markdown } = await buildVerdict(report, repos, {
       reportName: basename(verdictFile),
       ...(params.author ? { authors: params.author } : {}),

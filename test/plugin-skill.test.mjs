@@ -277,3 +277,14 @@ test("the final chat answer follows the file privacy defaults: no addresses, no 
     assert.match(text, /one similar name on a different address was left out/);
   }
 });
+
+test("SKILL.md rule 8: the last chat message of every task states the results of the checks and limits the file holds", () => {
+  const b = read(`${skillDir}/SKILL.md`);
+  assert.ok(b.includes("8. The last chat message of every task states in plain text the result of every check and limit the file holds"), "SKILL.md lacks the closing-statement rule");
+  for (const part of ["the gaps", "the figures that differ from the git counts", "the basis sentence for counts", "the exclusions by rule", "the path of the package with its one-line public-look note"]) {
+    assert.ok(b.includes(part), `the closing-statement rule lacks: ${part}`);
+  }
+  assert.ok(b.includes("A turn never ends on a status note alone."), "SKILL.md lacks the no-status-note sentence");
+  assert.ok(!/8\. The last chat message[^\n]*(@|\/Users\/)/.test(b), "the rule names no address or path");
+  assert.ok(Buffer.byteLength(b) < 13563 + 700, "SKILL.md grew by 700 bytes or more");
+});

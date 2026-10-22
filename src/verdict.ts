@@ -60,15 +60,30 @@ function hashLines(integrity: Integrity): string[] {
 /** A non-empty JSON object with none of workproof's own top-level keys: another tool's report. Empty or damaged workproof documents keep the shape check. */
 const isForeign = (r: unknown): boolean => typeof r === "object" && r !== null && !Array.isArray(r) && Object.keys(r).length > 0 && !["repositories", "params", "hash"].some((k) => k in r);
 
+/** A received file that is not JSON (markdown, CSV, plain text), kept apart from a JSON string value. */
+export class ReceivedText {
+  constructor(readonly text: string) {}
+}
+
+/** The text of a received file as buildVerdict reads it: parsed JSON, or a ReceivedText for text that does not look like JSON. Broken JSON and an empty file throw. */
+export function parseReportText(text: string): Report | ReceivedText {
+  const t = text.trim();
+  if (t === "" || t.startsWith("{") || t.startsWith("[")) return JSON.parse(text) as Report;
+  try { return JSON.parse(text) as Report; } catch { return new ReceivedText(text); }
+}
+
+const isRecordList = (r: unknown, authors: string[] | undefined): boolean => Array.isArray(r) && r.length > 0 && r.every((x) => typeof x === "object" && x !== null && !Array.isArray(x)) && (authors?.length ?? 0) > 0;
+
 /**
  * Builds the fixed verdict template from tool output only: checkReport offline first, then
  * verifyReport against the repositories given, then the merged-address claim re-derived.
  */
-export async function buildVerdict(report: Report, repoDirs: string[], opts: VerdictOptions = {}): Promise<{ markdown: string; status: VerdictStatus }> {
+export async function buildVerdict(received: Report | ReceivedText, repoDirs: string[], opts: VerdictOptions = {}): Promise<{ markdown: string; status: VerdictStatus }> {
   const name = opts.reportName ?? "report.json";
   // Not workproof's own shape: no hash or fingerprint to check, so compare by the figures it names.
-  if (isForeign(report)) {
-    const f = await compareForeign(report, repoDirs.length ? repoDirs : [process.cwd()], opts.authors ?? []);
+  // Text that is not JSON, and a list of per-author records when an author is named, are read here too.
+  if (received instanceof ReceivedText || isRecordList(received, opts.authors) || isForeign(received)) {
+    const f = await compareForeign(received instanceof ReceivedText ? received.text : received, repoDirs.length ? repoDirs : [process.cwd()], opts.authors ?? []);
     const lines = [
       `# Verdict on ${name}`, "", "## Verdict", HEADLINE[f.status], f.reason, "",
       "## Altered figures", ...f.altered, "",
@@ -78,6 +93,7 @@ export async function buildVerdict(report: Report, repoDirs: string[], opts: Ver
     ];
     return { markdown: `${lines.join("\n")}\n`, status: f.status };
   }
+  const report = received as Report;
   const integrity = checkReport(report);
   // A repository is compared only with its own directory: a report that names more repositories than
   // directories is never reproduced from one clone, so the extra repositories are listed as not compared.

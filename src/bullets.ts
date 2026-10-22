@@ -14,6 +14,8 @@ export interface JdRow {
   /** Listed terms. One term for a single row; several for an alternatives row. */
   terms: string[];
   mode: "single" | "alternatives";
+  /** Wording the person cannot fix by rewording: must have, work authorisation, visa, clearance, degree, years. Listed in Gaps with a marker when no fact covers it. */
+  hard?: boolean;
 }
 
 export interface Fact {
@@ -173,10 +175,36 @@ function rowsFor(body: string, must: boolean): JdRow[] {
   return [{ label, must, terms: [label], mode: "single" }];
 }
 
+const HARD_REQUIREMENT = /\b(must have|work authori[sz]ation|right to work|citizenship|visa (?:sponsorship|status|required|requirements?)|security clearance|degree in|years of experience)\b/i;
+const HARD_REQUIRED = /\brequired\b/i;
+const HARD_FORCE = /\b(must|mandatory|essential)\b/i;
+const isHard = (label: string): boolean => HARD_REQUIREMENT.test(label) || (HARD_REQUIRED.test(label) && HARD_FORCE.test(label));
+const REQUIREMENT_WORDING = /\b(must|required|requires?|experience (?:with|in)|proficien\w*|knowledge of|familiar\w*|ability to|years? of|degree|certified)\b/i;
+const OPTIONAL_WORDING = /\b(nice to have|preferred|bonus|a plus|desirable)\b/i;
+
+/** The sentences and clauses of running prose that hold requirement wording, for a JD without bullets or required headings. */
+function proseRows(lines: string[]): JdRow[] {
+  const rows: JdRow[] = [];
+  for (const line of lines) {
+    if (/^#{1,6}\s/.test(line)) continue;
+    for (const sentence of line.split(/(?<=[.!?])\s+|;\s*/)) {
+      for (const clause of sentence.split(/,\s*(?:and|but|while)\s+|\s+and\s+(?=(?:must|experience|proficien|knowledge|familiar|ability|a degree|\d+\+? years))/i)) {
+        const text = clause.replace(/[.!?]+$/, "").trim();
+        if (text !== "" && REQUIREMENT_WORDING.test(text)) rows.push(...rowsFor(text, !OPTIONAL_WORDING.test(text)));
+      }
+    }
+  }
+  return rows;
+}
+
+/** Flags rows built from hard-requirement wording; the label is the row text, so the wording is in it. */
+const flagHard = (rows: JdRow[]): JdRow[] => rows.map((r) => (isHard(r.label) ? { ...r, hard: true } : r));
+
 /**
  * The JD as rows. Lines under a heading containing "required" or "must" are must-have, lines
  * under "nice" are nice-to-have, other bullet lines are must-have, and plain lines under other
- * headings are ignored.
+ * headings are ignored. A JD with none of those yields rows from the sentences and clauses that hold
+ * requirement wording (must, required, experience with, years of, degree and similar).
  */
 export function parseJd(text: string): { target: string; rows: JdRow[] } {
   const lines = text.split(/\r?\n/);
@@ -200,7 +228,7 @@ export function parseJd(text: string): { target: string; rows: JdRow[] } {
     if (section === "other") continue;
     rows.push(...rowsFor(line, section === "must"));
   }
-  return { target, rows };
+  return { target, rows: flagHard(rows.length ? rows : proseRows(lines)) };
 }
 
 const BANK_HEAD = /^##\s+([A-Z]\d+)\s+(.+)$/;
@@ -473,7 +501,7 @@ export function buildBullets(input: BulletsInput): BulletsResult {
     const c = coverage(row, allTexts);
     for (const m of c.matched) if (!skills.includes(m)) skills.push(m);
     if (!c.covered) {
-      gaps.push(`${row.label}: not in your facts`);
+      gaps.push(`${row.label}: not in your facts${row.hard ? " (hard requirement)" : ""}`);
     } else if (row.mode === "alternatives" && c.missing.length > 0) {
       gaps.push(`${c.missing.join(", ")}: not in your facts; ${c.matched.join(", ")} ${c.matched.length === 1 ? "is" : "are"} covered`);
     }

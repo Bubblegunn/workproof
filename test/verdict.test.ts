@@ -447,3 +447,22 @@ test("(n2) the CLI reads a foreign-format file with repeatable --author and prin
     await rm(work, { recursive: true, force: true });
   }
 }));
+
+test("(o) the CLI keeps an error for broken JSON and an empty file, and reads other text", async () => {
+  const work = await mkdtemp(join(tmpdir(), "workproof-text-"));
+  try {
+    const verdict = (content: string) => {
+      const path = join(work, "r.txt");
+      return writeFile(path, content).then(() => spawnSync(process.execPath, [CLI, "verdict", path], { encoding: "utf8" }));
+    };
+    for (const broken of ['{"commits": 12', "[1, 2", "  {nope", ""]) {
+      const run = await verdict(broken);
+      assert.notEqual(run.status, 0, `exit for ${JSON.stringify(broken)}`);
+    }
+    const text = await verdict("Ada made 12 commits\n");
+    assert.equal(text.status, 0, text.stderr);
+    assert.ok(text.stdout.includes("# Verdict on"), text.stdout);
+  } finally {
+    await rm(work, { recursive: true, force: true });
+  }
+});

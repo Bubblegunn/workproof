@@ -263,11 +263,12 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   assert.ok(!withoutAllowed.includes(">"), "a redirection to a file is present");
 });
 
-test("hooks.json registers the script under UserPromptSubmit with the plugin root path", () => {
+test("hooks.json registers both scripts, under UserPromptSubmit and Stop, with the plugin root path", () => {
   const hooks = JSON.parse(readFileSync(hooksPath, "utf8")).hooks;
-  assert.deepEqual(Object.keys(hooks), ["UserPromptSubmit"]);
+  assert.deepEqual(Object.keys(hooks), ["UserPromptSubmit", "Stop"]);
   const command = hooks.UserPromptSubmit[0].hooks[0].command;
   assert.equal(command, '"${CLAUDE_PLUGIN_ROOT}/hooks/workproof-hint.sh"');
+  assert.equal(hooks.Stop[0].hooks[0].command, '"${CLAUDE_PLUGIN_ROOT}/hooks/workproof-stop.sh"');
 });
 
 test("the hook writes nothing: an empty working directory stays empty after a match", () => {
