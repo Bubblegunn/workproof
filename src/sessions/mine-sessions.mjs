@@ -8,6 +8,7 @@
 //
 // Usage:
 //   node mine-sessions.mjs [--days 30] [--since YYYY-MM-DD] [--repo <substr>]
+//   node mine-sessions.mjs --dir <folder of exported session files>
 //
 // Prints the JSON summary to stdout and nothing else. The output carries no file
 // or directory paths, no user name, no prompt or message text and no session ids.
@@ -31,7 +32,8 @@
 //      described the removed output, or the receipts skill, were reworded.
 //   6. The script is now run through `workproof sessions` from the CLI package
 //      (src/cli.ts), not as a file inside the plugin's skill folder.
-//   7. Only --days, --since and --repo are accepted. Any other option, or a stray
+//   7. Only --days, --since, --repo and --dir are accepted (--dir is handled by
+//      export-usage.mjs, original code of this package). Any other option, or a stray
 //      argument, prints "mine-sessions: unknown option <name>" to stderr and exits 2
 //      before anything is read.
 // The counting logic is unchanged.
@@ -43,7 +45,23 @@ import { execFileSync } from 'node:child_process';
 
 // Only these options exist. Anything else is refused before any session is read, so a typo
 // such as --dayz cannot silently mine the whole history with the default window.
-const OPTIONS = new Set(['--days', '--since', '--repo']);
+const OPTIONS = new Set(['--days', '--since', '--repo', '--dir']);
+
+// `--dir <folder>` reads a folder of session files the user supplied (an export) instead of
+// ~/.claude/projects, and prints usage totals (responses, tokens by type and model, tool calls).
+{
+  const argv = process.argv.slice(2);
+  const at = argv.indexOf('--dir');
+  if (at >= 0) {
+    const others = argv.filter((a, i) => i !== at && i !== at + 1);
+    if (others.length) {
+      console.error(`mine-sessions: --dir takes no other option (${others[0]})`);
+      process.exit(2);
+    }
+    const { runExport } = await import('./export-usage.mjs');
+    process.exit(runExport(argv[at + 1]));
+  }
+}
 
 function parseArgs(argv) {
   const out = { days: 30, repo: null, since: null };

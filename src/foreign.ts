@@ -151,7 +151,8 @@ export function recogniseText(text: string, authors: string[] = []): Recognised 
   };
   for (const raw of text.split(/\r?\n/)) {
     if (raw.length > MAX_LINE) continue;
-    const line = raw.replace(/[*`]/g, "");
+    // The digits of "SHA-256" are part of a name, not a count ("SHA-256 of commits.csv" is not "256 commits").
+    const line = raw.replace(/[*`]/g, "").replace(/sha[-_ ]?256/gi, "sha");
     const cells = /^[\s|:\-+]*$/.test(line) ? undefined : splitCells(line, header?.length);
     if (cells) {
       if (cells.every((x) => /[A-Za-z]/.test(x))) { flush(); header = cells; } else if (header && cells.length === header.length) rows.push(cells);
@@ -226,7 +227,7 @@ async function countRepo(dir: string, authors: string[], fromReport: string[]): 
   return { commits: mine.length, added, deleted, ...(days.length ? { first: days[0]!, last: days[days.length - 1]! } : {}) };
 }
 
-const COUNT_WITH_GIT = "Do not stop here: count the same figures with plain git in the clone, read-only commands only (git shortlog -sne --no-merges for commits, git log --no-merges --author=<the person> --numstat for lines; leave out bots, vendored, generated and lock files), then show what the report says next to what the repository says (steps in skills/workproof/references/received-report.md).";
+const COUNT_WITH_GIT = "Do not stop here: count the same figures with plain git in the clone, read-only commands only (git shortlog -sne --no-merges for commits, git log --no-merges --author=<the person> --numstat for lines; leave out bots, vendored, generated and lock files), then show what the report says next to what the repository says (steps in the workproof skill, section A report someone sent).";
 
 /** Compares a report in another format with the repository by the figures it names. Never reads or prints an address or a path. */
 export async function compareForeign(input: unknown, repoDirs: string[], authors: string[]): Promise<ForeignComparison> {

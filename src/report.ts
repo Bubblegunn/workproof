@@ -133,6 +133,26 @@ function splitNotice(split: SplitRecord): string {
   return `**${plural(n, "other identity", "other identities")} in this repository look${n === 1 ? "s" : ""} like the same person and ${n === 1 ? "was" : "were"} not counted here**: ${split.names.map(isolate).join(", ")}${split.emails?.length ? ` (${split.emails.join(", ")})` : ""}. ${reasons}. ${tail}`;
 }
 
+/** The excluded-items block: which merges, how many bots, which excluded paths and which commits fall outside the window. */
+function excludedItemLines(repo: RepoReport): string[] {
+  const items = repo.excluded.items;
+  if (!items || !repo.excluded.enabled) return [];
+  const out: string[] = [];
+  if (repo.windowLines) out.push(`- lines in the window, after exclusions: ${n(repo.windowLines.added)} added, ${n(repo.windowLines.deleted)} deleted`);
+  out.push(`- merge commits by the author in the window (not counted): ${items.mergeCommits.count}${items.mergeCommits.ids.length ? ` (${items.mergeCommits.ids.join(", ")})` : ""}`);
+  out.push(`- bot commits (not counted): ${repo.excluded.botCommits}`);
+  const p = items.paths;
+  out.push(
+    `- excluded paths the author touched: ${p.count} (${n(p.added)} lines added, ${n(p.deleted)} deleted)${p.hidden && p.count ? "; names hidden, run with --paths" : ""}`,
+    ...p.files.map((f) => `  - ${f.path}: ${n(f.added)} added, ${n(f.deleted)} deleted`),
+  );
+  if (items.outsideWindow) {
+    const o = items.outsideWindow;
+    out.push(`- commits by the author outside the window (not counted): ${o.count}${o.commits.length ? ` (${o.commits.map((c) => `${c.id} on ${c.date}`).join(", ")})` : ""}`);
+  }
+  return out;
+}
+
 export function renderMarkdown(report: Report, narrative?: string): string {
   const out: string[] = [
     `# Engineering report`,
@@ -151,6 +171,7 @@ export function renderMarkdown(report: Report, narrative?: string): string {
       repo.excluded.enabled
         ? `excluded ${plural(repo.excluded.botCommits, "bot commit", "bot commits")} and ${plural(repo.excluded.files, "generated, vendored or lock file", "generated, vendored or lock files")} (${pct(repo.excluded.linesAddedShare)} of lines added)`
         : `exclusions off (--no-exclusions): bot commits and generated files are counted`,
+      ...(excludedItemLines(repo).length ? [``, `Excluded items:`, ...excludedItemLines(repo)] : []),
       ``,
       `### In plain language`,
       ``,

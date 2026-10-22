@@ -273,18 +273,19 @@ test("a report in another format goes through verdict, and git counts are allowe
 
 test("the final chat answer follows the file privacy defaults: no addresses, no other people's names, exclusions by rule", () => {
   for (const text of [skill, read(`${skillDir}/references/received-report.md`)]) {
-    assert.match(text, /final chat answer follows the same privacy defaults as the files/);
+    assert.match(text, /Privacy defaults protect personal data the user did not ask for/);
     assert.match(text, /one similar name on a different address was left out/);
   }
 });
 
 test("SKILL.md rule 8: the last chat message of every task states the results of the checks and limits the file holds", () => {
   const b = read(`${skillDir}/SKILL.md`);
-  assert.ok(b.includes("8. The last chat message of every task states in plain text the result of every check and limit the file holds"), "SKILL.md lacks the closing-statement rule");
+  assert.ok(b.includes("8. The last chat message starts with every number and list the user asked for"), "SKILL.md lacks the asked-for-first rule");
+  assert.ok(b.includes("states in plain text the result of every check and limit the file holds"), "SKILL.md lacks the closing-statement rule");
   for (const part of ["the gaps", "the figures that differ from the git counts", "the basis sentence for counts", "the exclusions by rule", "the path of the package with its one-line public-look note"]) {
     assert.ok(b.includes(part), `the closing-statement rule lacks: ${part}`);
   }
   assert.ok(b.includes("A turn never ends on a status note alone."), "SKILL.md lacks the no-status-note sentence");
   assert.ok(!/8\. The last chat message[^\n]*(@|\/Users\/)/.test(b), "the rule names no address or path");
-  assert.ok(Buffer.byteLength(b) < 13563 + 700, "SKILL.md grew by 700 bytes or more");
+  assert.ok(Buffer.byteLength(b) < 17250, "SKILL.md grew past 17250 bytes (round 10 added the inline received-report, export and size rules)");
 });

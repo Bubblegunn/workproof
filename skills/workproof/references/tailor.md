@@ -62,7 +62,7 @@ Target role: <job description title>
 - [ ] No number differs from its fact
 - [ ] Every `no` row is in Gaps and named in the answer, and none is in Skills
 - [ ] In-progress items last, employers, titles and dates unchanged
-- [ ] Under 450 words, no em or en dash in own text
+- [ ] Under 450 words (`bullets --resume --out` counts them and trims over `--max-words`, default 450; edit its output, do not rebuild from the source), no em or en dash in own text
 
 ## Licence of the adapted material
 

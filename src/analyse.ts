@@ -9,7 +9,7 @@ import { isBot, excludedSet } from "./exclusions.js";
 // surviving-lines ships plain ESM JavaScript without type declarations.
 // @ts-ignore
 import { globToRegExp } from "surviving-lines/bin/surviving-lines.js";
-import { resolveIdentity, possibleSplits, mergeSplits, SPLIT_HINT } from "./figures/identity.js";
+import { resolveIdentity, possibleSplits, mergeSplits, isMine, SPLIT_HINT } from "./figures/identity.js";
 import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
 import { footprint, testsAndDocs } from "./figures/footprint.js";
@@ -64,6 +64,16 @@ export interface AnalyseHooks {
   merged?: (notice: MergeNotice) => void;
 }
 
+/** The items behind the excluded counts, for a reader who asks which ones. Commit ids are short (7 characters). */
+export interface ExcludedItems {
+  /** Merge commits by the author inside the window. */
+  mergeCommits: { count: number; ids: string[] };
+  /** Excluded paths the author touched in the window, with the lines they added and deleted; names only with --paths. */
+  paths: { count: number; added: number; deleted: number; files: { path: string; added: number; deleted: number }[]; hidden: boolean };
+  /** Non-merge commits by the author outside the window, nearest first (at most 10 listed); present only when --since or --until was given. */
+  outsideWindow?: { count: number; commits: { id: string; date: string }[] };
+}
+
 export interface RepoReport {
   name: string;
   head: string;
@@ -82,7 +92,9 @@ export interface RepoReport {
   /** What the figures were computed with, so a verifier can tell a drift from an edit. */
   environment: { git: string; blame: string[]; ignoreRevs: string | null; seed: string };
   /** What left the denominators before any figure was computed. */
-  excluded: { botCommits: number; files: number; linesAddedShare: number; enabled: boolean };
+  excluded: { botCommits: number; files: number; linesAddedShare: number; enabled: boolean; items?: ExcludedItems };
+  /** Lines the author added and deleted in the window, non-merge commits, after the exclusions. */
+  windowLines?: { added: number; deleted: number };
   figures: Figure<any>[];
 }
 
@@ -178,6 +190,41 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
       if (ex.excluded.has(f.path)) addedExcluded += f.added;
     }
   }
+  // Lines and excluded items of the author's own commits, so a question about them has a source in the report.
+  let linesAdded = 0;
+  let linesDeleted = 0;
+  const excludedFiles = new Map<string, { added: number; deleted: number }>();
+  for (const c of ex.raw) {
+    if (c.localDate < start || c.localDate > end || c.parents > 1 || !isMine(c, id)) continue;
+    for (const f of c.files) {
+      if (ex.excluded.has(f.path)) {
+        const row = excludedFiles.get(f.path) ?? { added: 0, deleted: 0 };
+        row.added += f.added ?? 0;
+        row.deleted += f.deleted ?? 0;
+        excludedFiles.set(f.path, row);
+      } else {
+        linesAdded += f.added ?? 0;
+        linesDeleted += f.deleted ?? 0;
+      }
+    }
+  }
+  const merges = all.filter((c) => c.parents > 1 && isMine(c, id) && c.localDate >= start && c.localDate <= end);
+  const windowGiven = !!(params.since || params.until);
+  const outside = windowGiven ? all.filter((c) => c.parents <= 1 && isMine(c, id) && (c.localDate < start || c.localDate > end)) : [];
+  const gap = (c: Commit) => (c.localDate < start ? start.getTime() - c.localDate.getTime() : c.localDate.getTime() - end.getTime());
+  const nearest = [...outside].sort((a, b) => gap(a) - gap(b)).slice(0, 10).sort((a, b) => a.localDate.getTime() - b.localDate.getTime());
+  const excludedPaths = [...excludedFiles.entries()].map(([path, v]) => ({ path, ...v })).sort((a, b) => b.added - a.added || a.path.localeCompare(b.path));
+  const items: ExcludedItems = {
+    mergeCommits: { count: merges.length, ids: merges.slice(0, 20).map((c) => c.sha.slice(0, 7)) },
+    paths: {
+      count: excludedPaths.length,
+      added: excludedPaths.reduce((n, p) => n + p.added, 0),
+      deleted: excludedPaths.reduce((n, p) => n + p.deleted, 0),
+      files: params.paths ? excludedPaths.slice(0, 50) : [],
+      hidden: !params.paths,
+    },
+    ...(windowGiven ? { outsideWindow: { count: outside.length, commits: nearest.map((c) => ({ id: c.sha.slice(0, 7), date: c.localDate.toISOString().slice(0, 10) })) } } : {}),
+  };
   const tags = await listTags(cwd);
   const sample = params.sample ?? (all.reduce((n, c) => n + c.files.length, 0) > 50000 ? 7 : 1);
   const ignoreRevs = await ignoreRevsFor(cwd, params);
@@ -243,7 +290,8 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
         : {}),
     },
     environment: { git: await gitVersion(cwd), blame, ignoreRevs, seed: params.seed ?? "" },
-    excluded: { botCommits: ex.botCommits, files: ex.excluded.size, linesAddedShare: addedAll ? addedExcluded / addedAll : 0, enabled: ex.enabled },
+    excluded: { botCommits: ex.botCommits, files: ex.excluded.size, linesAddedShare: addedAll ? addedExcluded / addedAll : 0, enabled: ex.enabled, items },
+    windowLines: { added: linesAdded, deleted: linesDeleted },
     figures,
   };
 }

@@ -65,6 +65,23 @@ export function plainSummary(repo: RepoReport): string {
     sentences.push(`${n(absence.authors)} people wrote code in this project; by share of surviving lines they rank ${n(absence.authorRank)}.`);
   }
 
+  if (repo.windowLines) {
+    sentences.push(`In that period they added ${n(repo.windowLines.added)} lines and deleted ${n(repo.windowLines.deleted)} lines, counted after the removals described next.`);
+  }
+
+  const items = repo.excluded.items;
+  if (repo.excluded.enabled && items) {
+    if (items.mergeCommits.count > 0) {
+      sentences.push(`${n(items.mergeCommits.count)} merge ${items.mergeCommits.count === 1 ? "commit" : "commits"} by them (${items.mergeCommits.ids.join(", ")}) ${items.mergeCommits.count === 1 ? "was" : "were"} not counted.`);
+    }
+    if (items.paths.count > 0) {
+      sentences.push(`${n(items.paths.count)} excluded ${items.paths.count === 1 ? "file" : "files"} held ${n(items.paths.added)} lines they added and ${n(items.paths.deleted)} they deleted${items.paths.files.length ? `: ${items.paths.files.map((f) => `${f.path} (${n(f.added)} added, ${n(f.deleted)} deleted)`).join(", ")}` : ""}.`);
+    }
+    if (items.outsideWindow && items.outsideWindow.count > 0) {
+      sentences.push(`${n(items.outsideWindow.count)} of their ${items.outsideWindow.count === 1 ? "commit falls" : "commits fall"} outside the period and ${items.outsideWindow.count === 1 ? "is" : "are"} not counted: ${items.outsideWindow.commits.map((c) => `${c.id} (${c.date})`).join(", ")}.`);
+    }
+  }
+
   if (repo.excluded.enabled) {
     sentences.push(
       `Before any of this was counted, ${n(repo.excluded.botCommits)} automated ${repo.excluded.botCommits === 1 ? "change" : "changes"} and ${n(repo.excluded.files)} machine-written or copied ${repo.excluded.files === 1 ? "file" : "files"} were removed, so none of them inflate the figures.`,

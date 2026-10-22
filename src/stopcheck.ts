@@ -1,6 +1,7 @@
 import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { isAbsolute, resolve } from "node:path";
+import { countWords, DEFAULT_MAX_WORDS } from "./bullets.js";
 
 /** What the Stop hook receives on stdin. */
 export interface StopInput {
@@ -20,6 +21,8 @@ export interface Run {
 export interface Turn {
   runs: Run[];
   finalText: string;
+  /** The text of the user message that started the turn; empty when the transcript has none. */
+  prompt?: string;
 }
 
 const MAX_TAIL = 5 * 1024 * 1024;
@@ -30,6 +33,8 @@ const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 
 export const PRIVACY_REASON =
   "The final answer shows an email address. Describe people and addresses by rule (for example 'two addresses were merged'), not by address, and send the answer again.";
+export const SIZE_REASON = (file: string, words: number, max: number): string =>
+  `The resume written by \`workproof bullets\` (${file}) has ${words} words and the limit is ${max}, tags and tables included. Edit that file down to the limit: drop the lowest-ranked bullets and coverage rows, do not rebuild it from the source. Then answer again.`;
 export const GAPS_REASON =
   "The final answer does not state the Gaps. End with one sentence: 'Not in your facts: <items>. Add them to your bank if they are true.'";
 
@@ -88,10 +93,14 @@ export function parseTurn(jsonl: string): Turn {
     }
   }
   let start = 0;
+  let prompt = "";
   lines.forEach((l, i) => {
     if (l.type !== "user") return;
     const blocks = blocksOf(l);
-    if (blocks.some((b) => b.type === "text" && typeof b.text === "string" && b.text.trim())) start = i + 1;
+    if (blocks.some((b) => b.type === "text" && typeof b.text === "string" && b.text.trim())) {
+      start = i + 1;
+      prompt = blocks.map((b) => (b.type === "text" && typeof b.text === "string" ? b.text : "")).join("\n");
+    }
   });
   const commands = new Map<string, string>();
   const runs: Run[] = [];
@@ -114,7 +123,7 @@ export function parseTurn(jsonl: string): Turn {
       }
     }
   }
-  return { runs, finalText };
+  return { runs, finalText, prompt };
 }
 
 /** Lowercase, NFKC-normalised text, so a fullwidth or compatibility form of an address still matches. */
@@ -143,6 +152,30 @@ export function leaksEmail(finalText: string, runs: Run[], repo: string[]): bool
   const known = runs.some((r) => readsRepo(r.command)) ? repo : [];
   const final = norm(finalText);
   return [...new Set([...known, ...printed])].some((e) => e.length > 0 && !e.includes("noreply") && final.includes(e));
+}
+
+/** True when the user's own message asks for email addresses or for the identities that were counted. */
+export function asksForAddresses(prompt: string): boolean {
+  return /\b(e-?mail addresses?|addresses|identit(?:y|ies)|which e-?mails?)\b/i.test(prompt.normalize("NFKC"));
+}
+
+/** The first resume file a `bullets --out` run of the turn wrote, with its word cap. Reads the file; null when there is none or it cannot be read. */
+function resumeOverCap(runs: Run[], cwd: string): { file: string; words: number; max: number } | null {
+  for (const run of [...runs].reverse()) {
+    if (!invocations(run.command).includes("bullets")) continue;
+    const out = /--out(?:=|\s+)(?:"([^"]+)"|'([^']+)'|(\S+))/.exec(run.command);
+    const file = out?.[1] ?? out?.[2] ?? out?.[3];
+    if (!file || !/--resume\b/.test(run.command)) continue;
+    const cap = /--max-words(?:=|\s+)(\d+)/.exec(run.command);
+    const max = cap ? Number(cap[1]) : DEFAULT_MAX_WORDS;
+    try {
+      const words = countWords(readFileSync(isAbsolute(file) ? file : resolve(cwd, file), "utf8"));
+      return words > max ? { file, words, max } : null;
+    } catch {
+      return null;
+    }
+  }
+  return null;
 }
 
 /** The items under `## Gaps`, or null when there is no such section. */
@@ -200,7 +233,9 @@ export function statesGaps(finalText: string, gaps: string[]): boolean {
 /** The reason to block, or null to allow. Pure apart from the optional file read of --out and the git read. */
 export function evaluate(turn: Turn, cwd: string, repo: string[]): string | null {
   if (!turn.runs.length || !turn.finalText.trim()) return null;
-  if (leaksEmail(turn.finalText, turn.runs, repo)) return PRIVACY_REASON;
+  if (!asksForAddresses(turn.prompt ?? "") && leaksEmail(turn.finalText, turn.runs, repo)) return PRIVACY_REASON;
+  const big = resumeOverCap(turn.runs, cwd);
+  if (big) return SIZE_REASON(big.file, big.words, big.max);
   const gaps = bulletsGaps(turn.runs, cwd);
   if (gaps !== null && gaps.length > 0 && !statesGaps(turn.finalText, gaps)) return GAPS_REASON;
   return null;

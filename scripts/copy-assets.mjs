@@ -6,7 +6,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const assets = ["mine-sessions.mjs", "LICENSE-APACHE-2.0"];
+const assets = ["mine-sessions.mjs", "export-usage.mjs", "LICENSE-APACHE-2.0"];
 const from = join(root, "src", "sessions");
 const to = join(root, "dist", "src", "sessions");
 

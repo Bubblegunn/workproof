@@ -331,10 +331,11 @@ workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-sig
 workproof countersign <report.json> --key <ssh-key> [--repo <dir>] [--fingerprint-key <hex>] [--as <label>]
 workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
 workproof verdict <report.json> [--repo <dir>]... [--author <name|email>]... [--fingerprint-key <hex>] [--out <file>]
-workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--out <file>]
+workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--max-words N] [--out <file>]
 workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
 workproof attest <report.json> [--local <ssh-key>]
 workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
+workproof sessions --dir <folder>
 
 --author <email|name>   identity to report on (repeatable; default: git config user.email)
 --no-merge-identities   count only the configured address and addresses with the same name (default: merge addresses that look like yours, and say which)

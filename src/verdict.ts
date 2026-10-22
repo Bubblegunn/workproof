@@ -3,6 +3,7 @@ import type { RepoReport } from "./analyse.js";
 import type { Report } from "./report.js";
 import { compareForeign } from "./foreign.js";
 import { checkReport, verifyReport } from "./verify.js";
+import { rowChecks, renderRowChecks, rowChecksFail, rowChecksUnconfirmed, rowChecksReason } from "./rowchecks.js";
 import type { Integrity, VerifyResult } from "./verify.js";
 
 export type VerdictStatus = "do-not-trust" | "reproduces" | "not-checked";
@@ -14,6 +15,9 @@ export interface VerdictOptions {
   reportName?: string;
   /** Author names or addresses for a report in another format (repeatable --author). */
   authors?: string[];
+  /** Where the report file is and what it says, so data files beside it or named in it can be checked. */
+  reportPath?: string;
+  reportText?: string;
 }
 
 const HEADLINE: Record<VerdictStatus, string> = {
@@ -84,14 +88,19 @@ export async function buildVerdict(received: Report | ReceivedText, repoDirs: st
   // Text that is not JSON, and a list of per-author records when an author is named, are read here too.
   if (received instanceof ReceivedText || isRecordList(received, opts.authors) || isForeign(received)) {
     const f = await compareForeign(received instanceof ReceivedText ? received.text : received, repoDirs.length ? repoDirs : [process.cwd()], opts.authors ?? []);
+    const rc = opts.reportPath ? await rowChecks(opts.reportPath, opts.reportText ?? (received instanceof ReceivedText ? received.text : JSON.stringify(received)), repoDirs[0] ?? process.cwd()).catch(() => undefined) : undefined;
+    const failed = rc !== undefined && rowChecksFail(rc);
+    const unconfirmed = rc !== undefined && rowChecksUnconfirmed(rc);
+    const status: VerdictStatus = failed ? "do-not-trust" : unconfirmed && f.status === "reproduces" ? "not-checked" : f.status;
     const lines = [
-      `# Verdict on ${name}`, "", "## Verdict", HEADLINE[f.status], f.reason, "",
+      `# Verdict on ${name}`, "", "## Verdict", HEADLINE[status], failed || (unconfirmed && status === "not-checked") ? `${capitalise(rowChecksReason(rc!))} ${f.status === "do-not-trust" ? f.reason : ""}`.trim() : f.reason, "",
       "## Altered figures", ...f.altered, "",
+      ...(rc ? renderRowChecks(rc) : []),
       "## Hash status", "Not checked: the report is in a foreign format, so its hash cannot be checked. A passing figure comparison does not replace it.", "",
       "## What a passing check would not prove", ...PASSING_CHECK_DOES_NOT_PROVE, "",
-      "## Recommendation", f.recommendation,
+      "## Recommendation", failed && f.status !== "do-not-trust" ? RECOMMENDATION["do-not-trust"] : f.recommendation,
     ];
-    return { markdown: `${lines.join("\n")}\n`, status: f.status };
+    return { markdown: `${lines.join("\n")}\n`, status };
   }
   const report = received as Report;
   const integrity = checkReport(report);

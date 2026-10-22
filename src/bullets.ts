@@ -50,12 +50,23 @@ export interface BulletsInput {
   source: BulletsSource;
   /** The finished resume shape instead of the draft template. */
   resume?: boolean;
+  /** Word cap of the finished resume (default 450); a resume over it is trimmed. Ignored for the draft template. */
+  maxWords?: number;
 }
 
 export interface BulletsResult {
   markdown: string;
   gaps: string[];
+  /** The words of `markdown`, counted as `wc -w` counts them. */
+  words: number;
+  /** One line saying what was dropped to meet the cap; empty when nothing was. */
+  notice: string;
 }
+
+export const DEFAULT_MAX_WORDS = 450;
+
+/** Words as `wc -w` counts them: runs of non-whitespace, so tags, table bars and headings count. */
+export const countWords = (text: string): number => text.split(/\s+/).filter(Boolean).length;
 
 const MAX_BULLETS = 8;
 const BULLETS_PER_ENTRY = 2;
@@ -496,6 +507,7 @@ export function buildBullets(input: BulletsInput): BulletsResult {
   const skills: string[] = [];
   const gaps: string[] = [];
   const coverageRows: string[] = [];
+  const coverageCovered: boolean[] = [];
   if (rows.length === 0) coverageRows.push("| (no requirements found) | - | - | none |");
   rows.forEach((row, ri) => {
     const c = coverage(row, allTexts);
@@ -507,6 +519,7 @@ export function buildBullets(input: BulletsInput): BulletsResult {
     }
     const tag = tagOf.get(ri);
     coverageRows.push(`| ${cell(row.label)} | ${row.must ? "yes" : "no"} | ${c.covered ? "yes" : "no"} | ${tag ?? "none"} |`);
+    coverageCovered.push(c.covered);
   });
 
   // Ordering check over the entries that produce bullets, in emitted order.
@@ -524,51 +537,77 @@ export function buildBullets(input: BulletsInput): BulletsResult {
   if (input.resume) {
     // The finished shape: Experience, then Projects, each with its bullets grouped under the entry heading in ranked order.
     // The Ordering check walks the entries in this printed order, not in ranked order.
-    const body: string[] = [];
-    const printed: Entry[] = [];
-    for (const name of PRINTED_SECTIONS) {
-      const groups = new Map<string, { head: string[]; lines: string[]; entries: Entry[] }>();
-      for (const b of shown) {
-        if (b.entry.section !== name) continue;
-        const key = b.entry.head.join("\n");
-        const group = groups.get(key) ?? { head: b.entry.head, lines: [], entries: [] };
-        groups.set(key, group);
-        group.lines.push(`- ${b.fact.text} [${b.fact.tag}]`);
-        group.entries.push(b.entry);
+    const render = (kept: typeof shown, coverage: string[]): string => {
+      const body: string[] = [];
+      const printed: Entry[] = [];
+      for (const name of PRINTED_SECTIONS) {
+        const groups = new Map<string, { head: string[]; lines: string[]; entries: Entry[] }>();
+        for (const b of kept) {
+          if (b.entry.section !== name) continue;
+          const key = b.entry.head.join("\n");
+          const group = groups.get(key) ?? { head: b.entry.head, lines: [], entries: [] };
+          groups.set(key, group);
+          group.lines.push(`- ${b.fact.text} [${b.fact.tag}]`);
+          group.entries.push(b.entry);
+        }
+        if (groups.size === 0) continue;
+        body.push(`## ${name}`);
+        for (const g of groups.values()) {
+          body.push(...g.head, ...g.lines, "");
+          printed.push(...g.entries);
+        }
       }
-      if (groups.size === 0) continue;
-      body.push(`## ${name}`);
-      for (const g of groups.values()) {
-        body.push(...g.head, ...g.lines, "");
-        printed.push(...g.entries);
-      }
+      const resumeOrder = printedOrder(printed);
+      return [
+        `# ${person ?? "Resume"}`,
+        `Target role: ${target}`,
+        "",
+        "## Summary",
+        summaryLine,
+        "",
+        "## Skills",
+        skills.length ? skills.join(", ") : "(none supported by the facts)",
+        "",
+        ...body,
+        "## Gaps",
+        ...(gaps.length ? gaps.map((g) => `- ${g}`) : ["None."]),
+        "",
+        "## Keyword coverage",
+        "| JD item | Must-have? | Covered | Source tag |",
+        "|---|---|---|---|",
+        ...coverage,
+        "",
+        "## Ordering check",
+        `Complete before in-progress: ${resumeOrder}`,
+        `Entries and dates unchanged from the source: ${unchanged ? "ok" : "changed"}`,
+        "",
+      ].join("\n");
+    };
+    // Over the cap: drop coverage rows of covered items from the end first (the Gaps section keeps the uncovered ones),
+    // then the lowest-ranked bullets, until the file fits or one bullet is left.
+    const max = input.maxWords ?? DEFAULT_MAX_WORDS;
+    let kept = shown;
+    let cov = coverageRows.map((row, i) => ({ row, covered: coverageCovered[i] ?? false }));
+    let markdown = render(kept, cov.map((c) => c.row));
+    let droppedBullets = 0;
+    let droppedRows = 0;
+    while (countWords(markdown) > max) {
+      const at = cov.map((c) => c.covered).lastIndexOf(true);
+      if (at >= 0) {
+        cov = cov.filter((_, i) => i !== at);
+        droppedRows += 1;
+      } else if (kept.length > 1) {
+        kept = kept.slice(0, -1);
+        droppedBullets += 1;
+      } else break;
+      markdown = render(kept, cov.map((c) => c.row));
     }
-    const resumeOrder = printedOrder(printed);
-    const resumeOut: string[] = [
-      `# ${person ?? "Resume"}`,
-      `Target role: ${target}`,
-      "",
-      "## Summary",
-      summaryLine,
-      "",
-      "## Skills",
-      skills.length ? skills.join(", ") : "(none supported by the facts)",
-      "",
-      ...body,
-      "## Gaps",
-      ...(gaps.length ? gaps.map((g) => `- ${g}`) : ["None."]),
-      "",
-      "## Keyword coverage",
-      "| JD item | Must-have? | Covered | Source tag |",
-      "|---|---|---|---|",
-      ...coverageRows,
-      "",
-      "## Ordering check",
-      `Complete before in-progress: ${resumeOrder}`,
-      `Entries and dates unchanged from the source: ${unchanged ? "ok" : "changed"}`,
-      "",
-    ];
-    return { markdown: resumeOut.join("\n"), gaps };
+    const words = countWords(markdown);
+    const notice =
+      droppedBullets + droppedRows > 0
+        ? `Trimmed to fit ${max} words: dropped ${droppedBullets} lowest-ranked ${droppedBullets === 1 ? "bullet" : "bullets"} and ${droppedRows} coverage ${droppedRows === 1 ? "row" : "rows"} of covered items${words > max ? `; still ${words} words` : ""}.`
+        : "";
+    return { markdown, gaps, words, notice };
   }
 
   const bulletLines = shown.map((b, i) => `${i + 1}. ${b.fact.text} [${b.fact.tag}]`);
@@ -613,5 +652,6 @@ export function buildBullets(input: BulletsInput): BulletsResult {
     "- [ ] Ordering: complete before in-progress, entries and dates unchanged from the source",
     "",
   ];
-  return { markdown: out.join("\n"), gaps };
+  const markdown = out.join("\n");
+  return { markdown, gaps, words: countWords(markdown), notice: "" };
 }

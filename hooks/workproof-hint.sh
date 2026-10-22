@@ -37,6 +37,7 @@ if [ -n "$lc" ] && printf '%s\n' "$lc" | grep -Eq \
   -e '(sent|received|gave) (me|us).*(report|files|evidence).*(trust|verify|check|their work|his work|her work)|(trust|verify).*(this|the|these).*(report|figures|files).*(sent|candidate|applicant|evidence)' \
   -e '(candidate|applicant).*(evidence of (their|his|her) work)' \
   -e 'my claude code (usage|sessions?)|claude code usage.*(deliver|report|manager|impact)|what (all )?my claude.*deliver' \
+  -e 'session (export|logs?)|(export|exported) .*(claude code|sessions?)|claude code sessions? (logs?|usage|export)|summari[sz]e my (claude )?usage|(totals|counts) by (type|model)|(tok.ns?|usage|responses?|totals?|counts?).*per[- ]model|per[- ]model (tok.ns?|counts?|totals?|usage)|assistant responses|(tools|tool calls).*claude (called|used)|co-?authored?.*claude|claude.*co-?authors?' \
   -e '(private|client|nda).*(repo|repository).*(cannot|can.t|not allowed|am not).*(show|share).*(proof|evidence|what i)' \
   -e '(sent|received|gave) (me|us).*(files|report|evidence).*evidence of (their|his|her) work|evidence of (their|his|her) work.*(trust|verify|check)' \
   -e '(my bullet points?|my bullets?).*(git|history|repo).*(performance review|promotion|review)'; then
@@ -122,7 +123,10 @@ addr_extra() {
 if [ -n "$lc" ] && [ "$match" = 1 ]; then
   extra=""
   if [ "$addr" = 1 ]; then extra=$(addr_extra); fi
-  ctx="This request matches the workproof skill (evidence of the user's own work from git, a Claude Code usage report, tailoring CV bullets to a job description, or checking a report someone sent). Use the workproof skill and run \`npx workproof ...\` instead of counting or guessing by hand."
+  # The plugin root, so the model reads the skill's files from there and does not search the disk for them.
+  root=${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)}
+  root=$(printf '%s' "$root" | tr -d '[:cntrl:]"\\')
+  ctx="This request matches the workproof skill (evidence of the user's own work from git, a Claude Code usage report, tailoring CV bullets to a job description, or checking a report someone sent). Use the workproof skill and run \`npx workproof ...\` instead of counting or guessing by hand. If the user names a folder of exported Claude Code sessions, run \`npx workproof sessions --dir <folder>\` and do not answer from the default local logs. Plugin root: $root (skill, references and commands are under it; do not search the disk for them)."
   if [ -n "$extra" ]; then ctx="$ctx $extra"; fi
   printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$ctx"
 fi

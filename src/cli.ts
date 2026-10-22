@@ -9,7 +9,7 @@ import { createRequire } from "node:module";
 import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor, newFingerprintKey, writeStatement, signLocal, countersignStatement, signCountersignature, readCountersignature, COUNTERSIGN_PROVES, COUNTERSIGN_DOES_NOT_PROVE } from "./index.js";
 import type { Params, Report, RepoReport, CountersignatureReading, MergeNotice } from "./index.js";
 import { buildVerdict, parseReportText } from "./verdict.js";
-import { buildBullets } from "./bullets.js";
+import { buildBullets, DEFAULT_MAX_WORDS } from "./bullets.js";
 import { stopCheck } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
 
@@ -23,15 +23,18 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
                  A report in another format is compared by the figures it names (commits, added and deleted lines,
                  first and last commit) with the same figures counted from the repository; --author names the person.
                  The exit code is 0 whenever a verdict was produced, whatever it says.
-       workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--out <file>]
+       workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--max-words N] [--out <file>]
                  a tailoring draft from a job description and your facts (a portfolio bank or past resume
-                 in Markdown, or a verified report): ranked bullets copied verbatim, the skills the facts support,
+                 in Markdown, or a verified report; --resume writes the finished resume and trims it to --max-words, default 450, counted as wc -w): ranked bullets copied verbatim, the skills the facts support,
                  the gaps, and the coverage of each requirement; a fixed template, with no model
        workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
                  a Markdown summary of your work in each repository, from the report's figures: commits and surviving
                  lines, the addresses counted (with the rule that merged each), and what it does not show; a fixed template, no model
        workproof attest <report.json> [--local <ssh-key>]
        workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
+       workproof sessions --dir <folder>
+                 usage totals of a folder of session files the user supplied: sessions, unique assistant responses,
+                 tokens by type and per model, tool calls; secrets and addresses are redacted
 
 Turn a git repository into a verifiable engineering report for one author, without showing code.
 
@@ -66,6 +69,8 @@ with ssh-keygen -Y sign (namespace workproof) into a DSSE envelope. countersign 
 person in their own clone of the same repository: it recomputes every figure, refuses unless they
 all match, and signs a statement about the report with --key (namespace workproof-countersign);
 check --countersign reads that file and says who signed and what that does and does not prove.
+
+The windowed lines added and deleted in a report (after exclusions) equal the sum of git log --no-merges --numstat over the same author, window and files; --paths also lists the excluded files.
 
 sessions reads the Claude Code session logs on this machine and prints JSON with counts only.
 It prints no file paths, no user name and no prompt text.`;
@@ -293,12 +298,13 @@ export function runSessions(args: string[]): never {
 
 /** `workproof bullets`: prints or writes the tailoring draft. Returns the exit code: 0 produced, 1 usage or unreadable input. */
 export async function runBullets(args: string[]): Promise<number> {
-  const usage = "usage: workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--out <file>]";
+  const usage = "usage: workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--max-words N] [--out <file>]";
   let jd: string | undefined;
   let report: string | undefined;
   let facts: string | undefined;
   let out: string | undefined;
   let resume = false;
+  let maxWords = DEFAULT_MAX_WORDS;
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
     const value = (): string | undefined => args[++i];
@@ -307,7 +313,14 @@ export async function runBullets(args: string[]): Promise<number> {
     else if (a === "--facts") facts = value();
     else if (a === "--out") out = value();
     else if (a === "--resume") resume = true;
-    else {
+    else if (a === "--max-words") {
+      const n = Number(value());
+      if (!Number.isInteger(n) || n < 1) {
+        console.error(`--max-words needs a whole number of at least 1\n${usage}`);
+        return 1;
+      }
+      maxWords = n;
+    } else {
       console.error(`unknown option ${a}\n${usage}`);
       return 1;
     }
@@ -321,10 +334,11 @@ export async function runBullets(args: string[]): Promise<number> {
     const source = report !== undefined
       ? { kind: "report" as const, report: JSON.parse(await readFile(report, "utf8")) as Report }
       : { kind: "facts" as const, name: facts!, markdown: await readFile(facts!, "utf8") };
-    const { markdown } = buildBullets({ jd: jdText, source, resume });
+    const { markdown, words, notice } = buildBullets({ jd: jdText, source, resume, maxWords });
     if (out !== undefined) {
       await writeFile(out, markdown);
-      console.log(`wrote ${out}`);
+      console.log(`wrote ${out} (${words} words${resume ? `, limit ${maxWords}` : ""})`);
+      if (notice) console.log(notice);
     } else {
       process.stdout.write(markdown);
     }
@@ -490,9 +504,12 @@ async function main() {
     process.exit(failed ? 1 : 0);
   }
   if (verdictFile) {
-    const report = parseReportText(await readFile(verdictFile, "utf8"));
+    const reportText = await readFile(verdictFile, "utf8");
+    const report = parseReportText(reportText);
     const { markdown } = await buildVerdict(report, repos, {
       reportName: basename(verdictFile),
+      reportPath: verdictFile,
+      reportText,
       ...(params.author ? { authors: params.author } : {}),
       ...(params.fingerprintKey ? { fingerprintKey: params.fingerprintKey } : {}),
     });
