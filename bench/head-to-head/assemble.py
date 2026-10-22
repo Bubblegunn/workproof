@@ -8,7 +8,7 @@ FIXTURES = sys.argv[4] if len(sys.argv) > 4 else ""
 SOURCES = {"F7": "F7/portfolio-bank.md", "F8": "F8/resumes/past-resume.md"}
 HERE = os.path.dirname(os.path.abspath(__file__))
 cfg = json.load(open(os.environ.get("H2H_TASKS") or os.path.join(HERE, "tasks.json")))
-ARMS_ORDER = ["OURS", "BASE", "RCP", "RCP_I", "JD", "JD_I", "GAP", "GAP_I"]
+ARMS_ORDER = ["OURS", "BASE", "RCP", "RCP_I", "JD", "JD_I", "GAP", "GAP_I", "SR", "SR_I", "CV", "CV_I"]
 KEEP_OUT = {".git", "test", "tests", ".gitignore", ".travis.yml", "History.md", "LICENSE", "Readme.md", "component.json", "index.js", "package.json", "received", "report.json", "src", "portfolio-bank.md", "resumes"}
 os.makedirs(OUT, exist_ok=True)
 

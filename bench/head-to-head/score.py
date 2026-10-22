@@ -10,7 +10,7 @@ cfg = json.load(open(TASKS_PATH))
 labels_path = sys.argv[sys.argv.index("--labels") + 1] if "--labels" in sys.argv else os.path.join(HERE, "labels.json")
 LAB = json.load(open(labels_path))
 TASKS = list(cfg["tasks"])
-ORDER = ["OURS", "BASE", "RCP", "RCP_I", "JD", "JD_I", "GAP", "GAP_I"]
+ORDER = ["OURS", "BASE", "RCP", "RCP_I", "JD", "JD_I", "GAP", "GAP_I", "SR", "SR_I", "CV", "CV_I"]
 runs = {}   # (task, arm) -> {run: {crit: bool}}
 for t in TASKS:
     lab = json.load(open(f"{G}/{t}-labels.json"))
@@ -80,7 +80,7 @@ for t in TASKS: print(f"- {t}: {skill_calls(t)}")
 # Gate on outcome criteria only (spec F1). A competitor is compared by the better of its plain and invoked arm, per task and in total.
 # The skill-call rate and the CLI-command requirement are process measures: they are printed beside the table and are also
 # evaluated under the old condition (rounds 3 to 7 required them) so both verdicts can be shown.
-COMP = [("BASE", ["BASE"]), ("RCP", ["RCP", "RCP_I"]), ("JD", ["JD", "JD_I"]), ("GAP", ["GAP", "GAP_I"])]
+COMP = [("BASE", ["BASE"]), ("RCP", ["RCP", "RCP_I"]), ("JD", ["JD", "JD_I"]), ("GAP", ["GAP", "GAP_I"]), ("SR", ["SR", "SR_I"]), ("CV", ["CV", "CV_I"])]
 def best(t, group):
     vals = [mean(t, a, "outcome") for a in group if (t, a) in runs]
     return max(vals) if vals else 0.0

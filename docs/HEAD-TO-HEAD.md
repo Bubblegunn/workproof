@@ -885,6 +885,24 @@ Recorded 2026-10-22 on the owner's go ("fastest and highest quality benchmark re
 4. New competitor arms, from the scan `workproof-scan.md` (2026-10-22): `session-report@claude-plugins-official` (sha `af59ee3`, task T4 field) and `cv-builder` (sha `f7c8c3b`, skills only, the `.mcp.json` removed so that no network server runs; its invoked arm `_I` too). Set up like the existing arms: `git archive` of the pinned sha, hash guard around every run.
 5. Final gate order stays: public set, new held-out set (local branch `heldout-2026-10-b`, not pushed), F9, F6. The product does not change after the held-out files are opened.
 
+## Round 9 measurement protocol (frozen 2026-10-22, owner decision)
+
+Written and committed before any round 9 benchmark run. This section is not changed after a result is seen.
+
+Code under test: commit `8a87409` (rulings frozen in `a6a5cfd`), run from an immutable `git archive` copy built with `npm ci && npm run build`. Model Sonnet (`claude-sonnet-5-5`), parallelism 2, temporary HOME per run, `guard.sh` check around every run. Billing: `apiKeySource` = `ANTHROPIC_API_KEY` (checked with the runner's own environment).
+
+New arms (additive, set up by `git archive` of a pinned sha; neither is run from a clone):
+
+- SR / SR_I: `session-report` from `anthropics/claude-plugins-official`, path `plugins/session-report`, sha `af59ee3a1051a29dda4a2e7a2af221aa457ae08b`, tree hash `c8de6d7ce0345b2d`. Unpatched: its analyzer reads `~/.claude/projects`, and the T4 prompt names the log folder, so the agent passes `--dir`. The directory has no `plugin.json` in the upstream tree; it loads as `session-report:session-report`.
+- CV / CV_I: `cv-builder` from `flodirka/cv-builder-plugin`, sha `f7c8c3b6d379f8d12ca1c70fc7576652dcdfe16c`, v0.2.1, tree hash `a1547512ad965594` after one removal: `.mcp.json` (its remote MCP server runs on a third-party host and would break isolation). Skills only; its browser editor is therefore not part of this arm. Run with `--strict-mcp-config`, init lists no MCP server.
+- The invoked prompts are in `tasks.json` ("SR", "CV"); they name the skills and are additive. All other keys of `tasks.json`, `labels.json`, the check scripts and the grader prompt template are unchanged.
+
+Runs. On all eight public tasks: OURS x3 and the four new arms (SR, SR_I, CV, CV_I) x3 each. Existing arms (BASE, RCP, RCP_I, JD, JD_I, GAP, GAP_I) are not re-run: their cells are copied from the round 7 run folders (`h2h-wp-r7-runs`; T6 competitor cells also from there), unchanged tasks, unchanged plugin directories. Order: OURS first, then the new arms by task: T4, T7, T8, T2, then T1, T3, T5, T6.
+
+Grading. One blind packet per task with ALL arms together in a shuffled letter order (ours, the four new arms and the reused cells of the seven existing arms). This replaces the ours-only grading of round 8. Same grader script, prompt template and model (Sonnet). Official scores: every arm's score from this pooled grading. Beside it the published scores of the reused arms (protocol of round 8, table above) are listed; Rule A, Rule B and the ceiling rule are evaluated on both tables, and the less favourable result for ours is the official one. Incomplete cells (rate limit, error) are repeated, never graded.
+
+Gate and budget. The gate is the same as in round 8 (Rule B with the ceiling rule, Rule A, outcome criteria only, better of plain and invoked arm for every competitor), now including the four new arms. Controller limit 6 USD (`--max-budget-usd`); all `claude -p` runs and the grading of this session are recorded in `workproof-r9-cost.tsv`; no new run starts at 22.4 USD, the total stops at 28 USD, and the report lists the steps not run. Final gate (held-out set on the local branch `heldout-2026-10-b`, F9, F6) runs only if the public gate passes and the budget stop leaves room for all arms x3; a partial final gate is not reported as a pass.
+
 ## Resume
 
 State (updated after round 8: public set 34.33 of 35, Rule B fails T8 by 0.33; see "Results, round 8"): the final gate ran on 2026-10-22 and **failed** on the held-out tasks (see "Results, final gate"). The public set passes (34.33 against 23.33 of 35). These three held-out tasks are now seen. They may be used for diagnosis, but they cannot serve as held-out evidence again.
