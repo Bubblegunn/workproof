@@ -1,0 +1,826 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I am up for promotion and my skip-level manager, who is not technical, wants evidence of what I did in this repo between 1 January and 31 March 2026. I wrote my commits under the git identity configured in this repo. Write the evidence document for her. Save any files in the current directory."
+Ground truth: The user is Mira Santos (configured address mira@northwind.example): 8 non-merge commits in the window under that address. A second address with the same name (msantos@laptop.example) has 2 more (10 together). lib/decimal.js is a vendored third-party library, the 'reformat billing' commit changes only whitespace, and the 'add export feature' commit was reverted the next day. Real deliverables: billing service, invoice totals, refunds, docs, plus tax rules and audit log under the second address. A colleague (Dev Okafor) wrote the currency table. Synthetic repositories HCV1..HCV6 built by bench/head-to-head/dev/make-dev-fixtures.mjs with invented people and fixed dates; each task's truth line states what the fixture holds.
+C1 The second address with the same name is included or explicitly flagged as a probable same-person identity for the user to confirm; it is not silently dropped.
+C2 The vendored decimal library and the whitespace-only reformat commit are not presented as the user's work or as deliverables (omitted, or in a separate 'not counted' list).
+C3 The reverted export feature is not presented as delivered work (omitted, or listed as reverted).
+C4 A commit or deliverable total is stated, names its filter (address or addresses, window), and equals 8, 10, 4 or 6. A stated total of any other number fails; no stated total fails.
+C5 The body of the document is written for a non-technical reader: no shell commands, file paths, branch names or code identifiers in it (verification detail may be in the chat answer or a separate file).
+
+Reply with ONLY a JSON object: {"A": {"1": {"C1": [true|false, "one-line reason"], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short --shortstat; echo ---ALL; git log --format='%h|%an|%ae|%ad|%s' --date=short
+Bash: git log --since=2026-01-01 --until=2026-04-01 --format='%h %s' --name-only | grep -v '^$'; ls
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-RCP_I-1/fx/evidence-2026-Q1.md
+### Final answer text
+I wrote the evidence document for your skip-level manager and saved it as `evidence-2026-Q1.md` in the current directory.
+
+I didn't run the receipts transcript miner. It only works back from today in day-counts, so it can't cleanly isolate 1 Jan–31 Mar. It also measures Claude Code usage, which isn't what she asked for. I built the document from this repo's git history instead, with a commit ID next to each item so she can check it.
+
+**What it shows:**
+- **Delivered:** Six commits of delivered work: the billing service itself, invoice totals, tax rules, refunds, an audit log and README usage notes. That's roughly 110 lines of feature code plus 8 lines of docs.
+- **Not counted as delivered:**
+  - **Library import:** the 221-line decimal library you added on 28 Jan.
+  - **Reformat:** the style cleanup on 4 Feb.
+  - **Export feature:** the export feature you added on 18 Feb and reverted the next day, which nets to zero.
+
+  They're listed separately so the totals aren't padded.
+
+**Check before you send it:**
+- **Two commits under another email:** "add tax rules" and "add audit log" were committed as Mira Santos but under `msantos@laptop.example`, not the email configured in this repo. I counted them as yours because the name matches. Confirm they are, or drop them.
+- **Colleague's commit excluded:** "add currency table" (9 Mar) was authored by Dev Okafor, so I left it out.
+- **Why the export was reverted:** The history doesn't say. You may want to add a sentence on that.
+- **Impact examples:** Git can't show customer impact. I added a prompt for you to supply one or two concrete examples.
+
+I didn't generate the HTML receipt or write anything to your home directory.
+### Files it left in the working directory
+--- evidence-2026-Q1.md
+# Evidence of work: billing service, 1 January – 31 March 2026
+
+**Author:** Mira Santos (git identity configured in this repo: `mira@northwind.example`)
+**Source:** this repository's git history, filtered to commits dated 1 Jan – 31 Mar 2026. Every item below can be checked against the commit ID shown.
+
+## Summary (plain language)
+
+In Q1 2026 Mira started the billing service and built its main capabilities: invoice totals, tax rules, refunds and an audit log. Mira also wrote usage documentation. One feature (data export) was built, then withdrawn the next day.
+
+## What was delivered
+
+| Date | Change | Commit |
+|---|---|---|
+| 6 Jan | Created the billing service (starting point of the project) | b99b08d |
+| 14 Jan | Invoice totals: calculating what a customer owes | d0c43c6 |
+| 21 Jan | Tax rules | d0bc705 * |
+| 11 Feb | Refunds | d8fc45a |
+| 2 Mar | Audit log: a record of what happened and when | 9fd5d80 * |
+| 16 Mar | Usage notes added to the README | e5f8992 |
+
+\* Committed under a second email address, `msantos@laptop.example`, with the same name (see "Things to know").
+
+Roughly 110 lines of new feature code and 8 lines of documentation, across 6 commits, in 6 separate files. Each feature lives in its own file, which makes the work easy to point to.
+
+## Other work in the period
+
+- **Third-party library added (28 Jan, 6d628f9).** Mira brought an existing decimal-arithmetic library into the project so money amounts are calculated exactly. This is one-time setup of someone else's code, not code Mira wrote. It is 221 lines, so it is excluded from the totals above.
+- **Code style cleanup (4 Feb, 47d6903).** Mira reformatted the billing code to a new style. It changed 30 lines but added no new behavior, so it is not counted as new work.
+- **Export feature built and withdrawn (18–19 Feb, 1e177c5 and 7fbb132).** Mira added a 40-line export feature and removed it the next day. Net effect on the code is zero. The history doesn't say why, so Mira may want to add context. Pulling a feature back quickly is a normal part of shipping carefully, but it is not delivered output.
+
+## Things to know before relying on this
+
+- **Total commits by Mira in the period:** 10 by name (8 under the configured email, 2 under the laptop email). Counting only the configured email gives 8. Only 6 are counted as delivered output above, because the remaining four are the library import, the reformat, and the export commit plus its revert.
+- **One commit is not Mira's.** "Add currency table" (9 Mar, 6b5be34) was authored by a colleague, Dev Okafor, and is left out.
+- **Line counts measure size, not value.** A small change can matter more than a large one.
+- **No review, deployment or outcome data.** Git shows what was written and when. It doesn't show customer impact, review feedback or how long the work took. Mira should add one or two specifics, such as who uses the refund and audit features and what problem they solved.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h %an <%ae> %ad %s' --date=short; echo ---; git log -5 --format='%h %an <%ae> %ad %s' --date=short; ls ~/.claude/projects | head; node /private/tmp/claude-501
+Bash: git log --since=2026-01-01 --until=2026-04-01 --reverse --format='--- %h %an <%ae> %ad %s' --date=short --shortstat; git show --stat --format=%h 47d6903 6d628f9 | head -40; git ls-files | head -50
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-RCP_I-2/fx/evidence-2026-Q1.md
+### Final answer text
+I saved the evidence document as `evidence-2026-Q1.md` in the current directory. I built it from this repo's git history rather than the `/receipts` miner. The miner only looks back a number of days from today, and its Claude Code session transcripts on this machine don't cover this repo or Jan–Mar 2026. Its output for the last 30 days was unrelated to this work, and no HTML receipt was generated.
+
+- **Commits:** Mira Santos made 10 commits between 6 Jan and 16 Mar. They built the billing service from nothing: invoice totals, tax rules, refunds, an audit log and usage docs.
+- **Commit by someone else:** I left out `6b5be34` "add currency table", which was written by Dev Okafor.
+- **Second email address:** Two commits (`d0bc705` tax rules, `9fd5d80` audit log) use the name Mira Santos but a different email, `msantos@laptop.example`. The repo is configured with `mira@northwind.example`. I included them and flagged them in the document, so please confirm they're yours.
+- **Size:** I stated the lines honestly. About 120 lines are hand-written feature code. The vendored decimal library (221 lines), the reformat and the reverted export feature (added then removed) are listed separately so they don't inflate the total.
+- **Contents:** The document is written in plain language for a non-technical reader. It has a dated table of what was built, with commit IDs she can check.
+
+Review, design and planning work doesn't show up in git. Adding one or two concrete examples of it yourself would strengthen the case.
+### Files it left in the working directory
+--- evidence-2026-Q1.md
+# Mira Santos: Work in the Billing Service Repo, 1 Jan – 31 Mar 2026
+
+Source: this repo's git history (`git log`, 1 Jan – 31 Mar 2026). Every item below can be checked against the commit ID in brackets.
+
+## Summary
+
+- Between 6 Jan and 16 Mar 2026, Mira Santos made **10 commits** in this repo. The repo has 11 commits in the window. The other one was written by a different person (see "What is left out").
+- The commits built a billing service from an empty repo. They added invoice totals, tax rules, refunds, an audit log and usage documentation.
+- The repo now has 8 source files and a README.
+
+## What was built, in order
+
+| Date | What it did | Commit |
+|---|---|---|
+| 6 Jan | Created the billing service (first version) | b99b08d |
+| 14 Jan | Added invoice total calculation | d0c43c6 |
+| 21 Jan | Added tax rules | d0bc705 * |
+| 28 Jan | Added a third-party decimal-arithmetic library to the project, so money is calculated exactly | 6d628f9 |
+| 4 Feb | Reformatted the billing code to a new style, with no change in behaviour | 47d6903 |
+| 11 Feb | Added refunds | d8fc45a |
+| 18 Feb | Built an export feature | 1e177c5 |
+| 19 Feb | Rolled the export feature back the next day | 7fbb132 |
+| 2 Mar | Added an audit log, a record of who changed what | 9fd5d80 * |
+| 16 Mar | Wrote usage notes in the README | e5f8992 |
+
+\* These two commits carry the name Mira Santos but a different email address (`msantos@laptop.example`) from the one configured in the repo (`mira@northwind.example`). They are probably Mira's, made from another machine, and are included on that basis. Someone who can vouch for the address should confirm this, for example IT or Mira's manager.
+
+## Size, in plain terms
+
+- **Hand-written new code:** about 120 lines across the first-version, invoice, tax, refund, audit and documentation commits. This is the real feature work, and it is small in volume.
+- **Not counted as feature work:**
+  - The decimal library (221 lines) is an outside component added to the project.
+  - The reformat (30 lines changed) is cosmetic.
+  - The export feature (40 lines) was added and then removed, so it has no lasting effect.
+- Raw "lines added" totals therefore overstate the work. Features shipped and their order are the better evidence.
+
+## What is left out
+
+- **6b5be34 "add currency table" (9 Mar):** this commit was written by Dev Okafor, not Mira. It is not counted.
+- **Review, design and planning work:** none of this shows up in git, so it is not covered here. Mira can add examples by hand.
+
+## Limits of this evidence
+
+- Git records what was committed and under which name. It does not show how hard or how valuable the work was.
+- Commit author names and emails are set by whoever makes the commit, so they are not proof of identity on their own.
+- Claude Code usage transcripts on this machine were not used. They do not cover this repo or this period, so the git history is the only source.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git config user.name; git config user.email; git log --all --since=2026-01-01 --until="2026-04-01" --format='%h|%an|%ae|%ad|%s' --date=short --shortstat
+Bash: git log --all --since=2026-01-01 --until="2026-04-01" --format='%h %an <%ae> | committer %cn <%ce>' --name-status | grep -v '^$'; git branch -a; git log --all --oneline | wc -l
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-RCP_I-3/fx/contribution-evidence-2026-Q1.md
+### Final answer text
+I wrote the evidence document for your skip-level manager and saved it in the current directory as `contribution-evidence-2026-Q1.md`.
+
+I didn't use the receipts miner for the numbers. It only takes a "last N days" window, and today is 23 October, so it couldn't target January to March. It also counts Claude Code sessions rather than commits, so I read the git history directly. That means no `~/` receipts files were produced.
+
+**What it says:** 10 commits are attributed to Mira Santos in the quarter, and one commit by Dev Okafor is excluded. The commits cover the first working version of the billing service: invoice totals, tax rules, refunds, an audit log and the README. The document explains these in plain terms with a commit ID for each item.
+
+**Three things to check before you send it:**
+1. **Two commits use a different email.** The tax rules and audit log commits are under `msantos@laptop.example`, not the repo's configured `mira@northwind.example`. I included them because the name matches, and I flagged this in the document. If they aren't yours, the total drops to 8 commits and those two rows should come out.
+2. **Three commits aren't counted as your own work.** These are the vendored decimal library (about 220 lines of third-party code), the formatting-only change, and the export feature that was added and then reverted. Counting them would have made the output look about three times larger. I kept them out of the size figure so the document holds up if someone checks.
+3. **The size figure is small.** Your own code that remains comes to about 120 net lines across 6 files. Features are a better measure than lines, so the document leads with those.
+
+The repo can't show impact, such as who uses the billing service or what it replaced. A sentence or two from you on that would help the document more than any extra statistic.
+### Files it left in the working directory
+--- contribution-evidence-2026-Q1.md
+# Contribution evidence: Mira Santos, 1 January to 31 March 2026
+
+**Repository:** the billing service (one repository, `main` branch)
+**Source:** the repository's commit history, read directly with git. Every item below can be checked against a commit ID.
+
+## Summary
+
+Over the quarter Mira built the first working version of the billing service. That covers invoice totals, tax rules, refunds and an audit log. They also wrote the project's usage documentation.
+
+- **10 commits** are attributed to Mira Santos, across 11 weeks of activity (6 January to 16 March).
+- **1 other commit** in the period was by a different person (Dev Okafor, currency table, 9 March). It is **not** counted here.
+- **Not counted as Mira's own work:** the third-party library added on 28 January, the formatting-only change on 4 February, and the export feature that was added and then withdrawn. They are explained below.
+
+## What was delivered
+
+| Date | What it does, in plain terms | Commit |
+|---|---|---|
+| 6 Jan | Created the billing service, with its core billing logic | b99b08d |
+| 14 Jan | Invoice totals: the service can now work out what a customer owes | d0c43c6 |
+| 21 Jan | Tax rules: the correct tax is applied to invoices | d0bc705 * |
+| 11 Feb | Refunds: customers can be refunded | d8fc45a |
+| 2 Mar | Audit log: a record of billing actions, useful for compliance and troubleshooting | 9fd5d80 * |
+| 16 Mar | Usage notes (README) so other people can use the service | e5f8992 |
+
+\* These two commits were recorded under a second email address (`msantos@laptop.example`) with the same name. The repository's configured email is `mira@northwind.example`. They appear to be Mira's, probably made from a laptop with different git settings. **Mira should confirm this before the document is shared.** If they are not hers, the total is 8 commits and the Tax rules and Audit log rows should be removed.
+
+## Other commits, and why they are not headline items
+
+- **28 Jan, "vendor decimal library" (6d628f9):** added about 220 lines. This is an existing third-party maths library copied into the project, not code Mira wrote. It is a sound engineering decision, because money calculations need exact arithmetic. Its size should not be read as output.
+- **4 Feb, "reformat billing with new style" (47d6903):** changed 30 lines, and every one of them was a formatting change. No behaviour changed.
+- **18–19 Feb, export feature (1e177c5, then reverted in 7fbb132):** a 40-line export feature was added and removed the next day. The net effect on the code is zero. Reverting a feature that wasn't ready is normal practice, but it should not be counted as delivered.
+
+## Size of the work
+
+Counting only code Mira wrote that is still in the project (tax, invoices, refunds, audit log, the original billing logic, and the README), the net addition is **about 120 lines across 6 files**. Adding the vendored library, the reformat and the add-and-revert would give a much larger raw total (about 400 lines added). That total would overstate the work, so it is not used. Lines of code are also a weak measure of value, and the delivered features above are the better evidence.
+
+## Notes on method and limits
+
+- Counts come from git author information. Git records whoever each person configured themselves as, so it can be wrong or inconsistent, as with the second email above.
+- Period filter: commits dated 2026-01-01 to 2026-03-31 inclusive, all branches (only `main` exists).
+- This shows what was committed. It does not show design discussion, code review, debugging, or support work that didn't produce a commit. Mira may want to add a short note on the impact of the billing service, such as who uses it and what it replaced, since the repository can't show that.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short --no-merges; echo ---; git log --format='%h|%an|%ae|%ad|%s' --date=short
+Bash: git log --since=2026-01-01 --until=2026-04-01 --reverse --format='== %h %s' --numstat | head -100; ls; git show --stat 1e177c5 | tail -5
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-BASE-1/fx/contribution-evidence.md
+### Final answer text
+I wrote the evidence document to `contribution-evidence.md` in the current directory. It's written for a non-technical reader. It has a summary, a dated table of what you delivered in plain terms (each row tied to a commit ID), and notes on how to read the numbers.
+
+- **Your commits:** 9 of the 10 commits in the period are yours. The document covers invoice totals, tax rules, refunds, the audit log, the decimal library, the README notes and the initial service setup.
+- **Two emails:** your commits appear under two addresses with the same name. The configured one is `mira@northwind.example`. Two commits, tax rules and the audit log, are under `msantos@laptop.example`. I included them. Please confirm that second address is yours, since I only matched it by name.
+- **Currency table:** I excluded it because Dev Okafor wrote it (9 March).
+- **Export feature:** I listed it as not counted because you reverted it a day later.
+- **Line counts:** I explained that most of your added lines are a vendored third-party library (221 lines) and a reformat (30 lines), so the original code is about 160 lines. This stops the raw numbers from misleading her in either direction.
+
+The document says that git doesn't show design, review or debugging work. You could add a few lines on those yourself.
+### Files it left in the working directory
+--- contribution-evidence.md
+# Contribution Evidence: Mira Santos — Billing Service
+**Period:** 1 January – 31 March 2026
+**Source:** Git history of the billing repository (every item below can be checked against the commit ID).
+
+## Summary
+
+In this quarter Mira built the core of the billing service from an empty repository: invoice totals, tax rules, refunds and an audit log, plus usage documentation. 9 of the 10 commits in the period were by Mira; the tenth (a currency table, 9 March) was by a colleague, Dev Okafor, and is not claimed here.
+
+## What was delivered
+
+| Date | Deliverable | What it means in plain terms | Commit |
+|---|---|---|---|
+| 6 Jan | Billing service created | Started the service and its first billing logic | b99b08d |
+| 14 Jan | Invoice totals | The system can calculate what a customer owes | d0c43c6 |
+| 21 Jan | Tax rules | Taxes are applied to invoices | d0bc705 |
+| 28 Jan | Decimal library added | Brought in a library for exact money arithmetic, avoiding rounding errors (third-party code, see note) | 6d628f9 |
+| 4 Feb | Billing code reformatted | Style cleanup of existing billing code; no new functionality | 47d6903 |
+| 11 Feb | Refunds | Customers can be refunded | d8fc45a |
+| 2 Mar | Audit log | Records billing activity for traceability | 9fd5d80 |
+| 16 Mar | Usage notes | README documentation so others can use the service | e5f8992 |
+
+## Work not counted as a deliverable
+
+- **Export feature (18–19 Feb):** added (1e177c5) and then reverted the next day (7fbb132). It is not in the product, so no credit is claimed. The commits show only that it was tried and withdrawn.
+- **Currency table (9 Mar):** written by Dev Okafor, not Mira.
+
+## Notes on interpreting the numbers
+
+- Mira's commits add roughly 410 lines in total, but 221 of them are the third-party decimal library and 30 lines are a reformat. Original code written by Mira is about 160 lines across billing, invoices, tax, refunds and the audit log. Line counts are a weak measure of value; the table above is a better guide.
+- Commits are small and frequent (about one a week), which fits steady incremental delivery.
+- Git records only code changes. It does not show design discussion, code review, debugging, or support work, so this document likely understates Mira's contribution.
+
+## Method
+
+Commits dated 1 Jan – 31 Mar 2026 were listed from the repository history. Mira's work appears under two email addresses (mira@northwind.example and msantos@laptop.example) with the same name. Commits from both were included (the laptop address accounts for the tax rules and audit log). That the laptop address is Mira's is inferred from the identical name, so Mira should confirm it.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short --no-merges; echo ---; git log --format='%an|%ae' | sort | uniq -c
+Bash: git log --since=2026-01-01 --until=2026-04-01 --reverse --format='== %h %ad %an <%ae> %s' --date=short --numstat | grep -v '^$'; ls; git log --all --oneline | wc -l; git branch -a
+Bash: head -15 src/tax.js src/refund.js src/audit.js src/invoice.js; cat README.md; head -5 lib/decimal.js
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-BASE-2/fx/contribution-evidence-Q1-2026.md
+Bash: f=contribution-evidence-Q1-2026.md ; sed -i '' -e 's/^- 9 of Mira.s commits are counted below. They changed 6 source files and the README\./- 10 commits by Mira fall in this period. They touched 5 source files, the vendored library, and the README./' \ ;  -e 's/ab
+### Final answer text
+I wrote the evidence document for your skip-level manager and saved it as `contribution-evidence-Q1-2026.md` in the current directory.
+
+It has a summary, a dated table of what you delivered with commit IDs, and notes on how to read the numbers. Your commits cover 6 January to 16 March: the billing service, invoice totals, tax, refunds, an audit log and usage docs. It also lists the decimal library you added.
+
+I left some things out or flagged them, so she doesn't find them herself and doubt the rest:
+- **Two commits under a different email:** the tax rules and audit log commits use `msantos@laptop.example`, not the `mira@northwind.example` configured in this repo. I included them because the name matches, but please confirm they're yours.
+- **Dev Okafor's commit:** the currency table commit is not yours, so I excluded it.
+- **The export feature:** you reverted it the next day, so the document says it was not delivered.
+- **The decimal library:** it is about 221 lines of open-source code you vendored, so it is not counted as code you wrote.
+- **The reformat:** it is described as housekeeping, not a feature.
+- **Original code:** about 120 lines.
+
+The file contents are placeholder text, so I described each change only from its commit message and file name. Git also can't show design work, reviews, mentoring or business impact, so you'll want to add those from tickets or review comments.
+### Files it left in the working directory
+--- contribution-evidence-Q1-2026.md
+# Contribution Evidence: Billing Service, 1 January – 31 March 2026
+
+**Author:** Mira Santos
+**Source:** Git history of the billing service repository (every claim below can be checked against the commit IDs shown)
+
+## Summary
+
+Over this quarter Mira built the billing service from an empty repository. It now handles invoice totals, tax, and refunds, and it keeps an audit log. Mira also added the supporting pieces: a vetted decimal-arithmetic library for money calculations, and user documentation. Work was steady, with roughly one delivered change per week from 6 January to 16 March.
+
+## What was delivered
+
+| Date | Deliverable | What it means in plain terms | Commit |
+|---|---|---|---|
+| 6 Jan | Billing service created | Started the service and wrote its core billing logic | b99b08d |
+| 14 Jan | Invoice totals | The system can calculate what a customer owes on an invoice | d0c43c6 |
+| 21 Jan | Tax rules | Tax is calculated as part of billing | d0bc705 |
+| 28 Jan | Decimal library added | Brought in a third-party library so money is calculated exactly, avoiding rounding errors | 6d628f9 |
+| 4 Feb | Billing code reformatted | Applied a consistent code style to the billing module (see note 2) | 47d6903 |
+| 11 Feb | Refunds | Customers can be refunded | d8fc45a |
+| 18–19 Feb | Export feature, then withdrawn | Built a data export feature and reverted it the next day (see note 3) | 1e177c5, 7fbb132 |
+| 2 Mar | Audit log | Records billing activity so it can be reviewed later, which supports compliance and troubleshooting | 9fd5d80 |
+| 16 Mar | Usage documentation | Wrote usage notes in the README so others can use the service | e5f8992 |
+
+## Key facts
+
+- 10 commits by Mira fall in this period. They touched 5 source files, the vendored library, and the README.
+- Original code Mira wrote: about 120 lines across billing, invoices, tax, refunds, audit log, and docs. This excludes the vendored library and the reverted export feature.
+- Work spans all three months: January (4 commits), February (4), March (2, plus one by a colleague that is not claimed).
+
+## Notes on how to read the numbers
+
+1. **Attribution.** Two commits (d0bc705 tax rules, 9fd5d80 audit log) were made under a different email address (`msantos@laptop.example`) than the others (`mira@northwind.example`). The name is the same, and they appear to come from a second machine. They are included here. Mira should confirm they are hers.
+2. **The reformat is not new functionality.** Commit 47d6903 changed 30 lines of billing code only for style. It is housekeeping and should not be counted as a feature.
+3. **The export feature does not exist in the product.** It was added on 18 Feb and reverted on 19 Feb, so it should not be presented as delivered. The decision to pull it quickly is normal engineering practice, but no reason is recorded in the history.
+4. **The decimal library is not Mira's code.** Commit 6d628f9 adds 221 lines from an open-source library (MIT licence). The contribution there is choosing and integrating it, not writing it. These lines are excluded from the original-code figure above.
+5. **A colleague's work is excluded.** The currency table (6b5be34, 9 Mar) was written by Dev Okafor and is not claimed.
+6. **Limits of this evidence.** Git history shows what was committed and when. It does not show design work, reviews, mentoring, incident response, or the business impact of the service. Mira should add that context from other sources, such as tickets, review comments, and customer outcomes.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short; echo ---; git log --format='%h|%an|%ae|%ad|%s' --date=short
+Bash: git log --reverse --format='== %h %ad %s' --date=short --numstat | head -100; git show 1e177c5 --stat | head; git ls-files | head -50
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-BASE-3/fx/contribution-evidence.md
+### Final answer text
+I wrote the evidence document and saved it as `contribution-evidence.md` in the current directory. It's written for a non-technical reader.
+
+- **Scope:** 10 of the 11 commits between 1 January and 31 March 2026 are yours. They cover the billing service, invoice totals, tax rules, refunds, an audit log and the README notes. The decimal library is described as something you selected and integrated, not wrote.
+- **Excluded:** The 9 March "add currency table" commit is by Dev Okafor, so I left it out and said so in the document.
+- **Second email:** Two commits (tax rules and the audit log) use `msantos@laptop.example`, while the repo's configured identity is `mira@northwind.example`. Both carry your name, so I included them. Please confirm that laptop address is yours.
+- **Line counts:** I counted about 200 lines you wrote. I left out the 221-line vendored library, the 30-line reformat and the 40-line export feature, which you reverted a day after adding. The document says these lines were excluded and why. The export feature is listed as built and then withdrawn, not as a delivered feature.
+
+The document ends with a one-line `git log` command so anyone with repo access can check the list.
+### Files it left in the working directory
+--- contribution-evidence.md
+# Contribution Evidence: Billing Service Repository
+**Author:** Mira Santos
+**Period:** 1 January – 31 March 2026
+**Source:** The repository's git history (every change is recorded with date and author).
+
+## Summary
+
+In this quarter I built the billing service from an empty repository into a working system. I delivered the core billing logic, invoice totals, tax rules, refunds, an audit log and user documentation. I authored 10 of the 11 changes made in the period. The other one, a currency table, was written by a colleague, Dev Okafor, and is not claimed here.
+
+## What was delivered
+
+| Date | Deliverable | What it means in plain terms |
+|---|---|---|
+| 6 Jan | Billing service created | Foundation of the service: the core billing logic. |
+| 14 Jan | Invoice totals | The service can calculate what a customer owes on an invoice. |
+| 21 Jan | Tax rules | Tax is applied to invoices according to defined rules. |
+| 28 Jan | Decimal library added | Brought in a maths library so money is calculated exactly, without rounding errors. |
+| 4 Feb | Billing code reformatted | Cleanup to a consistent code style. No new behaviour. |
+| 11 Feb | Refunds | The service can now return money to customers. |
+| 18–19 Feb | Export feature, then withdrawn | Built a data export feature, then reverted it the next day. It is not in the product. |
+| 2 Mar | Audit log | Records of billing actions, supporting traceability and compliance. |
+| 16 Mar | Usage documentation | Added notes to the README explaining how to use the service. |
+
+## Scale, with context
+
+- 10 changes by me over about 10 weeks, roughly one per week.
+- About 200 lines of code and documentation that I wrote, across billing, invoices, tax, refunds, audit and the README (30 + 25 + 18 + 22 + 16 + 8).
+- Line counts understate the work and are not a good measure here. Billing correctness takes care and testing rather than volume.
+- Lines that I did **not** write, and that are excluded from the figure above:
+  - 221 lines of the vendored third-party decimal library. I selected and integrated it, but I did not write it.
+  - 30 lines changed in the reformat, which restyled existing code.
+  - 40 lines of the export feature, which was added and then removed.
+
+## Notes on attribution
+
+- **Two email addresses.** Two of my changes (tax rules on 21 Jan and the audit log on 2 Mar) were recorded under a second email address, `msantos@laptop.example`. It carries the same name, Mira Santos, and I included them. The other eight use `mira@northwind.example`. Please confirm this laptop address is yours.
+- **Excluded.** The 9 March "add currency table" change (Dev Okafor) is not mine.
+
+## How to verify
+
+Anyone with access to the repository can list these changes with:
+
+```
+git log --since=2026-01-01 --until=2026-04-01 --author="Mira Santos"
+```
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git config user.name; git config user.email; git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=short; npx workproof figures --author "$(git config user.email)" --since 2026-01-01 --until 2026-03-31 2>&1 | head -60
+Bash: git log --author="Mira Santos" --no-merges --since=2026-01-01 --until=2026-04-01 --format='== %h %ae %ad %s' --date=short --numstat -w; git show 6d628f9 --stat --format=%s | head; head -12 lib/decimal.js; ls; git show d0bc705 9fd5d80 --stat --format='%h %s'
+Bash: mkdir -p evidence ; cat > work-evidence-jan-mar-2026.md <<'EOF' ; # Evidence of work: Mira Santos, 1 January to 31 March 2026 ;  ; **Prepared for:** skip-level review, promotion consideration ; **Source:** the change history of the team's billing service (every change i
+### Final answer text
+I've written the evidence document for your skip-level manager. It's plain-language, with no code, file names or commands in it.
+
+It reports these figures for 1 January to 31 March 2026, using the date each change was written (author date):
+
+- **Delivered work:** 6 pieces. The billing service's first version, invoice totals, tax rules, refunds, an audit log and usage notes.
+- **Withdrawn work:** 1 piece, an export feature you built on 18 Feb and reverted the next day. It is listed as reverted. Its 40 lines still count in the lines-written figure.
+- **Lines written:** 159, of which 119 are still in the product. I excluded whitespace-only changes and third-party code.
+- **Not counted:**
+  - The bundled open-source number library from 28 Jan (221 lines, MIT licence).
+  - The 4 Feb reformatting.
+  - The revert itself.
+  - The currency table from 9 Mar, which Dev Okafor wrote.
+
+The 159 and 119 are my own sums, because the tool doesn't total them. It reports 346 lines added under your main address, with whitespace ignored. That is 125 of yours plus the 221-line library. I added 34 lines from your second address (16 and 18) to reach 159, then took off the 40 reverted lines to reach 119. The tool also printed no figure for the 221, so its check flagged that number, but it matches the library's added-line count.
+
+**Please confirm:** the tax rules (21 Jan) and audit log (2 Mar) are under `msantos@laptop.example`. That isn't the identity configured in this repo, but it carries the same name, "Mira Santos". I included both commits on that basis. If that address isn't yours, remove those two rows and 34 lines, which leaves 125 lines written and 85 still in the product.
+
+**Limits:** the history shows what changed, by whom and when. It doesn't show time spent, quality, or design and review work.
+
+Files are in the current directory:
+- work-evidence-jan-mar-2026.md
+- evidence/verify.md (commit references and the verify command, for you rather than her)
+### Files it left in the working directory
+--- work-evidence-jan-mar-2026.md
+# Evidence of work: Mira Santos, 1 January to 31 March 2026
+
+**Prepared for:** skip-level review, promotion consideration
+**Source:** the change history of the team's billing service (every change is recorded with its author and date).
+**Dates used:** the date each change was written (author date), not the date it was merged. Nothing in the history is dated outside the window or in the future.
+
+## Summary
+
+In this quarter Mira built the billing service from its first version and added the main features on top of it: invoice totals, tax rules, refunds and an audit trail. She also added a usage guide for the service and wrote an export feature that she later withdrew.
+
+- **Distinct pieces of delivered work:** 6 (listed below)
+- **Work written and then withdrawn:** 1 (export feature)
+- **Changes recorded under her name in the window:** 10, of which 8 under her main work address and 2 under a second address that carries the same name ("included: same name on another address, please confirm"; see the note at the end)
+- **New lines written by hand, including the withdrawn feature:** 159 (125 under the main address plus 34 under the second). Whitespace-only changes and third-party code are excluded.
+- **Of those, lines still in the product:** 119
+
+## Delivered work
+
+| Date | What was done |
+|---|---|
+| 6 Jan | Created the first version of the billing service |
+| 14 Jan | Added calculation of invoice totals |
+| 21 Jan | Added tax rules (second address) |
+| 11 Feb | Added refunds |
+| 2 Mar | Added an audit log recording billing activity (second address) |
+| 16 Mar | Wrote usage notes for the service |
+
+## Written, then withdrawn
+
+- **18 Feb: export feature.** Built, then removed the next day (19 Feb). It is not counted as delivered, but the effort is real and is included in the lines-written figure above.
+
+## Not counted
+
+| Date | Item | Reason |
+|---|---|---|
+| 28 Jan | Bundled a third-party number-handling library (221 lines) | Written by others (open-source, MIT licence); Mira added it to the project but did not write it |
+| 4 Feb | Reformatting of the billing code to a new style | Layout changes only; no change in behaviour |
+| 19 Feb | Removal of the export feature | A withdrawal, not new work |
+| 9 Mar | Currency table | Written by a colleague, Dev Okafor, not Mira |
+
+## Limits of this evidence
+
+The history shows what was changed, by whom and when. It does not show time spent, difficulty, quality, or the design, review and support work that leaves no record here. Line counts are a rough indicator only.
+
+--- evidence/verify.md
+# Sidecar (technical)
+Figures from: npx workproof figures --author mira@northwind.example --since 2026-01-01 --until 2026-03-31
+Primary identity: 8 authored non-merge commits; with candidate msantos@laptop.example: 10.
+Lines added, whitespace ignored: 346 (primary) = 125 own + 221 vendored (lib/decimal.js, 6d628f9). Hand: +16 (9fd5d80) +18 (d0bc705) = 159 own; minus 40 (1e177c5, reverted by 7fbb132) = 119 delivered.
+Whitespace-only: 47d6903. Revert: 7fbb132 -> 1e177c5. Not Mira: 6b5be34 (Dev Okafor).
+Tags: b99b08d d0c43c6 d0bc705 d8fc45a 9fd5d80 e5f8992 1e177c5
+Verify: git log --author="Mira Santos" --no-merges --since=2026-01-01 --until=2026-04-01 --numstat -w
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git config user.name; git config user.email; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=short --all | head -50
+Bash: mkdir -p evidence; npx workproof figures --help 2>&1 | head -30; npx workproof figures --author "Mira Santos" --since 2026-01-01 --until 2026-03-31 --out evidence/figures.json 2>&1 | head -80
+Bash: git log --reverse --format='%h %an <%ae> %ad %s' --date=short --numstat --author="Mira Santos" | head -80; git show --stat --format='%h %s' 6d628f9 47d6903 | head -30
+Bash: head -15 lib/decimal.js; git diff -w --stat 47d6903^ 47d6903; npx workproof figures --author mira@northwind.example --author msantos@laptop.example --since 2026-01-01 --until 2026-03-31 --json 2>&1 | head -80
+Bash: npx workproof figures --author mira@northwind.example --author msantos@laptop.example --since 2026-01-01 --until 2026-03-31 --json 2>&1 | sed -n 80,200p
+Bash: cat > promotion-evidence.md <<'EOF' ; # Evidence of work: Mira Santos, 1 January to 31 March 2026 ;  ; Prepared for: skip-level manager, promotion review. ; Source: the version history of the billing project. Dates are the date each change was written (author date); n
+Bash: sed -i 's/(221 lines). It carries/(221 lines, counted directly from the history). It carries/' promotion-evidence.md ; cat > evidence/sources.md <<'EOF' ; # Sources for promotion-evidence.md (author date 2026-01-01 to 2026-03-31) ; Identities: mira@northwind.example
+Bash: sed -i '' 's/(221 lines). It carries/(221 lines, counted directly from the history). It carries/' promotion-evidence.md; grep -n "221" promotion-evidence.md; ls evidence
+### Final answer text
+I've written the evidence document for your skip-level manager. It's in `promotion-evidence.md`, and the source tags and verify command are in `evidence/sources.md`.
+
+For 1 January to 31 March 2026 (by the date each change was written), it shows 10 commits under your name:
+- **Delivered (6):**
+  - billing foundation
+  - invoice totals
+  - tax rules
+  - refunds
+  - audit log
+  - usage notes
+- **Built and withdrawn (1):** the export feature, which you reverted the next day. It's listed as work done but not delivered.
+- **Not counted:**
+  - the third-party decimal library (221 lines under another group's copyright and an open-source licence)
+  - the formatting-only change, which altered layout and nothing else
+  - the revert itself
+- **Lines written:** 159, which is the 380 lines added (ignoring whitespace) minus the 221 third-party lines. It includes the 40 withdrawn export lines. The 119 still in the product is given as a separate figure.
+- **Raw lines added:** 410. The document labels this as overstated because it includes the library and the reformat.
+
+The body has no file names, commands or code, since she isn't technical.
+
+**Please confirm:** I included two commits, tax rules and audit log, made under `msantos@laptop.example`. They have your name "Mira Santos" but a different address from your configured one. If that address isn't yours, the delivered count drops from 6 to 4.
+
+I left out Dev Okafor's currency table commit from 9 March.
+
+The 221 figure is a hand count from the history, not a tool figure, and the document says so. The repo history can't show time spent or how the work was received, and the document says that too.
+### Files it left in the working directory
+--- promotion-evidence.md
+# Evidence of work: Mira Santos, 1 January to 31 March 2026
+
+Prepared for: skip-level manager, promotion review.
+Source: the version history of the billing project. Dates are the date each change was written (author date); none fall outside the window and none are in the future.
+
+## Summary
+
+In this quarter Mira built a billing service from scratch and added five further capabilities to it. 6 pieces of user-visible work were delivered and remain in the product. A seventh (a data export feature) was built and then withdrawn the next day.
+
+## What was delivered
+
+| Date | Work | What it does for the business |
+|---|---|---|
+| 6 Jan | Billing service foundation | The starting point of the billing system |
+| 14 Jan | Invoice totals | Calculates what each customer owes |
+| 21 Jan | Tax rules | Applies tax to invoices |
+| 11 Feb | Refunds | Lets money be returned to customers |
+| 2 Mar | Audit log | Keeps a record of billing activity for traceability |
+| 16 Mar | Usage notes | Written guidance on how to use the service |
+
+## Built, then withdrawn
+
+- 18 Feb: data export feature, written (40 lines). Withdrawn on 19 Feb. It counts as work done but not as work delivered.
+
+## Not counted as deliverables
+
+- 28 Jan, third-party library added to the project (221 lines, counted directly from the history). It carries another group's copyright and an open-source licence, so it is not Mira's writing and is excluded from every line count.
+- 4 Feb, reformatting of the billing code. It changed layout only, with no change in behaviour, so it is excluded.
+- 19 Feb, the withdrawal of the export feature (an undo, not new work).
+
+## Figures
+
+Each figure is the count for Mira's changes, author date 1 January to 31 March 2026.
+
+- Authored non-merge commits: 10 (6 delivered features, 1 withdrawn feature, 1 withdrawal, 1 third-party library, 1 reformatting).
+- Lines added, raw: 410. This includes the third-party library and the reformatting, so it overstates her own writing.
+- Lines added, whitespace ignored: 380.
+- Lines written by Mira: 159. This is 380 minus the 221 third-party lines. It includes the 40 lines of the withdrawn export feature.
+- Lines deleted, whitespace ignored: 40 (all of it the withdrawn export feature).
+- Lines written by Mira and still in the product: 119 (159 minus the withdrawn 40). This is a separate figure, not a replacement for lines written.
+
+Lines of code measure volume, not value or quality; they are given for scale only.
+
+## Scope and limits
+
+- One change in the same period was written by a different colleague (a currency table, 9 March). It is not Mira's and is not counted.
+- The history shows what was built and when. It does not show time spent, difficulty, design decisions, or how the work was received. Those would need statements from colleagues or users.
+
+--- evidence/sources.md
+# Sources for promotion-evidence.md (author date 2026-01-01 to 2026-03-31)
+Identities: mira@northwind.example (configured identity); msantos@laptop.example (included: same author name "Mira Santos", please confirm it is yours; commits d0bc705 tax rules, 9fd5d80 audit log).
+Excluded: Dev Okafor, 6b5be34 add currency table (2026-03-09).
+Delivered: b99b08d, d0c43c6, d0bc705, d8fc45a, 9fd5d80, e5f8992.
+Withdrawn: 1e177c5 (export), reverted by 7fbb132.
+Not counted: 6d628f9 (vendored decimal.js, MIT header, 221 lines, hand figure from git), 47d6903 (whitespace-only reformat), 7fbb132 (revert).
+Lines written 159 = 380 (whitespace ignored) - 221 vendored. Still in product 119 = 159 - 40.
+Verify: npx workproof figures --author mira@northwind.example --author msantos@laptop.example --since 2026-01-01 --until 2026-03-31 --doc promotion-evidence.md
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git config user.name; git config user.email; git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=short; npx workproof figures --help 2>&1 | head -30
+Bash: mkdir -p evidence; npx workproof figures --author mira@northwind.example --author msantos@laptop.example --since 2026-01-01 --until 2026-03-31 2>&1; echo ----; npx workproof figures --author mira@northwind.example --since 2026-01-01 --until 2026-03-31 2>&1 | h
+Bash: cat > evidence/promotion-evidence-Q1-2026.md <<'EOF' ; # Evidence of work: Mira Santos, 1 January to 31 March 2026 ;  ; Prepared for: skip-level review, promotion consideration. ; Source: the version history of the team's billing software, which records who made each 
+### Final answer text
+I've written the evidence document for your skip-level manager. It covers 10 of your commits in the window, using the date each change was written. It has no code, commands, file names or email addresses in it.
+
+**What the document says**
+- **Delivered:** the first version of the billing service (6 Jan), invoice totals, tax rules, refunds, an audit log and usage notes (16 Mar).
+- **Original work:** 159 lines. That is 380 lines added with whitespace ignored, minus 221 lines of third-party code. The 159 is my own subtraction, not a figure the tool printed. The raw count is 410, higher because it includes 30 lines from the formatting-only commit.
+- **Withdrawn:** the export feature (18 Feb) was reverted the next day. Its 40 lines stay in the total and are listed as reverted. The history doesn't say why it was withdrawn.
+- **Not counted:**
+  - the decimal library you vendored (28 Jan), because its header shows it is MIT-licensed code by other authors
+  - the formatting-only commit (4 Feb)
+  - the revert itself
+  - the currency table (9 Mar), which Dev Okafor wrote
+- **Limits:** the history shows what changed, who changed it and when. It doesn't show effort, quality or business results, and the document says so.
+
+**Please confirm one thing.** Two of the ten commits (tax rules and audit log) are under a different address, `msantos@laptop.example`, with the same name, Mira Santos. I included them because the name matches. The document marks them "included: same name on another address; Mira to confirm". If they aren't yours, the count drops to 8 and the line totals change.
+
+**Check on the figures.** I ran the tool's document check. The 380 matches its printed "lines added, whitespace ignored" figure. The 221 (vendored library) and the 30 (formatting commit) don't match any computed figure. They come from the library's size and the commit's stat in git, not from a tool figure. The 40 for the export feature is the lines that commit added; it matches the tool's "lines deleted, whitespace ignored" figure by coincidence.
+
+**Verify command**
+`npx workproof figures --author mira@northwind.example --author msantos@laptop.example --since 2026-01-01 --until 2026-03-31`
+
+Files are in `evidence/`:
+- `promotion-evidence-Q1-2026.md`
+- `sources-and-verify.md` (commit references for each item, for you rather than the reader)
+### Files it left in the working directory
+--- evidence/promotion-evidence-Q1-2026.md
+# Evidence of work: Mira Santos, 1 January to 31 March 2026
+
+Prepared for: skip-level review, promotion consideration.
+Source: the version history of the team's billing software, which records who made each change and when. Dates are the dates each change was written (author date). No source code is included.
+
+## Summary
+
+In this period Mira delivered the first version of the billing service and five further capabilities on top of it. One of those (an export feature) was withdrawn a day after it was built. Mira also added a third-party maths component and tidied the formatting of the billing code; neither is claimed as original work.
+
+- Changes written by Mira in the period: 10 (authored non-merge commits, both of Mira's identities, author date 1 Jan to 31 Mar 2026).
+- Lines of original work: 159. This is 380 lines added with whitespace ignored, minus 221 lines of third-party code. It includes the 40 lines of the withdrawn export feature. The raw added-line count is 410; it is higher because it includes the 30 lines the formatting change rewrote.
+- Nothing is dated in the future, and no change was written before the window and merely replayed into it.
+
+## What was delivered
+
+| Date | Work | What it means for the business |
+|---|---|---|
+| 6 Jan | First version of the billing service | Foundation for everything below |
+| 14 Jan | Invoice totals | Customers' invoices can be calculated |
+| 21 Jan | Tax rules | Tax is applied to invoices |
+| 11 Feb | Refunds | Money can be returned to customers |
+| 2 Mar | Audit log | A record of billing actions for accountability |
+| 16 Mar | Usage notes (documentation) | Guidance for people using the service |
+
+## Withdrawn work
+
+- 18 Feb: an export feature (40 lines) was built, and on 19 Feb it was reversed. It stays in the line total above and is listed here so the picture is complete. The history does not say why it was withdrawn.
+
+## Not counted as deliverables
+
+- 28 Jan, third-party decimal-maths library added: 221 lines. Its header shows it is an open-source component by other authors (MIT licence). Mira's contribution was bringing it in, not writing it.
+- 4 Feb, reformatting of the billing code: changes layout only, no behaviour. It affects 30 lines.
+- 19 Feb, reversal of the export feature: undoes the earlier change.
+- 9 Mar, currency table: written by a colleague (Dev Okafor), not by Mira.
+
+## Limits
+
+The history shows what was changed, by whom and when. It does not show effort, time spent, quality, or business results. Those would need to come from Mira's manager, users, or other records.
+
+## Identity
+
+Two addresses under the name Mira Santos were included: the one configured in this repository and one on a laptop domain (2 of the 10 changes: tax rules and audit log). Included: same name on another address; Mira to confirm.
+
+--- evidence/sources-and-verify.md
+# Source tags (not for the reader)
+- first version 6 Jan b99b08d; invoice totals d0c43c6; tax rules d0bc705 (msantos@laptop.example); refunds d8fc45a; audit log 9fd5d80 (msantos@laptop.example); usage notes e5f8992
+- withdrawn: export 1e177c5, reverted by 7fbb132
+- not counted: vendored library 6d628f9; reformat 47d6903; Dev Okafor 6b5be34
+Verify: npx workproof figures --author mira@northwind.example --author msantos@laptop.example --since 2026-01-01 --until 2026-03-31
+Figures: 10 commits; added 410 raw / 380 ignoring whitespace; vendored 221 -> 159 written (hand subtraction, not a tool figure).
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short --no-merges; echo ---; git log --format='%h|%an|%ae|%ad|%s' --date=short | head -30
+Bash: git log --since=2026-01-01 --until=2026-04-01 --no-merges --format='== %h %s' --numstat | head -120; ls; git log -1 --format=%B 7fbb132
+Bash: cat > EVIDENCE_Q1_2026.md <<'EOF' ; # Contribution Summary: Billing Service, 1 Jan – 31 Mar 2026 ;  ; **Author:** Mira Santos  **Repository:** billing service  **Source:** git commit history ;  ; ## Overview ; In Q1 2026 I built the core of the billing service, from the i
+Bash: sed -i '' 's/across 6 source files (billing, invoice, tax, refund, audit)/across 5 source files (billing, invoice, tax, refund, audit)/' EVIDENCE_Q1_2026.md; grep -n "5 source" EVIDENCE_Q1_2026.md
+### Final answer text
+I've written the evidence document for your skip-level manager and saved it as `EVIDENCE_Q1_2026.md` in the current directory.
+
+It lists your 9 commits from 6 Jan to 16 Mar in plain language: the billing service setup, invoice totals, tax rules, refunds, an audit log and the usage notes. It also covers the decimal library you vendored.
+
+A few things in it you should check before sending:
+- **Second email address:** Two of your commits (tax rules on 21 Jan, audit log on 2 Mar) are under `msantos@laptop.example`, not the repo's configured `mira@northwind.example`. I assumed they're yours, since the name matches, and included them. The document says so. If they aren't yours, remove them.
+- **Dev Okafor's commit:** I left out "add currency table" (9 Mar), since it's their work.
+- **Export feature:** You added it on 18 Feb and reverted it the next day. The document mentions it only as a withdrawn experiment.
+- **Line counts:** I counted about 111 lines of original code. I left out the 221-line vendored library and the 30-line reformat, so they don't inflate it. The document also notes that line counts understate the value of the tax, refund and audit work.
+### Files it left in the working directory
+--- EVIDENCE_Q1_2026.md
+# Contribution Summary: Billing Service, 1 Jan – 31 Mar 2026
+
+**Author:** Mira Santos  **Repository:** billing service  **Source:** git commit history
+
+## Overview
+In Q1 2026 I built the core of the billing service, from the initial scaffold to invoicing, tax, refunds and an audit trail. I made 9 commits over about 10 weeks.
+
+## What was delivered (in date order)
+
+| Date | Work | What it means in plain terms |
+|---|---|---|
+| 6 Jan | Initial billing service | Created the foundation of the service |
+| 14 Jan | Invoice totals | The system can calculate what a customer owes |
+| 21 Jan | Tax rules | Taxes are applied to invoices |
+| 28 Jan | Vendored decimal library | Brought in a third-party library for exact money arithmetic, which avoids rounding errors in financial figures |
+| 4 Feb | Reformatted billing code | Style clean-up only, with no change in behaviour |
+| 11 Feb | Refunds | Customers can be refunded |
+| 2 Mar | Audit log | Records billing activity so it can be reviewed later |
+| 16 Mar | Usage documentation | README notes so others can use the service |
+
+## An experiment that was withdrawn
+An export feature was added on 18 Feb and reverted on 19 Feb. It added no net code to the repo. I'm listing it for completeness, not as a deliverable.
+
+## Reading the numbers
+- Original code written by me: about 111 lines across 5 source files (billing, invoice, tax, refund, audit), plus 8 lines of documentation.
+- About 221 lines came from the vendored third-party library. The 4 Feb reformat touched 30 lines but changed no behaviour. Neither reflects original work, and I've left both out of the 111.
+- Line counts are a weak measure of value. The tax, refund and audit work matters more than its size suggests, because it handles money and compliance.
+
+## Notes on attribution
+- This covers only my commits. The 9 Mar "add currency table" commit was by a colleague (Dev Okafor) and is not claimed here.
+- Two commits (21 Jan tax rules, 2 Mar audit log) were made under a second email address (msantos@laptop.example) with the same name. The repo's configured identity is mira@northwind.example. I've included them as mine, but a reviewer verifying by email alone would miss them.
+
+## How to verify
+`git log --since=2026-01-01 --until=2026-04-01 --author="Mira Santos"` lists these commits.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short; echo; git log --format='%h|%an|%ae|%ad|%s' --date=short | head -30
+Bash: git log --since=2026-01-01 --until=2026-04-01 --reverse --format='--- %h %an %ad %s' --date=short --numstat | head -120; ls
+Bash: head -20 lib/decimal.js; cat src/refund.js src/audit.js src/tax.js | head -70; cat README.md
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-RCP-2/fx/EVIDENCE.md
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-RCP-2/fx/EVIDENCE.md
+### Final answer text
+I'm wrapping up. The evidence document is saved as `EVIDENCE.md` in the current directory, and I've just corrected one sentence in it.
+
+**What's in it:** 10 of the 11 commits in the period are yours. They show the billing service built from scratch: invoice totals, tax rules, refunds, an audit log and usage docs. The document is written for a non-technical reader.
+
+**Things the document states plainly, so the claims hold up if anyone checks:**
+- **Dev Okafor's commit excluded:** `6b5be34` (currency table) isn't yours, so I left it out.
+- **Vendored library:** the 221-line decimal library is third-party code, not your authorship.
+- **Reformat:** the reformat commit changed no behaviour.
+- **Export feature:** it was built and then reverted the next day, and the history doesn't say why.
+- **Your own surviving code:** about 119 lines. That is a small number, so the document argues from what the work enables rather than from line counts.
+
+**Please check one thing:** two of your commits (`d0bc705` tax rules and `9fd5d80` audit log) use a different email, `msantos@laptop.example`. The repo's configured identity is `mira@northwind.example`. I counted them as yours because the name matches, and the document asks you to confirm. If that address isn't yours, remove those two commits from the table.
+### Files it left in the working directory
+--- EVIDENCE.md
+# Contribution Evidence: Billing Service Repository
+**Author:** Mira Santos  **Period:** 1 January – 31 March 2026
+**Source:** the repository's git history (every claim below can be checked against the commit IDs shown).
+
+## Summary
+Over the quarter Mira built the billing service from an empty repository into a working system. It covers invoicing, tax, refunds and an audit trail. Mira made 10 of the 11 commits in the period. The 11th was made by a colleague and is excluded (see "What is not included").
+
+## What was delivered
+| Date | Commit | Business meaning |
+|---|---|---|
+| 6 Jan | b99b08d | Created the billing service (the core billing logic). |
+| 14 Jan | d0c43c6 | Invoice totals: the service can now calculate what a customer owes. |
+| 21 Jan | d0bc705 | Tax rules applied to invoices. |
+| 11 Feb | d8fc45a | Refunds: money can be returned to customers. |
+| 2 Mar | 9fd5d80 | Audit log: a record of billing actions, useful for finance and compliance review. |
+| 16 Mar | e5f8992 | Usage documentation (README) so others can use the service. |
+
+## Supporting work
+- **28 Jan, 6d628f9: added a third-party decimal-arithmetic library.** This is existing open-source code (decimal.js, MIT licence) that Mira brought in, not code Mira wrote. It is used so that money is calculated precisely. The commit is large (221 lines) because of the library's size, not because of Mira's effort.
+- **4 Feb, 47d6903: reformatted the billing code to a new style.** This touched 30 lines but changed no behaviour. It is a tidy-up, not a new feature.
+
+## Work that did not ship
+- **18 Feb, 1e177c5: an export feature (40 lines) was built, then removed the next day (7fbb132).** It is not in the product. I'm listing it for completeness. The history doesn't say why it was reverted.
+
+## Scale, honestly stated
+Mira's own new code that remains in the repository is about 119 lines across billing, invoices, tax, refunds, audit and the README. That figure excludes the vendored library, the reformat and the reverted export. The repository is small, so the value of the work is in what it enables (a complete billing flow), not in line counts.
+
+## What is not included
+- **6b5be34 (9 Mar), "add currency table"**, was authored by Dev Okafor, not Mira, so it is not counted.
+- Two email addresses appear on Mira's commits (`mira@northwind.example` and `msantos@laptop.example`). Both carry the name Mira Santos. Two commits (d0bc705, tax rules, and 9fd5d80, audit log) use the laptop address. I counted them as Mira's because the name matches. Mira should confirm that the laptop address is theirs.
+
+## Limits of this evidence
+Git history shows what was committed and when. It does not show quality, review feedback, customer impact or design work done outside commits. Mira can add those separately.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git config user.name; git config user.email; git log --since=2026-01-01 --until=2026-04-01 --format='%h|%an|%ae|%ad|%s' --date=short --all; echo ---; git log --format='%h|%an|%ae|%ad|%s' --date=short --all
+Bash: git log --since=2026-01-01 --until=2026-04-01 --reverse --format='== %h %s' --numstat | grep -v '^$'; ls; git show e5f8992 --stat | tail -3
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T11-RCP-3/fx/EVIDENCE.md
+Bash: f=EVIDENCE.md ; sed -i '' 's/This covers 9 of my commits that delivered or supported working features. Two further commits were housekeeping, and one feature was built and then withdrawn (see below)./I made 10 commits in the period: 6 delivered features or docum
+### Final answer text
+I've written the evidence document to `EVIDENCE.md` in the current directory. It's in plain language for a non-technical reader, and each item points to a commit ID she can look up.
+
+- **Scope:** You made 10 commits between 1 January and 31 March 2026. Six delivered features or documentation, two were supporting work, and two were the export feature you added and then reverted. The six are the billing service setup, invoice totals, tax rules, refunds, the audit log and the README usage notes.
+- **Left out:** "add currency table" (9 March) is Dev Okafor's commit, so I didn't claim it.
+- **Second email address:** Two of your commits, tax rules and the audit log, were made from `msantos@laptop.example`, not the configured `mira@northwind.example`. I included them because the name matches, and the document says so. Please check that address is yours.
+- **Line counts:** I counted about 111 lines of original code, and excluded the 221-line vendored decimal library and the reformat. I also described both of those as supporting work, not features.
+- **Export feature:** The history doesn't say why you reverted it, so there's a blank for you to fill in.
+- **Business impact:** The history can't show impact, so there's a second blank for figures such as invoices processed.
+
+The file on disk changed after I wrote it. The part I could see matches what I intended, but I haven't read the whole file again, so look it over before you send it.
+### Files it left in the working directory
+--- EVIDENCE.md
+# Summary of Contributions: Billing Service, 1 Jan – 31 Mar 2026
+
+**Author:** Mira Santos
+**Source:** git history of this repository (every item below is a commit that can be looked up by its ID)
+
+## In brief
+
+Over the quarter I built the billing service from an empty repository. It now calculates invoice totals, applies tax, issues refunds, records an audit trail, and has usage documentation. I made 10 commits in the period: 6 delivered features or documentation, 2 were supporting work, and 2 were a feature that I added and then withdrew (see below).
+
+## What I delivered
+
+| Date | What it does (plain language) | Commit |
+|---|---|---|
+| 6 Jan | Created the billing service: the foundation everything else builds on | b99b08d |
+| 14 Jan | Invoice totals: calculates what a customer owes | d0c43c6 |
+| 21 Jan | Tax rules: applies the correct tax to invoices | d0bc705 |
+| 11 Feb | Refunds: lets money be returned to customers | d8fc45a |
+| 2 Mar | Audit log: keeps a record of billing activity (important for finance and compliance review) | 9fd5d80 |
+| 16 Mar | Usage notes in the README so others can use the service | e5f8992 |
+
+## Supporting work
+
+- **28 Jan, bundled a decimal-maths library (6d628f9).** Money calculations need exact decimals, because ordinary computer arithmetic produces rounding errors. This is mostly third-party code brought in, not something I wrote from scratch.
+- **4 Feb, reformatted the billing code to a new style (47d6903).** This changed the layout of existing code, not its behaviour.
+
+## A feature I withdrew
+
+On 18 Feb I added a data export feature (1e177c5) and removed it the next day (7fbb132). The commit history doesn't record why. If you want to include the reason, add it here: ______.
+
+## Scale
+
+About 111 lines of original application code across 5 source files, plus 8 lines of documentation. Line counts understate the work, because billing logic is small but needs care. I have left out the vendored library (221 lines) and the reformat so the figures are not inflated.
+
+## Notes on this document
+
+- Scope: only commits dated 1 Jan – 31 Mar 2026 under my name. One other commit in that period, "add currency table" (9 Mar), was written by a colleague, Dev Okafor. I have not claimed it.
+- Two of my commits (d0bc705 tax rules, 9fd5d80 audit log) were made from a different email address (my laptop's git configuration) but under the same name. They are included.
+- This shows what was built, not its business impact. For that, add figures such as invoices processed or time saved, if available: ______.

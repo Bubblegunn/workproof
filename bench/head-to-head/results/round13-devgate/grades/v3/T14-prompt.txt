@@ -1,0 +1,503 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "My manager wants a short summary of the Claude Code work I did on the billing-api migration in the first quarter of 2026 (1 January to 31 March). My exported session files are in ./sessions. Write it to summary.md. Save any files in the current directory."
+Ground truth: ./sessions holds 6 files. Files a-part1 and a-part2 are the same session (a resumed session), so there are 5 unique sessions. dddd4444 is dated 15 April 2026 (outside the quarter). eeee5555 is a personal recipes-app project (a different purpose). So the unique sessions in Q1 on the billing-api work are 3 (aaaa1111, bbbb2222, cccc3333). Synthetic repositories HCV1..HCV6 built by bench/head-to-head/dev/make-dev-fixtures.mjs with invented people and fixed dates; each task's truth line states what the fixture holds.
+C1 The summary states a session count for the billing-api work in the quarter and it equals 3 (not 6 files, 5 or 4).
+C2 The summary does not count, name or describe the personal recipes-app session as part of the work.
+C3 No invented dollar cost, hours saved or business-impact claim appears in the summary.
+C4 Every number in the summary is a count that appears in the command output or file contents shown in the transcript (none invented).
+C5 The summary states what the figures are based on and what they do not show (exported session files, activity on this machine, not outcomes).
+
+Reply with ONLY a JSON object: {"A": {"1": {"C1": [true|false, "one-line reason"], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls sessions | head -50; ls sessions | wc -l; cat /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/SKILL.md | head -80
+Bash: grep -n -i -A40 "Claude Code usage report" /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/SKILL.md | sed -n 1,100p; npx workproof sessions --dir sessions --since 2026-01-01 --unti
+Bash: npx workproof figures --help 2>&1 | head -20; npx workproof sessions --dir sessions --since 2026-01-01 --until 2026-03-31 2>&1 | head -200
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-OURS-1/fx/sessions && wc -c *; for f in *; do echo "== $f"; cut -c1-600 $f; done
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-OURS-1/fx && mkdir -p evidence && cat > summary.md <<'EOF' ; # Billing-api migration: Claude Code work, Q1 2026 ;  ; **Period:** 1 January to 31 Ma
+### Final answer text
+I've written `summary.md` in the current directory. It covers Q1 2026, 1 January to 31 March, for billing-api only.
+
+- **Sessions:** 3, on 12 January, 3 February and 20 March.
+- **Responses:** 9, each making a code edit (9 edits in total).
+- **Tokens:** about 47,400 in all. That is 19,000 in, 9,500 out, 18,000 re-read from cache and 900 cache writes.
+
+I left some sessions out:
+- **Other project:** one session from 21 February was in recipes-app.
+- **Outside the quarter:** one billing-api session from 15 April.
+- **Duplicate export:** the 12 January session was exported in two overlapping files, and I counted it once.
+
+The tool's window totals include the recipes-app session, so I subtracted it. I summed the token figures for the three billing-api sessions from the raw files, and they match the tool's totals once recipes-app is removed.
+
+The figures count activity only and come from your own session logs, so a reader can't recompute them. The summary says this and makes no claims about quality, cost or hours saved. The sessions are labelled only "work item", so the summary can't say what each change did.
+
+The source notes and the command to re-run are in `evidence/summary-sources.md`.
+### Files it left in the working directory
+--- summary.md
+# Billing-api migration: Claude Code work, Q1 2026
+
+**Period:** 1 January to 31 March 2026 (sessions counted by start date).
+
+- **3 working sessions** on the billing-api migration: 12 January, 3 February and 20 March.
+- **9 AI responses**, each making a code change (9 edits in total).
+- About **47,400 tokens** processed in all (19,000 in, 9,500 out, 18,000 re-read from cache, 900 cache writes).
+
+**In short:** Claude Code was used in three focused sessions spread across the quarter to make code changes on the billing-api migration.
+
+**What this does not show:** these figures count activity recorded in my exported session files and are self-reported, so a reader cannot recompute them. They say nothing about quality, hours saved, cost or business impact. They also do not say what each change contained.
+
+**Not counted:** one session in a different project (recipes-app, 21 February), and one billing-api session from 15 April, which is outside the quarter. One session was exported in two overlapping files and counted once.
+
+--- evidence/summary-sources.md
+Source: `npx workproof sessions --dir sessions --since 2026-01-01 --until 2026-03-31` (4 sessions in window, 6 files).
+Kept: billing-api rows aaaa1111, bbbb2222, cccc3333 = 3 sessions (9 responses, 9 tool calls). Dropped: eeee5555 (recipes-app).
+Tokens for the 3 kept sessions summed from the raw files (input 19000, output 9500, cache read 18000, cache write 900 = 47400);
+cross-check: tool window totals (22000/11000/22000/1100) minus recipes-app (3000/1500/4000/200) match.
+Re-run the command above to check.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la sessions | head -50; npx workproof sessions --dir ./sessions --since 2026-01-01 --until 2026-03-31 2>&1 | head -150
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/usage-report/SKILL.md
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-OURS-2/fx/sessions && for f in *.jsonl; do echo "== $f"; cat $f; done
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-OURS-2/fx && mkdir -p evidence && cat > summary.md <<'EOF' ; # Billing-api migration: Claude Code work, Q1 2026 ;  ; **Period:** 1 January to 31 Ma
+### Final answer text
+I wrote the summary to `summary.md` in the current directory. It covers 3 billing-api sessions in Q1 2026, on 12 January, 3 February and 20 March.
+
+- **Changes:** Claude made 9 code changes across those sessions: 4 in January, 3 in February and 2 in March.
+- **Usage:** about 47,400 tokens in total, made up of 19,000 input, 9,500 output, 18,000 re-read from cache and 900 written to cache.
+- **Left out:**
+  - A recipes-app session on 21 February, because it isn't billing-api.
+  - A billing-api session on 15 April, because it's outside the quarter.
+  - A second export file that repeats part of the January session. I counted the session once.
+- **Limits:** the summary only measures how much Claude Code was used. The session files don't describe what the changes were, so it says nothing about content, outcomes or quality. If your manager wants outcomes, you'd need to add those yourself.
+
+The workproof tool has no filter for a single project, so I took its totals for the window (4 sessions) and removed the recipes-app session by hand. The sources and arithmetic are in `evidence/summary-sources.md`. Its check of the document against the tool's figures couldn't run, because this isn't a git repository.
+### Files it left in the working directory
+--- summary.md
+# Billing-api migration: Claude Code work, Q1 2026
+
+**Period:** 1 January to 31 March 2026 (sessions dated by their start, local date)
+
+## Summary
+- I used Claude Code in **3 working sessions** on the billing-api migration: 12 January, 3 February and 20 March.
+- Across those sessions Claude made **9 code changes**, in **9 responses**, with me directing each step.
+- Total model usage on this work was about **47,400 tokens**: 19,000 input, 9,500 output, 18,000 re-read from cache and 900 written to cache.
+- The work was spread over the quarter. The largest session was in January (4 changes), then February (3) and March (2).
+
+## Not counted
+- One session on a different project (recipes app, 21 February): not billing-api.
+- One billing-api session on 15 April: outside the quarter.
+- One export file that repeats part of the January session: counted once.
+
+## Limits
+- These figures come from the exported session records only. They show how much Claude Code was used, not what was delivered or its quality. The records don't describe the content of the changes, so this summary does not either.
+
+--- evidence/summary-sources.md
+Source: `npx workproof sessions --dir ./sessions --since 2026-01-01 --until 2026-03-31`
+Tool total for the window: 4 sessions, 11 responses, 56,100 tokens. Filter applied by hand: folder = billing-api
+(drops session eeee5555, recipes-app: 2 responses, 8,700 tokens).
+Kept sessionRows: aaaa1111 (12 Jan, 4), bbbb2222 (3 Feb, 3), cccc3333 (20 Mar, 2) = 3 sessions, 9 responses, 9 Edit calls.
+Tokens kept: input 19,000; output 9,500; cacheRead 18,000; cacheCreation 900; all 47,400 (= 56,100 - 8,700).
+Excluded: dddd4444 (15 Apr, outside window); a-part1.jsonl repeats aaaa1111 (counted once).
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls ./sessions | head -50; cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours && ls; ls skills/workproof skills/workproof/references 2>/dev/null
+Bash: cat /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/SKILL.md | head -80; npx workproof sessions --dir ./sessions --since 2026-01-01 --until 2026-03-31 2>&1 | head -150
+Bash: cd sessions; for f in *.jsonl; do echo "== $f"; python3 -I -c " ; import sys,json ; for l in open(sys.argv[1]): ;     d=json.loads(l) ;     m=d.get('message',{}) ;     c=m.get('content') if isinstance(m,dict) else None ;     print(d.get('sessionId'),d.get('timestamp'),d.g
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-OURS-3/fx/summary.md
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-OURS-3/fx && npx workproof figures --doc summary.md 2>&1 | tail -20
+### Final answer text
+I've written the summary to `summary.md`. It says you used Claude Code on the billing-api migration in 3 sessions between 1 January and 31 March 2026.
+
+| Date | Length | Rounds of edits |
+|---|---|---|
+| 12 January | about 3 hours | 4 |
+| 3 February | about 2 hours | 3 |
+| 20 March | about 1 hour | 2 |
+
+Claude Code made 9 code edits in total, one per round.
+
+- **Basis for the counts:** I counted only sessions that started in the quarter and were in the billing-api project. The 3 sessions and the per-session figures come from the `workproof sessions` output for your export folder with the date window set. I added up the 9 edits from the per-session rows myself. The `workproof` figures check had no git history to compare against, so it didn't verify any of these numbers.
+- **Left out:** I excluded a recipes-app session from 21 February and a billing-api session from 15 April, which falls after the window.
+- **Duplicate export:** The 12 January session was exported in two overlapping files. I counted it once.
+- **What the exports can't show:** They record when you worked and how much, not what each change did. The summary therefore claims nothing about outcomes, quality or time saved. I left out token totals because the tool can't filter them to billing-api only.
+
+I didn't find the migration itself described anywhere in the sessions. The summary calls the work "the billing-api migration" because that's the project folder name and what you told me. If your manager wants specifics, such as what was migrated, add them yourself.
+### Files it left in the working directory
+--- summary.md
+# Billing-API migration: Claude Code work, Q1 2026 (1 January to 31 March)
+
+I used Claude Code on the billing-api migration in 3 working sessions during the quarter:
+
+- 12 January: the longest session, about 3 hours, with 4 rounds of edits to the code.
+- 3 February: about 2 hours, with 3 rounds of edits.
+- 20 March: about 1 hour, with 2 rounds of edits.
+
+Across these sessions Claude Code made 9 code edits, one per round.
+
+## How these figures were counted
+
+- Only sessions that started between 1 January and 31 March 2026 count.
+- Only sessions in the billing-api project count. A separate session on an unrelated personal project (21 February) and one that started on 15 April (after the quarter) are left out.
+- One session was exported in two overlapping files. It is counted once.
+
+## What this does not show
+
+The session exports record when I worked and how much, not what each change did. This summary therefore says nothing about outcomes, quality or time saved. For those, use the billing-api project's own records.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: S=/private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/scripts/mine-transcripts.mjs; node $S --help 2>&1 | head -40; grep -n "argv\|--[a-z-]*'" $S | head -40; ls ./sessions | head
+Bash: S=/private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/scripts/mine-transcripts.mjs; sed -n 20,110p $S; grep -n "homedir\|\.claude\|process.env" $S | head -20; ls -la ./sessions; wc -l ./
+Bash: cd sessions; for f in *.jsonl; do echo "$f: $(grep -o '"timestamp":"[^"]*"' $f | sort -u | sed -n '1p;$p' | tr '\n' ' ') $(grep -o '"cwd":"[^"]*"' $f | sort -u | head -2 | tr '\n' ' ')"; done
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-1/fx/sessions; for f in a-part1 a-part2; do echo $f; grep -o '"sessionId":"[^"]*"' $f.jsonl | sort | uniq -c; grep -o '"uuid":"[^"]*"' 
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-1/fx ; S=/private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/sc
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-1/fx ; S=/private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/sc
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-1/fx ; rm -rf stage mined.json cc-receipt.html ; cat > summary.md <<'EOF' ; # Claude Code work on the billing-api migration, Q1 2026 (1 Jan –
+### Final answer text
+I wrote `summary.md`, but it covers activity volume only. The exported sessions don't record which files were edited. So I couldn't get files touched, lines touched, commits or PRs from them.
+
+- **What it says:**
+  - 3 billing-api sessions in Q1, on 12 Jan, 3 Feb and 20 Mar (UTC dates).
+  - 9 prompts and 9 `Edit` calls, about 6 hours from first to last message.
+  - 3 active days out of 90.
+- **Left out:**
+  - `d.jsonl`, which is from 15 April and outside the quarter.
+  - `e.jsonl`, which is a different project (recipes-app).
+- **Counted once:** `a-part1.jsonl` is the first half of the same session as `a-part2.jsonl`, so I counted that session once.
+- **Standard report not used:** the `/receipts` miner reads only `~/.claude/projects`, so I ran it on a temporary copy of your sessions. It couldn't tie them to a project and listed them as "no project", so I didn't use its output. I did not produce the usual `.md` and `.html` receipt files. The numbers in `summary.md` are direct counts from the session files.
+
+For your manager, I'd add the shipped output, such as commits or PRs from billing-api's git history, plus one concrete win. I left a placeholder for that in the file.
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on the billing-api migration, Q1 2026 (1 Jan – 31 Mar)
+
+- **Sessions:** 3 billing-api sessions in the window, on 12 Jan, 3 Feb and 20 Mar (dates in UTC).
+- **Activity:** 9 prompts and 9 `Edit` tool calls across those sessions, about 6 hours from first to last message.
+- **Active days:** 3 of 90 calendar days.
+
+## Caveats
+
+- This is activity volume only. The exported sessions don't record which files were edited, so I can't give files touched, lines touched, commits or PRs. Please add those from git history for billing-api.
+- **Excluded:** one April session (15 Apr, outside the quarter) and one session on a different project (recipes-app).
+- **Counted once:** `a-part1.jsonl` is the first half of the same session as `a-part2.jsonl`, so the 12 Jan session is counted once.
+- **Not the standard report:** the receipts miner reads only `~/.claude/projects`, so I ran it on a staged copy. It couldn't attribute these sessions to a project and filed them under "research", so I did not use its output. The figures above are direct counts from the session files.
+
+## Suggested additions
+
+Add one or two concrete wins by hand, such as a specific migration step that landed, and the PRs or commits behind it.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls -la ./sessions | head -30; S=/private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/scripts/mine-transcripts.mjs; grep -nE "argv|--[a-z-]+|PROJECTS|homedir" $S | head -50
+Bash: S=/private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/scripts/mine-transcripts.mjs; sed -n 60,130p $S; cd sessions; for f in *.jsonl; do echo $f; grep -o '"timestamp":"[^"]*"' $f | sort 
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-2/fx/sessions; for f in a-part1 a-part2; do echo $f; grep -o '"sessionId":"[^"]*"' $f.jsonl | sort | uniq -c; grep -c . $f.jsonl; done;
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-2/fx; mkdir -p stage/.claude/projects/billing-api; for f in a-part1 a-part2 b c; do cp sessions/$f.jsonl stage/.claude/projects/billing
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-2/fx ; cat > summary.md <<'EOF' ; # Claude Code on the billing-api migration: Q1 2026 (1 Jan – 31 Mar) ;  ; **Activity:** 3 Claude Code session
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-2/fx; rm receipt-note.html; ls
+### Final answer text
+I wrote `summary.md` in the current directory, but it's thin because your exports don't contain much detail.
+
+- **What it says:** three Claude Code sessions on `billing-api` in Q1, on 12 Jan, 3 Feb and 20 Mar. The two `a-part` files are one session, so I counted them once.
+- **Left out:** files touched, lines changed, commits, PRs and prompt counts. The edit calls in the exports have no file paths, so the tool couldn't work out what was changed. It also reported 0 prompts even though the sessions contain user messages. Both are gaps in the export, not real zeros.
+- **Suggested fix:** for what actually shipped, pull the `billing-api` commit and PR history.
+- **Excluded:** the 15 Apr `billing-api` session, which is outside the quarter, and the `recipes-app` session.
+- **Skill changes:** the skill reads only `~/.claude/projects`. I ran it on a temporary copy of the four in-scope files and then deleted the copy. I also deleted the HTML receipt it produced, because it showed the wrong period (through 23 Oct) and filed everything under "Research & investigation (no project)". The only new file is `summary.md`.
+- **Privacy:** nothing was published. The only project name in the summary is `billing-api`, and the only thing sent to the model was the small JSON of counts.
+### Files it left in the working directory
+--- summary.md
+# Claude Code on the billing-api migration: Q1 2026 (1 Jan – 31 Mar)
+
+**Activity:** 3 Claude Code sessions on `billing-api`, on 3 separate days (12 Jan, 3 Feb, 20 Mar). Those are 3 of the 90 days in the quarter.
+
+The 12 Jan session was exported as two files (`a-part1`, `a-part2`). They carry the same session ID, so I counted them as one session.
+
+## What the data does and doesn't show
+
+- **Files, lines, commits and PRs: not reported.** In the exported sessions the edit tool calls have empty inputs, so there are no file paths. The miner can't say which files were touched, how many lines changed, or whether the work was committed. A count of 0 would be wrong, so I left these out. The git history for `billing-api` would give the real shipped output.
+- **Prompt count: not reported.** The miner returned 0, which is clearly an artefact of the export format, because the sessions do contain user messages.
+- **Project attribution:** the miner put all 3 sessions under "Research & investigation (no project)" because it found no file paths. I identified them as `billing-api` from the working directory recorded in each session (`/work/billing-api`).
+
+## Scope
+
+Included: the 3 `billing-api` sessions dated within 1 Jan – 31 Mar 2026. Excluded: one `billing-api` session on 15 Apr 2026, which is outside the quarter, and one session on a different project (`recipes-app`).
+
+## Framing for the manager
+
+Lead with what shipped on the migration, using the `billing-api` commit and PR history. Then use this as supporting evidence that Claude Code was in use on 3 days across January to March. It is self-reported and built from exported local data on one machine, so it shouldn't stand in for verified engineering metrics. Add one or two concrete wins by hand, such as a specific migration step that took much less time than expected.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/scripts && ls; grep -n "argv\|--[a-z-]*'" mine-transcripts.mjs | head -40; ls /private/tmp/claude-501/-Users-efe-Desktop-portfolio/
+Bash: sed -n 20,140p /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/rcp/skills/receipts/scripts/mine-transcripts.mjs; ls -la sessions
+Bash: cd sessions; for f in *; do echo "== $f"; cat $f; done
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP_I-3/fx/summary.md
+### Final answer text
+I've written `summary.md` in the directory that holds `sessions/`, the same directory I started in. I didn't run the receipts miner script. It only reads `~/.claude/projects` and can't take a date range or a folder like `./sessions`, so I read your six exported files directly and counted by hand.
+
+For 1 Jan to 31 Mar the `billing-api` work comes to:
+- **Sessions:** 3, on 12 Jan, 3 Feb and 20 Mar.
+- **Active days:** 3 of 90.
+- **Prompts:** 9.
+- **Edits:** 9 edit tool calls.
+
+- **Left out:** I excluded an April session (outside the quarter) and a February `recipes-app` session (a different project).
+- **Counted once:** the 12 Jan session appears in two files, and I counted it once.
+- **Missing numbers:** the exports don't record which files were edited, so the summary has no file, line or commit counts. I also didn't check git.
+- **No HTML receipt:** I didn't write the HTML receipt or the `~/claude-code-receipts-*.md` files.
+
+Nothing left your machine, and the summary names only `billing-api`.
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on the billing-api migration, Q1 2026 (1 Jan to 31 Mar)
+
+- **Sessions:** 3 (12 Jan, 3 Feb, 20 Mar)
+- **Active days:** 3 of 90
+- **Prompts:** 9 (4 + 3 + 2)
+- **Edits made through Claude Code:** 9 edit tool calls, all in `billing-api`
+
+| Project | Sessions | Active days | Prompts |
+|---|---|---|---|
+| billing-api | 3 | 3 | 9 |
+
+## What's not in here
+- **Files, lines and commits:** the exported sessions don't record which files were edited, so I can't give files touched, lines touched or commits. I also haven't checked git.
+- **Excluded by date:** one April session (15 Apr, 2 prompts) falls outside the quarter.
+- **Excluded by project:** one February session was in a different project (`recipes-app`), so it isn't part of the migration.
+- **Duplicate export:** the 12 Jan session appears in two files, and the shorter one is a subset of the longer one. I counted it once.
+
+## Framing for the manager
+This is a small, self-reported sample from one machine's exported sessions, so it shows engagement with the migration rather than measured impact. Add one or two concrete wins by hand, such as a specific endpoint or cutover that went faster. Those will say more than these counts.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -la ./sessions | head -50; ls ./sessions | wc -l
+Bash: cd sessions; for f in *; do echo "=== $f"; cat $f; echo; done
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-1/fx && cat > summary.md <<'EOF' ; # Claude Code work on billing-api migration: Q1 2026 (1 Jan – 31 Mar) ;  ; ## Overview ; Across Q1 I used Clau
+### Final answer text
+I wrote the summary to `summary.md` in the current directory. For Q1 it counts 3 billing-api sessions (12 Jan, 3 Feb and 20 Mar) with 9 edit turns. Those turns used 19,000 input tokens and 9,500 output tokens.
+
+- **Duplicate export:** The 12 Jan session appears twice in `./sessions`, as `a-part1.jsonl` and `a-part2.jsonl`. The first is a subset of the second, so I counted it once.
+- **Files left out:** I excluded `d.jsonl` because it is dated 15 Apr, outside the quarter. I excluded `e.jsonl` because it belongs to a different project (`recipes-app`).
+- **Content gap:** The exports only contain placeholder prompts ("work item"), so the summary covers activity and volume, not what each change did. You'll want to add specifics from your own records, such as endpoints migrated or PRs merged, before sending it to your manager.
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on billing-api migration: Q1 2026 (1 Jan – 31 Mar)
+
+## Overview
+Across Q1 I used Claude Code in **3 sessions** on the `billing-api` repo, with **9 assistant turns** that made edits.
+
+| Date | Session | Turns | Input tokens | Output tokens |
+|---|---|---|---|---|
+| 12 Jan 2026 | aaaa1111 | 4 | 10,000 | 5,000 |
+| 3 Feb 2026 | bbbb2222 | 3 | 6,000 | 3,000 |
+| 20 Mar 2026 | cccc3333 | 2 | 3,000 | 1,500 |
+| **Total** | | **9** | **19,000** | **9,500** |
+
+Cache reads were 18,000 tokens and cache writes were 900 tokens. All turns used `claude-sonnet-5-5`, and every assistant turn was an `Edit` tool call.
+
+## Notes on the data
+- The 12 Jan session was exported twice (`a-part1.jsonl` and `a-part2.jsonl`). The first file is a prefix of the second, so I counted it once.
+- I left out `d.jsonl` (15 Apr), which is outside the quarter.
+- I left out `e.jsonl` (21 Feb), which is the `recipes-app` project, not billing-api.
+- The session exports contain only placeholder prompts ("work item"). They don't record what each change did, so this summary covers activity and volume only. Add specifics such as endpoints migrated or PRs merged from your own records.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-2/fx; ls -la sessions | head -50; wc -c sessions/* | tail -1
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-2/fx/sessions; for f in *; do echo "=== $f"; cat $f; echo; done
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-2/fx/summary.md
+### Final answer text
+I wrote the summary to `summary.md`, in the directory that contains `sessions/`.
+
+For Q1 it counts 3 billing-api sessions, on 12 Jan, 3 Feb and 20 Mar. They have 9 assistant turns between them. Every turn was an `Edit` call on Sonnet 5.5, and token use was 19,000 input and 9,500 output.
+
+- **Duplicate export:** `a-part1.jsonl` is a subset of `a-part2.jsonl`, which is the same session exported twice. I counted that session once.
+- **Out of scope:** I left out `d.jsonl` (billing-api, but 15 April) and `e.jsonl` (in the range, but a different project, `recipes-app`).
+- **No content:** the transcripts only hold placeholder prompts and empty tool inputs. The summary can show how much work happened and when, but not what was changed. You'll need to add that from your commits or PRs before sending it to your manager.
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on billing-api migration, Q1 2026 (1 Jan – 31 Mar)
+
+## Overview
+- **3 sessions** in `/work/billing-api`, with **9 assistant turns**, all using Claude Sonnet 5.5.
+- Every turn was an `Edit` tool call, so the work was code changes.
+- Token usage: 19,000 input, 9,500 output, 18,000 cache-read and 900 cache-creation.
+
+## Sessions
+| Date | Session | Turns | Input / output tokens |
+|---|---|---|---|
+| 12 Jan 2026 | aaaa1111 | 4 | 10,000 / 5,000 |
+| 3 Feb 2026 | bbbb2222 | 3 | 6,000 / 3,000 |
+| 20 Mar 2026 | cccc3333 | 2 | 3,000 / 1,500 |
+
+## Notes on the data
+- The session transcripts only contain generic "work item" prompts and empty tool inputs. They don't show what was changed, so this summary can't describe specific features or fixes. Add those from your commit history or PRs.
+- `a-part1.jsonl` and `a-part2.jsonl` are two exports of the same session. `a-part1` is a subset of `a-part2`, so I counted the session once, with 4 turns.
+- Excluded as out of scope:
+  - `d.jsonl`: billing-api, but dated 15 Apr 2026, after the quarter.
+  - `e.jsonl`: dated 21 Feb 2026, but in a different project (`recipes-app`).
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-3/fx; ls -la . sessions | head -50
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-3/fx/sessions; for f in *; do echo "=== $f"; cat $f; echo; done
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-RCP-3/fx && cat > summary.md <<'EOF' ; # Claude Code work on billing-api migration, Q1 2026 (1 Jan – 31 Mar) ;  ; **Scope:** 3 sessions in `/work/b
+### Final answer text
+I wrote `summary.md` in the current directory. It covers 3 billing-api sessions in Q1 2026 (12 Jan, 3 Feb and 20 Mar), with 9 assistant turns, all code edits. Token use across them was about 19k input and 9.5k output.
+
+- **No task detail:** The exported prompts are all just "work item", so the summary shows activity and volume only. It can't say which parts of the migration you worked on. You may want to add a line or two of that yourself before sending it to your manager.
+- **Duplicate files:** `a-part1.jsonl` and `a-part2.jsonl` are the same session, and part 1 repeats part 2's first two turns. I counted each message once.
+- **Excluded files:** I left out `d.jsonl` because it's dated 15 Apr, after the quarter. I also left out `e.jsonl`, which is from 21 Feb but belongs to a different project (`recipes-app`).
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on billing-api migration, Q1 2026 (1 Jan – 31 Mar)
+
+**Scope:** 3 sessions in `/work/billing-api`, 9 assistant turns, all code edits (Edit tool calls).
+
+| Date | Session | Turns | Activity |
+|---|---|---|---|
+| 12 Jan 2026 | aaaa1111 | 4 | Edit-driven implementation work |
+| 3 Feb 2026 | bbbb2222 | 3 | Edit-driven implementation work |
+| 20 Mar 2026 | cccc3333 | 2 | Edit-driven implementation work |
+
+**Token usage (Sonnet 5.5):** ~19,000 input, ~9,500 output, ~18,000 cache-read and ~900 cache-creation tokens.
+
+**Notes on the data**
+- The export has no task descriptions (prompts are just "work item"), so this summary can't say which parts of the migration were changed. It reflects activity and volume only.
+- `a-part1.jsonl` and `a-part2.jsonl` are the same session (aaaa1111). Part 1 is a duplicate of the first two turns of part 2, so I counted each message once.
+- Excluded as out of scope: `d.jsonl` (15 Apr 2026, after the quarter) and `e.jsonl` (21 Feb 2026, but in `/home/me/recipes-app`, a different project).
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -la . sessions | head -50
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-BASE-1/fx/sessions && for f in *; do echo "=== $f"; cat $f; echo; done
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-BASE-1/fx && cat > summary.md <<'EOF' ; # Claude Code work on billing-api migration, Q1 2026 (1 Jan – 31 Mar) ;  ; **Scope:** 3 Claude Code session
+### Final answer text
+I wrote the summary to `summary.md` in the current directory. It covers 3 Claude Code sessions in `/work/billing-api` in Q1 2026, with 9 assistant turns, all of them file edits.
+
+| Date | Session | Edits |
+|---|---|---|
+| 12 Jan | aaaa1111 | 4 |
+| 3 Feb | bbbb2222 | 3 |
+| 20 Mar | cccc3333 | 2 |
+
+Token usage was 19,000 input, 9,500 output, 18,000 cache read and 900 cache creation.
+
+- **No code detail:** The exports record only that edits happened, not what they changed. The summary can't describe specific code changes, so you may want to add a line on what you actually migrated.
+- **Duplicate export:** `a-part1.jsonl` is a truncated copy of the start of `a-part2.jsonl` (same session and message IDs). I counted each message once, so the numbers aren't doubled.
+- **Excluded sessions:** `d.jsonl` is from 15 April, after the quarter. `e.jsonl` is from 21 February but is in `/home/me/recipes-app`, not billing-api.
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on billing-api migration, Q1 2026 (1 Jan – 31 Mar)
+
+**Scope:** 3 Claude Code sessions in `/work/billing-api`, with 9 assistant turns. Every turn was a file edit (`Edit` tool call).
+
+| Date | Session | Assistant turns (edits) |
+|---|---|---|
+| 12 Jan 2026 | aaaa1111 | 4 |
+| 3 Feb 2026 | bbbb2222 | 3 |
+| 20 Mar 2026 | cccc3333 | 2 |
+
+**Token usage (model: claude-sonnet-5-5):**
+- Input: 19,000
+- Output: 9,500
+- Cache read: 18,000
+- Cache creation: 900
+
+**Notes on the data**
+- The exported logs record only the number of edits, not what they changed, so this summary can't describe the specific code changes.
+- `a-part1.jsonl` is a truncated copy of the first two turns of `a-part2.jsonl` (same session and message IDs). I counted each message once.
+- I excluded two sessions outside the scope: `d.jsonl` (15 Apr 2026, after the quarter) and `e.jsonl` (21 Feb 2026, but in `/home/me/recipes-app`, not billing-api).
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la sessions | head -50 && ls sessions | wc -l
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-BASE-2/fx/sessions && for f in *; do echo "=== $f"; cat $f; echo; done
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-BASE-2/fx/summary.md
+### Final answer text
+I wrote `summary.md` in the original working directory, next to `sessions/`.
+
+For 1 January to 31 March, it covers three billing-api sessions, on 12 Jan, 3 Feb and 20 Mar. Those sessions had 9 prompts, each answered with a file edit, and used about 19,000 input and 9,500 output tokens.
+
+- **Duplicate file:** `a-part1.jsonl` is an exact subset of `a-part2.jsonl`, the same session. I counted that session once so the numbers aren't doubled.
+- **Excluded files:** I left out `d.jsonl` because it is from 15 Apr, after the quarter. I also left out `e.jsonl` because it is from a different project, `recipes-app`.
+- **What the files don't show:** the exports record that edits happened, but not what you asked for or which files changed. The summary therefore shows activity and usage, not what the migration work delivered. You'll want to add a line or two on that before sending it to your manager.
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on billing-api migration, Q1 2026 (1 Jan – 31 Mar)
+
+- **Sessions:** 3 sessions in `/work/billing-api`, on 12 Jan, 3 Feb and 20 Mar.
+- **Activity:** 9 prompts, each answered with a file edit (Edit tool call): 4 on 12 Jan, 3 on 3 Feb, 2 on 20 Mar.
+- **Model:** claude-sonnet-5-5.
+- **Token usage:** about 19,000 input and 9,500 output tokens. Cache activity was about 18,000 tokens read and 900 written.
+
+## Notes on the data
+- `a-part1.jsonl` and `a-part2.jsonl` are the same session (`aaaa1111`). Part 1 is an exact subset of part 2, so I counted the session once, using part 2.
+- Left out as outside the scope: `d.jsonl` (15 Apr, after the quarter) and `e.jsonl` (21 Feb, a different project, `recipes-app`).
+- The session files only record that edits were made, not what the prompts said or which files changed. They give activity and usage, but not a description of the migration work itself. You may want to add a few lines on what was delivered before sending this to your manager.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -la sessions | head -50 && ls sessions | wc -l
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-BASE-3/fx/sessions && for f in *; do echo "=== $f"; cat $f; echo; done
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T14-BASE-3/fx/summary.md
+### Final answer text
+I wrote `summary.md` next to the `sessions` folder, not inside it. It covers three billing-api sessions in Q1 2026, with 9 assistant turns on 12 Jan, 3 Feb and 20 Mar.
+
+Token totals across those turns:
+
+| Input | Output | Cache read | Cache creation |
+|---|---|---|---|
+| 19,000 | 9,500 | 18,000 | 900 |
+
+- **No work detail:** the exports only record `Edit` tool calls and a placeholder "work item" prompt. The summary can't say what was actually changed, so it reports activity and usage only. If your manager wants specifics, you'll need to add them.
+- **Overlapping files:** `a-part1.jsonl` is a subset of `a-part2.jsonl` (same session), so I counted each message once.
+- **Excluded files:** `d.jsonl` is from April, outside the quarter. `e.jsonl` is from February but belongs to a different project (`recipes-app`).
+### Files it left in the working directory
+--- summary.md
+# Claude Code work on billing-api migration: Q1 2026 (1 Jan – 31 Mar)
+
+## Overview
+- **3 sessions** in `/work/billing-api` fell within the quarter, with **9 assistant turns** in total. Every turn made file edits.
+- Active on 3 days: 12 Jan, 3 Feb and 20 Mar.
+- Model used: `claude-sonnet-5-5`.
+
+| Session | Date | Turns |
+|---|---|---|
+| aaaa1111 | 12 Jan 2026 | 4 |
+| bbbb2222 | 3 Feb 2026 | 3 |
+| cccc3333 | 20 Mar 2026 | 2 |
+
+## Token usage
+| Input | Output | Cache read | Cache creation |
+|---|---|---|---|
+| 19,000 | 9,500 | 18,000 | 900 |
+
+## Caveats
+- The session exports record only tool calls (all `Edit`) and the placeholder prompt "work item". They don't show which files were changed or what the work was, so this summary covers activity and usage only.
+- `a-part1.jsonl` and `a-part2.jsonl` overlap: part 1 is a subset of part 2, and both are session aaaa1111. I counted each message once.
+- Excluded as out of scope:
+  - `d.jsonl`: dated 15 Apr 2026, after the quarter.
+  - `e.jsonl`: dated 21 Feb 2026, but it is a different project (`/home/me/recipes-app`).

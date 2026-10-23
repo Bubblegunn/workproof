@@ -1,0 +1,580 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --reverse --format='%h | %an <%ae> | %ad | %s' --date=iso --stat; echo; git shortlog -sne --all; git branch -a
+Bash: git log lee/export --format='%h | %an | %ad | %s' --date=iso -5; git diff main...lee/export --stat; grep -rni export app | head
+Bash: cat > invoice-check.md <<'EOF' ; # Invoice check: Lee Contractor, March ;  ; Invoice: "Orders screen work: list, filter and export, 3 commits, 12 hours." ; Checked against `git log --all` in this repo. ;  ; ## What holds ; - **List**: `3c409e2` "orders list" (2026-03-10, Le
+### Final answer text
+I checked the invoice against the history and wrote the result to `invoice-check.md` in the current directory. I didn't use the receipts skill's workflow, because it builds a report of your own Claude Code usage and doesn't compare an invoice to commits.
+
+**What holds**
+- The invoice says 3 commits, and Lee has 3 in March.
+- **List:** `3c409e2` on 10 March is on `main`.
+- **Filter:** `fa28183` on 12 March is on `main`.
+- **Export:** `7f7187d` on 14 March exists.
+
+**What doesn't**
+- **Export isn't merged.** It sits only on the `lee/export` branch, so `main` has no export code.
+- **The 12 hours can't be checked from git.** The history has timestamps but no durations, and every commit is stamped exactly 09:00 UTC. The three commits add 97 lines across 3 new files. Ask Lee for a time log.
+- **A fourth Lee commit is outside the invoice.** `d59ddbd` "orders sort" is dated 8 April and is on `main`. It isn't a March item, so make sure it isn't billed twice or folded into the 12 hours.
+
+The file also lists follow-ups: ask for a PR for `lee/export`, ask for the time breakdown, and decide whether to pay for export now or on merge.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Invoice: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+Checked against `git log --all` in this repo.
+
+## What holds
+- **List**: `3c409e2` "orders list" (2026-03-10, Lee), adds `app/orders.js`, 35 lines. On `main`.
+- **Filter**: `fa28183` "orders filter" (2026-03-12, Lee), adds `app/orders-filter.js`, 20 lines. On `main`.
+- **Export**: `7f7187d` "orders export" (2026-03-14, Lee), adds `app/orders-export.js`, 30 lines. It exists, but only on branch `lee/export`.
+- The count of 3 March commits by Lee is correct (list, filter, export).
+
+## What does not hold, or is unclear
+- **Export is not merged.** `7f7187d` is only on `lee/export`. `main` has no export code, so the delivered product doesn't have it yet. Only list and filter are on `main`.
+- **There is a fourth Lee commit, outside March.** `d59ddbd` "orders sort" (2026-04-08, 12 lines) is on `main`. It is not in the invoice, which is fine for a March invoice. Check that it isn't billed in April, and that no sort work is hidden in the 12 hours.
+- **The 12 hours can't be verified from git.** Git has timestamps only (all at 09:00:00 UTC, which looks set by hand or by a script) and no durations. The commits total 97 lines across 3 small new files. That is a modest amount of code for 12 hours, but it is not proof of anything. Ask Lee for a time log or breakdown.
+
+## Summary
+| Claim | Verdict |
+|---|---|
+| List | In history, on `main` |
+| Filter | In history, on `main` |
+| Export | In history, but unmerged (`lee/export` only) |
+| 3 commits | Correct |
+| 12 hours | Not verifiable from git |
+
+## Suggested follow-ups
+- Ask Lee to open a PR for `lee/export`, or confirm whether it is finished.
+- Ask for a time breakdown supporting the 12 hours.
+- Decide whether to pay for export now or on merge.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --stat; echo ---; git log --format='%h %an %ad' --date=iso --numstat | head -50
+Bash: grep -rli export . --exclude-dir=.git; git branch -a; git stash list; git log --all --oneline | wc -l ; cat > invoice-check.md <<'EOF' ; # Invoice check: Lee Contractor, March ;  ; Invoice claim: "Orders screen work: list, filter and export, 3 commits, 12 hours." ;  ; ## 
+Bash: git log main..lee/export --format='%h | %an | %ad | %s' --date=iso --numstat; git branch -a -vv
+Bash: cat > invoice-check.md <<'EOF' ; # Invoice check: Lee Contractor, March ;  ; Invoice claim: "Orders screen work: list, filter and export, 3 commits, 12 hours." ;  ; ## Commits by Lee Contractor (all branches) ;  ; | SHA | Date | Branch | Message | Change | ; |---|---|---|---|
+### Final answer text
+I wrote the check to `invoice-check.md`. The invoice mostly holds, but two things need your attention.
+
+I didn't run the receipts skill's steps. It builds a Claude Code usage report from local transcripts and doesn't check invoices, so I read the git history directly.
+
+**What holds**
+- Lee has three March commits, one each for list, filter and export. They are dated 10, 12 and 14 March, so the count of 3 matches.
+
+**What needs attention**
+- **Export isn't on `main`.** It exists only on the unmerged branch `lee/export` (7f7187d). Decide whether that counts as delivered before you pay for it.
+- **The sort commit is outside the invoice.** "orders sort" (d59ddbd) is dated 8 April and isn't part of the invoice. It belongs on April's invoice.
+- **The 12 hours can't be checked.** Git has no time data. The three March commits add about 85 lines across 3 small files, so ask Lee for a time log.
+
+My first draft of the report said no other branches existed and that export was missing. I caught the `lee/export` branch before I finished and rewrote the report. I only checked the local clone, so remote branches I haven't fetched aren't covered.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Invoice claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## Commits by Lee Contractor (all branches)
+
+| SHA | Date | Branch | Message | Change |
+|---|---|---|---|---|
+| 3c409e2 | 2026-03-10 | main | orders list | +35, app/orders.js |
+| fa28183 | 2026-03-12 | main | orders filter | +20, app/orders-filter.js |
+| 7f7187d | 2026-03-14 | lee/export (not merged) | orders export | +30, app/orders-export.js |
+| d59ddbd | 2026-04-08 | main | orders sort | +12, app/orders-sort.js |
+
+## What holds
+- **List, filter and export were all delivered.** There is one commit for each, dated 10, 12 and 14 March.
+- **The count of 3 March commits matches** once the export branch is counted.
+
+## What does not hold, or needs follow-up
+- **Export is not on `main`.** It exists only on the unmerged branch `lee/export` (7f7187d). It is not in the delivered code until it is merged. Decide whether the export work counts as delivered before you pay for it.
+- **"orders sort" (d59ddbd) is dated 8 April.** It is outside March and isn't on the invoice. It shouldn't be billed in March, and it belongs on April's invoice.
+- **The 12 hours can't be verified from git.** Git has no time data. The 3 March commits add 85 lines across 3 small files (35 + 20 + 30), over 5 days. Ask Lee for a time log.
+
+## Suggested follow-up
+- Ask Lee to open a PR for `lee/export`, or merge it after review.
+- Keep the sort commit off the March invoice.
+- Ask for a time breakdown behind the 12 hours.
+
+Caveat: commit dates are author-set and can be edited, so they are evidence rather than proof. This covers the local clone only. Remote branches I haven't fetched aren't checked.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --stat; echo; git shortlog -sne --all
+Bash: grep -ril export . --exclude-dir=.git; git branch -a; git stash list; cat app/orders*.js | head -80
+Bash: git log main..lee/export --format='%h | %an | %ad | %s' --date=iso --stat; git branch --contains lee/export; git log -1 --format=%H lee/export
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-RCP_I-3/fx/invoice-check.md
+### Final answer text
+I wrote the check to `invoice-check.md` in the current directory. I didn't run the receipts skill's miner, because that skill reports on your own Claude Code usage and doesn't fit this task. I read the git history directly.
+
+**What holds**
+- Lee has three March commits: list (Mar 10), filter (Mar 12) and export (Mar 14). The count of 3 matches the invoice.
+
+**What doesn't hold, or needs a question**
+- **Export isn't merged.** It exists only on the `lee/export` branch, not on `main`. You may want it merged and reviewed before paying for it.
+- **The 12 hours can't be checked.** The commits add 85 lines in total and carry only one timestamp each, so the history can't confirm or contradict the hours. Ask Lee for a time log if you need one.
+- **The "sort" commit isn't March work.** It's dated Apr 8 and is on `main`. It shouldn't be on this invoice, and you'd expect to see it on April's.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## Commits by Lee Contractor (all branches)
+
+| Commit | Date | Subject | Where | Size |
+|---|---|---|---|---|
+| 3c409e2 | 2026-03-10 | orders list | main | +35 |
+| fa28183 | 2026-03-12 | orders filter | main | +20 |
+| 7f7187d | 2026-03-14 | orders export | `lee/export` branch only | +30 |
+| d59ddbd | 2026-04-08 | orders sort | main | +12 |
+
+## What holds
+- Three March commits exist, and they match list, filter and export. The count of 3 is right.
+- All three are authored by Lee Contractor, and the dates fall in March.
+
+## What does not hold, or needs a question
+- **Export is not on main.** It exists only on the unmerged branch `lee/export`. The work is there, but it isn't delivered. Confirm whether it was reviewed and whether it should be merged before you pay for it.
+- **The 12 hours can't be verified from git.** The history shows three small additions (85 lines in total) and no timestamps beyond one commit per day. That is plausible but not provable. Ask Lee for a time log if you need one.
+- **"Sort" is not on the invoice.** Commit d59ddbd (orders sort) is dated 2026-04-08. It is April work, so it shouldn't appear on a March invoice. Expect it on the April one, and don't count it toward March.
+
+## Method
+`git log --all --stat` and `git log main..lee/export`. I did not review code quality or run anything.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h | %an <%ae> | A:%ad | C:%cd | %s' --date=iso --numstat; git branch -a
+Bash: git branch --contains 7f7187d; git log --oneline main; head -5 app/orders*.js; git show 7f7187d:app/orders-export.js | head -8
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-OURS-1/fx/invoice-check.md
+### Final answer text
+I wrote the check to `invoice-check.md`. Two of the three commits hold. The export commit exists but was never merged, and the 12 hours can't be checked from the history.
+
+- **List and filter hold.** Lee Contractor's list commit (10 March) and filter commit (12 March) are both on `main`.
+- **Export is not delivered.** The export commit is dated 14 March, but it exists only on the unmerged `lee/export` branch. The "3 commits" count is accurate, but one of them isn't in the product.
+- **12 hours is unverifiable.** The history shows when commits were made, not how long the work took. All three are stamped 09:00 on separate days, so the dates neither support nor contradict the figure.
+- **Sort is outside this invoice.** Lee's "orders sort" commit is on `main` but dated 8 April. It isn't in the March claim and may belong on an April invoice.
+
+I didn't review code quality or check for third-party code, and the line counts are raw additions. Two follow-ups: ask Lee for an hour breakdown, and ask whether `lee/export` is ready to merge.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+Checked read-only against all branches. Author dates are used for the window.
+
+## What holds
+| Item | Author | Branch | Author date | Result |
+|---|---|---|---|---|
+| Orders list | Lee Contractor | main | 2026-03-10 | Holds. 35 lines added. |
+| Orders filter | Lee Contractor | main | 2026-03-12 | Holds. 20 lines added. |
+| Orders export | Lee Contractor | lee/export only | 2026-03-14 | Exists and is dated in March, but it is not on main. It was never merged, so it is not delivered to the product. |
+
+Three commits by Lee fall in March, which matches "3 commits".
+
+## What does not hold, or cannot be shown
+- **Export is not delivered.** It sits only on the unmerged branch lee/export. "Export" should not be paid as finished work until it is merged or accepted.
+- **12 hours cannot be checked.** History records when commits were made, not time spent. The three commits total 85 added lines, and all are stamped 09:00 on separate days. This neither supports nor contradicts 12 hours.
+- **Sort is not on the invoice.** An "orders sort" commit by Lee (2026-04-08) is on main. It is dated April, so it is outside this March invoice. It may belong on an April invoice and should not be counted here.
+
+## Not counted
+- App base (2026-03-02), by Dev Okafor, not Lee.
+- Orders sort (2026-04-08), outside March.
+
+## Limits and next step
+Line counts are raw additions, and I did not review code quality or check for third-party code. Ask Lee for the hour breakdown, and ask whether lee/export is ready to merge.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git log --all --format='%h | %an <%ae> | A:%aI | C:%cI | %s' --stat --no-merges; echo; git branch -a; git log --all --merges --oneline
+Bash: git branch --contains 7f7187d; git branch --contains 3c409e2; head -5 app/orders*.js; git show 7f7187d:app/orders-export.js | head -8; git diff main lee/export --stat; git log --all --author=Lee --format='%h %an %ae'|sort -u
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-OURS-2/fx/invoice-check.md
+### Final answer text
+I wrote the check to `invoice-check.md`. The invoice mostly holds, with one gap on export and one claim the history can't show.
+
+- **Commit count holds.** Lee Contractor has exactly 3 commits dated in March, one each for list, filter and export. I used author dates, and the author name and email are the same on every commit.
+- **List and filter hold.** The list commit is dated 10 March (3c409e2) and the filter commit 12 March (fa28183). Both are on `main`.
+- **Export is not on `main`.** The export commit (7f7187d, 14 March) exists only on the unmerged `lee/export` branch. The work was done but isn't delivered.
+- **The 12 hours can't be checked.** Git records when a commit was made, not how long the work took. The three commits are small (35, 20 and 30 lines), so ask Lee for a time log.
+- **Lee has a fourth commit, outside March.** "Orders sort" (d59ddbd) is dated 8 April, so it is correctly off this invoice. Watch that it doesn't turn up as extra scope on a later one.
+- **Not Lee's work.** The initial app base (bd29202, 2 March) was written by Dev Okafor, so it isn't part of the invoice.
+
+I didn't run `workproof figures`, since the rules say to use read-only git for another person's claim. The only numbers in the file are the commit counts and line counts, which come straight from git. I kept hashes and branch names out of the file itself because it's written for a non-technical reader.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+Method: read-only review of the commit history, using the author date of each commit. All commits by Lee Contractor use one name and one address, so there is no identity ambiguity.
+
+## What holds
+
+| Item | Author | Date | Result |
+|---|---|---|---|
+| Orders list | Lee Contractor | 10 March | Holds. In the main line of work, in March. |
+| Orders filter | Lee Contractor | 12 March | Holds. In the main line of work, in March. |
+| Orders export | Lee Contractor | 14 March | Exists and is dated March, but see below. |
+
+- Three commits by Lee fall in March, matching "3 commits".
+- The three items match the three named features.
+
+## What does not hold, or cannot be confirmed
+
+- **Export is not in the main product.** It sits only on a separate line of work that has not been merged. If the invoice means delivered work, export is not delivered yet. If it means work done, it exists.
+- **Hours cannot be checked.** History records when a commit was made, not how long the work took. The 12 hours are neither supported nor contradicted. The three commits are small (35, 20 and 30 lines), so ask Lee for a time log.
+- **A fourth Lee commit is not on the invoice.** "Orders sort" is dated 8 April, outside March. It is correctly left off a March invoice, but it must not appear on April's invoice as extra scope without agreement. It is also in the main line but absent from the unmerged export line.
+
+## Not counted
+
+- The initial app base (2 March) was written by Dev Okafor, not Lee.
+- Orders sort (8 April): outside the invoice month.
+
+## Summary
+
+- Commit count (3, March, Lee): holds.
+- Features list and filter: hold, delivered to the main line.
+- Export: done but not merged.
+- 12 hours: unverifiable from history.
+
+Next step: ask Lee for a time log, and either merge export or confirm that billing for unmerged work is acceptable.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an <%ae>|%ad|%cd|%p|%s' --date=iso --stat; git branch -a
+Bash: git branch --contains 7f7187d; git head -3 2>/dev/null; for f in app/orders.js app/orders-filter.js app/orders-sort.js; do echo == $f; head -4 $f; done; git show 7f7187d:app/orders-export.js | head -5
+Bash: for f in app/orders.js app/orders-filter.js app/orders-sort.js; do echo "== $f"; head -4 $f; done; echo "== export"; git show 7f7187d:app/orders-export.js | head -5
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-OURS-3/fx/invoice-check.md
+### Final answer text
+I checked the invoice against the history and wrote the result to `invoice-check.md`. The three commits hold, but export isn't shipped and the 12 hours can't be checked.
+
+- **Three commits:** this holds. Lee Contractor made one commit each for list (10 March), filter (12 March) and export (14 March). All three are by the same author.
+- **Export isn't delivered:** it exists only on the side branch `lee/export` and was never merged into main. Whether it was meant to be merged is worth asking Lee.
+- **12 hours:** git records when a commit was made, not how long the work took. The commits fall on three separate days, which fits 12 hours but doesn't prove it.
+- **Not part of the invoice:** "orders sort" is dated 8 April, so it isn't March work. "App base" was written by Dev Okafor, not Lee.
+
+I only read the history. I didn't run the app, so I can't say whether any of the three features works.
+
+I didn't run `npx workproof figures`, since the hook says to use read-only git for someone else's claim.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+Basis: the repository's history, read-only, all branches. Dates are author dates (they match the committer dates here). All commits are by Lee Contractor, under one address.
+
+## What holds
+
+| Item | Date | Where it is | Verdict |
+|---|---|---|---|
+| Orders list (35 lines added) | 10 March | Main line of work | Holds |
+| Orders filter (20 lines added) | 12 March | Main line of work | Holds |
+| Orders export (30 lines added) | 14 March | Separate branch only, not merged | Exists, but is not part of the delivered product |
+
+- **Three commits in March:** this holds. There are three, one each for list, filter and export.
+- **Scope matches the description:** each of list, filter and export has its own commit.
+
+## What does not hold, or cannot be confirmed
+
+- **Export is not delivered.** It sits only on a side branch (`lee/export`). The main line does not contain it. If the invoice means export is finished and shipped, the history does not show that. Next step: ask Lee whether it was meant to be merged, and whether it has been reviewed.
+- **12 hours cannot be checked.** History records when a commit was made, not how long the work took. The three commits are on three days (10, 12 and 14 March), which is consistent with 12 hours but does not prove it. Total added is 85 lines across three small files. That is a limit of this check, not evidence that the figure is wrong.
+- **A fourth commit is outside the invoice.** "Orders sort" is dated 8 April, so it is outside March and is correctly not claimed.
+- **Content depth was not assessed.** The files contain only placeholder-like text lines, so nothing here shows working behaviour. Quality is not something history can establish. Next step: run the app and try list, filter and export.
+
+## Not counted
+
+- "App base" (2 March) is by Dev Okafor, not Lee.
+- "Orders sort" (8 April) is outside March.
+
+## Summary
+
+Three March commits by Lee: confirmed. List and filter: confirmed on the main line. Export: present only on an unmerged branch. Hours: not verifiable from history.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad%n  %s' --date=iso --stat; git log --all --oneline | wc -l; grep -rni export --include=* . --exclude-dir=.git -l | head
+Bash: grep -rniw export . --exclude-dir=.git | head; cat app/orders*.js | head -80; git branch -a; git stash list
+Bash: git log lee/export --format='%h %an %ad %s' --date=iso -5 --stat; git branch --contains lee/export; git diff main lee/export --stat
+Bash: cat > invoice-check.md <<'EOF' ; # Invoice check: Lee Contractor, March ;  ; Invoice: "Orders screen work: list, filter and export, 3 commits, 12 hours." ;  ; ## What holds ; - **List**: `3c409e2` "orders list" (2026-03-10), adds `app/orders.js` (35 lines). On `main`. ; - *
+### Final answer text
+I wrote the check to `invoice-check.md`. The scope and commit count match the history, but the 12 hours can't be checked and the export work isn't on `main`.
+
+**What holds**
+- **List:** `3c409e2`, 10 March, is on `main`.
+- **Filter:** `fa28183`, 12 March, is on `main`.
+- **Export:** `7f7187d`, 14 March, exists only on the unmerged branch `lee/export`. That makes three March commits, but only if you count that branch.
+
+**What doesn't hold or can't be verified**
+- **Export is not on `main`.** It hasn't been merged, so it isn't delivered yet.
+- **12 hours can't be checked.** Git records commit timestamps, not time spent. All the timestamps are 09:00, which looks like a placeholder.
+- **Code quality is unverified.** The files I looked at are placeholder text like "export 1, export 2…", not real code. I only read the first three lines of the export file, so the other two features may not be real either.
+
+**Not on the invoice**
+- **The sort commit:** `d59ddbd` "orders sort" is also by Lee but dated 8 April. It correctly isn't billed for March, but watch for it on a later invoice.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Invoice: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## What holds
+- **List**: `3c409e2` "orders list" (2026-03-10), adds `app/orders.js` (35 lines). On `main`.
+- **Filter**: `fa28183` "orders filter" (2026-03-12), adds `app/orders-filter.js` (20 lines). On `main`.
+- **Export**: `7f7187d` "orders export" (2026-03-14), adds `app/orders-export.js` (30 lines). It exists only on the unmerged branch `lee/export`, not on `main`.
+- **Commit count**: 3 commits by Lee dated in March, all three features. This matches, but only if the unmerged export branch is counted.
+
+## What does not hold, or can't be verified
+- **Export is not on `main`.** The feature is not delivered to the main line until `lee/export` is merged. Check whether it was ever submitted for review.
+- **12 hours can't be checked.** Git records commit timestamps, not time spent (all are 09:00 UTC, which looks like a placeholder). The three commits total 85 added lines in 3 days of activity (Mar 10, 12, 14). Whether that took 12 hours is a judgment call, not something the history shows.
+- **Not in the invoice:** `d59ddbd` "orders sort" (2026-04-08, 12 lines, `app/orders-sort.js`) is also by Lee, but it is dated April. It is correctly left off a March invoice. It may be billed separately, so watch for double-billing.
+- **Branch divergence:** `lee/export` branches from `fa28183`, before the sort commit. Merging it is fine, but `main` and `lee/export` have diverged.
+- **Content is thin.** The files hold only placeholder lines such as "orders 1…35", "filter 1…20", "sort 1…12". The export file was not inspected for real functionality. Review the code before accepting that it does what the invoice claims.
+
+## Summary
+The scope and commit count match the history. The caveats are that export is unmerged and the hours are unverifiable from git.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --stat; git log --all --oneline | head -20
+Bash: git branch -a --contains 7f7187d; git show 7f7187d --format='%h | %an | %ad | %s' --date=iso --stat; git show 7f7187d | head -50; cat app/orders-sort.js | head -20; git status --short
+Bash: cat > invoice-check.md <<'EOF' ; # Invoice check: Lee Contractor, March 2026 ;  ; Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours." ;  ; ## Commits by Lee Contractor (all branches) ;  ; | Commit | Date | Message | Change | Branch | ; |---|---|---|---|
+### Final answer text
+I wrote the check to `invoice-check.md`. Git can confirm the commits but not the 12 hours.
+
+**What holds**
+- List (10 March) and filter (12 March) are on `main`, dated in March, and by Lee.
+- Export (14 March) exists, so there are three March commits if you count all branches.
+
+**What doesn't**
+- **Export isn't on `main`.** It's only on the unmerged branch `lee/export`, so it needs review and a merge before you pay for it.
+- **On `main` alone, March has two Lee commits.** The "3 commits" claim only holds if you count that branch.
+- **The 12 hours can't be checked from git.** The three March commits add 85 lines in total. That's small, but line count doesn't prove hours. Ask Lee for a time log.
+- **Sort isn't on the invoice.** It was committed on 8 April. If Lee bills for it, it belongs on an April invoice.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March 2026
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## Commits by Lee Contractor (all branches)
+
+| Commit | Date | Message | Change | Branch |
+|---|---|---|---|---|
+| 3c409e2 | 2026-03-10 | orders list | +35 lines, app/orders.js | main |
+| fa28183 | 2026-03-12 | orders filter | +20 lines, app/orders-filter.js | main |
+| 7f7187d | 2026-03-14 | orders export | +30 lines, app/orders-export.js | `lee/export` only, not merged |
+| d59ddbd | 2026-04-08 | orders sort | +12 lines, app/orders-sort.js | main |
+
+## What holds
+- **List** and **filter** are on `main`, dated in March, by Lee.
+- **Export** exists, dated 14 March, but only on the unmerged branch `lee/export`. It is not on `main`.
+- Three March commits exist if you count all branches. That matches the "3 commits" claim.
+
+## What does not hold, or is unclear
+- **Export is not delivered to main.** Whether it counts as done depends on what was agreed. It needs review and a merge.
+- **Sort is not on the invoice.** It was committed on 8 April, outside March, and is not part of "list, filter and export". If it is billed, it belongs on an April invoice.
+- **"3 commits" only holds across all branches.** On `main`, March has 2 Lee commits.
+- **12 hours can't be checked from git.** The history has no time tracking. The March work totals 85 lines in 3 commits over 10–14 March. That is small, but line count doesn't prove hours. Ask Lee for a time log.
+
+## Suggested follow-up
+1. Review and merge `lee/export` before paying for export.
+2. Ask Lee for the hours breakdown per feature.
+3. Leave sort off the March invoice.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --stat --format='--- %h | %an <%ae> | %ad | %s' --date=iso; git log --numstat --format='%h' | head -50
+Bash: git branch -a; git stash list; grep -ril export . --include=* --exclude-dir=.git; cat app/orders-sort.js
+Bash: git log main..lee/export --stat --format='--- %h | %an | %ad | %s' --date=iso; git merge-base main lee/export; grep -ril export app; cat app/orders-sort.js
+Bash: cat > invoice-check.md <<'EOF' ; # Invoice check: Lee Contractor, March ;  ; Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours." ;  ; ## Commits by Lee Contractor ;  ; | Commit | Date | Subject | Lines | Branch | ; |---|---|---|---|---| ; | 3c409e2 | 2026
+### Final answer text
+I wrote the check to `invoice-check.md`. Some of the invoice holds, but I can't verify the 12 hours.
+
+**What holds**
+- **List and filter:** both are on `main`, committed 10 and 12 March.
+- **Export:** it was committed on 14 March, so it was done in March.
+- **Three March commits:** this is true only if you count the export commit.
+
+**What doesn't hold, or is unclear**
+- **Export isn't on `main`:** it sits on the unmerged branch `lee/export`. Only two of the three March commits are on `main`. Whether you owe for export depends on whether unmerged work counts as delivered under your agreement.
+- **Sort isn't on the invoice:** Lee's "orders sort" commit is dated 8 April, outside March. It may belong on an April invoice, or it may be unbilled.
+- **The 12 hours can't be checked:** git records no time. The three March commits add 85 lines in total, which looks small for 12 hours. That alone proves nothing, so ask Lee for a time breakdown per task.
+
+The file also lists three follow-ups: confirm `lee/export` is complete and review it before paying for export, ask where the sort work is billed, and request a time log.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## Commits by Lee Contractor
+
+| Commit | Date | Subject | Lines | Branch |
+|---|---|---|---|---|
+| 3c409e2 | 2026-03-10 | orders list | +35 | main |
+| fa28183 | 2026-03-12 | orders filter | +20 | main |
+| 7f7187d | 2026-03-14 | orders export | +30 | `lee/export` only, not merged |
+| d59ddbd | 2026-04-08 | orders sort | +12 | main |
+
+## What holds
+- **List and filter** are on `main`, dated in March (10 and 12 March).
+- **Export** exists, committed 14 March, so it was done in March. It is on the unmerged branch `lee/export`, not on `main`.
+- **Three March commits** is accurate if the export branch counts. Only two March commits are on `main`.
+
+## What does not hold, or is unclear
+- **Export is not delivered on `main`.** The work is on `lee/export` and has never been merged. Whether it counts as delivered depends on the agreement.
+- **Sort was not invoiced.** It was committed 8 April, outside March. It may belong on an April invoice, or may be unbilled.
+- **The 12 hours can't be checked.** Git records no time. The commits total 85 added lines (35 + 20 + 30), which is small for 12 hours. That is not proof of anything, because time spent on design, debugging or review leaves no trace in the history. Ask for a time breakdown per task.
+- **The history shows no hours or intermediate commits.** The commit dates fall on only three days (10, 12 and 14 March).
+
+## Suggested follow-ups
+1. Ask Lee to confirm whether `lee/export` is complete and ready to merge, and review it before paying for export.
+2. Ask where the sort work (8 April) is billed.
+3. Request a time log supporting the 12 hours.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --stat --format='%h | %an <%ae> | %ad | %s' --date=iso; git log --format='%h %an %ad' --date=iso --numstat | head -50
+Bash: grep -ril export . --include=*.js --exclude-dir=.git; grep -rin export app | head; git branch -a; git stash list
+Bash: grep -rin export app; git branch -a; git stash list; ls -R app
+Bash: git log lee/export --format='%h %an %ad %s' --date=iso -5; git diff main lee/export --stat
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-RCP-1/fx/invoice-check.md
+### Final answer text
+I've finished the check and written it to `invoice-check.md`. Here is what it found:
+
+- **Holds:**
+  - List (`3c409e2`, 10 March) and filter (`fa28183`, 12 March) are both on `main`.
+  - Export exists as `7f7187d` (14 March), so the count of 3 commits matches.
+- **Doesn't hold:**
+  - Export is only on the unmerged branch `lee/export`, so `main` has no export code.
+- **Not on the invoice:**
+  - A sort commit (`d59ddbd`) is dated 8 April, outside March, and the invoice doesn't claim it. It should go on an April invoice.
+- **Unverifiable:**
+  - Git can't confirm the 12 hours. Every commit is timestamped 09:00, so ask for a timesheet.
+
+I'd have Lee merge or open a PR for `lee/export` before you pay for it.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## What holds
+- **List**: `3c409e2` "orders list", 2026-03-10, `app/orders.js` (+35). On `main`.
+- **Filter**: `fa28183` "orders filter", 2026-03-12, `app/orders-filter.js` (+20). On `main`.
+- **Export**: `7f7187d` "orders export", 2026-03-14, `app/orders-export.js` (+30). It exists, but only on the unmerged branch `lee/export`.
+- Three March commits by Lee exist across the repo (list, filter, export), so the count of 3 matches.
+
+## What does not hold, or needs a caveat
+- **Export is not on `main`.** `main` has no export code. The work is on `lee/export` and has not been merged, so it isn't delivered in the main codebase. Check whether it was reviewed or handed over some other way.
+- **Only 2 of the 3 commits are on `main` in March.** The third is on a side branch.
+- **Sort work is not on the invoice.** `d59ddbd` "orders sort" (`app/orders-sort.js`, +12) is dated 2026-04-08. It is outside March and not claimed. If it is billed, it belongs on an April invoice. It is also on `main` but not on `lee/export`, so the two branches have diverged.
+- **12 hours can't be verified from git.** The history has no time tracking. All commits are timestamped 09:00, which suggests normalized or edited dates. The three commits total 85 added lines (35 + 20 + 30), and the dates fall on 10, 12 and 14 March. That is plausible for 12 hours but doesn't prove it. Ask for a timesheet.
+
+## Summary
+List and filter are confirmed and merged. Export is real but unmerged. The hours are unverified. The April sort commit is correctly left off the March invoice.
+
+Suggested follow-ups: ask Lee to merge or open a PR for `lee/export` before paying for it, and request a breakdown of the hours.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --stat --format='%h | %an <%ae> | %ad | %s' --date=iso; git log --format='%h %cd' --date=iso
+Bash: grep -rni export . --include=*.js --exclude-dir=.git | head; cat app/orders-sort.js | head -20; git branch -a; git stash list
+Bash: git log main..lee/export --stat --format='%h | %an | %ad | %s' --date=iso; git branch -vv
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-RCP-2/fx/invoice-check.md
+### Final answer text
+I wrote the check to `invoice-check.md`. The commit count holds, but the export work isn't on main, and git can't confirm the 12 hours.
+
+- **List and filter hold.** Both are on main, dated 10 and 12 March.
+- **Export is unmerged.** Its commit is dated 14 March, but it only exists on the `lee/export` branch, so it isn't in the shipped app. The "3 commits" figure only holds if you count that branch.
+- **Sort isn't billed here.** It was committed on 8 April, so it belongs on an April invoice, not March.
+- **The 12 hours can't be verified.** Git records no time spent. The three March commits add about 85 lines across new files over 10–14 March. That looks light for 12 hours, but it's a judgement, so ask Lee for a per-feature breakdown.
+- **I didn't check whether the code works.** Every commit only adds new files, and nothing touches existing code such as `app/main.js`.
+
+The file also lists three follow-ups: ask Lee whether `lee/export` is meant to be merged, ask for the hours breakdown, and keep sort off the March bill.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## Lee's commits in the repo
+
+| Commit | Date | Branch | Change |
+|---|---|---|---|
+| 3c409e2 orders list | 2026-03-10 | main | +35 lines, app/orders.js |
+| fa28183 orders filter | 2026-03-12 | main | +20 lines, app/orders-filter.js |
+| 7f7187d orders export | 2026-03-14 | lee/export only | +30 lines, app/orders-export.js |
+| d59ddbd orders sort | 2026-04-08 | main | +12 lines, app/orders-sort.js |
+
+## What holds
+- **List and filter:** both are on main and dated in March (10 and 12 March).
+- **Export:** a commit exists, dated 14 March. It is only on the unmerged `lee/export` branch, not on main.
+- **Commit count:** 3 March commits by Lee (list, filter, export), counting the export branch.
+
+## What does not hold, or can't be confirmed
+- **Export is not on main.** It is unmerged, so it is not delivered in the shipped app. Whether it is finished or accepted is a question for you.
+- **Sort isn't on the invoice.** It was committed on 8 April, outside March. It is not billed here, but if it shows up on an April invoice, that is where it belongs.
+- **12 hours can't be checked from git.** Git records no time spent. The work is 85 added lines across 3 small new files, spread over 10–14 March. That looks light for 12 hours, but this is a judgement, not evidence. Ask Lee for a breakdown per item.
+- **Scope of the changes:** every commit only adds new files. Nothing was integrated into existing code, for example `app/main.js`. I did not check whether the screens are wired up or work.
+
+## Suggested follow-ups
+1. Ask Lee whether `lee/export` is meant to be merged, and review it before paying for export.
+2. Ask for an hours breakdown per feature.
+3. Make sure sort (8 April) is not billed under March.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=iso --stat; git log --format='%h' | head -0; ls
+Bash: cat app/orders*.js | grep -in export; git log --all --oneline | wc -l
+Bash: git log --all --format='%h %an %ad %s' --date=short; grep -ril export app
+Bash: git branch -a --contains 7f7187d; git show 7f7187d --stat --format='%h %an %ad %cd %s%n%b'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2/runs/T15-RCP-3/fx/invoice-check.md
+### Final answer text
+I've finished the check and saved it to `invoice-check.md`. Here is what it found:
+
+- **List and filter hold.** Both are Lee's commits on `main`, dated Mar 10 and Mar 12.
+- **Export exists but isn't merged.** It's commit `7f7187d` (Mar 14) on the `lee/export` branch only. That makes "3 commits" correct, but only if you count the unmerged branch.
+- **The 12 hours can't be verified.** Git has no time data. Every commit is stamped exactly 09:00 UTC, so the timestamps look hand-set. Ask Lee for a timesheet.
+- **The "orders sort" commit is not on this invoice.** It's dated Apr 8, so make sure it isn't billed twice.
+### Files it left in the working directory
+--- invoice-check.md
+# Invoice check: Lee Contractor, March
+
+Claim: "Orders screen work: list, filter and export, 3 commits, 12 hours."
+
+## What holds
+- **List**: `3c409e2` "orders list", 2026-03-10, `app/orders.js` (+35). On `main`.
+- **Filter**: `fa28183` "orders filter", 2026-03-12, `app/orders-filter.js` (+20). On `main`.
+- **Export**: `7f7187d` "orders export", 2026-03-14, `app/orders-export.js` (+30). It exists, but only on the branch `lee/export`. It is not merged into `main`.
+- **Commit count**: Lee has 3 commits dated in March, so "3 commits" is correct.
+
+## What does not hold, or can't be checked
+- **Export is not on `main`.** Anyone reading only `main` would count 2 March commits and no export. The work is real, but it is unmerged and unreviewed.
+- **12 hours can't be checked from git.** The history has no time tracking. Every commit is stamped exactly 09:00 UTC, which suggests the timestamps were set by hand or by a script. The commits add 85 lines in total across 3 files, so 12 hours is not obviously out of line, but the history neither supports nor contradicts it. Ask Lee for a timesheet.
+- **An extra commit is outside the invoice.** `d59ddbd` "orders sort" (2026-04-08, `app/orders-sort.js`, +12) is dated April. It is not part of this invoice, so check it isn't billed in April's invoice as well as anything already paid.
+
+## Suggested follow-ups
+1. Decide whether to merge `lee/export` before paying for the export line.
+2. Ask Lee for hour-level detail behind the 12 hours.
+3. Confirm the April sort work is billed separately.
