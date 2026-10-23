@@ -1322,3 +1322,10 @@ After the two sets, in this order and only if both intervals are above zero: F6 
 Evidence. `bench/head-to-head/results/round13-final/`: this protocol's commit, arms.json with the pins above, env.json (claude version, node, date, wrapper), task files and labels of both sets as run (set d included, published after the measurement as the spec requires), runs redacted by `evidence-tools/redact.py`, grades of every vote, score output, per-run cost from `total_cost_usd` (list price estimate; the subscription is charged), SHA256SUMS, a reproduce note. Anything that went wrong is written in the summary.
 
 Call estimate: 312 runs + 13 packets x 3 votes = 39 grading calls = 351 `claude -p` calls for the main measurement; F6 about 15 more; F9 up to 78 runs + 26 grading calls. About 470 calls in total plus repeats.
+
+### Amendment to the round 13 final measurement protocol: F6 in two parts (2026-10-23, written after the first set-d runs started and before any run was graded or any score seen)
+
+Reason (owner message, from surviving-lines round 11): re-running a sampled cell once and requiring it to match the original fails for noise alone, because one agent run varies as much as the cell's three runs do. The F6 sentence of the frozen protocol is replaced by:
+- F6-grader. A seeded random 10 percent of the cells, taken with their original answers; fresh grader sessions (Opus, no memory of the first grading) re-grade those answers, all arms of the task graded together in one packet as originally. Pass: no sampled cell differs by more than one point from its graded score and the share of criteria with the same verdict is at least 90 percent. A failure sends the grading back for repair.
+- F6-runs. The same sampled cells are run once more on fresh fixtures and graded in the same way. Reported descriptively only: the count of re-runs whose score lies within the min-max of that cell's three runs. Not pass or fail.
+Nothing else in the protocol changes.
