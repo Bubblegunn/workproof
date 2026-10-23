@@ -150,11 +150,11 @@ test("session hook: pointer inside a git work tree, nothing outside", () => {
   assert.equal(outside.stdout, "");
 });
 
-// Round 13: limit 2100 for the one clause that points exports to `sessions --dir --since --until` and the kept rows (the hint still reads only the first 3000 bytes). Limit raised from 1700 to 2000 characters: restoring the user-named file exception (rule 4), the whitespace re-measure and raw-figure label (rule 6), and the delivered-only figure sentence keeps the always-loaded rules equal in meaning to SKILL.md.
-test("core-rules.md is short and lists R1 to R8", () => {
+// Round 15: limit 2950 (still under the 3000 bytes the hint reads) for the rules on others' claims and on review evidence, paid for partly by shorter wording elsewhere. Round 13: limit 2100 for the one clause that points exports to `sessions --dir --since --until` and the kept rows (the hint still reads only the first 3000 bytes). Limit raised from 1700 to 2000 characters: restoring the user-named file exception (rule 4), the whitespace re-measure and raw-figure label (rule 6), and the delivered-only figure sentence keeps the always-loaded rules equal in meaning to SKILL.md.
+test("core-rules.md is short and lists R1 to R9", () => {
   const text = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
-  assert.ok(text.length <= 2100, `${text.length} characters`);
-  for (let i = 1; i <= 8; i++) assert.match(text, new RegExp(`^${i}\\. `, "m"));
+  assert.ok(text.length <= 2950, `${text.length} characters`);
+  for (let i = 1; i <= 9; i++) assert.match(text, new RegExp(`^${i}\\. `, "m"));
 });
 
 test("core-rules.md carries each rule inside its numbered line", () => {
@@ -192,6 +192,16 @@ test("near-miss negatives: general git help, code review, commit messages and re
   assert.ok(phrasings.near_miss.length >= 15, `${phrasings.near_miss.length} near-miss phrasings`);
   const fp = phrasings.near_miss.filter((p) => matches(gitDir, p));
   assert.deepEqual(fp, []);
+});
+
+// Auditor, compliance, reviewer and approver wording is an evidence intent. The entries that name those roles are
+// read from the fixture, so the test follows the fixture and fails if a word is removed from the hook.
+test("audit and review-record phrasings (auditor, compliance, Reviewed-by, approver, second person's review) fire", () => {
+  const roles = /auditor|compliance (team|officer)|reviewed-by trailers?|second person/i;
+  const audit = phrasings.evidence_proof.filter((p) => roles.test(p));
+  assert.ok(audit.length >= 4, `${audit.length} audit phrasings in the fixture`);
+  const misses = audit.filter((p) => !matches(gitDir, p));
+  assert.deepEqual(misses, []);
 });
 
 test.after(() => {

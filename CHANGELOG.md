@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+**Round 15: general rules from the development diagnosis.** `references/core-rules.md` rule 7 (another person's claim: the identity they state, a same-name address is a separate unconfirmed person kept out of every figure, address kind without quoting it, ownership by surviving lines, "not verifiable here" kept apart from disproved and misleading), rule 9 (change-review evidence: one row per ordinary commit, every merge message read, merge-level approval labelled weaker) and a rule 5 sentence tying first/last/gap/month statements to a list whose rows equal the printed figure. `workproof figures` gains four rows (first and last authored commit date, active months, gaps over 30 days). The prompt hint also fires for an auditor or compliance team asking who reviewed or approved changes.
+
 **Round 12: `workproof figures`, a read-back, one copy of the rules.** `workproof figures` is a read-only command that prints
 labelled figures for a document about one person's work (`label | value | filter`, at most about 60 lines, no verdict): authored
 commits in the window by author date with the committer date shown, identity candidates (printed, never merged), merges, commits

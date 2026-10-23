@@ -421,3 +421,49 @@ test("table read-back: unrelated numeric columns, two-noun headers, escaped pipe
   const read = back.hits.map((h) => `${h.integer} ${h.noun}`);
   assert.deepEqual(read.sort(), ["15 lines", "7 commits"].sort(), "Rank, the two-noun header and the fenced table are not read; an escaped pipe keeps the column");
 });
+
+/** A small history with known local dates: one commit at 22:30 on the last day of a month in a negative offset. */
+async function buildDated(commits: { date: string; file: string }[]): Promise<string> {
+  const d = await mkdtemp(join(tmpdir(), "workproof-figures-dates-"));
+  const who = { name: "Pat Example", email: "pat@example.test" };
+  const env = (date: string) => ({ ...process.env, GIT_AUTHOR_NAME: who.name, GIT_AUTHOR_EMAIL: who.email, GIT_COMMITTER_NAME: who.name, GIT_COMMITTER_EMAIL: who.email, GIT_AUTHOR_DATE: date, GIT_COMMITTER_DATE: date });
+  execFileSync("git", ["init", "-q", "-b", "main"], { cwd: d, env: env("2025-01-01T00:00:00Z") });
+  for (const [i, c] of commits.entries()) {
+    await writeFile(join(d, c.file), `${i}\n`);
+    execFileSync("git", ["add", "."], { cwd: d, env: env(c.date) });
+    execFileSync("git", ["commit", "-q", "-m", `commit ${i}`], { cwd: d, env: env(c.date) });
+  }
+  return d;
+}
+
+test("figures: first, last, active months and gaps use the local calendar date of each author date", async () => {
+  const d = await buildDated([
+    { date: "2025-12-31T22:30:00-08:00", file: "a.txt" }, // 2026-01-01 in UTC; the local date is 2025-12-31
+    { date: "2026-01-30T12:00:00+00:00", file: "b.txt" }, // 30 days after 2025-12-31: not a gap over 30 days
+    { date: "2026-03-02T12:00:00+00:00", file: "c.txt" }, // 31 days after 2026-01-30: the one gap counted
+    { date: "2026-03-20T12:00:00+00:00", file: "e.txt" }, // 18 days: not counted
+  ]);
+  try {
+    const r = await computeFigures({ repo: d, authors: ["pat@example.test"], since: "2025-12-01", until: "2026-06-30", json: false });
+    assert.equal(value(r, "first authored commit date"), "2025-12-31");
+    assert.equal(value(r, "last authored commit date"), "2026-03-20");
+    assert.equal(value(r, "active months"), 3);
+    assert.equal(value(r, "gaps over 30 days"), 1);
+    const gaps = r.rows.find((x) => x.label === "gaps over 30 days")!;
+    assert.deepEqual(gaps.detail, ["from 2026-01-30 to 2026-03-02 (31 days)"]);
+    for (const label of ["first authored commit date", "last authored commit date", "active months", "gaps over 30 days"]) {
+      assert.match(r.rows.find((x) => x.label === label)!.filter, /author date|calendar date/, label);
+    }
+  } finally {
+    await rm(d, { recursive: true, force: true });
+  }
+});
+
+test("figures: a window with no authored commits gives 'none in the window' for the dates and zero for the counts", async () => {
+  const r = await computeFigures({ repo: dir, authors: ["sam@alpha.example"], since: "2031-01-01", until: "2031-12-31", json: false });
+  assert.equal(value(r, "authored non-merge commits"), 0);
+  assert.equal(value(r, "first authored commit date"), "none in the window");
+  assert.equal(value(r, "last authored commit date"), "none in the window");
+  assert.equal(value(r, "active months"), 0);
+  assert.equal(value(r, "gaps over 30 days"), 0);
+});

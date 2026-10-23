@@ -42,6 +42,7 @@ const RS = "\x1e";
 const US = "\x1f";
 const GS = "\x1d";
 const MAX_LINES = 60;
+const GAP_DAYS = 30;
 const MAX_DOC_BYTES = 1024 * 1024;
 const MAX_DOC_LINE = 2000;
 const LARGE_FILE_LINES = 40;
@@ -201,7 +202,7 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
     head = sha7((await git(["rev-parse", "HEAD"], cwd)).trim());
   } catch (err) {
     const reason = windowError || reasonOf(err);
-    for (const label of ["authored non-merge commits", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future"]) rows.push(notComputed(label, filter, reason));
+    for (const label of ["authored non-merge commits", "first authored commit date", "last authored commit date", "active months", "gaps over 30 days", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future"]) rows.push(notComputed(label, filter, reason));
     return result();
   }
   if (windowError) {
@@ -243,6 +244,20 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
 
   const mine = windowed.filter(isMine);
   idRow("authored non-merge commits", `${who}; ${filter}`, () => mine.length);
+
+  // Dates of the same commits. The local calendar date is day(authorLocal): the author date read in the commit's own offset.
+  const byTime = [...mine].sort((a, b) => a.author.getTime() - b.author.getTime());
+  const localDays = [...new Set(mine.map((c) => day(c.authorLocal)))].sort();
+  const dayMs = (d: string) => Date.parse(`${d}T00:00:00Z`);
+  const gaps = localDays
+    .slice(1)
+    .map((to, i) => ({ from: localDays[i]!, to, days: (dayMs(to) - dayMs(localDays[i]!)) / 86400000 }))
+    .filter((g) => g.days > GAP_DAYS);
+  const dateFilter = `${who}; local calendar date (the commit's own offset) of the author date, in the window; ${filter}`;
+  idRow("first authored commit date", `${dateFilter}; the earliest of those commits`, () => (mine.length ? day(byTime[0]!.authorLocal) : "none in the window"));
+  idRow("last authored commit date", `${dateFilter}; the latest of those commits`, () => (mine.length ? day(byTime[byTime.length - 1]!.authorLocal) : "none in the window"));
+  idRow("active months", `${who}; distinct local YYYY-MM of the author date of those commits, in the window; ${filter}`, () => new Set(mine.map((c) => day(c.authorLocal).slice(0, 7))).size);
+  idRow("gaps over 30 days", `${who}; gaps longer than ${GAP_DAYS} days between consecutive authored commit dates, days counted by calendar date, in the window; ${filter}`, () => gaps.length, () => [...gaps.slice(0, 3).map((g) => `from ${g.from} to ${g.to} (${g.days} days)`), ...(gaps.length > 3 ? [`(+${gaps.length - 3} more)`] : [])]);
 
   // Identity candidates: same rules as the report's split warning, plus trailers and committer. Printed, never merged.
   const splits = identity.emails.length ? possibleSplits(nonMerge.map((c) => ({ name: c.name, email: c.email })), identity) : [];
