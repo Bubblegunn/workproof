@@ -41,9 +41,12 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
                  It states no verdict and exits 0 whenever it ran; read-only
        workproof attest <report.json> [--local <ssh-key>]
        workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
-       workproof sessions --dir <folder>
+       workproof sessions --dir <folder> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
                  usage totals of a folder of session files the user supplied: sessions, unique assistant responses,
                  tokens by type and per model, tool calls; secrets and addresses are redacted
+                 --since and --until keep the sessions whose first timestamp falls on a local calendar date in the
+                 range (both inclusive) and add one row per session (at most 100): an 8-character id, first and last
+                 time, responses, tool calls and the last segment of the working directory
 
 Turn a git repository into a verifiable engineering report for one author, without showing code.
 

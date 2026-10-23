@@ -345,6 +345,11 @@ const NUM = "(\\d{1,3}(?:,\\d{3})+|\\d+)";
 // Bounded: at most two words between the number and the noun, each word at most 20 letters, and lines are cut to MAX_DOC_LINE first.
 // "N of M" and "N to M" / "N-M" keep both numbers. A filler word "of", "percent" or "per" means the number is not a count of the noun.
 const COUNT_RE = new RegExp(`(?<![\\w.\\-/:,])${NUM}(?:\\s+of\\s+${NUM}|\\s*(?:to|[-\\u2013])\\s*${NUM})?\\s+((?:[A-Za-z-]{1,20}\\s+){0,2}?)(${NOUN})\\b`, "gi");
+// A purely numeric table cell: digits with optional thousands commas.
+const BARE_NUMBER_RE = /^(?:\d{1,3}(?:,\d{3})+|\d+)$/;
+// The header cell of a table column names a counting noun when the noun appears as a whole word.
+const HEADER_NOUN_RE = new RegExp(`(?<![A-Za-z])(${NOUN})(?![A-Za-z])`, "i");
+const isTableSeparator = (s: string): boolean => /^\s*\|[\s|:-]*$/.test(s) && s.includes("---");
 const NOT_A_COUNT = /\b(?:of|percent|per|pct|out)\b/i;
 const EMAIL_RE = /[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){1,4}/g;
 const SHELL_RE = /^\s{0,8}(?:[$>]\s{0,2})?(?:npx|npm|pnpm|yarn|node|git|workproof|cd|curl|brew|pip3?|python3?|bash|sh|gh)\s+\S|`(?:npx|npm|git|workproof|node)\s[^`]{1,200}`/;
@@ -392,22 +397,50 @@ export async function readBack(file: string, rows: FigureRow[]): Promise<DocRead
   const emails = new Set<string>();
   const branches = new Set<string>();
   let cut = 0;
+  // A Markdown table: a header row followed by a `|---|` separator. A column whose header names a counting noun
+  // reads its purely numeric body cells as that noun. Columns are tracked by index, not by cell text.
+  let tableNouns: Map<number, string> | null = null;
+  const pushHit = (line: string, lineNo: number, integer: number, noun: string, at: number) => {
+    const key = `${lineNo - 1}:${integer}:${noun}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    hits.push({ line: lineNo, integer, noun, excerpt: data(line.slice(at, at + 100), 100), labels: labelsFor(integer, noun) });
+  };
   lines.forEach((full, i) => {
     if (full.length > MAX_DOC_LINE) cut++;
     const line = full.slice(0, MAX_DOC_LINE);
+    const isRow = line.trimStart().startsWith("|");
+    const isSeparator = isRow && isTableSeparator(line);
+    const nextLine = lines[i + 1]?.slice(0, MAX_DOC_LINE) ?? "";
+    if (!isRow) tableNouns = null;
+    else if (isSeparator) {
+      // the separator row carries no figures
+    } else if (isTableSeparator(nextLine)) {
+      tableNouns = new Map();
+      line.split("|").forEach((cell, k) => {
+        const found = HEADER_NOUN_RE.exec(cell);
+        if (found) tableNouns!.set(k, found[1]!.toLowerCase());
+      });
+    } else if (tableNouns !== null) {
+      line.split("|").forEach((cell, k) => {
+        const noun = tableNouns!.get(k);
+        if (!noun) return;
+        const value = cell.trim();
+        if (!BARE_NUMBER_RE.test(value)) return;
+        const digits = value.replace(/,/g, "");
+        // A bare run of 7 or more digits is an id or a SHA, not a count.
+        if (/^\d{7,}$/.test(digits)) return;
+        pushHit(line, i + 1, Number(digits), noun, 0);
+      });
+    }
     for (const m of line.matchAll(COUNT_RE)) {
       if (NOT_A_COUNT.test(m[4] ?? "")) continue;
       for (const g of [m[1], m[2], m[3]]) {
         if (g === undefined) continue;
         // A bare run of 7 or more digits is an id or a SHA, not a count.
         if (/^\d{7,}$/.test(g)) continue;
-        const integer = Number(g.replace(/,/g, ""));
-        const noun = m[5]!.toLowerCase();
-        const key = `${i}:${integer}:${noun}`;
-        if (seen.has(key)) continue;
-        seen.add(key);
         const at = Math.max(0, (m.index ?? 0) - 30);
-        hits.push({ line: i + 1, integer, noun, excerpt: data(line.slice(at, at + 100), 100), labels: labelsFor(integer, noun) });
+        pushHit(line, i + 1, Number(g.replace(/,/g, "")), m[5]!.toLowerCase(), at);
       }
     }
     const found = line.match(EMAIL_RE);

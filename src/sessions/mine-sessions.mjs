@@ -8,10 +8,12 @@
 //
 // Usage:
 //   node mine-sessions.mjs [--days 30] [--since YYYY-MM-DD] [--repo <substr>]
-//   node mine-sessions.mjs --dir <folder of exported session files>
+//   node mine-sessions.mjs --dir <folder of exported session files> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
 //
 // Prints the JSON summary to stdout and nothing else. The output carries no file
-// or directory paths, no user name, no prompt or message text and no session ids.
+// or directory paths, no user name, no prompt or message text and no full session ids.
+// The --dir output lists up to 100 sessions as rows: the first 8 characters of the id
+// and the last segment of the working directory.
 //
 // Adapted from skills/receipts/scripts/mine-transcripts.mjs in the receipts plugin
 // of github.com/anthropics/claude-plugins-official, licensed under the Apache
@@ -32,8 +34,8 @@
 //      described the removed output, or the receipts skill, were reworded.
 //   6. The script is now run through `workproof sessions` from the CLI package
 //      (src/cli.ts), not as a file inside the plugin's skill folder.
-//   7. Only --days, --since, --repo and --dir are accepted (--dir is handled by
-//      export-usage.mjs, original code of this package). Any other option, or a stray
+//   7. Only --days, --since, --repo and --dir are accepted; with --dir, only --since and
+//      --until as well (--dir is handled by export-usage.mjs, original code of this package). Any other option, or a stray
 //      argument, prints "mine-sessions: unknown option <name>" to stderr and exits 2
 //      before anything is read.
 // The counting logic is unchanged.
@@ -51,15 +53,28 @@ const OPTIONS = new Set(['--days', '--since', '--repo', '--dir']);
 // ~/.claude/projects, and prints usage totals (responses, tokens by type and model, tool calls).
 {
   const argv = process.argv.slice(2);
-  const at = argv.indexOf('--dir');
-  if (at >= 0) {
-    const others = argv.filter((a, i) => i !== at && i !== at + 1);
-    if (others.length) {
-      console.error(`mine-sessions: --dir takes no other option (${others[0]})`);
-      process.exit(2);
+  if (argv.includes('--dir')) {
+    // With --dir, only --dir, --since and --until are accepted, each once and each with a value.
+    const DIR_OPTIONS = new Set(['--dir', '--since', '--until']);
+    const given = {};
+    for (let i = 0; i < argv.length; i++) {
+      const a = argv[i];
+      if (!DIR_OPTIONS.has(a)) {
+        console.error(a.startsWith('-') ? `mine-sessions: --dir takes only --since and --until (unknown option ${a})` : `mine-sessions: unexpected argument ${a}`);
+        process.exit(2);
+      }
+      if (given[a] !== undefined) {
+        console.error(`mine-sessions: ${a} is given more than once`);
+        process.exit(2);
+      }
+      if (i + 1 >= argv.length) {
+        console.error(`mine-sessions: ${a} needs a value`);
+        process.exit(2);
+      }
+      given[a] = argv[++i];
     }
     const { runExport } = await import('./export-usage.mjs');
-    process.exit(runExport(argv[at + 1]));
+    process.exit(runExport(given['--dir'], { since: given['--since'], until: given['--until'] }));
   }
 }
 

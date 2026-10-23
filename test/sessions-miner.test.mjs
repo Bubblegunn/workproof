@@ -328,3 +328,166 @@ test("an unknown option is refused with exit 2 and mines nothing; the three allo
   const since = spawnSync(process.execPath, [cli, "sessions", "--since", "2000-01-01"], { cwd: work, env, encoding: "utf8" });
   assert.equal(since.status, 0, `exit ${since.status}: ${since.stderr}`);
 });
+
+// --- sessions --dir with --since / --until -----------------------------------
+// Three exported files. Files A and B both carry session S1, so B repeats a session. B also holds
+// S2, which starts the day before the window. C holds S3 on the last day of the window (inclusive),
+// S4 on the day after it, and S5 with no timestamp at all. C also holds one synthetic response.
+
+const local = (y, m, d, h = 0, min = 0) => new Date(y, m - 1, d, h, min).toISOString();
+const S1 = "7f3a9c1e-0001-4000-8000-000000000001";
+const S2 = "7f3a9c1e-0002-4000-8000-000000000002";
+const S3 = "9b2d4f6a-0003-4000-8000-000000000003";
+const S4 = "9b2d4f6a-0004-4000-8000-000000000004";
+const S5 = "9b2d4f6a-0005-4000-8000-000000000005";
+const usage = (input, output) => ({ input_tokens: input, output_tokens: output, cache_read_input_tokens: 0, cache_creation_input_tokens: 0 });
+const jsonl = (rows) => rows.map((r) => JSON.stringify(r)).join("\n") + "\n";
+const userRow = (sessionId, timestamp, cwd) => ({ type: "user", sessionId, timestamp, ...(cwd ? { cwd } : {}), message: { role: "user", content: "PROMPT-TEXT-NOT-OUTPUT" } });
+const reply = (sessionId, timestamp, id, model, u, toolId) => ({
+  type: "assistant",
+  sessionId,
+  timestamp,
+  message: { id, model, usage: u, content: toolId ? [{ type: "tool_use", id: toolId, name: "Edit", input: {} }] : [{ type: "text", text: "MESSAGE-TEXT-NOT-OUTPUT" }] },
+});
+
+function exportFixture() {
+  const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-export-"));
+  fs.writeFileSync(path.join(folder, "a.jsonl"), jsonl([userRow(S1, local(2026, 3, 1, 0, 5), "/home/dev/work/ledger-api"), reply(S1, local(2026, 3, 1, 0, 6), "msg-1", "claude-test-a", usage(10, 100), "tool-1")]));
+  fs.writeFileSync(path.join(folder, "b.jsonl"), jsonl([reply(S2, local(2026, 2, 28, 23, 59), "msg-3", "claude-test-b", usage(30, 300), "tool-3"), reply(S1, local(2026, 3, 5, 12, 0), "msg-2", "claude-test-a", usage(20, 200), "tool-2")]));
+  fs.writeFileSync(
+    path.join(folder, "c.jsonl"),
+    jsonl([
+      reply(S3, local(2026, 3, 31, 23, 30), "msg-4", "claude-test-a", usage(40, 400), "tool-4"),
+      reply(S3, local(2026, 3, 31, 23, 31), "msg-7", "<synthetic>", usage(0, 0), null),
+      reply(S4, local(2026, 4, 1, 0, 10), "msg-5", "claude-test-a", usage(50, 500), "tool-5"),
+      { type: "assistant", sessionId: S5, message: { id: "msg-6", model: "claude-test-b", usage: usage(60, 600), content: [] } },
+    ]),
+  );
+  return folder;
+}
+
+function runDir(folder, ...extra) {
+  return spawnSync(process.execPath, [cli, "sessions", "--dir", folder, ...extra], { encoding: "utf8", env: { ...process.env, WORKPROOF_HOME: home } });
+}
+
+test("sessions --dir --since/--until: exact counts and rows, boundary days inclusive, the rest left out", () => {
+  const folder = exportFixture();
+  try {
+    const run = runDir(folder, "--since", "2026-03-01", "--until", "2026-03-31");
+    assert.equal(run.status, 0, `exit ${run.status}: ${run.stderr}`);
+    const r = JSON.parse(run.stdout);
+    assert.deepEqual(r.window, { since: "2026-03-01", until: "2026-03-31" });
+    assert.equal(r.files, 3);
+    assert.equal(r.exportedFiles, 3);
+    assert.equal(r.filesRepeatingASession, 1, "file b repeats session S1 from file a");
+    assert.equal(r.sessions, 2, "S1 and S3: S2 starts before the window, S4 after it");
+    assert.equal(r.uniqueSessions, 2);
+    assert.equal(r.sessionsWithoutDate, 1, "S5 has no timestamp");
+    assert.equal(r.assistantResponses, 3, "msg-1, msg-2 and msg-4; msg-3, msg-5 and msg-6 are outside");
+    assert.deepEqual(r.excludedResponses, { syntheticOrZeroUsage: 1 });
+    assert.deepEqual(r.tokens, { input: 70, output: 700, cacheRead: 0, cacheCreation: 0, all: 770 });
+    assert.deepEqual(r.byModel, { "claude-test-a": { responses: 3, input: 70, output: 700, cacheRead: 0, cacheCreation: 0 } });
+    assert.deepEqual(r.toolCalls, { total: 3, byTool: { Edit: 3 } });
+    assert.deepEqual(r.sessionRows, [
+      { id: "7f3a9c1e", first: local(2026, 3, 1, 0, 5), last: local(2026, 3, 5, 12, 0), responses: 2, toolCalls: 2, folder: "ledger-api" },
+      { id: "9b2d4f6a", first: local(2026, 3, 31, 23, 30), last: local(2026, 3, 31, 23, 31), responses: 1, toolCalls: 1 },
+    ]);
+    assert.ok(r.notes.some((n) => n.startsWith("Window: sessions whose first timestamp falls on a local calendar date from 2026-03-01 to 2026-03-31, both included.")));
+    assert.ok(r.notes.some((n) => n.includes("sessionRows lists 2 of the 2 sessions in the window")));
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir without a window keeps today's keys and values, and adds the new keys", () => {
+  const folder = exportFixture();
+  try {
+    const run = runDir(folder);
+    assert.equal(run.status, 0, `exit ${run.status}: ${run.stderr}`);
+    const r = JSON.parse(run.stdout);
+    assert.equal(r.source, "export folder");
+    assert.equal(r.files, 3);
+    assert.equal(r.sessions, 5, "S1 to S5, the session with no timestamp included as today");
+    assert.equal(r.assistantResponses, 6);
+    assert.deepEqual(r.excludedResponses, { syntheticOrZeroUsage: 1 });
+    assert.deepEqual(r.tokens, { input: 210, output: 2100, cacheRead: 0, cacheCreation: 0, all: 2310 });
+    assert.deepEqual(r.byModel, {
+      "claude-test-a": { responses: 4, input: 120, output: 1200, cacheRead: 0, cacheCreation: 0 },
+      "claude-test-b": { responses: 2, input: 90, output: 900, cacheRead: 0, cacheCreation: 0 },
+    });
+    assert.deepEqual(r.toolCalls, { total: 5, byTool: { Edit: 5 } });
+    assert.deepEqual(r.notes, [
+      "One response per message id; a reply that was written to the file several times counts once, with its final token counts.",
+      "Synthetic responses and responses with zero usage are not counted.",
+      "Tool calls are counted once per tool-use id.",
+      "No co-authored commit count: this reads session files, not a git repository.",
+    ]);
+    assert.equal(r.exportedFiles, 3);
+    assert.equal(r.uniqueSessions, 5);
+    assert.equal(r.filesRepeatingASession, 1);
+    assert.equal(r.sessionsWithoutDate, 1);
+    assert.equal(r.window, undefined);
+    assert.equal(r.sessionRows.length, 4, "the session with no timestamp has no row");
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir: a bad date, a reversed window or a repeated option exits 2 and prints nothing", () => {
+  const folder = exportFixture();
+  try {
+    const cases = [
+      ["--since", "2026-02-30"],
+      ["--until", "2026-13-01"],
+      ["--since", "03/01/2026"],
+      ["--since", "2026-04-01", "--until", "2026-03-01"],
+      ["--since", "2026-03-01", "--since", "2026-03-02"],
+      ["--since"],
+      ["--days", "3"],
+    ];
+    for (const extra of cases) {
+      const run = runDir(folder, ...extra);
+      assert.equal(run.status, 2, `${extra.join(" ")}: exit ${run.status}`);
+      assert.equal(run.stdout, "", `${extra.join(" ")}: printed to stdout`);
+      assert.match(run.stderr, /^mine-sessions: /, extra.join(" "));
+    }
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir output names no full working directory, and no full session id", () => {
+  const folder = exportFixture();
+  try {
+    for (const extra of [[], ["--since", "2026-03-01", "--until", "2026-03-31"]]) {
+      const run = runDir(folder, ...extra);
+      assert.equal(run.status, 0, run.stderr);
+      assert.ok(!run.stdout.includes("/home/dev"), "a full working-directory path leaked");
+      assert.ok(!run.stdout.includes(folder), "the export folder path leaked");
+      assert.ok(!run.stdout.includes(S1), "a full session id leaked");
+      assert.ok(!run.stdout.includes("PROMPT-TEXT-NOT-OUTPUT") && !run.stdout.includes("MESSAGE-TEXT-NOT-OUTPUT"), "prompt or message text leaked");
+    }
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir --since/--until: at most 100 session rows, the count still exact", () => {
+  const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-export-many-"));
+  try {
+    const rows = [];
+    for (let i = 0; i < 101; i++) {
+      const id = `aaaaaaaa-${String(i).padStart(4, "0")}-4000-8000-000000000000`;
+      rows.push(reply(id, local(2026, 3, 2, 8, i % 60), `many-${i}`, "claude-test-a", usage(1, 1), null));
+    }
+    fs.writeFileSync(path.join(folder, "many.jsonl"), jsonl(rows));
+    const run = runDir(folder, "--since", "2026-03-01", "--until", "2026-03-31");
+    assert.equal(run.status, 0, run.stderr);
+    const r = JSON.parse(run.stdout);
+    assert.equal(r.uniqueSessions, 101);
+    assert.equal(r.sessionRows.length, 100);
+    assert.ok(r.notes.some((n) => n.includes("sessionRows lists 100 of the 101 sessions in the window")));
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});

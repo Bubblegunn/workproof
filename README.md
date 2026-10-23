@@ -336,7 +336,7 @@ workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identiti
 workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]
 workproof attest <report.json> [--local <ssh-key>]
 workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
-workproof sessions --dir <folder>
+workproof sessions --dir <folder> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
 
 --author <email|name>   identity to report on (repeatable; default: git config user.email)
 --no-merge-identities   count only the configured address and addresses with the same name (default: merge addresses that look like yours, and say which)

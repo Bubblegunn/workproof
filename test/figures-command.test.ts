@@ -199,6 +199,35 @@ test("figures --doc: integers next to counting nouns are matched to labels, or r
   assert.doesNotMatch(text.split("read-back of")[1]!, VERDICT_WORDS);
 });
 
+test("figures --doc: a numeric cell under a counting-noun header is read as that noun, a column without one is not", async () => {
+  const doc = join(plain, "table.md");
+  const rows = [
+    "# Months",
+    "",
+    "| Month | Commits | Notes |",
+    "|---|---|---|",
+    "| January | 7 | first |",
+    "| February | 12 | second |",
+    "",
+    "| Month | Rating |",
+    "|---|---|",
+    "| March | 7 |",
+    "| April | 1,200 |",
+    "",
+  ];
+  await writeFile(doc, rows.join("\n"));
+  const r = await figures();
+  const back = await readBack(doc, r.rows);
+  const hit = (line: number, n: number) => back.hits.find((h) => h.line === line && h.integer === n);
+  assert.equal(hit(5, 7)?.noun, "commits");
+  assert.equal(hit(6, 12)?.noun, "commits");
+  assert.deepEqual(hit(5, 7)?.labels, ["authored non-merge commits"]);
+  assert.deepEqual(hit(6, 12)?.labels, []);
+  assert.equal(hit(5, 7)?.excerpt, "| January | 7 | first |");
+  assert.equal(back.hits.some((h) => h.line >= 8), false, "a column whose header names no counting noun is not read");
+  assert.equal(back.hits.length, 2);
+});
+
 test("figures --doc: a document with no counted numbers says so, and an unreadable path is not computed", async () => {
   const doc = join(plain, "plain.md");
   await writeFile(doc, "A short note about the project.\nVersion 2.1 shipped.\n");
