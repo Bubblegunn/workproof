@@ -7,9 +7,10 @@ export PATH="/Users/efe/claude-kredi-runs/sub-shim:$(echo "$PATH" | tr ':' '\n' 
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
 export HOME_REAL=${HOME_REAL:-$HOME}
 if [ "$SET" = d ]; then export H2H_TASKS=$W/d-src/bench/head-to-head/heldout-d/tasks.json; else unset H2H_TASKS; fi
-for v in 1 2 3; do
+VOTES=${VOTES:-"1 2 3 4 5"}
+for v in $VOTES; do
   python3 "$H2H/assemble.py" "$W/runs" "$W/grades/v$v" "$SP-$v" "$W/fixtures" >/dev/null || exit 1
-  ( "$H2H/grade.sh" "$W/grades/v$v" ) &
+  ( "$HERE/grade-any.sh" "$W/grades/v$v" ) &
 done
 wait
-for v in 1 2 3; do for f in "$W"/grades/v$v/*-grade.err; do [ -s "$f" ] && { echo "grader error in $f"; head -c 300 "$f"; }; done; done
+for v in $VOTES; do for f in "$W"/grades/v$v/*-grade.err; do [ -s "$f" ] && { echo "grader error in $f"; head -c 300 "$f"; }; done; done
