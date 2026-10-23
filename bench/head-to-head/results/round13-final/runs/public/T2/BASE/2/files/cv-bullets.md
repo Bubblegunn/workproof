@@ -1,0 +1,4 @@
+- Co-maintained `co`, a widely used open-source generator-based async control-flow library for Node.js and browsers, contributing 76 commits (Nov 2013 – Aug 2015) and shipping releases from 4.0.2 through 4.6.0.
+- Fixed correctness and robustness issues in the core runtime, including a memory leak, and added support for plain functions that throw, keeping the library stable for downstream users.
+- Reviewed and merged community pull requests, such as browser build support, `co(gen, ...args)` argument passing, and generator-function detection fixes, and kept the changelog and docs current.
+- Kept the project compatible with a fast-moving ecosystem by extending CI to io.js and Node 0.12 and removing an unused dependency to slim the package.

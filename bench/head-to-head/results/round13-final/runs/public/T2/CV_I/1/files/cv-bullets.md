@@ -1,0 +1,4 @@
+- Reworked co, a generator-based async control-flow library for Node.js and browsers, around native promises for the v4.0.0 release. `co()` now returns a promise, and `co.wrap()` converts generator functions into promise-returning functions.
+- Added yieldable object support so one `yield` can run several async operations in parallel, and later preserved key ordering in the results and improved the error message raised when a non-yieldable value is yielded.
+- Fixed "Generator is already running" errors, callback handling bugs, and regular functions that throw, and added regression tests for each case.
+- Maintained the project from 3.0.1 to 4.6.0 (72 commits, Nov 2013 to Jul 2015): added test coverage reporting, set up Travis CI including io.js, replaced Q with Bluebird and later with native promises, removed unused dependencies, and merged community pull requests.

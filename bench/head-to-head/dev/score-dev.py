@@ -68,7 +68,7 @@ for _ in range(boot):
     diffs.append(t_o - max(t_b.values()))
 diffs.sort()
 lo, hi = diffs[int(0.025 * boot)], diffs[int(0.975 * boot) - 1]
-print(f"bootstrap ({boot} resamples, seed {seed}) 95% interval of OURS minus best other arm: [{lo:.2f}, {hi:.2f}]")
+print(f"bootstrap ({boot} resamples, seed {seed}) 95% interval of OURS minus best other arm: [{lo:.4f}, {hi:.4f}]")
 over = [(t, d) for t, d in behind if d > 0.34]
 print("clear lead (interval lower bound > 0, and OURS trails the best other arm by more than 0.34 on at most one task):",
       lo > 0 and len(over) <= 1)

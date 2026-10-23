@@ -1,0 +1,1880 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "We're hiring, and a candidate, Priya Nair, sent us this repo export as proof that she designed and wrote the symlink loop detection module (src/loops.rs) at her last job in 2024. I'm on the hiring panel and I don't read Rust. Can you check whether the git history actually supports that and write your findings to review-notes.md, including who really wrote the code?"
+Ground truth: src/loops.rs lines at HEAD: 69
+blame -w -M -C (conventional truth): {'Sam Okafor': 57, 'Priya Nair': 12}
+blame plain (misleading): {'Sam Okafor': 12, 'Priya Nair': 57}
+first commit of src/loopdetect.rs (original creation): 59fe256 Sam Okafor 2024-02-12T10:00:00Z Add loop detection for symlink cycles
+candidate commits:
+  6fa64e8 author 2024-05-03T09:00:00+05:30 committer 2024-05-03T09:00:00+05:30 | Move loop detection into loops module | raw: 0	0	src/{loopdetect.rs => loops.rs} | ignoring whitespace: 0	0	src/{loopdetect.rs => loops.rs}
+  f2cc867 author 2024-05-03T11:30:00+05:30 committer 2024-05-03T11:30:00+05:30 | Rewrite loop detection module | raw: 45	45	src/loops.rs | ignoring whitespace: NO CHANGES
+  96cdd00 author 2024-05-06T10:00:00+05:30 committer 2024-05-06T10:00:00+05:30 | Add max-depth guard to loop check | raw: 12	1	src/loops.rs | ignoring whitespace: 12	1	src/loops.rs
+  0d899e2 author 2024-05-08T10:00:00+05:30 committer 2024-05-08T10:00:00+05:30 | Docs for loops module | raw: 20	0	docs/loops.md | ignoring whitespace: 20	0	docs/loops.md
+  c155069 author 2023-11-02T12:00:00+05:30 committer 2024-05-09T10:00:00+05:30 | Initial loop detection prototype | raw: 10	0	notes/prototype.md | ignoring whitespace: 10	0	notes/prototype.md
+backdated commits (author date earlier than Sam's first commit 2024-02-12T10:00:00Z ): [('c155069', '2023-11-02T12:00:00+05:30')]
+candidate email domain: gmail.example (personal, not an employer domain); Sam uses brightlabs.example
+Priya genuine additions: depth_guard (about 12-13 lines in loops.rs; diff shows +12 -1), docs/loops.md (20 lines), plus rename and re-indent
+Sam additions after the move: permission-error handling (8 lines, 2024-05-20)
+HEAD 2af2d0a
+ Each fixture HDn is built by dn/build-fixture.sh <out>: it clones a public GitHub repository at a pinned commit, removes origin, and adds synthetic commits/files with fixed identities and dates. Exact figures are computed by dn/truth.py (python3 -I truth.py <out-dir>) and saved in dn/truth.txt and in each task's truth field.
+C1 File `review-notes.md` exists and states plainly that the history does NOT support "designed and wrote src/loops.rs": Sam Okafor (sam.okafor@brightlabs.example) created the loop-detection code (first commit 2024-02-12, as src/loopdetect.rs). FAIL if the file is missing, if it endorses the claim, or if it never names Sam Okafor as the original author.
+C2 It explains that Priya Nair's commit titled "Rewrite loop detection module" (f2cc867) and the preceding move commit changed no logic (file rename and tab-to-space re-indentation only). FAIL if the notes describe that commit as a real rewrite, or if they use plain `git blame` percentages (Priya ≈ 57 of 69 lines) as evidence of her authorship.
+C3 Authorship share of the current src/loops.rs is given or clearly implied as: Sam about 57 of 69 lines (≈ 82%, accept 55–58), Priya about 12–13 lines (≈ 18%). Priya's genuine contributions are acknowledged (depth guard of about 12 lines, docs/loops.md of 20 lines). FAIL if Priya is credited with the majority of the file, or if her real contributions are ignored (unfair dismissal).
+C4 It flags the backdated commit "Initial loop detection prototype" (author date 2023-11-02, committed 2024-05-09, earlier than Sam's first 2024-02-12 commit) as a date inconsistency that needs asking about. FAIL if absent, or if the notes treat that 2023 date as evidence she wrote the module first.
+C5 It is calibrated and useful to a non-Rust reader: says git names/dates can be edited so this is not proof of fraud or of employment, notes the candidate email is a personal address, and suggests a concrete follow-up (ask her to explain her role; ask for the original upstream repo or a reference; ask her to walk through the design). FAIL if it accuses her of fraud/lying as established fact, or gives no follow-up and no caveat on what git can prove.
+
+Reply with ONLY a JSON object: {"A": {"1": {"C1": [true|false, "one-line reason"], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author %ad | committer %cn <%ce> | commit %cd | %s' --date=iso --stat; echo ---; git log --format='%h %an' -- src/loops.rs; echo; ls; git shortlog -sne --all
+Bash: git log --all --format='%h | %an | %ad | %s' --date=short --follow -- src/loops.rs | cat; echo ---; git shortlog -sn --all; echo ---; git log --all --oneline | wc -l; git log --reverse --format='%h | %an | %ad | %s' --date=short | head -30
+Bash: git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso | grep -iE 'okafor|nair|brightlabs'; echo; git show 59fe256 --stat --format='%h %an %ad%n%B' | head -20; echo ====; git show f2cc867 -w --stat --format='%h %an%n%B'; git show f2cc867 -w | head -80
+Bash: git show 96cdd00 --format='%h %an%n%B' | head -60; echo ====; git show 2af2d0a --format='%h %an%n%B'; echo ====; git show c155069 --format='%h %an%n%B' | head -30; git show 0d899e2 --format='%h %an' | head -40; git show b224c6e --stat --format='%h %an %s'
+Bash: git show f2cc867 -w --format='%h %an%n%B' | head -60; echo "#### orig"; git show 59fe256:src/loopdetect.rs | head -70; echo "#### sam tests"; git show b224c6e --stat --format='%h %an %s'; echo "#### 2af"; git show 2af2d0a --format='%h %an' ; echo "#### c155"; 
+Bash: git blame -w -C -M --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c; echo; git blame -w src/loops.rs | awk '{print $1}' | sort | uniq -c; git diff --stat -w 6fa64e8 f2cc867; git show f2cc867 -w | wc -l; git show 6fa64e8 --format='%h %an %cn'|he
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV_I-1/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. I wrote the findings to `review-notes.md`.
+
+- **Who created the module:** Sam Okafor, on 2024-02-12. They also wrote its tests on 2024-02-20.
+- **Priya's commits:**
+  - She renamed the file.
+  - Her "Rewrite loop detection module" commit only changed tabs to spaces. It is empty once whitespace is ignored.
+  - She added 12 depth-guard lines and the docs.
+- **Current file:** Of the 69 lines in `src/loops.rs`, Sam wrote 57 (about 83%) and Priya wrote 12 (about 17%). A plain `git blame` would credit Priya with most of it because of the reindent commit, so I ignored whitespace changes.
+- **Suspicious commit:** "Initial loop detection prototype" has an author date of 2023-11-02, before Sam's first commit. Its commit date is 2024-05-09, after her other work, and it only adds a 10-line placeholder notes file with no code. Author dates are easy to set, so it proves nothing, but it's worth asking her about.
+- **What the notes can't settle:**
+  - A git export can be rewritten, so this shows the export contradicts her claim, not that the export is authentic.
+  - "Contributed to and maintained" would be fair. "Designed and wrote" is not.
+  - The module is only struct definitions, so I can't judge design quality from it.
+
+The notes end with follow-ups: have a technical panelist ask her to explain the design, ask about the prototype commit's date, and contact Sam as a reference.
+
+The cv-builder skills are for writing and editing resumes, so I didn't use them.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on `src/loops.rs`
+
+**Claim:** Priya designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support this claim as stated.** Sam Okafor created the module and wrote most of its current content. Priya's contributions are real but smaller: a file move, a whitespace-only "rewrite", a small addition, and docs.
+
+## Who wrote what
+
+| Date | Commit | Author | What it did |
+|---|---|---|---|
+| 2024-02-12 | `59fe256` Add loop detection for symlink cycles | **Sam Okafor** | Created the module (as `src/loopdetect.rs`, 52 lines). This is the original design and code. |
+| 2024-02-20 | `b224c6e` Add loopdetect tests | **Sam Okafor** | Added the tests (30 lines). |
+| 2024-05-03 | `6fa64e8` Move loop detection into loops module | Priya Nair | Renamed `loopdetect.rs` to `loops.rs`. No content change. |
+| 2024-05-03 | `f2cc867` "Rewrite loop detection module" | Priya Nair | **Not a rewrite.** The diff is 45 lines in, 45 lines out. It is empty when whitespace is ignored (`git show -w`). It only converted tab indentation to spaces. |
+| 2024-05-06 | `96cdd00` Add max-depth guard | Priya Nair | A real change. She added 12 new `depth_guard_*` fields (+12/-1). |
+| 2024-05-08 | `0d899e2` Docs for loops module | Priya Nair | Added `docs/loops.md`. |
+| 2024-05-09 (commit date) | `c155069` Initial loop detection prototype | Priya Nair | Adds only `notes/prototype.md`, which is 10 placeholder lines. It contains no code. |
+| 2024-05-20 | `2af2d0a` Handle permission errors | Sam Okafor | Added 7 `perm_err_*` fields (+7/-1). |
+
+## Line-level attribution of the current `src/loops.rs`
+
+I ran `git blame` with whitespace changes ignored, so the reindent commit doesn't take credit for Sam's lines. Of the 69 lines in the file:
+
+- **Sam Okafor: 57 lines.** That is 50 from the original commit and 7 from the permission-error fix. It's about 83%.
+- **Priya Nair: 12 lines.** All are the depth-guard fields. It's about 17%.
+
+Without `-w`, a plain `git blame` would credit Priya with most of the file, because of the reindent commit. That would be misleading.
+
+## Red flag: the "prototype" commit
+
+Commit `c155069` has an **author date of 2023-11-02**. That is about 3 months before Sam's first commit. Its **commit date is 2024-05-09**, after Priya's other work. Several things count against it as evidence of earlier work:
+
+- Author dates are set by the committer and are trivial to change, so the date proves nothing on its own.
+- The commit sits at the tip of the history, after her May 2024 commits. It was not made in November 2023.
+- It contains only a placeholder notes file, with no code.
+
+It is the only item that could be read as "Priya started this first", and it doesn't back that up. I can't say whether the date was set on purpose. It should be asked about.
+
+## Other observations
+
+- **Different identities.** Sam's commits use a company-style address (`@brightlabs.example`). Priya's use a personal Gmail-style address. I found nothing tying her to that employer in this repo, so it also doesn't confirm she worked there.
+- **Scope of the file.** Everything in the module is a struct definition (named fields), with no visible algorithm for detecting cycles. The commit messages describe more than the code shows, and I can't judge the design quality from this alone.
+- **Other history.** The repo also holds the history of a larger open-source project (about 196 commits, mostly by Andrew Gallant). The loop-detection commits are 8 on top of that. The 8 are the only ones that matter here.
+
+## Limits of this check
+
+- Git history can be rewritten, and an export is not an audited record. What I can say is that **this export contradicts her claim.** I can't prove the export is authentic.
+- This does not show she did nothing. She did the module move, the depth guard, and the docs. "Contributed to and maintained" would be defensible. "Designed and wrote" is not.
+- Real collaboration can leave a gap between commit authorship and who did the work, for example pair programming or one person committing for another. Neither fits the evidence here, but the candidate should have the chance to explain.
+
+## Suggested follow-ups
+
+1. Ask Priya to walk through the cycle-detection design, including why a depth guard was needed and what Sam's original approach was. Someone technical on the panel can judge the answers.
+2. Ask about commit `c155069` and its November 2023 author date. Ask for any earlier prototype code.
+3. Ask whether Sam Okafor can be contacted as a reference. Check with her stated employer, rather than relying on the export.
+4. Treat the "designed and wrote" claim as unverified until those answers come back.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | committer %cn <%ce> %cd | %s' --date=iso --stat; echo ---; git shortlog -sne --all; echo ---; git branch -a; git tag; ls -la; ls src
+Bash: git blame -w -C -C --line-porcelain src/loops.rs | grep -E '^(author |author-mail |author-time )' | paste - - - | sort | uniq -c | sort -rn | head -20
+Bash: git log --format='%h | %an | %ad | committer %cd | %s' --date=short --follow -- src/loops.rs | cat; echo ---; git log --reverse --format='%h | %an <%ae> | %ad | %cd | %s' --date=short | cat; echo; git shortlog -sne --all
+Bash: cat notes/prototype.md; echo ----; head -30 docs/loops.md; echo ----; git show f2cc867 --stat --format=%B -w --ignore-blank-lines | head -5; git diff -w --stat f2cc867^ f2cc867; git log --all --oneline | wc -l
+Bash: git diff -w --stat f2cc867^ f2cc867 | wc -l; git diff --stat f2cc867^ f2cc867; git show f2cc867 | head -30; echo ======; git show 96cdd00 -w; echo =====; git show 2af2d0a; echo ====; git show 59fe256 --stat --format='%an %ad'; git show b224c6e --stat --format=
+Bash: git show 96cdd00 -w | tail -30; echo "-----2af2d0a"; git show 2af2d0a | tail -25; echo "-----"; git show 59fe256 --stat --format='%an %ad %s'; git show b224c6e --stat --format='%an %ad %s'; git show c155069 --stat --format='author %an %ad / commit %cd'; git sh
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV_I-2/fx/review-notes.md
+Bash: git branch -a; git tag | head; wc -l src/loops.rs; git blame --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c
+Edit: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV_I-2/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim that she designed and wrote `src/loops.rs`. I wrote the findings to `review-notes.md`.
+
+- **Who wrote it:** Sam Okafor created the module on 2024-02-12 and added its tests on 2024-02-20. Ignoring whitespace changes, 57 of the file's 69 lines are Sam's. Sam also fixed permission-error handling on 2024-05-20.
+- **What Priya did:** In May 2024 she renamed the file, added a 12-line max-depth guard, and wrote the docs. The depth guard is her one real code contribution.
+- **The "rewrite" changed nothing:** Her commit titled "Rewrite loop detection module" only converted tabs to spaces. The diff is empty once whitespace is ignored. A plain `git blame` credits her with 57 lines and Sam with 12 because of that reformat, so the file looks like hers at a glance.
+- **The backdated commit:** Her "Initial loop detection prototype" commit claims an author date of 2023-11-02. It was actually committed on 2024-05-09, after the module was already written. It contains only a 10-line placeholder notes file and no code, so I wouldn't treat it as evidence that she had the idea first.
+
+Caveats:
+- This is one export that Priya supplied. Git history can be rewritten, and author names and dates are self-reported.
+- Git shows who wrote the code, not who talked through the design.
+- Her commits use a personal email address, not a company one like Sam's. That is odd but not proof of anything.
+
+My suggested next steps are to ask Priya what she contributed, ask her to explain the backdated commit, and confirm with Sam Okafor or the former employer, with her permission. "Extended and documented" would fit the evidence better than "designed and wrote".
+
+I didn't use the cv-builder skills. They draft and review resumes, and this was an authorship check.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on `src/loops.rs`
+
+**Claim:** Priya designed and wrote the symlink loop detection module (`src/loops.rs`) in 2024.
+
+**Verdict:** The git history does not support that claim. Sam Okafor created the module and wrote most of what is in it. Priya's commits are a rename, a whitespace-only reformat, a small addition, and docs.
+
+## Who wrote what
+
+| Date | Commit | Author | What it did |
+|---|---|---|---|
+| 2024-02-12 | `59fe256` | **Sam Okafor** | Created the loop detection module (`src/loopdetect.rs`, 52 lines). This is the original design and code. |
+| 2024-02-20 | `b224c6e` | **Sam Okafor** | Added the tests (30 lines). |
+| 2024-05-03 | `6fa64e8` | Priya Nair | Renamed `loopdetect.rs` to `loops.rs`. 0 lines changed. |
+| 2024-05-03 | `f2cc867` | Priya Nair | Titled "Rewrite loop detection module". Whitespace only (details below). |
+| 2024-05-06 | `96cdd00` | Priya Nair | Added a max-depth guard (+12 lines). This is her one real code contribution. |
+| 2024-05-08 | `0d899e2` | Priya Nair | Added documentation (`docs/loops.md`). |
+| 2024-05-09 | `c155069` | Priya Nair | Added `notes/prototype.md`, a 10-line placeholder. See the date problem below. |
+| 2024-05-20 | `2af2d0a` | **Sam Okafor** | Added permission-error handling (+7 lines). |
+
+Commits before February 2024 are the public upstream `walkdir` library, written by Andrew Gallant and others. They are not related to this module.
+
+## Findings
+
+1. **The "rewrite" changed no code.** Commit `f2cc867` shows 45 lines added and 45 removed. When whitespace is ignored (`git diff -w`), the difference is empty. The change is tabs converted to spaces, so it is a reformat. The commit message overstates it.
+2. **Line-level attribution favors Sam.** I ran `git blame` ignoring whitespace changes and copied or moved lines. The current 69 lines of `loops.rs` come out as:
+   - Sam Okafor: 57 lines (50 from the original February commit, 7 from the May permission-error fix).
+   - Priya Nair: 12 lines, all from the max-depth guard.
+   - A plain `git blame` (no whitespace handling) credits Priya with 57 lines and Sam with 12, the reverse of the real picture. Her reformat took over the lines Sam wrote. That is probably why she looks like the main author on a casual look.
+3. **Her real contribution is small and later.** She added a depth guard, docs, and a rename. That is a legitimate contribution, but it is maintenance work on code Sam designed.
+4. **The prototype commit has a backdated author date.** `c155069` ("Initial loop detection prototype") carries an author date of **2023-11-02**. The commit date is **2024-05-09**, after all her other work. It sits in the history after the module was already written. This is the only evidence in the repo that she had the idea first. It can't be trusted:
+   - The date can be set to anything with `git commit --date`, and a gap of about six months between author date and commit date is unusual.
+   - It touches only a notes file, with ten lines reading "proto line 1" through "proto line 10". It has no code and no design content.
+   - It predates Sam's February 2024 commit only by the date it claims.
+5. **No other evidence of her authorship.** There are no other branches or tags, and no earlier code by her. There are 3 commits by Sam and 5 by Priya in the export, all in this module's area.
+
+## Caveats
+
+- This is a single repo export she supplied. It could have been edited, and git history can be rewritten. The backdated commit shows the dates can't be fully trusted.
+- Git shows who committed, not who designed. Priya could have discussed or reviewed the design with Sam. The history gives no sign of that.
+- The author name and email are self-reported. Sam's address (`brightlabs.example`) looks like a company account. Priya's is a personal one (`gmail.example`), including for her May 2024 commits, which is unusual if this was her employer's repo.
+
+## Suggested next steps
+
+- Ask Priya directly what she contributed and how, and mention the depth guard, docs, and rename.
+- Contact the former employer or Sam Okafor, with her permission, to confirm who designed the module.
+- Ask her to explain the backdated prototype commit.
+- Avoid repeating "designed and wrote" in her materials unless she can back it up. "Extended and documented" fits the evidence.
+
+## Method
+
+`git log` (author and committer dates, with rename tracking), `git blame -w -C -C` on `src/loops.rs`, and `git diff -w` on the rewrite commit. The cv-builder skills were not used, because they draft and review resumes and do not check authorship.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h | %an <%ae> | author %ad | committer %cn <%ce> | commit %cd | %s' --date=iso --stat; echo ---; git branch -a; git tag; ls -R | head -50
+Bash: git shortlog -sne --all; echo ---; git blame -e --date=short src/loops.rs 2>&1 | head -150
+Bash: git log --follow --format='%h | %an | author %ad | commit %cd | %s' --date=iso --stat -- src/loops.rs src/loopdetect.rs; echo ---; git log --format='%h %an %ad %s' --date=short -- src/loopdetect.rs src/loops.rs docs/loops.md notes/prototype.md tests; echo; git
+Bash: git show c155069 --format='%h %an author=%ad commit=%cd%n%s%n%b'; git show 0d899e2 --format='%h %s' | head -40; git show f2cc867 --format='%h %s' -w --stat | head; git diff 6fa64e8 f2cc867 -w --stat
+Bash: git show 59fe256:src/loopdetect.rs | head -60; echo ----; git diff 6fa64e8 f2cc867 | head -40; echo; git diff 6fa64e8 f2cc867 -w --ignore-all-space --stat; git show 96cdd00 | head -40; git show 2af2d0a | head -30; git cat-file -p c155069 | head -8; git log --a
+Bash: git blame -e --line-porcelain src/loops.rs | grep '^author-mail' | sort | uniq -c; git log -1 --format=%H 59fe256 >/dev/null; git ls-tree -r HEAD --name-only | grep -i loop; git diff 6fa64e8 f2cc867 -w | wc -l
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV_I-3/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. Sam Okafor created the module, and Priya only extended it. I've written the findings to `review-notes.md`. I didn't use the cv-builder skills, since they're for resume work and this was a history check.
+
+- **Original author:** Sam Okafor (a company email address) created the file on 2024-02-12, as `loopdetect.rs`. Sam also wrote all of its tests on 2024-02-20.
+- **The "Rewrite" commit:** Priya's commit titled "Rewrite loop detection module" (`f2cc867`) changes 45 lines, but they are only tabs turned into spaces. With whitespace ignored, there is no difference. It makes her look like the main author in `git blame` (57 of 69 lines), but it changed no logic.
+- **Her real contributions:**
+  - She renamed the file to `loops.rs`.
+  - She added a roughly 12-line max-depth guard.
+  - She added the docs.
+  - Sam made a later change on 2024-05-20, so she wasn't the last to touch the file either.
+- **The "prototype" commit:** It's dated November 2023, but it was actually committed in May 2024, after Sam's work existed. It contains no code, only a 10-line placeholder notes file. Git author dates are easy to set, so I wouldn't rely on that date as proof of earlier design work.
+- **Employment:** Her commits use a personal-style email and Sam's use the company domain. That could be innocent, but the repo doesn't show she was on that team.
+
+These are limits on what I could tell. The export itself could have been edited, I can't see any design work that never reached a commit, and I read the diffs but didn't compile or run the code.
+
+A fairer description of her work would be "extended and documented the module, and renamed it." The notes end with questions you could put to Priya and a suggestion to check with her reference.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on `src/loops.rs`
+
+**Claim:** Priya designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support "designed and wrote". It supports "modified and extended code that Sam Okafor created."** The repo holds 196 commits, and most are unrelated upstream history. Only 8 commits touch loop detection. All findings below come from those commits.
+
+## Who did what (loop detection commits, oldest first)
+
+| Commit | Author | Date (author) | What it did |
+|---|---|---|---|
+| `59fe256` | **Sam Okafor** (brightlabs.example) | 2024-02-12 | **Created the module**, as `src/loopdetect.rs`: "Add loop detection for symlink cycles" |
+| `b224c6e` | **Sam Okafor** | 2024-02-20 | Added all the tests (`loopdetect_tests.rs`) |
+| `6fa64e8` | Priya Nair (gmail.example) | 2024-05-03 | Renamed `loopdetect.rs` to `loops.rs`. No content change (0 lines). |
+| `f2cc867` | Priya Nair | 2024-05-03 | Titled "Rewrite loop detection module". **It is not a rewrite.** See below. |
+| `96cdd00` | Priya Nair | 2024-05-06 | Added about 12 lines for a "max-depth guard" |
+| `0d899e2` | Priya Nair | 2024-05-08 | Added `docs/loops.md` (documentation) |
+| `c155069` | Priya Nair | 2023-11-02 (backdated) | "Initial loop detection prototype". Adds only `notes/prototype.md`. See below. |
+| `2af2d0a` | **Sam Okafor** | 2024-05-20 | Added permission-error handling |
+
+## Key findings
+
+1. **Sam Okafor is the original author.** Sam created the file in February 2024, three months before Priya's first commit touching it, and wrote its tests.
+2. **The "Rewrite" commit is only a whitespace change.** `f2cc867` shows 45 lines added and 45 removed. With whitespace ignored, the difference is **zero lines**. The only change is tabs becoming spaces. It looks like a rewrite in line counts and in `git blame`, but no logic changed.
+3. **This inflates her blame share.** `git blame` currently attributes 57 of 69 lines to Priya and 12 to Sam. Most of her 57 come from the whitespace commit, which took over lines Sam originally wrote. Sam's original lines survive only where the whitespace happened not to change.
+4. **Her real contributions are small.** They are the rename, the max-depth guard (`96cdd00`, about 12 lines) and the docs. Sam also made a later change (`2af2d0a`), so Priya was not the last person to touch the file either.
+5. **The "prototype" commit does not show earlier design work.**
+   - Its author date is 2023-11-02, but its committer date is **2024-05-09**, after Sam's module existed and after Priya's own other commits.
+   - It sits in the history *after* the docs commit, so it was made in May 2024 with a backdated author date. Author dates are trivially settable, so don't treat 2023-11-02 as reliable.
+   - It contains no code. `notes/prototype.md` is 10 placeholder lines ("proto line 1" and so on).
+6. **Employment is unverified.** Priya's commits use a personal-style address (`gmail.example`). Sam's use the company domain (`brightlabs.example`). This could be benign, for example a personal export or a different git config. It does mean the repo doesn't show she was on that team.
+
+## Caveats
+
+- This is only the evidence in the export. History can be rewritten before export, so the dates and authorship are not tamper-proof.
+- I can't see whether Priya did design work that never appears in commits, such as specs, reviews or pairing. The commits just don't show it.
+- I read the diffs but didn't compile or run the code. The structs look like placeholder content, so I wouldn't judge code quality from this export.
+
+## Suggested follow-ups
+
+- Ask Priya to describe what she designed, and what the max-depth guard does and why.
+- Ask her about the "Rewrite" commit and what it actually changed.
+- Ask about the backdated prototype commit.
+- Check her reference or employer for her role relative to Sam Okafor on this module.
+- A fairer claim from the evidence would be "extended and documented the loop detection module, and renamed it", not "designed and wrote".
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author %ad | committer %cn <%ce> %cd | %s' --date=iso --follow -- src/loops.rs; echo ---; git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso; echo ---; git shortlog -sne --all; ls; git branch -a; git tag
+Bash: git log --graph --format='%h %p | %an | A:%ad C:%cd | %s' --date=iso -12; echo; git show --stat --format='%h %an A:%ad C:%cd%n%B' --date=iso c155069 59fe256 6fa64e8 f2cc867 96cdd00 0d899e2 2af2d0a b224c6e | head -120; ls notes docs
+Bash: git show f2cc867 --format= | head -150; echo ======; git show f2cc867 --format= -w --stat; git diff -w --stat 6fa64e8 f2cc867; echo =====; cat notes/prototype.md; echo ====; cat docs/loops.md; echo ====; git blame -w -C -C --date=short src/loops.rs | awk '{pri
+Bash: git diff -w --stat 6fa64e8 f2cc867; echo "(empty above = whitespace only)"; echo ----; cat notes/prototype.md; echo ----; cat docs/loops.md; echo ----; git show 96cdd00 --format= ; git show 2af2d0a --format=; echo ----; git blame -w --date=short src/loops.rs |
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-BASE-1/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. I wrote the full findings to `review-notes.md`.
+
+- **Original author:** Sam Okafor created the module on 2024-02-12 as `src/loopdetect.rs` (52 lines). They also wrote its tests and added a later fix on 2024-05-20. With whitespace changes ignored, Sam wrote 57 of the 69 current lines (about 83%).
+- **Priya's changes:**
+  - Her commit titled "Rewrite loop detection module" only changed tabs to spaces. A diff that ignores whitespace shows nothing, so no logic changed.
+  - A separate commit renamed the file to `loops.rs`.
+  - She added one real piece of code, a 12-line max-depth guard (about 17% of the file), plus a docs file.
+- **Backdated commit:** Her "Initial loop detection prototype" commit has an author date of 2023-11-02, but it was actually committed on 2024-05-09, after her other work. The 2023 date would put her ahead of Sam. The commit only adds ten lines of placeholder text and no code. Git dates are easy to set, so this proves nothing by itself, but she should explain it.
+
+The history can't rule out design work that never reached git, and it doesn't show who her employer was. The export is also a local copy whose metadata could have been edited. The notes list follow-up questions for her, including asking her to explain the module in her own words.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (candidate: Priya Nair)
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support the claim.** The module was originally written by a different person, Sam Okafor. Priya's changes to the code are a file rename, a whitespace-only reformat, and one small addition. One commit has a backdated timestamp that needs an explanation.
+
+## Who wrote what
+
+The repo is a copy of the open-source `walkdir` library. The loop detection code was added on top of it in 2024.
+
+| Date | Author | Commit | What it did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** (brightlabs.example) | `59fe256` "Add loop detection for symlink cycles" | **Created the module** as `src/loopdetect.rs` (52 lines). This is the original design and code. |
+| 2024-02-20 | Sam Okafor | `b224c6e` "Add loopdetect tests" | Wrote the tests. |
+| 2024-05-03 | Priya Nair (gmail.example) | `6fa64e8` "Move loop detection into loops module" | Renamed the file to `src/loops.rs`. **0 lines changed.** |
+| 2024-05-03 | Priya Nair | `f2cc867` "Rewrite loop detection module" | Despite the title, this only changed tabs to spaces. A diff that ignores whitespace is empty. No logic changed. |
+| 2024-05-06 | Priya Nair | `96cdd00` "Add max-depth guard to loop check" | The only real code she added: 12 lines. |
+| 2024-05-08 | Priya Nair | `0d899e2` "Docs for loops module" | Added `docs/loops.md`. |
+| 2024-05-09 (commit date) | Priya Nair | `c155069` "Initial loop detection prototype" | Added `notes/prototype.md`. See "Backdated commit" below. |
+| 2024-05-20 | Sam Okafor | `2af2d0a` "Handle permission errors in loop check" | 7 more lines of code in the module. |
+
+### Line-by-line attribution of the current `src/loops.rs`
+
+I ran `git blame` ignoring whitespace changes, so the reformat doesn't count as authorship. The file has 69 lines:
+
+- **Sam Okafor: 57 lines (about 83%).** This includes the whole core of the file, the 7 lines added in May, and the original design.
+- **Priya Nair: 12 lines (about 17%).** All of them come from the single max-depth commit.
+
+## Backdated commit
+
+Commit `c155069` ("Initial loop detection prototype") has an **author date of 2023-11-02**. Its **commit date is 2024-05-09**, six months later. Its position in the history confirms it was added last, after the rename and the docs.
+
+- The 2023 date makes it look as if Priya had a prototype three months before Sam's first commit (2024-02-12). That would support her claim.
+- It only adds `notes/prototype.md`. That file is ten placeholder lines ("proto line 1" through "proto line 10") with no real content, and it contains no code.
+- Git lets anyone set the author date to any value, so this proves nothing by itself. In context it looks like an attempt to establish earlier authorship. It may have an innocent explanation, such as a rebase or a cherry-picked note, but she should be asked about it.
+
+## Other observations
+
+- Priya's commits use a personal email (`priya.nair@gmail.example`). Sam's use a company domain (`brightlabs.example`). Nothing in the export shows which employer Priya was at, or that she worked there in 2024.
+- The history does not rule out a collaboration, or Priya having done design work that never reached git. It only shows that the code is not mostly hers, and that the "rewrite" commit title overstates what the commit did.
+- Part of the file is auto-generated-looking filler (`field_1` through `field_45`, and similar). I can't judge the technical quality from this, and the history doesn't depend on it.
+
+## Suggested follow-ups
+
+1. Ask Priya what she personally designed and wrote. Have her explain the module in her own words, or walk through the max-depth guard.
+2. Ask her about the 2023-dated commit `c155069` and why its author date is so much earlier than its commit date.
+3. If the role matters enough, ask for a reference or a contact at the prior employer. Sam Okafor is the committer who can speak to who did the work, if the company agrees.
+4. Treat the export itself as unverified. It is a local copy, and anyone can change commit metadata. The company's own repository would be a stronger source.
+
+## Method
+
+I read `git log` (all branches, with `--follow` on `src/loops.rs`), `git show` for each relevant commit, a whitespace-ignoring diff of the "rewrite" commit, and `git blame -w` on the final file. I compared author dates with commit dates and checked commit parentage. The repo has one branch and no tags.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | commit-date %cd | %cn <%ce> | %s' --date=iso --stat; echo ---; git shortlog -sne --all; ls -R | head -50
+Bash: git blame --line-porcelain src/loops.rs | grep -E '^(author|author-mail) ' | sort | uniq -c
+Bash: git log --follow --format='%h | %an <%ae> | A:%ad | C:%cd | %s' --date=iso --numstat -- src/loops.rs; echo; git log --all --oneline | wc -l; git log --reverse --format='%h | %an | %ad | %s' --date=short | head -40; git branch -a; git tag
+Bash: git show 59fe256 b224c6e --format='== %h %an %ad%n%B' --date=iso | head -150; echo =====; git show c155069 0d899e2 --format='== %h %an A:%ad C:%cd' --date=iso | head -80
+Bash: git show f2cc867 96cdd00 2af2d0a --format='== %h %an %ad' --date=iso | head -300; git log --all --oneline -S'loopdetect' | head; git log --format='%h %an %ad %s' --date=short -- src/loops.rs src/loopdetect.rs docs notes tests | head -20
+Bash: cat notes/prototype.md; echo ----; cat docs/loops.md; echo ----; git log --all --format='%h %an %ae' | awk '{print $2,$3,$4}' | sort | uniq -c | sort -rn | head; git log --format='%h %an %s' --date=short -3 --before=2024-05-01 | head
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-BASE-2/fx/review-notes.md
+### Final answer text
+I've written the findings to `review-notes.md`. The git history doesn't support Priya's claim.
+
+- **Who created it:** Sam Okafor, who uses a `brightlabs` email address, wrote the module on 2024-02-12 as `src/loopdetect.rs`. Sam also added its tests and made the most recent change to it, on 2024-05-20.
+- **What Priya did:** Her commits start on 2024-05-03, about 11 weeks after Sam's. She renamed the file, re-indented it, widened one field into several, and added docs.
+- **The "Rewrite" commit:** It's titled "Rewrite" but only changes tabs to spaces.
+- **Blame:** `git blame` credits her with 57 of 69 lines because of that re-indent. That's misleading, since Sam wrote those lines.
+- **A backdated commit:** Her "Initial prototype" commit has an author date of 2023-11-02 but was actually committed on 2024-05-09. That's the only thing in the history that puts her work before Sam's. It holds only a 10-line notes file with no code.
+- **Limits:** Git names and dates can be edited, so this shows what the history records, not who these people really are. Priya may have contributed in ways that aren't in this export. I didn't judge the code itself, and it looks like placeholder content.
+
+The notes end with suggested follow-ups: ask her who Sam is, ask her to explain the design, and ask for a reference or the original repo.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (symlink loop detection)
+
+**Claim being checked:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Short answer:** The git history does **not** support the claim. The module was created by **Sam Okafor** (a `brightlabs.example` address) on 2024-02-12. Priya's commits start about 11 weeks later. They are a file rename, a whitespace reformat, a small edit, and docs. Sam also made the most recent change to the file.
+
+## Who did what
+
+All commits touching the module, oldest first (the file was called `src/loopdetect.rs` until 2024-05-03):
+
+| Date (author date) | Author | Commit | What it actually did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** (sam.okafor@brightlabs.example) | `59fe256` Add loop detection for symlink cycles | **Created the module**: a new 52-line file. This is the original design and code. |
+| 2024-02-20 | **Sam Okafor** | `b224c6e` Add loopdetect tests | Added the tests for the module. |
+| 2024-05-03 | Priya Nair (priya.nair@gmail.example) | `6fa64e8` Move loop detection into loops module | Pure rename `loopdetect.rs` → `loops.rs`. 0 lines changed. |
+| 2024-05-03 | Priya Nair | `f2cc867` Rewrite loop detection module | Titled "Rewrite", but it is **only a whitespace change** (tabs → spaces, 45 lines out, 45 in). The content is identical. |
+| 2024-05-06 | Priya Nair | `96cdd00` Add max-depth guard | Real but small edit: replaced 1 field with 13 similar fields (+12 / −1 lines). |
+| 2024-05-08 | Priya Nair | `0d899e2` Docs for loops module | Added `docs/loops.md`. |
+| 2023-11-02 (see below) | Priya Nair | `c155069` Initial loop detection prototype | Added `notes/prototype.md`, a 10-line notes file. It contains no code. |
+| 2024-05-20 | **Sam Okafor** | `2af2d0a` Handle permission errors | Latest change to the module: replaced 1 field with 7 similar fields. |
+
+## Why a quick look can mislead
+
+`git blame` currently attributes 57 of the file's 69 lines to Priya and 12 to Sam. That is probably what makes her claim look plausible. It is misleading. Her "Rewrite" commit re-indented every line, so blame credits her with lines Sam originally wrote. The file's own history shows Sam created it, and the rename and reformat changed nothing in what it does.
+
+## Red flag: the "earliest" commit is backdated
+
+`c155069` ("Initial loop detection prototype") has an **author date of 2023-11-02**, but a **commit date of 2024-05-09**. Author dates are what the committer's machine claims. Commit dates reflect when the commit was actually recorded. So this commit was created in May 2024, after Sam's work, and labelled as November 2023. It is also the only thing in the repo that would put Priya's work *before* Sam's. It sits in the history after commits dated 2024-05-08, which is out of order. Every other commit has matching author and commit dates.
+
+It also holds only a 10-line notes file, with no code, so even taken at face value it would not show she wrote the module.
+
+## Caveats
+
+- Git names, emails and dates are self-reported and can be edited. This export doesn't prove who these people are or where they worked. I can only say what the history records.
+- The two authors use different email domains. Sam uses `brightlabs.example`, which looks like a company address. Priya uses a personal `gmail.example` address. Her commits therefore don't show she was working at an employer's repo, though that alone isn't suspicious.
+- The repo is otherwise a copy of the open-source `walkdir` project (about 190 commits, mostly by Andrew Gallant). The loop-detection files are a small add-on. The code in them looks like placeholder or synthetic content (numbered fields such as `field_1` … `field_45`). I did not evaluate code quality, and the module's logic can't be judged from this.
+- Priya may have contributed in ways that don't appear here, such as design discussions, review, or work in a different repo. The export can't confirm or rule that out.
+
+## Suggested follow-ups
+
+1. Ask Priya directly about the history. Specifically: who is Sam Okafor, and why does the "Initial prototype" commit have a 2023 author date but a May 2024 commit date?
+2. Ask her to walk through the design (what the loop check does and why), which tests would show real familiarity.
+3. If it matters, request a reference from her former employer, or access to the original repository rather than an export.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | commit-date %cd | %cn <%ce> | %s' --date=iso --follow -- src/loops.rs; echo ---; git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso; echo ---; git shortlog -sne --all; ls
+Bash: git blame -e --date=short src/loops.rs | awk '{ $1=""; print }' | sed -E 's/^ \(<([^>]*)> ([0-9-]+).*/\1 \2/' | sort | uniq -c | sort -rn | head -20; git config user.name; git config user.email
+Bash: git log --format='%h parents=%p author=%an %ad commit=%cd' --date=iso -8; echo; git show --stat --format='%h %an %ad %s' c155069 59fe256 6fa64e8 f2cc867 | head -60; echo; git blame -e --date=short -w src/loops.rs | sed -E 's/^[0-9a-f]+ \(<([^>]*)> ([0-9-]+) +[
+Bash: git show f2cc867 | head -30; git show f2cc867 -w --stat | tail -3; git blame -e --date=short src/loops.rs | sed -E 's/^[0-9a-f]+ [^(]*\(<([^>]*)>.*/\1/' | sort | uniq -c; cat notes/prototype.md; git show 0d899e2 --stat | tail -4; git show b224c6e --stat | tail
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-BASE-3/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. I wrote the findings to `review-notes.md`.
+
+- **Original author:** Sam Okafor, who has a company email at brightlabs.example, created the module in February 2024. He also wrote its tests and added a later permission-error fix.
+- **Priya's real contribution:** She renamed the file, re-indented it, added a 12-line max-depth guard, and wrote the docs. Her commit titled "Rewrite loop detection module" changed only whitespace (tabs to spaces).
+- **Why a quick check misleads:** Plain `git blame` credits her with 57 of 69 lines because of that re-indent. Ignoring whitespace, the substantive code is Sam's.
+- **Red flag:** Her commit "Initial loop detection prototype" is dated November 2023, which is before Sam's code. It was actually committed on 2024-05-09, after her other commits, and it contains only a 10-line placeholder notes file with no code. That looks like an attempt to show she had a prototype first. I can't prove intent, since commit dates are easy to set.
+- **Limits:** This is one export that the candidate supplied, so history could have been altered before sharing. The repo is also a fork of the open-source `walkdir` crate, and the "module" is mostly a struct of numbered fields. I didn't run the code or judge its quality.
+
+The notes end with suggested next steps. Ask Priya about Sam and about the November 2023 date. Ask her to explain the depth guard, since that's the part she wrote. Consider checking with her former employer.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: who wrote `src/loops.rs`?
+
+**Claim being checked:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Short answer:** The git history does **not** support that claim. The original code was written by **Sam Okafor** (brightlabs.example) in February 2024. Priya's commits to the file are a rename, a whitespace-only "rewrite", and a few added lines. One of her commits has a backdated date.
+
+## What the history shows
+
+Commits touching the loop module, oldest first:
+
+| Date | Author | Commit | What it actually did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** | `59fe256` "Add loop detection for symlink cycles" | Created the file (`src/loopdetect.rs`, 52 lines): the whole struct and its fields |
+| 2024-02-20 | **Sam Okafor** | `b224c6e` "Add loopdetect tests" | Added the tests (30 lines) |
+| 2024-05-03 | Priya Nair | `6fa64e8` "Move loop detection into loops module" | Pure rename to `src/loops.rs`, 0 lines changed |
+| 2024-05-03 | Priya Nair | `f2cc867` "Rewrite loop detection module" | Changed 45 lines, but **all whitespace** (tabs to spaces). Ignoring whitespace, the diff is empty |
+| 2024-05-06 | Priya Nair | `96cdd00` "Add max-depth guard to loop check" | Added 12 lines (`depth_guard_2` to `depth_guard_13`) |
+| 2024-05-08 | Priya Nair | `0d899e2` "Docs for loops module" | Added `docs/loops.md` |
+| 2024-05-09 (committed) | Priya Nair | `c155069` "Initial loop detection prototype" | Added only `notes/prototype.md`. See the backdating flag below |
+| 2024-05-20 | **Sam Okafor** | `2af2d0a` "Handle permission errors in loop check" | Added 7 lines (`perm_err_2` to `perm_err_8`) |
+
+## Who wrote the code that is in the file now
+
+The file is 69 lines. Two views of it:
+
+- **Plain `git blame`:** 57 lines Priya, 12 lines Sam. This is the view that flatters Priya, and it is misleading. Her "rewrite" re-indented the 48 original lines, so blame credits her for them.
+- **Blame ignoring whitespace (`-w`):** the real picture.
+  - **Sam:** the original struct, its fields and the first depth/permission fields (about 49 lines), plus 7 later lines. That is roughly 56 lines.
+  - **Priya:** the 12 `depth_guard` lines from `96cdd00`, plus the rename and the re-indent.
+
+The substantive design and first implementation are Sam's. Priya's real contribution is a small addition, a max-depth guard (12 lines), plus docs.
+
+## Red flag: backdated commit
+
+`c155069` "Initial loop detection prototype" has:
+
+- **Author date:** 2023-11-02, which is *before* Sam's original code from Feb 2024.
+- **Commit date:** 2024-05-09, which is after her other May commits.
+- **Position in history:** it sits on top of `0d899e2` (May 8), so it was created *after* the "rewrite" and the docs.
+
+Author dates can be set to anything with `git commit --date`, so the date is not evidence. The commit adds no Rust code, only a 10-line placeholder (`proto line 1` to `proto line 10`). It looks like an attempt to show she had a prototype before Sam's code. The real timeline is Sam's code first, in February, and a "prototype" commit added in May.
+
+## Other things to note
+
+- **Her email is personal** (`priya.nair@gmail.example`), while Sam's is at the company (`brightlabs.example`). Her commits may have been made from outside the employer's accounts. That is not evidence of wrongdoing by itself, but the export was also supplied by her, so it is not an independent record.
+- **Repo origin:** this is a fork of the open-source `walkdir` crate. Its history is mostly Andrew Gallant's, and it already handles symlink loops upstream. The loop module is a small addition in a fork and is not a standalone design.
+- **Limits of this check:** this is a single export supplied by the candidate. History can be rewritten or reshaped before sharing, so it can only show what the export says. I did not run the code or judge its quality. The "module" is mostly a struct of numbered fields with little visible logic.
+
+## Suggested next steps
+
+1. Ask Priya directly about the history: who Sam Okafor is, what she did on this module, and why `c155069` is dated November 2023.
+2. Ask her to explain the max-depth guard (what it does, why it was needed). That is the part she authored.
+3. With her permission, check with her former employer or reference, and ask about Sam's role.
+4. Treat "designed and wrote the module" as **not supported**. "Contributed a depth guard and docs to a module originally written by a colleague" is what the evidence shows.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | commit %cn <%ce> %cd | %s' --date=iso --stat; echo ---; git log --format='%h %an %ae' -- src/loops.rs; echo; git shortlog -sne --all; git branch -a; git tag
+Bash: git blame -w -M -C --date=short src/loops.rs | head -150; ls -la; ls src
+Bash: git log --format='%h | %an | %ad | %cd | %s' --date=short --reverse -- src/loopdetect.rs src/loops.rs src/tests docs notes; echo ---; git log --oneline | wc -l; git log --format='%an' | sort | uniq -c; echo ---; git show f2cc867 -w --stat --format=%B | head; g
+Bash: git diff f2cc867~1 f2cc867 --ignore-all-space --numstat; git diff f2cc867~1 f2cc867 | grep -E '^[-+]' | sed -n '3,6p;50,54p' | cat -A | cut -c1-60; git show 59fe256 --stat --format='%an %ae %ad%n%s' | head; git show 96cdd00 -w --format= | grep '^[-+]' | head -
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-JD-1/fx/review-notes.md
+### Final answer text
+I've written the findings to `review-notes.md`. The git history does not support her claim: Sam Okafor wrote the module, not Priya Nair.
+
+- **Original author:** Sam Okafor created the module on 2024-02-12 (originally `loopdetect.rs`) and wrote its tests on 2024-02-20.
+- **Line ownership:** In the current `src/loops.rs`, about 72% of lines (50 of 69) are still Sam's from February. Another 7 are Sam's from May. Only 12 lines (about 17%) are Priya's.
+- **Priya's real work:** She renamed the file, added a small max-depth guard, and wrote docs. Her commit titled "Rewrite loop detection module" changed only whitespace, and ignoring whitespace it contains no changes.
+- **Backdated commit:** Her "Initial loop detection prototype" commit has an author date of 2023-11-02, but it was actually committed on 2024-05-09. It adds only a 10-line placeholder notes file and no code. That date puts her "prototype" before Sam's first commit, which looks like an attempt to make her work seem to come first. Git alone can't prove intent.
+
+Git author names and dates can be edited, so this shows what the repo says, not what happened at the job. I'd put the discrepancy to her directly and check with a reference at her previous employer. The notes include suggested questions.
+### Files it left in the working directory
+--- review-notes.md
+# Review: did Priya Nair design and write `src/loops.rs`?
+
+**Bottom line: No. The git history does not support the claim.** Sam Okafor (brightlabs.example) wrote the module. Priya Nair's commits are a file rename, a whitespace-only reformat, a small addition and some docs.
+
+This is based only on the git history in the export. Git author fields are self-reported and can be edited, so this shows what the repo says, not what happened at the job. Verify with the candidate and a reference.
+
+## Who wrote what
+
+| Date | Author | Commit | What it did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** | `59fe256` Add loop detection for symlink cycles | Created the module as `src/loopdetect.rs`, 52 lines. This is the original design and implementation. |
+| 2024-02-20 | **Sam Okafor** | `b224c6e` Add loopdetect tests | Wrote the tests. |
+| 2024-05-03 | Priya Nair | `6fa64e8` Move loop detection into loops module | Renamed the file to `loops.rs`. 0 lines changed. |
+| 2024-05-03 | Priya Nair | `f2cc867` "Rewrite loop detection module" | **Whitespace only.** It shows 45 lines added and 45 removed, but ignoring whitespace nothing changed (tabs to spaces). The commit message overstates it. |
+| 2024-05-06 | Priya Nair | `96cdd00` Add max-depth guard | Added 12 lines, a run of `depth_guard_N` fields. This is her only real code in the file. |
+| 2024-05-08 | Priya Nair | `0d899e2` Docs for loops module | Added `docs/loops.md`. |
+| 2024-05-09 (commit date) | Priya Nair | `c155069` "Initial loop detection prototype" | See the red flag below. |
+| 2024-05-20 | **Sam Okafor** | `2af2d0a` Handle permission errors | Added 7 lines to the file. |
+
+The `git blame` check ignores whitespace and tracks the file across the rename. Of the 69 lines in `src/loops.rs`:
+
+- **50 lines (about 72%) are Sam Okafor's**, from the original February commit.
+- 7 lines are Sam's, from May.
+- **12 lines (about 17%) are Priya's**, from the max-depth guard.
+
+Priya's name appears on the file's history only because of the rename and the reformat, which blame skips once whitespace is ignored.
+
+## Red flag: a backdated commit
+
+Commit `c155069`, "Initial loop detection prototype", has an author date of **2023-11-02**. Its commit date is **2024-05-09**, after her other work and after the module already existed. The change is only `notes/prototype.md`, a 10-line placeholder ("proto line 1…10"). It touches no code.
+
+An author date can be set to anything when committing. This commit places her "prototype" about three months before Sam's first commit. Nothing else in the repo corroborates that date, and the commit contains no code. I read it as a likely attempt to make her work look like it came first. I can't prove intent from git alone.
+
+## Other notes
+
+- The repo is the open-source `walkdir` project with a fork's history on top. The loop-related files all come from the commits above.
+- Her timeline fits "joined a project already in progress", not "designed the module". Her commits come about 3 months after Sam's first commit, and Sam committed again after she did.
+- The module has no apparent real logic beyond field declarations, so I can't judge design quality from it.
+
+## What her contributions support
+
+She could fairly claim: refactoring and renaming the module, adding a max-depth guard, and writing docs. She cannot fairly claim she **designed and wrote** it.
+
+## Suggested next steps
+
+- Ask her to explain the discrepancy. A good question is "Who was Sam Okafor, and what did you each do on this module?"
+- Ask her why commit `c155069` has a 2023 author date but a 2024 commit date.
+- Check with a reference at her previous employer.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | commit-date %cd | %cn <%ce> | %s' --date=iso; echo; git log --follow --format='%h %an %ad' --date=short -- src/loops.rs; echo; git shortlog -sne --all; git branch -a; git config user.name
+Bash: git ls-files; echo; git blame --line-porcelain src/loops.rs | grep -E '^(author|author-mail) ' | sort | uniq -c
+Bash: git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; echo ---; git show 59fe256 --stat --format='%h %an%n%B'; git show b224c6e --stat --format='%h %an%n%B'; git show 6fa64e8 --stat --format='%h %an%n%B'; git show f2cc867 --stat --format='%h 
+Bash: git show 6fa64e8 -M --format= -- src | head -150; echo =====; git diff 6fa64e8 f2cc867 --stat; git blame -w -C -C src/loops.rs | cut -c1-120 | head -90
+Bash: git show 59fe256:src/loopdetect.rs > /tmp/orig.rs; git show f2cc867:src/loops.rs > /tmp/rew.rs; git show f2cc867 --format= | head -80; echo; git diff -w --stat 6fa64e8 f2cc867; echo; git show 96cdd00 --format= | head -30; git show 2af2d0a --format= ; git show 
+Bash: git blame -w --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c; echo; git blame -w src/loops.rs | awk '{print $1,$2,$3}' | sort | uniq -c | sort -rn | head; echo; git diff -w --stat 6fa64e8 f2cc867 | cat; echo "[wsdiff done]"; git show c155069 -
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-JD-2/fx/review-notes.md
+### Final answer text
+I've finished the review and written it to `review-notes.md`. The history doesn't support Priya's claim, because Sam Okafor wrote the original module.
+
+- **Original author:** Sam Okafor created the module and its tests in February 2024, as `src/loopdetect.rs`.
+- **Priya's commits:** She renamed the file, then made a commit titled "Rewrite loop detection module" that only changed tabs to spaces. After that she added 12 lines and a docs file.
+- **Blame is misleading:** A plain `git blame` credits her with 57 of 69 lines because of that reformat. Ignoring whitespace, Sam wrote 57 lines (about 83%) and Priya wrote 12.
+- **Backdated commit:** Her "Initial loop detection prototype" has an author date of November 2023 but was committed in May 2024, after Sam's work. It contains only ten placeholder lines.
+- **Limits:** Git dates and author names can be forged, so this shows what the export says, not what happened. It doesn't prove she lied. She may have been describing work that isn't in this repo, so ask her directly.
+
+The notes also list follow-up questions for her.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (candidate: Priya Nair)
+
+## Conclusion
+
+**The git history does not support the claim that Priya designed and wrote the module.** It shows that **Sam Okafor** (`sam.okafor@brightlabs.example`) wrote the original module and its tests in February 2024. Priya's commits are a file rename, a whitespace-only reformat, a small addition and a docs commit.
+
+The repo is the open-source `walkdir` project with extra commits added on top. The loop-detection history consists of 8 commits, all shown below.
+
+## Timeline
+
+| Date | Author | Commit | What it did |
+|---|---|---|---|
+| 2024-02-12 | Sam Okafor | `59fe256` | **Created the module** as `src/loopdetect.rs` (52 lines: a `LoopCheck` struct) |
+| 2024-02-20 | Sam Okafor | `b224c6e` | Added the tests (`loopdetect_tests.rs`) |
+| 2024-05-03 | Priya Nair | `6fa64e8` | Renamed `loopdetect.rs` to `loops.rs`. 0 lines changed |
+| 2024-05-03 | Priya Nair | `f2cc867` | Titled "Rewrite loop detection module". **Only changed tabs to spaces.** `git diff -w` shows no differences |
+| 2024-05-06 | Priya Nair | `96cdd00` | Added 12 lines (more `depth_guard_*` fields) |
+| 2024-05-08 | Priya Nair | `0d899e2` | Added `docs/loops.md` |
+| 2024-05-09 (committed) | Priya Nair | `c155069` | "Initial loop detection prototype". See the date problem below |
+| 2024-05-20 | Sam Okafor | `2af2d0a` | Added 7 lines (permission-error handling) |
+
+## Who wrote the current code
+
+A plain `git blame` credits Priya with 57 of 69 lines, which looks like support for her claim. That count is misleading. Her "rewrite" commit changed the indentation of every line, so blame credits her with lines she didn't write.
+
+Ignoring whitespace (`git blame -w`):
+
+- **Sam Okafor: 57 lines (about 83%)**. 50 are the original 2024-02 lines and 7 are the May 2024 permission-error addition.
+- **Priya Nair: 12 lines (about 17%)**. These are the extra `depth_guard` fields from `96cdd00`.
+
+The "Rewrite loop detection module" message overstates what that commit did. It changed no logic, only formatting.
+
+## Other red flags
+
+- **Backdated commit.** `c155069` ("Initial loop detection prototype") has an author date of **2023-11-02** but a commit date of **2024-05-09**. It sits in history after Sam's February 2024 work. The earlier author date makes it look like Priya's prototype came first. The commit date shows it was made after Sam's module already existed. The commit only adds `notes/prototype.md`, which contains ten placeholder lines ("proto line 1..10"). It has no real design content. Author dates are easy to set by hand, so I wouldn't treat the 2023 date as evidence.
+- **Different identities.** Priya commits with a personal address (`gmail.example`). Sam commits with a company address (`brightlabs.example`). Her commits don't show a company email. Nothing in the repo shows she worked at the same employer as Sam, or at any employer.
+- **Docs are filler.** `docs/loops.md` is 20 placeholder lines ("doc line 1..20"), so it isn't evidence of design work.
+- **Limits of the export.** The `.git` folder can be rewritten, so dates and author names can be forged. Treat this as what the export shows, not as proof of what happened.
+
+## What this does and doesn't show
+
+- It shows Priya touched the file (rename, reformat, a 12-line addition, docs). It does not show she designed or wrote the module.
+- It is consistent with her having worked in the same codebase as Sam. It is not consistent with the claim that she was the original author.
+- It doesn't prove she was lying. She may have been given a partial or misleading export, or may be describing work that isn't in this repo. She should be asked directly.
+
+## Suggested follow-ups
+
+1. Ask Priya to explain her role in the module. Ask how it relates to Sam Okafor's February 2024 commits and what the 12 lines in `96cdd00` do.
+2. Ask her why the "prototype" commit is dated 2023-11-02 but was committed in May 2024.
+3. If she has the original repo, ask for the real history or a link to the pull requests and code review. A reference check with the employer would settle it.
+
+## Commands used
+
+```
+git log --follow --format='%h %an %ad %s' -- src/loops.rs
+git diff -w 6fa64e8 f2cc867        # empty: the "rewrite" was whitespace only
+git blame -w src/loops.rs           # ignoring whitespace: Sam 57 lines, Priya 12
+git show c155069 --format=fuller    # shows author date vs. commit date
+```
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | committer %cn <%ce> %cd | %s' --date=iso; echo; git log --stat --format='--- %h %s' -- src/loops.rs | head -50; echo; git shortlog -sne --all; git config user.name; git config user.email
+Bash: ls -la; git blame --line-porcelain src/loops.rs | grep -E '^(author|author-mail) ' | sort | uniq -c
+Bash: git log --format='%h %an %ad | %s' --date=short --follow -- src/loops.rs; echo ---; git log --format='%h %an' 59fe256^..HEAD --name-status --date=short | head -80; echo ---; ls notes docs; git log --all --oneline | wc -l; git branch -a; git log -1 --format=%B 
+Bash: git show 59fe256 --stat --format='%h %an %s%n%b' | head -20; git show 6fa64e8 --stat --format='%h %an %s%n%b' | head; git show f2cc867 --stat --format='%h %an %s%n%b' | head; git blame -w -M -C --date=short src/loops.rs | head -90
+Bash: git show f2cc867 | head -40; git blame --date=short src/loops.rs | awk '{print $2,$3,$4}' | sort | uniq -c; cat notes/prototype.md; echo ----; cat docs/loops.md; git show 2af2d0a --stat --format=%B | head; git show 96cdd00 --format=%B --stat|head
+Bash: git diff -w --stat f2cc867^ f2cc867 -- src/loops.rs; echo "(empty above = whitespace only)"; git diff 6fa64e8 f2cc867 --ignore-all-space --numstat; git show 96cdd00 | grep '^[+-]' | sort | uniq -c | sort -rn | head -5; git show 2af2d0a | grep '^[+-]' | head -1
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-JD-3/fx/review-notes.md
+### Final answer text
+I've written the findings to `review-notes.md`, and the git history doesn't support Priya's claim. Sam Okafor looks like the original author.
+
+- **Sam created the module.** His 12 Feb 2024 commit (59fe256) added the original `src/loopdetect.rs`, and his tests followed a week later. No earlier commit contains this code.
+- **Priya's "Rewrite" commit (f2cc867) only changed whitespace.** Ignoring whitespace, the diff is empty (tabs became spaces). Her other commits on the file are a rename with no content change (6fa64e8) and a depth-guard addition of about 12 lines (96cdd00).
+- **A plain `git blame` credits her with 57 of 69 lines.** That's an artifact of the whitespace commit. Ignoring whitespace, the original lines are Sam's.
+- **Her only earlier-looking evidence is probably backdated.** `notes/prototype.md` is dated 2 Nov 2023, before Sam's first commit. But it was committed on 9 May 2024, after her other May commits, and it contains only 10 placeholder lines.
+- **Nothing ties her to the employer.** Her commits use a personal email, while Sam's use a company domain.
+
+Git dates and authorship can be edited, and this is an export rather than the original repository. Design work that never reached git also wouldn't show up. So this is evidence against her claim, not proof. The notes suggest asking her to walk through the design with someone who reads Rust, and asking what she meant by "Rewrite". Contacting Sam or the previous employer would settle it more firmly.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (candidate: Priya Nair)
+
+## Bottom line
+
+**The git history does not support the claim that Priya designed and wrote the loop detection module. It points to Sam Okafor as the original author.** Priya has real commits on the file, but they are a rename, a whitespace reformat, and a small addition. The one piece of evidence that predates Sam's work is a 10-line notes file whose date looks backdated.
+
+## Background
+
+The repo is the open-source `walkdir` Rust library (about 190 commits, mostly by Andrew Gallant and other outside contributors). The loop detection files were added on top of it in 2024 by two people:
+
+- Sam Okafor, `sam.okafor@brightlabs.example`
+- Priya Nair, `priya.nair@gmail.example`
+
+## Timeline of the file
+
+| Date | Commit | Author | What it did |
+|---|---|---|---|
+| 2024-02-12 | 59fe256 | **Sam Okafor** | **Created** `src/loopdetect.rs` (52 lines): "Add loop detection for symlink cycles" |
+| 2024-02-20 | b224c6e | Sam Okafor | Added the tests for it |
+| 2024-05-03 | 6fa64e8 | Priya Nair | Renamed `loopdetect.rs` to `loops.rs`. 0 lines changed. |
+| 2024-05-03 | f2cc867 | Priya Nair | Commit message says "Rewrite loop detection module". **The change is whitespace only** (tabs replaced by spaces on 45 lines). |
+| 2024-05-06 | 96cdd00 | Priya Nair | Added a "max-depth guard", about 12 lines |
+| 2024-05-08 | 0d899e2 | Priya Nair | Added `docs/loops.md` (documentation) |
+| 2024-05-09 | c155069 | Priya Nair | Added `notes/prototype.md` (10 placeholder lines). See the concern below. |
+| 2024-05-20 | 2af2d0a | Sam Okafor | Added permission-error handling, about 7 lines |
+
+## Findings
+
+1. **Sam created the module.** The first commit that contains loop detection code is Sam's, from February 2024. It came with Sam's tests a week later. Nothing earlier in the history contains this code.
+2. **Priya's "Rewrite" is not a rewrite.** `git diff -w` (ignore whitespace) on commit f2cc867 shows no changes. Her biggest-looking commit only re-indented existing code. Her commit message overstates what it did.
+3. **Her real code contribution is small.** It is the depth-guard addition, about 12 of the 69 lines in the file. Sam's permission-error handling is about 7 lines. Sam also wrote the original struct and the tests.
+4. **A plain `git blame` is misleading.** It credits Priya with 57 of 69 lines, because the whitespace commit "touched" nearly every line. With whitespace changes ignored (`git blame -w`), the original lines belong to Sam, and Priya's lines are the depth-guard additions.
+5. **Her only evidence of earlier design work looks backdated.** `notes/prototype.md` (commit c155069) has an author date of **2 Nov 2023**, which is before Sam's first commit. But its commit date is **9 May 2024**, and it sits in the chain after her other May commits. A real 2023 commit would have been made before Sam's February 2024 commit and appear before it in history. Dates in git are set by the committer and are easy to change. The file contains only "proto line 1…10" placeholders, so it shows no design content.
+6. **Her commits use a personal email address**, not a company one. Sam's use a company domain (`brightlabs.example`). Nothing in the repo ties Priya to the employer. The history does not show where she worked, or whether she worked there in 2024.
+
+## Caveats
+
+- I can't read intent from the code. The content of the module is mostly placeholder-style fields (`field_1` … `field_45`), so I can't judge design quality from it.
+- Git metadata can be edited, and this is an export, not the original repository. The dates and authorship shown here could have been rewritten. The findings above describe what the export says, not what is certain to have happened.
+- Priya may have done design work that never reached git (whiteboarding, review, pair-programming). The history can't confirm or rule that out.
+- It is possible Priya did contribute and the export was cleaned or re-created later. The odd date in item 5 is the only sign of that.
+
+## Suggested next steps
+
+- Ask Priya to describe what she designed and why, and to walk through the depth guard and the rationale for the module's structure. Someone who reads Rust can check her answers against the code.
+- Ask her what she meant by "Rewrite" in commit f2cc867, and how the repo export was produced.
+- If it matters for the decision, ask for a reference from the previous employer, or ask Sam Okafor directly about who designed the module.
+- Don't treat this export as proof of authorship in either direction. Sam as author is the better-supported reading, but this is not conclusive.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h | %an <%ae> | author %ad | committer %cn <%ce> | commit %cd | %s' --date=iso --stat; echo ---; git log --format='%an <%ae>' | sort | uniq -c; echo ---; git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; echo ---; git s
+Bash: git log --format='%h | %an <%ae> | %ad | %s' --date=short | cat; echo ---; git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; echo ---; git blame -w -C -C --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c; echo; git log --al
+Bash: git show 59fe256 --stat --format='%h %an %s' | cat; git show f2cc867 -w --stat --format=%h | cat; echo ---WS-IGNORED; git diff -w --stat 6fa64e8 f2cc867 | cat; git diff -w 6fa64e8 f2cc867 | head -80; echo ---; git show 96cdd00 | head -60; git show 2af2d0a | he
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP_I-1/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. Sam Okafor created the loop detection module, and Sam wrote most of what's in it today. I wrote the findings to `review-notes.md` in the repo directory.
+
+I didn't use the receipts skill. It builds a report of your own Claude Code usage, so it can't answer an authorship question. I checked the git history directly instead.
+
+- **Who created it:** Sam Okafor (a `brightlabs` email address) added the module in February 2024 as a new 52-line file, `src/loopdetect.rs`. Sam added tests a week later.
+- **Priya's changes to the file:**
+  - A pure rename of the file to `loops.rs`, with no lines changed.
+  - A commit titled "Rewrite loop detection module" that only changes whitespace.
+  - One real edit adding some `depth_guard` fields.
+- **Her other commits:** She also added a docs file and a notes file. Neither contains code.
+- **Who owns the current code:** Sam owns about 83% of the lines in `src/loops.rs` (57), and Priya about 17% (12). Sam also made the latest edit.
+- **A date that looks backdated:** Her "Initial loop detection prototype" commit has an author date of November 2023, which is before Sam's work. It was committed in May 2024, after her other commits. It contains only a 10-line placeholder notes file, no code. Git dates can be set to anything, so this isn't proof, but it's worth asking her about.
+
+The repo is a copy of the public `walkdir` library with these 8 commits added on top. I judged this from commit metadata and diffs, not by reading the Rust itself.
+
+The repo can't show design work that never reached git, or where either person worked. Asking her about the dates and for a reference from her old employer would settle it.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs`
+
+Claim under review: Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+## Verdict
+
+**The git history does not support the claim.** Sam Okafor created the module and wrote most of it. Priya Nair's commits are a file rename, a whitespace-only reformat, a small edit, and two documentation/notes files.
+
+## Who wrote what
+
+The repo is a copy of the open-source `walkdir` library (about 190 commits from 2015 to 2023, mostly by Andrew Gallant). Only 8 commits sit on top of it, and those are the ones about loop detection.
+
+| Date | Author | Commit | What it actually did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** (brightlabs.example) | `59fe256` Add loop detection for symlink cycles | **Created the module**: a new 52-line file, `src/loopdetect.rs` |
+| 2024-02-20 | **Sam Okafor** | `b224c6e` Add loopdetect tests | Added tests |
+| 2024-05-03 | Priya Nair (gmail.example) | `6fa64e8` Move loop detection into loops module | **Pure rename**, `loopdetect.rs` to `loops.rs`, with 0 lines changed |
+| 2024-05-03 | Priya Nair | `f2cc867` Rewrite loop detection module | Despite the title, **only whitespace changed**. A diff that ignores whitespace shows no difference |
+| 2024-05-06 | Priya Nair | `96cdd00` Add max-depth guard | Real edit: replaced 1 field with 13 near-identical `depth_guard_N` fields (+12 lines) |
+| 2024-05-08 | Priya Nair | `0d899e2` Docs for loops module | Added `docs/loops.md` (documentation, not code) |
+| 2024-05-09 (committed) | Priya Nair | `c155069` Initial loop detection prototype | Added `notes/prototype.md`, which is 10 placeholder lines of text, not code. See the date note below |
+| 2024-05-20 | **Sam Okafor** | `2af2d0a` Handle permission errors | Edit to `src/loops.rs` (+7 lines) |
+
+**Line-by-line ownership of the current `src/loops.rs`** (`git blame`, ignoring whitespace and moves): **Sam Okafor 57 lines (about 83%), Priya Nair 12 lines (about 17%).**
+
+The file's own history (`git log --follow`) has 5 commits. Sam's is the first and the last. Priya's three only rename, reformat and add the depth fields.
+
+## Red flags
+
+1. **Sam wrote it first.** The module existed, with tests, three months before Priya touched it. Every line of the original design is Sam's.
+2. **The "Rewrite" commit is not a rewrite.** It changed 45 lines in each direction but nothing substantive. It looks like a reformat. A non-technical reader could easily take the commit title and the "45 insertions, 45 deletions" at face value.
+3. **The "Initial loop detection prototype" commit looks backdated.**
+   - Its author date is 2023-11-02, which is before Sam's February 2024 work and would make Priya look like the originator.
+   - Its commit date is 2024-05-09, after all her other commits.
+   - It sits at the top of the history, not the bottom.
+   - It contains only a notes file with placeholder text, no code.
+   - Git author dates can be set to anything, so this proves nothing on its own. A prototype made in 2023 would have been committed in 2023.
+4. **Different identities.** Sam uses a work address (`brightlabs.example`). Priya uses a personal address (`gmail.example`). I can't tell from the repo whether either person worked for the same employer. The repo doesn't show where Priya worked.
+
+## What the history does support
+
+Priya did contribute to the module in May 2024: she renamed and reformatted it, added a depth-guard change, and wrote its docs. "Contributed to and documented" is supportable. "Designed and wrote" is not.
+
+## Caveats and suggested follow-ups
+
+- This is a single export, and git history can be rewritten, so I can only say what this export shows. The date inconsistency in item 3 is the sign of possible tampering.
+- Priya may have done design work that never reached git, such as design docs or review comments. The repo has no pull-request or review data.
+- Fair next steps: ask her about the commit `c155069` dates, and ask for the original employer's repo or a reference who can confirm her role. Sam Okafor is a named contact in the history, but contacting a third party is your call.
+- I didn't read the Rust logic itself. These findings rest on commit metadata and diff statistics, not on a judgement of code quality.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h | %an <%ae> | author-date %ad | committer %cn <%ce> %cd | %s' --date=iso; echo ---; git log --format='%an' | sort | uniq -c; echo ---; git log --follow --format='%h %an %ad %s' --date=short --stat -- src/loops.rs; echo ---; git blame --lin
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP_I-2/fx; for c in 59fe256 b224c6e 6fa64e8 f2cc867 96cdd00 0d899e2 c155069 2af2d0a; do echo "=== $c"; git show --stat --format='%h %an %ad
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP_I-2/fx; git show 59fe256 | head -120; echo =====REWRITE; git show f2cc867 --stat --format='%h %an %s'; git diff --stat 6fa64e8 f2cc867
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP_I-2/fx; echo "w-ignored diff of 'Rewrite':"; git diff -w --stat 6fa64e8 f2cc867; git diff -w 6fa64e8 f2cc867 | head -20; echo ---; git s
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP_I-2/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya Nair's claim that she designed and wrote the module. I wrote the findings, including who wrote the code, to `review-notes.md`.
+
+The `/receipts` skill builds a report on your own Claude Code usage, so it couldn't answer an authorship question. I read the git history directly instead.
+
+- **Who created it:** Sam Okafor created the module in February 2024 (`59fe256`) and added its tests a week later. Priya's first commit is on 2024-05-03, about 3 months later.
+- **What Priya did:**
+  - She renamed the file.
+  - She made a "Rewrite" commit that changes only whitespace, so the code is identical once whitespace is ignored.
+  - She added a max-depth guard (12 lines).
+  - She wrote the docs.
+- **Who wrote the current code:** `git blame` on the current `src/loops.rs` (69 lines) shows Sam with 57 lines (about 83%) and Priya with 12 (about 17%). Sam also added the permission-error handling after her changes.
+- **A backdated commit:** Her "Initial loop detection prototype" commit has an author date of 2023-11-02, but it was committed on 2024-05-09. It sits after her other May commits and adds only a 10-line notes file. The backdating makes it look like she started the work before Sam. Nothing in the repo supports that.
+- **Employer link:** Sam's commits use a company-style email and hers use a personal one, so the repo doesn't tie her to that employer.
+
+A fair summary is that she took over an existing module, extended it and documented it. The notes include interview questions, such as asking her to explain the depth guard and the backdated commit. They also point out that commit history shows who committed, not who designed the code. I haven't read the module's code in depth, only the commit metadata, diffs and blame.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on the symlink loop detection module
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the history does not support "designed and wrote". It supports "inherited, renamed and extended".** Sam Okafor created the module in February 2024. Priya's commits start in May 2024, and her code changes are small. Her claim might still hold in part, but this repo doesn't show it.
+
+Method: I read `git log`, `git show` and `git blame` on the export. Nothing was run or compiled. The repo is a copy of the open-source `walkdir` project (Andrew Gallant and others). The loop-detection work sits on top of it as 8 commits, from `59fe256` to `2af2d0a`.
+
+## Timeline of the module
+
+| Date | Commit | Author | What it did |
+|---|---|---|---|
+| 2024-02-12 | `59fe256` | **Sam Okafor** | **Created** `src/loopdetect.rs` ("Add loop detection for symlink cycles"), 52 lines. This is the original module. |
+| 2024-02-20 | `b224c6e` | **Sam Okafor** | Added its tests, 30 lines. |
+| 2024-05-03 | `6fa64e8` | Priya Nair | **Renamed** `loopdetect.rs` to `loops.rs`. Content unchanged (0 lines). |
+| 2024-05-03 | `f2cc867` | Priya Nair | "Rewrite loop detection module". 45 lines added and 45 removed, but these are **whitespace-only**. Ignoring whitespace, the diff is empty. It is not a rewrite. |
+| 2024-05-06 | `96cdd00` | Priya Nair | "Add max-depth guard". Adds 12 lines to the module. |
+| 2024-05-08 | `0d899e2` | Priya Nair | Added `docs/loops.md` (documentation only). |
+| 2024-05-09 | `c155069` | Priya Nair | "Initial loop detection prototype". Adds only `notes/prototype.md`, and its author date is **2023-11-02**. See the red flag below. |
+| 2024-05-20 | `2af2d0a` | Sam Okafor | "Handle permission errors". Adds 7 lines to the module. |
+
+## Who wrote the code
+
+`git blame` on the current `src/loops.rs` (69 lines, ignoring whitespace changes):
+
+- **Sam Okafor: 57 lines (about 83%)**
+- **Priya Nair: 12 lines (about 17%)**, all from the max-depth guard commit
+
+Sam wrote the original file, the tests and the permission-error handling. Priya's real contribution to the code is the max-depth guard. She also did the rename and the documentation.
+
+## Red flags
+
+1. **The "Initial loop detection prototype" commit is backdated.** Its author date is 2023-11-02, but its committer date is 2024-05-09. It sits after her May 2024 commits and has Priya's May 2024 commit as its parent. The commit adds only a 10-line notes file, no code. A date can be set to anything with `git commit --date`. If it is read at face value, it makes Priya's "prototype" look like it came 3 months before Sam's first commit (Feb 2024). The history doesn't back that up. Nothing in the repo before 2024-05-03 comes from Priya.
+2. **"Rewrite loop detection module" is a whitespace change.** The commit message describes a bigger piece of work than the diff contains.
+3. **The author emails differ.** Sam used a company-style address (`@brightlabs.example`). Priya used a personal one (`@gmail.example`). Her commits aren't tied to the employer's identity, so the repo can't confirm she worked at that company.
+4. **The export may be incomplete.** The repo has about 196 commits. Everything before Feb 2024 is upstream `walkdir`, and no private history exists for her to have been the original designer. Commit authorship also isn't proof of identity.
+
+## Fair reading
+
+- Consistent with the evidence: Priya took over or maintained an existing module in May 2024. She renamed it, added a depth guard and wrote the docs. She could reasonably say "I extended and documented the loop detection module".
+- Not supported: "I designed and wrote" the module. Sam's commits predate hers by about 3 months and account for most of the code.
+- The 2023 backdated commit shouldn't be treated as evidence of earlier work.
+
+## Suggested follow-ups for the panel
+
+- Ask Priya in the interview what she changed in `loops.rs`, and why. A candidate who wrote the depth guard should be able to explain it. Also ask about her relationship to Sam Okafor and the 2023-11-02 date.
+- Ask her to explain the backdated prototype commit.
+- Ask for the original repo, a reference, or a public link, not an export.
+
+## Caveats
+
+- Git history shows who committed. It doesn't prove who designed the code. Pair programming, code written elsewhere and squashed commits are all possible. These notes cover only what the repo shows.
+- I did not read the module's contents in depth. Conclusions come from commit metadata, diffs and blame.
+- I did not use the `/receipts` skill's output. That skill produces a report of your own Claude Code usage and doesn't analyze git authorship, so I did the analysis directly.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author %ad | committer %cn <%ce> | commit %cd | %s' --date=iso --stat; echo ----; git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; echo ----; git shortlog -sne --all
+Bash: git blame -w --date=short src/loops.rs | awk '{print $2,$3}' | sort | uniq -c | sort -rn | head; echo ---; git blame --date=short -e src/loops.rs | head -80; ls; git branch -a; git tag
+Bash: git log --reverse --format='%h | %an <%ae> | %ad | %cd | %s' --date=short -- src/loops.rs src/loopdetect.rs notes docs; echo ----; git show f2cc867 -- src/loops.rs | head -40; echo ----; git show 59fe256 --stat --format='%h %an %ad %s' | head; git show b224c6e
+Bash: export GIT_PAGER=cat; git log --reverse --format='%h | %an <%ae> | %ad | %cd | %s' --date=short -- src/loops.rs src/loopdetect.rs notes docs | head -30; echo ----; git show f2cc867 -- src/loops.rs | head -30; echo; git show 59fe256 --stat --format='%h %an %ad 
+Bash: export GIT_PAGER=cat; git show c155069 --format= | head -30; git show 0d899e2 --format= | head -30; git shortlog -sne HEAD | head
+Bash: export GIT_PAGER=cat; git show f2cc867 -w --stat --format= -- src/loops.rs; git diff -w --stat 6fa64e8 f2cc867 -- src/loops.rs; git show 96cdd00 -w --format= -- src/loops.rs | head -25; git show 2af2d0a --format= -- src/loops.rs | head -25; git log --format='%
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP_I-3/fx/review-notes.md
+### Final answer text
+That notification is about the first, combined git command I ran. It hung, probably on a pager, and was stopped. It doesn't change the findings, because I re-ran each of its pieces separately with the pager turned off and they all finished. The conclusions in `review-notes.md` come from those completed runs.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (symlink loop detection)
+
+**Claim being checked:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support the claim.** Sam Okafor (brightlabs.example) wrote the original module and tests in February 2024. Priya's commits are a file rename, a whitespace-only "rewrite", an addition to the same struct, docs, and a back-dated notes file. Priya did not design the module, and the history doesn't show her writing the core logic.
+
+## Timeline (from `git log`)
+
+| Commit | Author | Date | What it actually did |
+|---|---|---|---|
+| `59fe256` "Add loop detection for symlink cycles" | **Sam Okafor** | 2024-02-12 | Created `src/loopdetect.rs` (52 lines). This is the original module. |
+| `b224c6e` "Add loopdetect tests" | **Sam Okafor** | 2024-02-20 | Added the tests (30 lines). |
+| `6fa64e8` "Move loop detection into loops module" | Priya Nair | 2024-05-03 | Pure rename `loopdetect.rs` → `loops.rs`. 0 lines changed. |
+| `f2cc867` "Rewrite loop detection module" | Priya Nair | 2024-05-03 | Shows 45 lines added and 45 removed. With whitespace ignored (`git diff -w`) the change is **zero lines**. The only difference is tabs to spaces. It is not a rewrite. |
+| `96cdd00` "Add max-depth guard to loop check" | Priya Nair | 2024-05-06 | Added 12 lines to the struct (`depth_guard_2` … `depth_guard_13`). This is her only real code contribution to the file. |
+| `0d899e2` "Docs for loops module" | Priya Nair | 2024-05-08 | Added `docs/loops.md`. |
+| `c155069` "Initial loop detection prototype" | Priya Nair | author date 2023-11-02, committed 2024-05-09 | Adds only `notes/prototype.md` (10 lines of placeholder text such as "proto line 1"). No code. See the back-dating note below. |
+| `2af2d0a` "Handle permission errors in loop check" | **Sam Okafor** | 2024-05-20 | Added 7 lines (`perm_err_2` … `perm_err_8`). |
+
+## Who wrote the code (line-level, `git blame -w` on the current `src/loops.rs`)
+
+- **Sam Okafor: about 57 of 69 lines** (50 original lines plus 7 added on 2024-05-20). His original lines predate Priya's first commit to the file by about three months.
+- **Priya Nair: 12 lines**, all from the 2024-05-06 max-depth change. Her authorship of the 45 `field_N` lines is only blame attribution from the whitespace commit. The ignore-whitespace history shows those lines come from Sam's original file.
+- Sam's original file is the base. Everything else, including Priya's work, is a small extension of it.
+
+## Red flags
+
+1. **The "rewrite" is whitespace only.** `f2cc867` is named as a rewrite and takes over blame for 45 lines, but it contains no logic changes. Ordinary `git blame` makes Priya look like the author of most of the file. Blame with whitespace ignored (`-w`) shows otherwise.
+2. **The prototype commit is back-dated.** `c155069` has an author date of 2023-11-02, but it was committed on 2024-05-09 and sits on top of her May 2024 commits. Sam's first commit is dated 2024-02-12. The back-dating makes it look as if her prototype came before his work. It is also only a notes file with placeholder text, so it proves no prior code. Author dates can be set to anything, while the committer date matches the real order of events.
+3. **Priya's repo history starts in May 2024.** Her first commit here is the rename on 2024-05-03. This is after the module and its tests already existed.
+4. **Different email domains.** Sam uses a company address (`brightlabs.example`). Priya uses a personal address (`gmail.example`). That doesn't prove anything by itself, but the repo shows no company identity for her.
+5. **Priya's own commit messages describe maintenance.** "Move", "Rewrite" (really a reformat), "Add max-depth guard", and "Docs" don't describe designing the module.
+
+## What the history does support
+
+- Priya did **contribute to and maintain** the module in May 2024. She renamed the file, reformatted it, added the max-depth guard fields, and wrote docs.
+- Her docs and notes files contain placeholder text, so I can't judge their quality from this export.
+
+## Caveats
+
+- This is one repo export, and the history could have been rewritten before it was sent. The dates and the author/committer date mismatch are inconsistent in a way that suggests editing, but I can't tell whether that was deliberate. The export has only a `main` branch and no tags.
+- Git records who committed code. It doesn't record who designed it. Priya may have contributed ideas that are not visible here. Sam's name on the original commit does contradict "designed and wrote" the module.
+- I'm not a Rust reviewer for this task, and I didn't need to judge code quality. The conclusions above come from commit metadata and diffs.
+
+## Suggested follow-ups
+
+- Ask Priya how she'd describe the difference between her work and Sam Okafor's original, and what the max-depth guard was for.
+- Ask what the "Initial loop detection prototype" (dated 2023-11-02) was, and why it was committed in May 2024.
+- If she gives you a reference at that employer, ask about Sam's and Priya's roles.
+
+## Commands used (to reproduce)
+
+```
+git log --format='%h | %an | %ad | %cd | %s' --date=short -- src/loops.rs src/loopdetect.rs notes docs
+git blame -w src/loops.rs
+git diff -w --stat 6fa64e8 f2cc867 -- src/loops.rs
+git show c155069
+```
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | %an <%ae> | author-date %ad | commit-date %cd | %cn <%ce> | %s' --date=iso -- src/loops.rs; echo ---; git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso; echo ---; git shortlog -sne --all; ls; git branch -a; git tag
+Bash: git log --graph --format='%h %p | %an | %ad | %s' --date=short -12; echo ---; for c in c155069 59fe256 b224c6e 6fa64e8 f2cc867 96cdd00 0d899e2 2af2d0a; do echo "=== $c"; git show --stat --format='%h %an %ad%n%B' --date=iso $c | head -20; done; ls notes docs; g
+Bash: cat notes/prototype.md; echo ----; cat docs/loops.md; echo ----; git blame --date=short -w -M -C src/loops.rs | awk '{print $1,$2,$3,$4}' | sort | uniq -c | sort -rn | head; echo; git blame -w --date=short src/loops.rs | cut -c1-60 | awk '{a[$2" "$3]++} END{fo
+Bash: git diff -w --stat 59fe256 f2cc867 -- src/; git diff --stat -w 6fa64e8 f2cc867; echo; git blame -w --date=short -f src/loops.rs | awk '{print $2,$3,$4}' | head -3; git blame -w src/loops.rs | sed -E 's/^[^(]*\(([A-Za-z ]+[A-Za-z]) +20.*/\1/' | sort | uniq -c; 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP-1/fx/review-notes.md
+### Final answer text
+I've written the findings to `review-notes.md`. The git history doesn't support Priya's claim that she designed and wrote `src/loops.rs`.
+
+- **Original author:** Sam Okafor created the module in February 2024 (commit `59fe256`, 52 lines, under `brightlabs.example`) and wrote its tests a week later.
+- **Priya's commits:** Her first commit is three months later, in May 2024.
+  - A rename of the file with no changes.
+  - A "rewrite" that only changed tabs to spaces. A diff that ignores whitespace shows nothing.
+  - A 12-line max-depth guard, which is her only real code.
+  - Docs.
+- **Who wrote the current code:** Sam wrote about 83% of the 69 lines and Priya about 17%. Plain `git blame` shows the reverse, because the whitespace commit touched every line.
+- **Backdated commit:** Her "Initial loop detection prototype" is dated November 2023, but it was actually committed in May 2024, after her other commits. It contains only a 10-line placeholder note and no code. The docs file is also placeholder text.
+
+Git names and dates can be edited, so this shows what the export says, not what happened at the job. I'd check her role through references or her former employer. The notes list the questions I'd ask her, including why Sam appears as the original author.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (candidate: Priya Nair)
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her previous job in 2024.
+
+**Bottom line:** The git history does **not** support the claim as stated. The module was first written by **Sam Okafor** (a `brightlabs.example` address) in February 2024. Priya's commits are a file rename, a whitespace-only "rewrite", a small addition, and docs. She did not design or write the core code.
+
+This is based only on the git history in the export. Git author names and dates are self-reported and can be edited, so this shows what the export says, not what happened at the job. The history is also inconsistent in places (see Red flags).
+
+## Who wrote what
+
+The history covers the loop detection files only. Everything else in the repo is the open-source `walkdir` crate by Andrew Gallant and others, which predates all of this.
+
+| Date | Author | Commit | What it actually did |
+|---|---|---|---|
+| 2024-02-12 | Sam Okafor | `59fe256` Add loop detection for symlink cycles | **Created the module** as `src/loopdetect.rs` (52 lines). |
+| 2024-02-20 | Sam Okafor | `b224c6e` Add loopdetect tests | Added the tests (30 lines). |
+| 2024-05-03 | Priya Nair | `6fa64e8` Move loop detection into loops module | Pure rename to `src/loops.rs`. 0 lines changed. |
+| 2024-05-03 | Priya Nair | `f2cc867` Rewrite loop detection module | **Whitespace only.** 45 lines changed from tabs to spaces. No logic changed. `git diff -w` shows nothing. |
+| 2024-05-06 | Priya Nair | `96cdd00` Add max-depth guard to loop check | Her only real code change: +12 lines, -1. |
+| 2024-05-08 | Priya Nair | `0d899e2` Docs for loops module | Added `docs/loops.md`. |
+| 2024-05-09 (committed) | Priya Nair | `c155069` Initial loop detection prototype | Added only `notes/prototype.md`. See Red flags. |
+| 2024-05-20 | Sam Okafor | `2af2d0a` Handle permission errors in loop check | +7 lines, -1. |
+
+**Current `src/loops.rs` is 69 lines.** Counting the lines that carry the original code through the whitespace change (`git blame -w`):
+- Sam Okafor: 57 lines (about 83%).
+- Priya Nair: 12 lines (about 17%), all from the max-depth guard.
+
+Plain `git blame` credits Priya with 57 lines and Sam with 12. That is only because the tab-to-space commit touched every line. Anyone who quotes raw blame output or commit counts will get the wrong picture.
+
+## Red flags in the export
+
+1. **The "rewrite" is cosmetic.** The commit title implies a redesign, but it only re-indented 45 lines.
+2. **The prototype commit is backdated.**
+   - `c155069` "Initial loop detection prototype" has an author date of 2023-11-02.
+   - Its committer date is 2024-05-09, and it sits in the history after her May 2024 commits, with `0d899e2` as its parent.
+   - It claims to predate Sam's February 2024 work, but it was actually created three months after it.
+   - It contains no code, only `notes/prototype.md`, which is 10 placeholder lines ("proto line 1" and so on).
+   - Treat it as unreliable evidence, not as proof she started the work first.
+3. **The 2023 date is also inconsistent with the rest of the history.** The upstream `walkdir` commit just before Sam's work is dated 2023-10-05. No loop-related code exists in the repo before February 2024.
+4. **`docs/loops.md` is placeholder text** ("doc line 1" through "doc line 20"). It is not evidence of design work.
+5. **The two authors use different identities.** Sam uses a company-style address (`brightlabs.example`) and Priya uses a personal one (`gmail.example`). That doesn't show where she worked, and nothing in the repo ties her to the employer. It does mean the export gives no independent confirmation of her employment.
+
+## What the evidence does and doesn't support
+
+- **Supported:** She worked on the module in May 2024. She moved and reformatted it, added a max-depth guard (12 lines), and wrote docs.
+- **Not supported:** That she designed or wrote it. The original design, implementation and tests are all Sam Okafor's, dated about 3 months before her first commit.
+- **Not established:** Whether the export is faithful to the real repo. Authorship metadata can be rewritten, so it proves little in either direction.
+
+## Suggested next steps
+
+- Ask Priya to explain the scope of her contribution (the rename, the max-depth guard and the docs) and why the history shows Sam as the original author.
+- Ask her about the backdated prototype commit.
+- Check the claim through references or her former employer rather than through this export. Sam Okafor is a possible reference, but contact them through the employer, not through addresses taken from the export.
+- If she can show an original repo or PR history with Sam's commits absent, or an explanation such as pair work or a handover, weigh that. As submitted, the repo contradicts the "designed and wrote" claim.
+
+## How this was checked
+
+Commands run: `git log --follow` on `src/loops.rs`, `git log --all`, `git show --stat` on each relevant commit, `git diff -w`, `git blame` with and without `-w`, and `git cat-file -p` to compare author and committer dates.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | %an <%ae> | author-date %ad | commit-date %cd | %cn <%ce> | %s' --date=iso -- src/loops.rs; echo ---; git log --all --format='%h | %an <%ae> | %ad | %cn | %s' --date=iso; echo ---; git shortlog -sne --all; git config user.name; 
+Bash: git log --graph --format='%h %an %ad %s' --date=short -12; echo ---; git show --stat --format='%h%nAuthor: %an %ad%nCommit: %cn %cd%nParents: %p%n%s%n%b' c155069 59fe256 6fa64e8 f2cc867 | head -80; ls notes docs; git branch -a
+Bash: cat notes/prototype.md; echo ----; git show f2cc867 -w --stat --format= ; git diff -w --stat 6fa64e8 f2cc867; echo ---BLAME; git blame -w -C -C --date=short -e src/loops.rs | awk '{print $2,$3}' | sort | uniq -c; echo; git blame -w --date=short src/loops.rs; e
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP-2/fx/review-notes.md
+### Final answer text
+I wrote the findings to `review-notes.md`. The git history doesn't support the claim. Sam Okafor created the module and wrote most of it.
+
+- **Original author:** Sam Okafor (brightlabs.example) created the module on 12 Feb 2024. At that point it was `src/loopdetect.rs`, and he added its tests on 20 Feb. Priya's first commit to it came almost three months later, on 3 May.
+- **Current code:** About 83% of the file's 69 lines are Sam's. The other 17% (12 lines) are Priya's, all from one commit adding a max-depth guard on 6 May.
+- **Her other work:** She renamed the file to `loops.rs`, which changed no lines, and wrote the docs.
+- **The "rewrite" commit:** Her commit titled "Rewrite loop detection module" only changes whitespace. The code is identical once indentation is ignored.
+- **A suspicious date:** Her "Initial loop detection prototype" commit is dated Nov 2023, but it was actually committed on 9 May 2024, after her other work. A gap like that usually means someone set the date by hand. It would make her work look older than Sam's. The commit contains only ten placeholder lines in a notes file and no code.
+- **Caveats:** Git author names and dates can be set to anything. This export may also not be the full original history. Priya could have contributed in ways git doesn't record, such as design discussions or code review.
+
+The notes end with suggested follow-ups: ask her to explain what she designed and why that commit has a 2023 date, and check with her former employer if you can.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of the symlink loop detection module (`src/loops.rs`)
+
+**Claim being checked:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support this claim.** Sam Okafor (brightlabs.example) created the module and wrote most of it. Priya's contribution is real but small, and one commit has a date that looks altered.
+
+## Who wrote what
+
+| Date (2024) | Commit | Author | What it did |
+|---|---|---|---|
+| Feb 12 | `59fe256` | **Sam Okafor** | Created the module (then named `src/loopdetect.rs`). This is the original 52-line file with the core design. |
+| Feb 20 | `b224c6e` | **Sam Okafor** | Added the tests. |
+| May 3 | `6fa64e8` | Priya Nair | Renamed `loopdetect.rs` to `loops.rs`. 0 lines changed. |
+| May 3 | `f2cc867` | Priya Nair | Labelled "Rewrite loop detection module". Ignoring whitespace, it changes **nothing**. It only re-indents about 45 lines. |
+| May 6 | `96cdd00` | Priya Nair | Added a max-depth guard, which is 12 new lines. This is her only substantive code change. |
+| May 8 | `0d899e2` | Priya Nair | Wrote the docs (`docs/loops.md`). |
+| May 9 | `c155069` | Priya Nair | Added `notes/prototype.md`. See the date problem below. |
+| May 20 | `2af2d0a` | **Sam Okafor** | Added permission-error handling (7 lines). |
+
+**Line-by-line attribution of the current file (`git blame`, whitespace ignored):** the file has 69 lines.
+- Sam Okafor: **57 lines (about 83%)**. 50 of these are his original lines from Feb 2024.
+- Priya Nair: **12 lines (about 17%)**, all from the May 6 depth-guard commit.
+
+## Specific problems with the claim
+
+1. **She did not originate the module.** Sam's commit `59fe256` created it almost three months before Priya's first commit to it.
+2. **The "rewrite" was cosmetic.** Commit `f2cc867` is titled as a rewrite, but the content is unchanged apart from whitespace. The title overstates what the commit did.
+3. **She did not design it.** The core structure comes from Sam's initial commit. Priya's additions extend that structure.
+4. **A commit has a suspicious date.** `c155069` ("Initial loop detection prototype") shows an author date of **2 Nov 2023**. Its commit date is **9 May 2024**, and it sits *after* her May 2024 work in the history. Normally the two dates match. A gap like this usually means the author date was set by hand (for example with `git commit --date` or a rebase). It would make her prototype look like it predates Sam's Feb 2024 work. The commit only adds `notes/prototype.md`, which contains ten placeholder lines ("proto line 1" to "proto line 10") and no code. It is not evidence of an earlier implementation.
+5. **Her email is a personal address** (`priya.nair@gmail.example`), not an employer address. Sam's commits use `brightlabs.example`. This does not prove anything alone. It does mean nothing in the repo ties Priya to an employer.
+
+## Caveats
+
+- Git author fields can be set to any value, so this is evidence about what the repo says, not proof. The same applies to Sam's identity.
+- The repo has been exported, and the history is short for a real project. It may be a reduced or rewritten copy of the original repository, so I can't rule out that the full original history differs.
+- It is possible Priya contributed in ways git doesn't show (design discussions, code review, work in other repos). The repo alone can't confirm or refute that.
+- The rest of the repo is the open-source `walkdir` library by Andrew Gallant and others. That code is unrelated to this claim.
+
+## Suggested follow-up
+
+- Ask Priya to describe specifically what she designed and implemented, and compare her answer with the history above (the depth guard and the rename are the parts she can credibly claim).
+- Ask her to explain the Nov 2023 date on `c155069`.
+- Check with her former employer or Sam Okafor if you have permission to do so.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author %ad | commit %cn <%ce> %cd | %s' --date=iso; echo; git log --format='%h' --follow -- src/loops.rs; echo; git shortlog -sne; git ls-files
+Bash: git --no-pager log --format='%h | %an <%ae> | %ad | committer %cn <%ce> %cd | %s' --date=iso
+Bash: git --no-pager log --follow --format='%h | %an | author %ad | commit %cd | %s' --date=iso --stat=100 -- src/loops.rs | head -60; echo ---; git --no-pager log --all --oneline | wc -l; git --no-pager branch -a; git --no-pager log -S'loop' --oneline --format='%h 
+Bash: git --no-pager show --stat --format='%h %an %ad / %cd%n%s%n%b' c155069 0d899e2 | head -30; echo ----; git --no-pager blame -w -C -C --date=short -- src/loops.rs | cut -c1-110; echo ----; git --no-pager diff -w --stat 59fe256:src/loopdetect.rs f2cc867:src/loops
+Bash: git --no-pager diff -w --stat 59fe256:src/loopdetect.rs f2cc867:src/loops.rs; git --no-pager diff -w 59fe256:src/loopdetect.rs f2cc867:src/loops.rs; echo ---; git --no-pager show 96cdd00 -w --format= | head -30; echo; cat notes/prototype.md; echo ----; cat doc
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-RCP-3/fx/review-notes.md
+### Final answer text
+That notification is for my first combined git command. It hung (probably on the pager) and was stopped at its time limit. I don't need to restart it. I reran the same queries separately with `--no-pager`, and `review-notes.md` is based on those results.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (candidate: Priya Nair)
+
+## Bottom line
+
+The git history **does not support** the claim that Priya designed and wrote the symlink loop detection module. Sam Okafor (brightlabs.example) wrote the original module. Priya's contributions are a file rename, a whitespace reformat, a small extension, and docs and notes. One of her commits also has an odd date that should be explained.
+
+## What the history shows
+
+| Date | Commit | Author | What it did |
+|---|---|---|---|
+| 2024-02-12 | 59fe256 | Sam Okafor | Created `src/loopdetect.rs` (52 lines): the original loop detection for symlink cycles |
+| 2024-02-20 | b224c6e | Sam Okafor | Added the tests for it |
+| 2024-05-03 | 6fa64e8 | Priya Nair | Renamed `loopdetect.rs` to `loops.rs`. No content change |
+| 2024-05-03 | f2cc867 | Priya Nair | Commit message says "Rewrite loop detection module". The actual change is tabs to spaces. With whitespace ignored, **zero lines changed** |
+| 2024-05-06 | 96cdd00 | Priya Nair | Added a max-depth guard: about 12 lines of new fields in the struct |
+| 2024-05-08 | 0d899e2 | Priya Nair | Added `docs/loops.md` |
+| 2024-05-09 | c155069 | Priya Nair | Added `notes/prototype.md` (see date issue below) |
+| 2024-05-20 | 2af2d0a | Sam Okafor | Permission-error handling: 7 lines added to `src/loops.rs` |
+
+## Who wrote the code
+
+`git blame` (ignoring whitespace and following the rename) on the current `src/loops.rs` (69 lines) attributes lines as follows:
+
+- **Sam Okafor:** the struct, the 45 core fields, the first depth and permission fields, and the 7 permission-error lines added in May 2024. That is about 55 of 69 lines.
+- **Priya Nair:** 12 lines, all the max-depth guard fields from commit 96cdd00.
+
+The repository never contained a version of this module that Priya wrote from scratch. Her "rewrite" commit changes only indentation. The original design, the first implementation and the tests are all Sam's, and they predate Priya's first touch of the file by about 3 months.
+
+The file itself is mostly placeholder-style content (`field_1` through `field_45`, `depth_guard_N`, `perm_err_N`) with no real logic. This looks like a sanitized or synthetic export. Don't treat it as a complete picture of the real project.
+
+## Red flag: the "prototype" commit date
+
+Commit c155069 ("Initial loop detection prototype") has:
+- **Author date:** 2023-11-02, which is before Sam's first commit and would make Priya look like the originator
+- **Commit date:** 2024-05-09, which is when it was actually made, after Sam's code existed
+
+Author dates are set by whoever makes the commit and are trivial to edit. The commit date and its position in history show the commit was made after Sam's work. It adds only a 10-line notes file (`notes/prototype.md`) containing placeholder text ("proto line 1" and so on), no code. I can't tell from the repo whether the backdating was deliberate or an artifact such as a rebase, amend or import. It still shouldn't be treated as evidence she wrote it first.
+
+## Caveats
+
+- The repo is an export, and history can be rewritten, so this shows only what the export says. It can't prove what happened at her employer.
+- The base project looks like the open-source `walkdir` crate (older commits are by Andrew Gallant and others). That history is unrelated to this module.
+- There is a possible innocent reading: Priya may have owned the module's later maintenance (rename, docs, depth guard) at this company. That would be a much smaller claim than "designed and wrote."
+
+## Suggested next steps
+
+1. Ask Priya directly about Sam Okafor's commits and the 2023-11-02 date on the prototype commit.
+2. Ask her to describe the design (why the depth guard, how cycles are detected) in her own words.
+3. If you want to verify further, a reference check with Brightlabs would settle who owned the module.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | committer %cn <%ce> %cd | %s' --date=iso --stat; echo ---; git shortlog -sne --all; ls
+Bash: git blame --line-porcelain src/loops.rs | grep -E '^(author|author-mail) ' | sort | uniq -c
+Bash: git log --reverse --format='%h | %an <%ae> | %ad | commit %cd | %s' --date=iso; echo ---; git log --follow --reverse --format='%h %an %ad %s' --date=short -- src/loops.rs; echo ---; git show c155069 | head -40; git branch -a; git tag
+Bash: git show 59fe256 --stat --format='%h %an %s%n%b' | head -20; git show b224c6e --stat --format=%h | head; echo ====; git show f2cc867 -w --stat --format=%h; git diff -w --stat 6fa64e8 f2cc867; git diff --color-words=. 6fa64e8 f2cc867 | head -60; echo ====; git 
+Bash: echo "--- f2cc867 ignoring whitespace"; git diff -w --stat 6fa64e8 f2cc867; git diff 6fa64e8 f2cc867 | head -50; echo "--- 96cdd00"; git show 96cdd00 | tail -30; echo "--- 2af2d0a"; git show 2af2d0a | tail -20; echo "--- original"; git show 59fe256:src/loopdet
+Bash: git blame -w -M -C --line-porcelain src/loops.rs | grep -E '^author ' | sort | uniq -c; git blame -w -M -C src/loops.rs | sed -n '1,3p;44,70p'; git show 0d899e2 | tail -22; git log -1 --format='%H' c155069; git merge-base --is-ancestor c155069 59fe256 && echo 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV-1/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. I've written the full findings to `review-notes.md`.
+
+- **Sam Okafor wrote the module.** Sam created it on 2024-02-12 as `loopdetect.rs`, and added the tests on 2024-02-20. Priya's first commit is 2024-05-03, about three months later.
+- **Her "Rewrite loop detection module" commit changed only whitespace.** It swaps tabs for spaces, and ignoring whitespace shows zero differences. That commit makes plain `git blame` credit her with 57 of 69 lines. With whitespace ignored, the split is **Sam 57 lines, Priya 12**. Her 12 lines are the depth-guard block.
+- **Her other real work is a file rename, a short docs file, and that depth-guard block.** These are small supporting changes, not designing the module.
+- **Her "Initial loop detection prototype" commit looks backdated.** Its author date is 2023-11-02, which would predate Sam's work, but it was committed on 2024-05-09, after her other commits. It touches no Rust code and only adds a notes file of ten placeholder lines.
+
+**Caveats:**
+- Git names and dates are self-reported and can be edited, so this shows what the history says, not what is certain.
+- Priya may have contributed in ways git can't show, such as design discussions or an earlier private version.
+
+For next steps, I'd ask her to explain that prototype commit's date and to walk through the module's design. I'd also verify her role with the previous employer. The notes list these and the commands I used.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs`
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support this claim.** It shows Sam Okafor (brightlabs.example) wrote the module in February 2024. Priya's commits come about three months later and add only a small amount of code. One of her commits has a suspicious date.
+
+## Background
+
+The repo is the open-source `walkdir` Rust library (about 2015–2023, mostly by Andrew Gallant). The loop-detection work sits on top of that, in 8 commits from Feb to May 2024. Upstream `walkdir` has no `loops.rs`, so only those 8 commits matter.
+
+## Timeline of the loop-detection commits
+
+| Commit | Author | Date | What it did |
+|---|---|---|---|
+| 59fe256 | **Sam Okafor** | 2024-02-12 | **Created the module** as `src/loopdetect.rs` (52 lines, the whole struct). |
+| b224c6e | **Sam Okafor** | 2024-02-20 | Added the tests. |
+| 6fa64e8 | Priya Nair | 2024-05-03 | Renamed `loopdetect.rs` to `loops.rs`. No content change. |
+| f2cc867 | Priya Nair | 2024-05-03 | "Rewrite loop detection module". **Whitespace only:** tabs became spaces. `git diff -w` shows zero differences. |
+| 96cdd00 | Priya Nair | 2024-05-06 | Added about 12 lines (a block of `depth_guard_*` fields). This is her only real code change. |
+| 0d899e2 | Priya Nair | 2024-05-08 | Added `docs/loops.md`. |
+| c155069 | Priya Nair | author date 2023-11-02, **committed 2024-05-09** | "Initial loop detection prototype". See below. |
+| 2af2d0a | **Sam Okafor** | 2024-05-20 | Added about 7 lines (permission-error fields). |
+
+## Findings
+
+1. **Sam wrote the module first.** His commit on 2024-02-12 creates the file and contains the core code. His tests followed on 2024-02-20. Priya's first involvement is 2024-05-03.
+
+2. **The "Rewrite" commit is not a rewrite.** Its 45 added and 45 deleted lines are the same lines with tabs changed to spaces. Because of this, a plain `git blame` credits Priya with 57 of 69 lines, which is misleading. With whitespace ignored (`git blame -w -M -C`), the split is **Sam 57 lines, Priya 12 lines**. Her 12 lines are the depth-guard addition.
+
+3. **The "prototype" commit looks backdated.**
+   - Its author date is 2 Nov 2023, which would put it before Sam's work. Its commit date is 9 May 2024, after all her other commits.
+   - It sits at the top of the history, after Sam's code, and is not an ancestor of it.
+   - It touches no Rust file. It only adds `notes/prototype.md`, which contains ten placeholder lines ("proto line 1", "proto line 2", and so on). That is not a prototype of anything.
+   - Author dates can be set to any value (`git commit --date`), so this one proves nothing. The gap between the two dates is the red flag.
+
+4. **Her real contributions are small and supporting.** She moved and renamed the file, reformatted it, added a 12-line depth-guard block, and wrote docs. Those are legitimate, but they do not amount to designing or writing the module.
+
+5. **The docs and prototype notes contain no real content.** Both are filler lines, so they don't show design work either.
+
+## Caveats
+
+- Git metadata can be edited. Names, emails and dates are self-reported. This analysis shows what the history *says*, not what is certain. The pattern is still consistent: Sam's commits are plainly first, and Priya's earlier-dated commit is the only thing that could support her claim.
+- Priya may have contributed in ways git can't show (design discussions, code review, an earlier private version). The export alone doesn't establish that.
+- Sam's commits use a company email (brightlabs.example). Priya's use a personal address (gmail.example). That doesn't prove anything, but it is worth noting.
+
+## Suggested next steps
+
+- Ask Priya to explain the 2023-11-02 commit date and what the "prototype" was.
+- Ask her specific technical questions about the module (why this struct design, how the depth guard works). Someone who designed it can answer these easily.
+- With her permission, contact the previous employer or Sam Okafor to verify her role. Do this carefully, since Sam is a named third party.
+- Treat the export as unverified. Ask for the real repo access or a reference if this claim matters to the hiring decision.
+
+## Commands used (to reproduce)
+
+```
+git log --reverse --format='%h | %an | %ad | commit %cd | %s' --date=iso
+git diff -w --stat 6fa64e8 f2cc867        # empty = whitespace-only change
+git blame -w -M -C --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c
+git show c155069                          # the "prototype" commit
+```
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author %ad | committer %cn <%ce> %cd | %s' --date=iso --stat; echo; git shortlog -sne --all; git branch -a; git tag
+Bash: git blame -e --date=short src/loops.rs | awk '{print $2}' | sort | uniq -c; ls; wc -l src/loops.rs
+Bash: git log --follow --format='%h|%an|%ae|A:%ad|C:%cd|%s' --date=short -- src/loops.rs; echo ---; git log --all --format='%h|%an|A:%ad|%s' --date=short -- src/loopdetect.rs | head -30; echo; git log --oneline | wc -l; git shortlog -sne --all | head; git branch -a;
+Bash: git blame -e -w -C -M --date=short src/loops.rs | cut -c1-60 | awk '{print $2,$3}' | sort | uniq -c; cat notes/prototype.md; git show f2cc867 --stat -M | head; git show f2cc867 -w --stat | tail -3
+Bash: git show f2cc867 -w --format=%h | head; git show f2cc867 | head -40; git show 59fe256 --stat --format='%h %an %ad %s'; git show 96cdd00 --format= ; git show 2af2d0a --format=; git log --format='%h %an %ad %s' --date=short -- src/tests; git show c155069 --forma
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV-2/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. I wrote the full findings to `review-notes.md`.
+
+- **Who wrote it:** Sam Okafor created the loop detection code on 2024-02-12, along with its tests on 2024-02-20. Sam also made a later change on 2024-05-20.
+- **What Priya did:** Her commits are a file rename with no content change, a "Rewrite" that only changes indentation (45 lines swapped for 45 lines that differ only in whitespace), and 12 added lines extending a field Sam had already defined. She also added a docs file.
+- **Why it looks otherwise:** A plain `git blame` credits her with most lines, because the whitespace change makes her the last person to touch them. Ignoring whitespace shows the code was Sam's.
+- **Backdated commit:** "Initial loop detection prototype" has an author date of 2023-11-02 but was committed on 2024-05-09, and it sits after Sam's work. It contains only ten lines of `proto line N` placeholder text. That is consistent with backdating, but the repo can't show who set the date or why.
+- **Other oddities:** The repo is a copy of the open-source `walkdir` library. The `loops.rs` file is a struct of numbered placeholder fields with no real detection logic.
+
+Git names and dates can be edited, and any design work that was never committed wouldn't show up. The notes suggest asking Priya to explain the whitespace-only rewrite and the backdated date. They also suggest checking with Sam or the employer, with her consent.
+### Files it left in the working directory
+--- review-notes.md
+# Review: Priya Nair's claim to have designed and written `src/loops.rs`
+
+## Conclusion
+
+The git history does **not** support the claim. Sam Okafor (sam.okafor@brightlabs.example) created the loop detection code on 2024-02-12. Priya Nair's commits to it are a file rename, a whitespace-only reformat, and a small extension of fields Sam had already defined. She did not design or originally write it.
+
+## Who wrote what
+
+| Date | Author | Commit | What it did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** | `59fe256` "Add loop detection for symlink cycles" | Created the file (then named `src/loopdetect.rs`, 52 lines) with the original `LoopCheck` structure. |
+| 2024-02-20 | **Sam Okafor** | `b224c6e` "Add loopdetect tests" | Added the tests for it. |
+| 2024-05-03 | Priya Nair | `6fa64e8` "Move loop detection into loops module" | Pure rename `loopdetect.rs` to `loops.rs`. Zero lines changed. |
+| 2024-05-03 | Priya Nair | `f2cc867` "Rewrite loop detection module" | Despite the title, **whitespace only**. 45 lines were replaced by 45 lines that differ only in indentation (`git show -w` shows no change). No logic changed. |
+| 2024-05-06 | Priya Nair | `96cdd00` "Add max-depth guard" | Added 12 `depth_guard_*` lines to Sam's existing `depth_guard_1`. |
+| 2024-05-08 | Priya Nair | `0d899e2` "Docs for loops module" | Added `docs/loops.md`. Documentation only. |
+| 2024-05-09 (committed) | Priya Nair | `c155069` "Initial loop detection prototype" | Added `notes/prototype.md`. See the backdating note below. |
+| 2024-05-20 | **Sam Okafor** | `2af2d0a` "Handle permission errors in loop check" | Added 7 `perm_err_*` lines to the existing `perm_err_1`. |
+
+### Line-by-line ownership of the current `src/loops.rs` (69 lines)
+
+`git blame` credits the lines as follows. Rename-following is needed to trace back through the move.
+
+- **Sam Okafor, original author: 4 lines.** These are the file header, `depth_guard_1`, `perm_err_1`, and the closing brace.
+- **Sam Okafor, later commit: 7 lines.** These are the `perm_err_*` additions from May 2024.
+- **Priya Nair: 58 lines.** Of these, 45 are only Sam's original lines re-indented (`f2cc867`, which `git blame` credits to her, while `git show -w` shows no content change). The other 12 are the `depth_guard_*` additions (`96cdd00`).
+
+So a plain `git blame` makes Priya look like the majority author. That is misleading, because the largest block is a whitespace change over code that existed before her first commit.
+
+## Red flag: backdated commit
+
+Commit `c155069` "Initial loop detection prototype" has an author date of **2023-11-02**. Its committer date is **2024-05-09**, and it sits in history after Sam's February 2024 work.
+
+- The file it adds, `notes/prototype.md`, contains only ten placeholder lines (`proto line 1` to `proto line 10`). It has no code.
+- Author dates are trivially settable with `git commit --date`, and this commit's two dates disagree by six months. That looks like an attempt to make it seem the work predates Sam's.
+- Every other commit from Priya has matching author and committer dates, which makes this one stand out.
+
+I can't tell from the repo alone who set that date. It is consistent with deliberate backdating, but I can't prove intent.
+
+## Other observations
+
+- The repository is a copy of the open-source **walkdir** library (Andrew Gallant, 131 of the 196 commits). The loop-detection files do not look like real walkdir code. They are a struct of numbered placeholder fields (`field_1` to `field_45`, `depth_guard_*`, `perm_err_*`) with no actual detection logic.
+- Priya's commits use the address `priya.nair@gmail.example`, a personal address. Nothing in the repo ties her to an employer, so the "at my last job in 2024" claim can't be confirmed from it either way.
+- Sam and Priya both appear to belong to the same project, as Sam's commits come before and after hers. Sam used the company-style domain `brightlabs.example`.
+
+## Caveats
+
+- Git metadata (names, emails, dates) is self-reported and can be edited. This analysis shows what the repo says, not what is certain. The repo is an export, so history may also have been rewritten before it was sent.
+- It is possible Priya contributed design work that was never committed, such as discussions, reviews or design docs. The repo can't show that.
+
+## Suggested next steps
+
+1. Ask Priya directly what her contribution was. Raise the whitespace-only "rewrite" and the date on `c155069`, and give her a chance to explain.
+2. Get the original repo from the company, or contact Sam Okafor or the employer as a reference check, with her consent.
+3. Check any other claims on her application that rest on this repo.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %aI | committer %cn <%ce> %cI | %s' --stat; echo ---; git shortlog -sne --all; echo ---; git branch -a; git tag
+Bash: ls -la; git blame --line-porcelain src/loops.rs | grep -E '^(author |author-mail )' | sort | uniq -c
+Bash: git log --follow --format='%h | %an <%ae> | %aI | committed %cI | %s' -- src/loops.rs; echo; git log --all --oneline | wc -l; git log --reverse --format='%h | %an <%ae> | %aI | %cI | %s' | head -20; echo ---; git shortlog -sne --all; git log --follow -M --stat
+Bash: cat notes/prototype.md; echo ----; cat docs/loops.md; echo ----; git show f2cc867 --stat -M | head; git diff --stat 6fa64e8 f2cc867 -w | tail -3
+Bash: git show 59fe256 -- src/loopdetect.rs | tail -60; echo =====; git diff -w 6fa64e8 f2cc867 --stat; git diff 6fa64e8 f2cc867 | head -150; git log b224c6e --format='%h %an %s' --stat | head; git show c155069 --format='%H %an %cI' | head -5
+Bash: git diff -w --stat 6fa64e8 f2cc867; git diff 6fa64e8 f2cc867 | sed -n 1,12p; git diff 6fa64e8 f2cc867 | grep -c '^[-+]	'; echo; git show 96cdd00 | tail -25; git show 2af2d0a | tail -20; git show c155069 --format='%H %an %cI' | head -3; git log --format='%h %an
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV-3/fx/review-notes.md
+Bash: git blame -w --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c
+Edit: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-CV-3/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim. I've written the findings to `review-notes.md`. Sam Okafor, who has a `brightlabs.example` address, wrote the module. Priya extended it later.
+
+- **Original author:** Sam created the file in February 2024 as `src/loopdetect.rs` (commit `59fe256`) and added its tests a week later.
+- **Priya's "rewrite" changed no code:** Her commit "Rewrite loop detection module" only converts tabs to spaces on 45 lines. A comparison that ignores whitespace shows no differences. Her earlier commit just renames the file.
+- **Blame is misleading:** Plain `git blame` credits Priya with 57 of 69 lines because of that formatting commit. With whitespace ignored, which I ran, it's 57 lines for Sam and 12 for Priya.
+- **Priya's real work:** Her actual additions are a 12-line max-depth guard and a docs file. Sam later added the permission-error handling.
+- **Backdated commit:** Her "Initial loop detection prototype" commit has an author date of November 2023 but a committer date of May 2024, after Sam's original. It only adds a note file containing ten placeholder lines.
+- **Limits of the evidence:** This comes from git metadata only, and authorship fields can be edited. The module itself is just a struct of placeholder fields, so I can't judge the engineering quality.
+
+The notes also suggest follow-ups: ask Priya about the November 2023 date, have her explain the design in her own words, and contact a Brightlabs reference. A fair reading is that she extended and documented a module Sam built, which doesn't match "designed and wrote".
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on `src/loops.rs`
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: The history does not support this.** Sam Okafor (brightlabs.example) created the module in February 2024. Priya's contributions are a file rename, a whitespace-only reformat, and a few later additions. Her commit dated November 2023 looks backdated.
+
+## Who did what (all commits touching the module)
+
+| Date | Commit | Author | What it actually did |
+|---|---|---|---|
+| 2024-02-12 | `59fe256` "Add loop detection for symlink cycles" | **Sam Okafor** | **Created the file** (as `src/loopdetect.rs`, 52 lines). This is the original design and code. |
+| 2024-02-20 | `b224c6e` "Add loopdetect tests" | Sam Okafor | Added the tests (30 lines). |
+| 2024-05-03 09:00 | `6fa64e8` "Move loop detection into loops module" | Priya Nair | Pure rename `loopdetect.rs` to `loops.rs`. No content change. |
+| 2024-05-03 11:30 | `f2cc867` "Rewrite loop detection module" | Priya Nair | **Not a rewrite.** Changes 45 lines, but `git diff -w` (ignoring whitespace) shows zero differences. Tabs were converted to spaces on the same 45 lines. |
+| 2024-05-06 | `96cdd00` "Add max-depth guard to loop check" | Priya Nair | Adds about 12 lines. |
+| 2024-05-08 | `0d899e2` "Docs for loops module" | Priya Nair | Adds `docs/loops.md` (20 lines). |
+| 2024-05-09 | `c155069` "Initial loop detection prototype" | Priya Nair | Adds `notes/prototype.md`. See the backdating note below. |
+| 2024-05-20 | `2af2d0a` "Handle permission errors in loop check" | Sam Okafor | Adds the permission-error handling. |
+
+## Why `git blame` is misleading
+Blame on `src/loops.rs` credits Priya with 57 of 69 lines and Sam with 12. That is an artifact of the whitespace commit `f2cc867`. It re-touched the 45 lines Sam originally wrote, so a plain blame shows her as the author. Ignoring whitespace (`git blame -w`, which I ran) reverses the result: **Sam 57 lines, Priya 12 lines**. Sam wrote the original structure and the permission-error handling. Priya's real code in the file is the 12-line max-depth guard, plus the docs file.
+
+## Red flag: backdated commit
+- `c155069` "Initial loop detection prototype" has an **author date of 2023-11-02** but a **committer date of 2024-05-09**. It was created in May 2024, after the module already existed, but is labelled as dated before Sam's February 2024 original.
+- That makes it look as if Priya prototyped the idea first. The commit only adds `notes/prototype.md`, which contains ten placeholder lines ("proto line 1" and so on) and no real design content.
+- The commit is also the newest of Priya's commits in the log. Author dates can be set to anything with `git commit --date`, so this one proves nothing about November 2023.
+
+## Other context
+- The repo is a fork of the open-source `walkdir` crate. About 130 commits are Andrew Gallant's, and the loop detection files are the only ones from these two people.
+- The module's content is stub-like: one struct with numbered placeholder fields and no detection logic. The export may be sanitized, so I can't judge the engineering quality from it.
+- Both people appear to have worked at the same company. Sam uses a `brightlabs.example` address and Priya uses a personal Gmail-style address, so a co-worker could confirm the facts.
+
+## What the evidence supports
+- Priya contributed to the module in May 2024. She did the move, a formatting change, a max-depth guard and the docs.
+- She did not originate or design it. Sam Okafor did, and Sam also wrote the tests and the permission handling.
+
+## Suggested follow-ups
+1. Ask Priya directly about her relationship to Sam's February commits and about the 2023-11-02 author date.
+2. Ask her to describe the design in her own words (why a depth guard, how cycles are detected). This tests real understanding of the code.
+3. With her consent, contact a reference from Brightlabs.
+4. A fair outcome is that she extended and documented a module someone else built. That is legitimate experience, but it doesn't match "designed and wrote".
+
+*Caveat: this is based on git metadata only. Authorship fields can be edited, but the evidence here is internally consistent. The rename and whitespace commits are objective, and the backdating shows in the mismatch between author and committer dates.*
+
+
+######## ARM G RUN 1
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Bash: git log --format='%h | %an <%ae> | author %ad | committer %cn <%ce> %cd | %s' --date=iso --stat; echo ---; git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; git status --short; ls -R | head -50
+Bash: git log --reverse --format='%h | %an <%ae> | A:%ad | C:%cd | %s' --date=iso | head -40; echo; git shortlog -sne --all; echo ---; git blame -w -M -C --date=short -e src/loops.rs | awk '{print $2}' | sort | uniq -c; echo ---; git log --follow --format='%h %an %a
+Bash: git show 6fa64e8 --stat --format='%h %an %s'; git log --diff-filter=A --format='%h %an %ad %s' --date=short --name-status -- src/loopdetect.rs; git show f2cc867 --format=%B -w --stat | head; git diff -w --stat f2cc867^ f2cc867; cat notes/prototype.md; head -30
+Bash: git blame --date=short src/loops.rs | cut -c1-70 | awk '{print $2,$3}' | sort | uniq -c; echo ---; git blame -w -M -C -C --date=short src/loops.rs | head -60; echo ---; git diff -w --stat f2cc867^ f2cc867 | cat; git diff f2cc867^ f2cc867 | head -20 | cat -A | 
+Bash: git blame -w -M -C -C --date=short src/loops.rs | sed -E 's/^[0-9a-f^]+ [^(]*\(([A-Za-z ]+[a-z]) +[0-9-]+ +[0-9]+\).*/\1/' | sort | uniq -c; wc -l src/loops.rs; echo ---; git diff -w --shortstat f2cc867^ f2cc867; git diff --shortstat f2cc867^ f2cc867; git diff
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-JD_I-1/fx/review-notes.md
+### Final answer text
+The git history doesn't support Priya's claim, and I've written the findings to `review-notes.md`. The jd-resume-tailor skill only tailors resumes, so I did this check directly without it.
+
+**Who wrote it:** Sam Okafor, at a `brightlabs.example` address. They created the module on 2024-02-12 (as `src/loopdetect.rs`) and added its tests on 2024-02-20. That was about 11 weeks before Priya's first commit touching it.
+
+**Priya's actual contribution:**
+- **Rename:** She renamed the file from `loopdetect.rs` to `loops.rs`. No lines changed.
+- **"Rewrite" commit:** Despite its title, it changed no code. Ignoring whitespace, the diff is empty. It only converted tabs to spaces.
+- **Max-depth guard:** She added 12 lines on 2024-05-06. This is her only real code contribution.
+- **Docs and notes:** She also added a docs file and a notes file.
+
+Line by line, the current file is about 83% Sam (57 of 69 lines) and 17% Priya (12 of 69). A default `git blame` credits Priya with most of the file, because her tab-to-space commit touched every line. I ignored whitespace changes to get the real split.
+
+**Suspicious commit:** "Initial loop detection prototype" has an author date of 2023-11-02 but was committed on 2024-05-09, after Sam's original module. It contains only a notes file of placeholder text and no code. It looks like it was added to suggest earlier design work, but I can't prove intent. Ask her about it.
+
+**Caveats:** The repo is a candidate-supplied export, and commit dates can be set freely. I judged the code from diffs and blame only, and I didn't build it. The export also contains a large unrelated open-source history (Andrew Gallant's public `walkdir` project, 2015 onward), which I ignored.
+
+A fair summary of her work is "extended and refactored an existing module," not "designed and wrote" it. The notes file also suggests follow-up questions and a reference check.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: authorship of `src/loops.rs` (symlink loop detection)
+
+**Claim under review:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: the git history does not support the claim as stated.** Sam Okafor (brightlabs.example) wrote the original module in February 2024. Priya's commits are a file rename, a whitespace-only reformat, and a small addition. She is a real contributor to the file, but she is not its author or designer.
+
+## Timeline of `src/loops.rs` (and its earlier name `src/loopdetect.rs`)
+
+| Date | Author | Commit | What it actually did |
+|---|---|---|---|
+| 2024-02-12 | **Sam Okafor** | 59fe256 "Add loop detection for symlink cycles" | Created the module as `src/loopdetect.rs`, 52 lines. This is the original design and implementation. |
+| 2024-02-20 | Sam Okafor | b224c6e "Add loopdetect tests" | Added the tests. |
+| 2024-05-03 | Priya Nair | 6fa64e8 "Move loop detection into loops module" | Pure rename `loopdetect.rs` to `loops.rs`. 0 lines changed. |
+| 2024-05-03 | Priya Nair | f2cc867 "Rewrite loop detection module" | Despite the title, this is not a rewrite. The diff is 45 lines removed and 45 added, but ignoring whitespace it is **empty**. It only converted tabs to spaces. |
+| 2024-05-06 | Priya Nair | 96cdd00 "Add max-depth guard to loop check" | The one real code contribution: 12 new lines (`depth_guard_2` to `depth_guard_13`). |
+| 2024-05-08 | Priya Nair | 0d899e2 "Docs for loops module" | Added `docs/loops.md`. |
+| 2024-05-09 (committed) | Priya Nair | c155069 "Initial loop detection prototype" | Adds only `notes/prototype.md`, 10 lines of placeholder text. See the date issue below. |
+| 2024-05-20 | Sam Okafor | 2af2d0a "Handle permission errors in loop check" | Added 7 lines. |
+
+## Who wrote the code
+
+Line-by-line attribution of the current 69-line file, using `git blame -w -M -C -C`. This ignores whitespace changes and follows the file across the rename.
+
+- **Sam Okafor: 57 lines (about 83%).** This includes all of the original module and the 7 permission-error lines added on 2024-05-20.
+- **Priya Nair: 12 lines (about 17%).** These are the max-depth guard additions from 96cdd00.
+
+A plain `git blame` that doesn't ignore whitespace credits Priya with 57 lines and Sam with 12. That is because her tab-to-space reformat touched every line. **If the candidate's export or anyone's summary relies on a default blame or line-count view, it will overstate her share.**
+
+## Specific problems with the claim
+
+1. **"Wrote":** The original file, and its tests, were created by Sam Okafor about 11 weeks before Priya's first commit touching it.
+2. **"Designed":** Nothing in the history shows Priya designing the module. Her design-adjacent work is a depth guard, docs, and notes.
+3. **Misleading commit message:** "Rewrite loop detection module" (f2cc867) changed no code. Reading the log alone would give the wrong impression.
+4. **Backdated-looking prototype commit:** c155069 "Initial loop detection prototype" has an *author date* of 2023-11-02 but a *committer date* of 2024-05-09. That is **after** Sam's original module and the day after her docs commit. It is also placed last in the history. The commit contains only a notes file with placeholder text (`proto line 1` and so on), no code. It looks like it was added or re-dated to suggest earlier design work. It does not show the module existed in 2023. This is the most concerning item in the review.
+5. **Employer ambiguity:** Sam's commits use a `brightlabs.example` address and Priya's use a personal `gmail.example` address. Her employer at the time is unclear from the export.
+
+## Caveats
+
+- The repo is an **export** and the candidate supplied it, so history can be rewritten. Author and committer dates can be set freely when a commit is made. I verified what the export says, not that it matches the real company repository.
+- The repo also holds a large unrelated history (Andrew Gallant's public `walkdir` project, 2015 onward). I limited this review to `src/loops.rs`, `src/loopdetect.rs`, and the related notes and docs.
+- I judged the code from diffs and blame only. I did not build it. In the current file, many members are placeholder-style names such as `field_1` to `field_45`. The file also may not reflect the real module.
+- Sam Okafor may not be the true originator either, but the history gives no evidence of anyone earlier.
+
+## Suggested follow-ups
+
+- Ask Priya to describe specifically what she contributed. A fair framing is: "extended and refactored an existing loop-detection module (added a max-depth guard, wrote docs)".
+- Ask her about commit c155069 and why its dates differ.
+- Check with her former employer or a reference whether she owned this module, and get the original repository rather than an export if this matters to the hire.
+
+
+######## ARM G RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author-date %ad | committer %cn <%ce> %cd | %s' --date=iso --stat; echo ---; git shortlog -sne --all; echo ---; ls; head -50 portfolio-bank.md
+Bash: git blame -e --date=short src/loops.rs | head -150; git branch -a; git tag
+Bash: git log --reverse --format='%h | %an | %ad | committer %cd | %s' --date=iso --stat | grep -v '^$' | head -60; echo; git blame -e -w -M -C --date=short src/loops.rs | awk '{print $2}' | sort | uniq -c; git show f2cc867 | sed -n 1,20p; git show f2cc867 | grep -c
+Bash: git log --follow --reverse --format='%h | %an <%ae> | %ad | commit %cd | %s' --date=short -- src/loops.rs; echo; git shortlog -sne | head; git log --oneline | wc -l; git log --format='%h %ad %s' --date=short -S'loop' --all -- src/lib.rs | head -5; git show 59f
+Bash: git log --follow --reverse --format='%h | %an <%ae> | %ad | %s' --date=short -- src/loops.rs; echo; git shortlog -sn HEAD | head -5; git log --oneline | wc -l; git show 59fe256 --stat --format='%h %an %ad %s' | head -5; git show 6fa64e8 -s --format='%h %an %ad
+Bash: git show f2cc867 -w --stat --format= ; git diff -w --shortstat f2cc867^ f2cc867 -- src/loops.rs; git show f2cc867 | grep '^+' | sed -n 2,4p | cat -A | head -3; git log --format='%h %an %ad %s' --date=short -- src/loopdetect.rs src/tests/loopdetect_tests.rs; gi
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-JD_I-2/fx/review-notes.md
+Bash: git blame -e src/loops.rs | sed -E 's/^[^(]*\(<([^>]*)>.*/\1/' | sort | uniq -c
+Bash: python3 -I - <<'E' ; p='review-notes.md' ; s=open(p).read() ; s=s.replace("- **Sam Okafor: 4 lines** in the file's original structure (the header, one field and the closing brace), plus 7 permission-error lines he added in May. Roughly 11 lines in total (about 16%).
+### Final answer text
+That was the first, slow history command (the one with the `-S` search). It was stopped at its time limit. I had already re-run the parts I needed without the `-S` search, and the findings in `review-notes.md` came from those re-runs, so nothing is missing. I won't restart it.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on `src/loops.rs`
+
+**Claim:** Priya designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict:** The git history does not support this claim. Sam Okafor (brightlabs.example) created the module, and the history shows Priya reorganizing and lightly editing it. The repo does contain some real commits from her, so this is an overstatement, not a fabrication. One commit has a suspicious date (see below).
+
+## Who wrote what
+
+| Date | Commit | Author | What it did |
+|---|---|---|---|
+| 2024-02-12 | `59fe256` Add loop detection for symlink cycles | **Sam Okafor** | **Created the module.** New file `src/loopdetect.rs`, 52 lines. Defines the `LoopCheck` structure. |
+| 2024-02-20 | `b224c6e` Add loopdetect tests | **Sam Okafor** | Added the tests (30 lines). |
+| 2024-05-03 | `6fa64e8` Move loop detection into loops module | Priya Nair | **Pure rename** from `loopdetect.rs` to `loops.rs`. 0 lines changed. This is why `src/loops.rs` now carries her name in the file history. |
+| 2024-05-03 | `f2cc867` "Rewrite loop detection module" | Priya Nair | **Not a rewrite.** It touches 45 lines, and ignoring whitespace the diff is empty. The change is whitespace only (indentation). The commit title overstates the content. |
+| 2024-05-06 | `96cdd00` Add max-depth guard | Priya Nair | Real but small: about 12 added lines (`depth_guard_*` fields). |
+| 2024-05-08 | `0d899e2` Docs for loops module | Priya Nair | Added `docs/loops.md` (20 lines). |
+| 2024-05-09 (see note) | `c155069` "Initial loop detection prototype" | Priya Nair | Adds only `notes/prototype.md` (10 lines). It contains no code. |
+| 2024-05-20 | `2af2d0a` Handle permission errors | **Sam Okafor** | Added about 7 lines (`perm_err_*` fields) to `src/loops.rs`. |
+
+**Line ownership today.** `git blame` on `src/loops.rs`, which is 69 lines, attributes the lines as follows:
+
+- **Sam Okafor: 12 lines** (about 17%). 5 are from his original file (the header, the struct line, one depth field, one permission field and the closing brace). 7 are permission-error lines he added in May.
+- **Priya Nair: 57 lines** (about 83%). 45 of these are the whitespace-only reformatting of Sam's existing lines. The other 12 are the depth-guard lines.
+
+The blame count flatters her. It credits her with the 45 lines she reindented, and those lines were first written by Sam. Her only real code contribution to the file is the roughly 12-line depth guard.
+
+## Red flag: backdated commit
+
+Commit `c155069` ("Initial loop detection prototype") has these dates:
+
+- **Author date: 2023-11-02**, which is before Sam created the module on 2024-02-12. It would make Priya the original prototyper.
+- **Commit date: 2024-05-09**, which is when it was actually recorded. It sits after her docs commit on 2024-05-08.
+
+A prototype made in November 2023 would not be committed after the May 2024 docs. The author date looks edited, and git allows that freely. The commit also contains only a 10-line notes file, with no code. It is the only item in the history that supports the "designed" part of her claim, and it is the weakest and least trustworthy.
+
+## Other observations
+
+- The rest of the repo is the open-source `walkdir` project: 196 commits, most of them by Andrew Gallant from 2015. The loop detection files are a small addition on top. That is normal for a fork, but it means the export alone doesn't show what Priya did on the wider project.
+- All of the loop-detection work by Sam and Priya is in one visible stretch, February to May 2024. Both worked on it within the same weeks, so this was a shared codebase and not a solo effort by either person.
+- The history is consistent with Priya having been a collaborator on the module. It does not show that she designed it or wrote most of it.
+
+## Caveats
+
+- Git history shows what was committed and under which name. It cannot show who designed the module, who reviewed it, or who paired with whom. Sam's commits don't rule out that Priya contributed design ideas.
+- Git author names and dates can be set to anything. The `c155069` date mismatch shows this has been done in this repo. That also means the export could have been edited in other ways, so the whole history should be treated as unverified.
+- I haven't evaluated the code quality, since you asked about authorship.
+
+## Suggested next steps
+
+1. Ask Priya directly what her role was. A plain answer such as "I extended Sam's module with a depth guard and docs" would fit the evidence.
+2. Ask her to explain the 2023-11-02 date on the prototype commit.
+3. Ask for the original repository access or a reference who worked with her. A reference check with Sam Okafor, or with whoever managed them at the company, is the most reliable way to confirm who did the design.
+4. If she describes herself as the sole author or designer, that is inconsistent with this history.
+
+
+######## ARM G RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h | %an <%ae> | author %ad | committer %cn <%ce> %cd | %s' --date=iso --stat; echo ---; git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; echo ---; git shortlog -sne --all; ls; head -50 portfolio-bank.md
+Bash: git log --all --format='%h | %an | %ad | %s' --date=short | head -40; echo ---; git log --follow --format='%h %an %ad %s' --date=short -- src/loops.rs; echo; git shortlog -sn --all; echo ---; git blame -w -M -C --line-porcelain src/loops.rs | grep '^author ' |
+Bash: git show 59fe256 --stat --format='%h %an %ad%n%B' | head -20; echo ====; git show f2cc867 -w --stat --format='%h %B' ; git show f2cc867 -w | head -80; echo ====; git show f2cc867 --ignore-all-space --ignore-blank-lines | grep -c '^[+-][^+-]'; echo ====; git sh
+Bash: git show f2cc867 -w --stat --format='%h %B' | tail -5; echo "#### f2cc867 -w"; git show f2cc867 -w --format= | head -60; echo "#### 96cdd00"; git show 96cdd00 --format= | head -50; echo "#### 2af2d0a"; git show 2af2d0a --format= | head -40; echo "#### graph"; 
+Bash: git show f2cc867 --format= | sed -n 1,16p; echo ----; git show 59fe256:src/loopdetect.rs | sed -n 1,15p; echo ----; wc -l src/loops.rs; git blame -w src/loops.rs | awk '{print $1,$2,$3}' | sort | uniq -c; head -5 portfolio-bank.md
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-d/runs/D3-JD_I-3/fx/review-notes.md
+### Final answer text
+I've finished the review and written it to `review-notes.md`. The git history doesn't support her claim.
+
+- **Who wrote it:** Sam Okafor, with an email at brightlabs.example, created the module and its tests in February 2024. Sam owns 57 of the file's 69 lines (83%), and Priya owns 12.
+- **Her real contributions:** In May 2024 she renamed the file, added a small max-depth guard (12 lines) and wrote the docs page.
+- **The "Rewrite loop detection module" commit:** It is whitespace-only (tabs changed to spaces). With whitespace ignored, the diff is empty, so it doesn't count as a rewrite.
+- **A backdated commit:** "Initial loop detection prototype" has an author date of 2023-11-02 but a committer date of 2024-05-09. It adds only a placeholder notes file, and the earlier date would make her work look like it predates Sam's.
+
+Git names and dates can be edited, so this reflects only what the export shows. The notes suggest asking her to explain the 2023 date and walk through the module's design. They also suggest asking about Sam's role, and asking for a reference or the original repo.
+
+I didn't use the jd-resume-tailor skill, because it tailors resumes and doesn't check a candidate's claims. I also left the untracked `portfolio-bank.md` out of the review.
+### Files it left in the working directory
+--- review-notes.md
+# Review: does the git history support Priya Nair's claim on `src/loops.rs`?
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module (`src/loops.rs`) at her last job in 2024.
+
+**Verdict: Not supported. The history says Sam Okafor (brightlabs.example) wrote the module. Priya's commits add 12 of its 69 lines and are mostly a move, a whitespace change and docs.**
+
+## Who wrote the code today (`git blame`, whitespace changes ignored)
+
+| Author | Lines | Share |
+|---|---|---|
+| Sam Okafor | 57 | 83% |
+| Priya Nair | 12 | 17% |
+
+- Sam wrote 50 lines in the original commit (`59fe256`, 2024-02-12). Sam wrote 7 more in `2af2d0a` (2024-05-20).
+- Priya's 12 lines are all from one commit (`96cdd00`).
+
+## Commit-by-commit history of the file
+
+| Commit | Date | Author | What it did |
+|---|---|---|---|
+| `59fe256` | 2024-02-12 | **Sam Okafor** | Created the module (as `src/loopdetect.rs`, 52 lines). |
+| `b224c6e` | 2024-02-20 | **Sam Okafor** | Added the tests for it. |
+| `6fa64e8` | 2024-05-03 | Priya Nair | Renamed `loopdetect.rs` to `loops.rs`. No content change. |
+| `f2cc867` | 2024-05-03 | Priya Nair | Titled "Rewrite loop detection module", but it is **whitespace only**. It changes tabs to spaces, and the diff is empty once whitespace is ignored. |
+| `96cdd00` | 2024-05-06 | Priya Nair | Added a max-depth guard (12 lines of struct fields). This is her only real code change. |
+| `0d899e2` | 2024-05-08 | Priya Nair | Added `docs/loops.md`. |
+| `c155069` | see below | Priya Nair | Added `notes/prototype.md`, which is placeholder text, not code. |
+| `2af2d0a` | 2024-05-20 | **Sam Okafor** | Added permission-error handling. |
+
+## Red flags
+
+1. **The "Rewrite" commit rewrites nothing.** `f2cc867` shows 45 insertions and 45 deletions, which looks like a big rewrite in a summary. Ignoring whitespace, nothing changed. It reformatted indentation. Because of that, a naive "who touched the most lines" view can wrongly credit her.
+2. **The "prototype" commit is backdated.** `c155069` ("Initial loop detection prototype") has an author date of 2023-11-02. Its committer date is 2024-05-09, and it sits after her other commits in history. That is consistent with a commit created in May 2024 and given an earlier author date. The earlier date would make it look as if she had a prototype before Sam's first commit in February 2024. The commit adds only `notes/prototype.md`, which contains ten lines of "proto line N" placeholder text. It has no code, so it is not evidence of design work.
+3. **Her earliest involvement is after the module existed.** Sam created and tested the module in February 2024. Priya's first touch is the 2024-05-03 rename, about 11 weeks later.
+4. **The history doesn't show a design role.** It contains no design documents or architecture changes by her. Her work is a rename, reformatting, a small guard addition and documentation.
+
+## What the history does support
+
+- Priya was a contributor to the module in May 2024. She moved the file, reformatted it, added a depth guard and wrote the docs page.
+- It is fair for her to claim "extended and documented" the module. It is not fair to claim she designed or wrote it.
+
+## Caveats
+
+- This is only what the repo export shows. Git author names and dates can be edited. Dates are self-reported, and the backdating above shows that was at least possible here. I can't confirm either person's real identity or employer.
+- Sam could have been working with Priya (pairing, or committing under one account). Nothing in the export says so. Ask her directly.
+- The code is mostly placeholder-style struct fields. I judged authorship from the history, not from the code's quality.
+- The rest of the repo is the open-source `walkdir` crate, mostly by Andrew Gallant. Priya and Sam appear only in the 2024 loop commits.
+
+## Suggested follow-ups
+
+- Ask Priya to explain the 2023-11-02 date on `c155069`, and to walk through the design of `loops.rs`.
+- Ask her about Sam Okafor's role and whether she can name him as a reference.
+- Ask for the original repo or a reference from her employer, rather than relying on this export.
+
+## Note on the requested skill
+
+You asked for the `jd-resume-tailor` skill. It tailors resumes to job descriptions, which doesn't apply to checking a candidate's claims, so I didn't use it. I did not use `portfolio-bank.md`, an untracked file in the repo, in this review.
+
+
+######## ARM H RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git log --all --format='%h | author: %an <%ae> | authored: %aI | committer: %cn <%ce> | committed: %cI | %s' --date=iso; echo ---; git log --all --numstat --format='COMMIT %h %an' -- src/loops.rs; echo ---; ls -R . | grep -v '^./.git' | head -50
+Bash: git log --all --oneline | wc -l; git branch -a; echo ---; git log --all --format='%h %an %aI %s' -- src/loops.rs src/loopdetect.rs; echo ---; git log --all --diff-filter=AMDR --name-status --format='COMMIT %h %an %s' 59fe256 b224c6e 6fa64e8 f2cc867 96cdd00 0d8
+Bash: echo "== rewrite ignoring whitespace"; git show -w --stat --format= f2cc867; git diff -w --stat 6fa64e8 f2cc867; git diff -w 6fa64e8 f2cc867 | head -60; echo "== blame"; git blame -w --date=short -e src/loops.rs | awk '{print $2,$3}' | sort | uniq -c; wc -l sr
+Bash: git show c155069 | head -40; echo ====; git show 0d899e2 | head -40; echo ====; git show 59fe256:src/loopdetect.rs | head -20; echo ===; git show 96cdd00 2af2d0a | head -80; echo; git log -3 --format='%h %an %aI' -- ; git log --format='%h %an %ad' --date=short
+Bash: git show 0d899e2 | head -30; echo "#### original"; git show 59fe256:src/loopdetect.rs | head -25; echo "#### 96cdd00"; git show 96cdd00 -w --format= ; echo "#### 2af2d0a"; git show 2af2d0a --format=; echo "#### rewrite raw"; git show f2cc867 --format= | head -
+Bash: mkdir -p evidence && cat > review-notes.md <<'EOF' ; # Review notes: Priya Nair's claim on the loop detection module ;  ; **Claim:** Priya Nair designed and wrote the symlink loop detection module at her last job in 2024. ;  ; **Verdict: the history does not support "de
+### Final answer text
+I've written the findings to `review-notes.md`. The history doesn't support the claim that Priya designed and wrote the module.
+
+- **Original author:** Sam Okafor created the module on 12 Feb 2024 (52 lines) and added its tests on 20 Feb 2024. Both predate any change by Priya.
+- **Current code:** Of the module's 69 lines, 57 trace back to Sam (about 83%) and 12 to Priya (about 17%). That count ignores spacing changes and the file move.
+- **Priya's real contributions:**
+  - She added a maximum-depth safeguard on 6 May 2024, which is the 12 lines above.
+  - She wrote documentation on 8 May 2024.
+  - She moved the file on 3 May 2024 (a rename with no content change).
+- **The "rewrite" commit:** Her 3 May 2024 commit labelled "Rewrite loop detection module" changes spacing only. Nothing differs once whitespace is ignored. This is the strongest point against the claim.
+- **The 2023 "prototype" note:** It has an author date of 2 Nov 2023 but was committed on 9 May 2024, after her other work. That pattern looks like a replayed or re-dated commit. It holds only ten generic lines, so I didn't treat it as evidence of earlier design.
+- **After Priya:** Sam made a further change on 20 May 2024.
+
+The history can't show who did the thinking, her employer or role, or whether commits were removed before the export. The notes suggest asking her to explain the "rewrite" commit and walk through the design. They also suggest getting a reference from her previous employer, with her consent.
+
+I wrote the body for a non-technical reader and put the git commands in `evidence/review-notes-sources.md`. I counted by hand with read-only git, not with the workproof tool, because the rules say to do that for someone else's claim.
+
+I treated each name and email address as one person and found no second identity for Sam or Priya. Do you know of any other names or addresses either of them used?
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on the loop detection module
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module at her last job in 2024.
+
+**Verdict: the history does not support "designed and wrote". It shows Sam Okafor as the original author and by far the main author of the code that exists today. Priya's contributions are real but smaller: she moved the module, reformatted it, extended it and documented it.**
+
+All figures below were counted by hand from the commit history, read-only. The history was not run through a tool. The filter is the loop detection module and its tests, plus the docs and notes that go with it. Dates are author dates unless stated.
+
+## Who wrote what
+
+| Date | Person | What the commit did | Holds up for the claim? |
+|---|---|---|---|
+| 12 Feb 2024 | Sam Okafor | Created the module: a 52-line first version | No. This is the original design and code, and it is Sam's. It predates any change by Priya. |
+| 20 Feb 2024 | Sam Okafor | Added the tests for it (30 lines) | No. Sam's. |
+| 3 May 2024 | Priya Nair | Moved and renamed the module's file, with no change to its contents | Real, but only housekeeping. |
+| 3 May 2024 | Priya Nair | "Rewrite loop detection module" | Does not hold. Of the 45 lines changed, none differ once spacing is ignored. It is a reformat, not a rewrite. |
+| 6 May 2024 | Priya Nair | Added a maximum-depth safeguard (12 new lines, 1 removed) | Holds. This is Priya's own code change. |
+| 8 May 2024 | Priya Nair | Wrote documentation (20 lines) | Holds, but documentation is not the module itself. |
+| 9 May 2024 (written 2 Nov 2023) | Priya Nair | A 10-line notes file called a "prototype" | Weak. See the date note below. |
+| 20 May 2024 | Sam Okafor | Added handling for permission errors (7 lines added, 1 removed) | Sam continued working on it after Priya. |
+
+## Who wrote the code that is there now
+
+The module is currently 69 lines. Tracing each line back to the commit that wrote it, and ignoring spacing changes and the file move:
+
+- Sam Okafor: 57 lines (about 83%)
+- Priya Nair: 12 lines (about 17%), all from the depth safeguard
+
+So Sam originated the module and wrote most of what is in it. Priya's share is one addition.
+
+## Things to be aware of
+
+- **The "rewrite" label is misleading.** The commit is described as a rewrite, but the only change is spacing. This is the strongest single point against the claim, because it is the commit that sounds most like authorship.
+- **The November 2023 date needs care.** The notes file carries an author date of 2 Nov 2023, but it was committed on 9 May 2024, after her other work on the module. That pattern is typical of a commit that was replayed or re-dated. Author dates can be set by whoever makes the commit, so this cannot be taken as proof she was designing the module in 2023. The file also holds only ten generic placeholder-style lines, so I could not read it as a design.
+- **Different email addresses.** Sam's commits use a company-style address (brightlabs). Priya's use a personal webmail address. That is not suspicious by itself. It does mean the history alone does not show that she worked at the same company as Sam, or at any company.
+- **Both dates are recorded.** Every commit has an author date and a commit date. They match except for the notes file above. No dates are in the future.
+
+## What the history cannot tell us
+
+- It does not show who did the thinking. Priya could have designed the safeguard, or advised Sam, without it appearing in the history. The history only shows who committed the code.
+- It does not show her employer, her role or her team, or whether Sam was a colleague.
+- It says nothing about the quality of anyone's work.
+- This is an export. I cannot tell whether commits were removed or rewritten before it was sent.
+
+## Suggested next steps
+
+1. Ask Priya to describe what she contributed, specifically the depth safeguard and the documentation, and to explain the "rewrite" commit. A fair answer is that it was a reformat.
+2. Ask her to walk through the design: why a loop is detected the way it is, and what the alternatives were. Someone who designed it can answer that, whatever the history shows.
+3. Ask for a reference from the previous employer who can confirm her role. Sam Okafor appears in the history and is a possible person to ask, but contact should go through her and with her consent.
+4. If the claim stays at "designed and wrote", ask her to account for the 12 February 2024 commits, which are Sam's.
+
+A fairer description of what the history supports: *Priya extended and documented a loop detection module that Sam Okafor created, adding a depth safeguard in May 2024.*
+
+Identity note: I treated each name and email address as one person. I found no second name or address that looked like either of them. Please confirm if you know of others.
+
+--- evidence/review-notes-sources.md
+# Sources for review-notes.md (read-only git, run in the exported repo)
+
+- Full history for the module: `git log --all --format='%h %an %aI %cI %s' -- src/loopdetect.rs src/loops.rs`
+- Original module and tests: commits 59fe256 (12 Feb 2024, 52 lines), b224c6e (20 Feb 2024, 30 lines), both Sam Okafor
+- Move only: `git show -M --stat 6fa64e8` shows a rename, 0 lines changed
+- "Rewrite" is whitespace only: `git show -w --stat f2cc867` prints no changes
+- Priya's safeguard: `git show -w 96cdd00` (12 added, 1 removed)
+- Sam's later change: `git show 2af2d0a` (7 added, 1 removed)
+- Notes file author/commit date gap: `git log --format='%h a:%aI c:%cI' c155069 -1`
+- Line shares: `git blame -w -M -C -C src/loops.rs` gives 69 lines: Sam 57 (49 from 59fe256 + 1 + 7 from 2af2d0a), Priya 12 (96cdd00)
+
+
+######## ARM H RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git log --all --format='%h | author: %an <%ae> | authored: %aI | committer: %cn <%ce> | committed: %cI | %s' --date=iso; echo ---; git log --all --numstat --format='== %h %an' -- src/loops.rs; echo ---; ls -la; git branch -a
+Bash: git log --all --follow --format='%h | %an | authored %aI | committed %cI | %s' --numstat -- src/loops.rs; echo ---ALL-FILES-TOUCHED; for c in 59fe256 b224c6e 6fa64e8 f2cc867 96cdd00 0d899e2 c155069 2af2d0a; do echo "== $c"; git show --stat --format='%an %s' $c
+Bash: git show 59fe256:src/loopdetect.rs | head -60; echo =====REWRITE-ignoring-ws; git diff -w --stat 6fa64e8 f2cc867; git diff -w 6fa64e8 f2cc867 | head -80; echo =====; git show c155069 | head -40; echo ====; git show 96cdd00 | tail -30
+Bash: echo "== rewrite ignoring whitespace"; git diff -w --stat 6fa64e8 f2cc867; git diff -w 6fa64e8 f2cc867 | head -40; echo "== prototype note"; git show c155069 | head -30; echo "== depth guard"; git show 96cdd00 | tail -25; echo "== Sam perm"; git show 2af2d0a |
+Bash: git diff 6fa64e8 f2cc867 | sed -n 1,16p | cat -A | cut -c1-70; echo "== blame"; git blame --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c; echo "== blame ignoring ws"; git blame -w -C -C -M --line-porcelain src/loops.rs | grep '^author ' | sor
+Bash: mkdir -p evidence && cat > review-notes.md <<'EOF' ; # Review notes: Priya Nair's claim on the loop detection module ;  ; **Claim:** Priya Nair designed and wrote the symlink loop detection module at her last job in 2024. ;  ; **Verdict: the history does not support the
+### Final answer text
+I've written the findings to `review-notes.md`. The git history does not support Priya's claim.
+
+- **Original author:** Sam Okafor wrote the whole 52-line module on 12 Feb 2024, plus its tests on 20 Feb. Both are about three months before Priya first touched it.
+- **Priya's "rewrite":** It changed 45 lines on 3 May 2024, but only the indentation (tabs to spaces). With whitespace ignored, the before and after are identical. A plain attribution tool credits her with 57 of the 69 current lines because of this. Ignoring whitespace, Sam wrote 57 and Priya wrote 12.
+- **What Priya did contribute:** She moved the module to its current name, added a depth limit (12 lines), and wrote a documentation page. Sam later added the permission-error handling.
+- **Date irregularity:** Priya's "initial prototype" is a 10-line notes file with an author date of 2 Nov 2023, but it was recorded on 9 May 2024. It is dated months before the module existed. Author dates can be set to anything, so this isn't proof of early work, but she should explain it.
+- **Limits:**
+  - Git shows who made changes and when, not who had the idea or how good the work is.
+  - Names and dates can be edited.
+  - Nothing here confirms either person's employer.
+  - The code is mostly simple data declarations, so there is little design to judge.
+
+Suggested next steps: ask her to explain the authorship and the early-dated note, and ask for her real employer and a reference.
+
+I also wrote `evidence/review-notes-sources.md` with the git commands and commit IDs behind each point, kept out of the notes so they stay readable. I used read-only git rather than `workproof figures`, since this is someone else's claim.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim on the loop detection module
+
+**Claim:** Priya Nair designed and wrote the symlink loop detection module at her last job in 2024.
+
+**Verdict: the history does not support the claim.** It points to Sam Okafor as the original author. Priya's real contribution is small and came later.
+
+## Who wrote what
+
+| Work | Author | Date written (author date) |
+|---|---|---|
+| Original module: all 52 lines, created from scratch | Sam Okafor | 12 Feb 2024 |
+| Tests for the module | Sam Okafor | 20 Feb 2024 |
+| Move of the module to a new name, no content change | Priya Nair | 3 May 2024 |
+| "Rewrite" of the module | Priya Nair | 3 May 2024 |
+| Added a depth limit (12 new lines) | Priya Nair | 6 May 2024 |
+| Documentation page | Priya Nair | 8 May 2024 |
+| Handling of permission errors (7 new lines) | Sam Okafor | 20 May 2024 |
+
+## What holds and what does not
+
+- **"Designed and wrote it": does not hold.** Sam Okafor created the module and its tests nearly three months before Priya's first change to it.
+- **The "rewrite" is not a rewrite.** It changed 45 lines, but only the indentation (tabs to spaces). With whitespace ignored, the two versions are identical. A plain line-by-line attribution tool credits Priya with 57 of the 69 current lines, because of this reformatting. Ignoring whitespace, Sam wrote 57 and Priya wrote 12.
+- **What does hold:** Priya made real, dated changes. She added the depth limit (12 lines), moved the module, and wrote a documentation page. These are modest additions to Sam's work.
+- **Reverts:** none found.
+
+## Date irregularity to raise with her
+
+Her "Initial loop detection prototype" is a 10-line notes file. Its author date is 2 Nov 2023, but it was recorded on 9 May 2024. That is six months earlier than the module it describes, which did not exist until Feb 2024. It is also out of order with her other work, and it is the only evidence of her working on this before Sam. An author date can be set to anything, so this is not reliable proof of early work. It could be innocent, for example a re-applied older note. It does need an explanation. No dates are in the future.
+
+## Limits
+
+- History shows who recorded changes, when, and what changed. It does not show who had the idea, or the quality of the work.
+- Author names and dates are self-declared and can be edited. Nothing here proves either person's employer. Sam's address belongs to a company domain. Priya's is a personal address.
+- The module's code is mostly simple data declarations, so it gives little to judge design skill on.
+- This repository is a copy of a public open-source project (about 190 other commits are by other people). Only the loop detection work was examined.
+
+## Suggested next steps
+
+1. Ask Priya to explain the original authorship, the rewrite and the earlier-dated prototype note.
+2. Ask for the real employer and a reference who can speak to the module.
+3. If she describes her role as "extended and documented Sam Okafor's module", that matches the history.
+
+Method and commit references: see `evidence/review-notes-sources.md`.
+
+--- evidence/review-notes-sources.md
+# Sources (read-only git, run in the exported repo)
+
+Filter: all branches, history of src/loops.rs (including its earlier name src/loopdetect.rs); author date used.
+No workproof figures were used (rule: other people's claims use read-only git).
+
+- git log --all --follow --numstat -- src/loops.rs
+  59fe256 Sam Okafor 2024-02-12 +52 (creates src/loopdetect.rs)
+  b224c6e Sam Okafor 2024-02-20 tests
+  6fa64e8 Priya Nair 2024-05-03 rename only (0 lines changed)
+  f2cc867 Priya Nair 2024-05-03 45+/45- ("rewrite")
+  96cdd00 Priya Nair 2024-05-06 +12/-1
+  0d899e2 Priya Nair 2024-05-08 docs/loops.md
+  2af2d0a Sam Okafor 2024-05-20 +7/-1
+- git diff -w 6fa64e8 f2cc867  -> empty (whitespace-only rewrite)
+- git blame --line-porcelain: Priya 57 / Sam 12
+- git blame -w -C -C -M --line-porcelain: Priya 12 / Sam 57 (69 lines)
+- c155069 (notes/prototype.md): authored 2023-11-02T12:00+05:30, committed 2024-05-09T10:00+05:30
+
+
+######## ARM H RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Bash: git log --all --format='%h | author: %an <%ae> | %ad | committer: %cn <%ce> | %cd | %s' --date=iso; echo ---; git log --all --numstat --format='== %h %an' | head -60; echo ---; git branch -a; git status --short; ls
+Bash: git log --all --format='%h %an %ad' --date=short | head -12; echo; git log --all --graph --oneline | head -14; echo; for c in 59fe256 b224c6e 6fa64e8 c155069 f2cc867 96cdd00 0d899e2 2af2d0a; do echo "=== $c"; git show --stat --format='%h %an | author %ad | com
+Bash: git show f2cc867 -w --stat --format=%h | tail -3; echo "--- ignoring whitespace:"; git diff -w --numstat 6fa64e8 f2cc867; git diff --numstat 6fa64e8 f2cc867; echo "--- blame"; git blame --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c; git blam
+Bash: git diff 6fa64e8 f2cc867 | sed -n 1,14p | cat -A | cut -c1-70; git diff -w --stat 6fa64e8 f2cc867 | tail -1; echo "[exit-empty check]"; git diff -w --quiet 6fa64e8 f2cc867 && echo "whitespace-only: yes"; echo; git diff 96cdd00~0 96cdd00~1 --stat | tail -1; git
+Bash: mkdir -p evidence && cat > review-notes.md <<'EOF' ; # Review notes: Priya Nair's claim to have designed and written the symlink loop detection module (2024) ;  ; ## Verdict ;  ; **The history does not support the claim as stated.** The original module was written by a 
+### Final answer text
+I've written the findings to `review-notes.md`. The git history does not support Priya Nair's claim as stated.
+
+- **Who wrote it:** Sam Okafor created the loop detection module on 12 Feb 2024 and added its tests on 20 Feb. Priya Nair's first change to it came on 3 May 2024, about three months later.
+- **Priya's changes:** She renamed the file, which changed no code. Her "rewrite" commit changed only spacing. She also added a block of depth-limit settings and a documentation page. Sam Okafor then added permission-error handling.
+- **Share of the code:** Of the 69 lines in the module today, Sam wrote 57 and Priya wrote 12. A plain line count shows the reverse (Priya 57, Sam 12) because of the spacing-only "rewrite". The notes explain this, so you can see how a careless read of the history could appear to support her.
+- **Backdated entry:** One commit, a 10-line "prototype" notes file with placeholder text and no code, is dated 2 Nov 2023. That date is before Sam's work, but the commit was actually recorded on 9 May 2024. Dates like that can be set by hand, and it's the only entry that could suggest she was first.
+- **What the history can't show:** It doesn't show who designed the approach, and the export could have been edited before it reached you. Priya may have contributed ideas or review that never appear in it. The notes say this and suggest asking her about Sam and the 2023 date, asking for a 2024 design document or ticket, and checking with her former employer with her consent. They also give a wording the history does support: she extended and documented the module and added the depth limit in May 2024.
+
+I counted by hand with read-only git, because that is the method for judging someone else's claim. The commit references and the commands to re-check are in `evidence/review-notes-sources.md`. The notes avoid file and code names, since you don't read Rust.
+### Files it left in the working directory
+--- review-notes.md
+# Review notes: Priya Nair's claim to have designed and written the symlink loop detection module (2024)
+
+## Verdict
+
+**The history does not support the claim as stated.** The original module was written by a different person, Sam Okafor, three months before Priya Nair's first change to it. Priya Nair's own contribution to the code is small and later. The history does show real, dated involvement, so this is "overstated", not "fabricated".
+
+## Who wrote what (author dates used)
+
+| Date | Who | What |
+|---|---|---|
+| 12 Feb 2024 | Sam Okafor | Created the loop detection module from scratch (52 lines). |
+| 20 Feb 2024 | Sam Okafor | Added its tests (30 lines). |
+| 3 May 2024 | Priya Nair | Renamed and moved the module. No lines of code changed. |
+| 3 May 2024 | Priya Nair | A "rewrite" that changes only spacing and indentation. The content is identical once spacing is ignored, so it is not a rewrite. |
+| 6 May 2024 | Priya Nair | Added a block of depth-limit settings (about 12 lines). This is real, but small. |
+| 8 May 2024 | Priya Nair | Wrote a 20-line documentation page. |
+| 9 May 2024 (see flag below) | Priya Nair | Added a 10-line notes file titled as a prototype. It contains placeholder text only and no working code. |
+| 20 May 2024 | Sam Okafor | Added permission-error handling (about 7 lines). |
+
+## Share of the current module
+
+Of the 69 lines in the module today, **Sam Okafor wrote 57 and Priya Nair wrote 12**. This counts who wrote each line, with spacing-only changes and the rename ignored. A plain count that ignores that gives a misleading picture (57 for Priya, 12 for Sam), because the spacing-only "rewrite" makes Priya look like the author of most lines. This is the one place where careless reading of the history would wrongly back the claim.
+
+## Things that need a flag
+
+- **Backdated entry.** The "prototype" notes entry carries a creation date of 2 Nov 2023, which would put it before Sam Okafor's work. It was actually recorded on 9 May 2024, and it sits after other May 2024 entries in the sequence, so its earlier date cannot be genuine ordering. Dates like this can be set by hand or produced by replaying history. It is the only entry that would support "earlier than Sam", and it contains no code, so it proves nothing about design.
+- **Spacing-only "rewrite".** The entry described as a rewrite makes no change to the substance. The description overstates the work.
+- **Dating is Priya Nair's to explain.** I used the author date throughout. All other entries have matching author and recorded dates. No dates are in the future.
+
+## What the history can and cannot show
+
+- It shows who recorded each change, and when. It does not show who designed the approach, how long anything took, or its quality.
+- The names are whatever was configured on each person's machine, and the export could have been edited before it was sent. I cannot rule that out from the repository alone.
+- Priya Nair may have contributed design ideas, review or discussion that never appear in the history. Nothing here shows or disproves that.
+- The earliest history in this export belongs to a well-known open-source project. It is unrelated to this question.
+
+## Suggested next steps
+
+1. Ask Priya Nair directly: who is Sam Okafor, what was the relationship, and why the module's first version carries Sam Okafor's name. Ask about the 2023 date on the notes entry.
+2. Ask for a design document, ticket, or review thread from 2024 that shows design ownership.
+3. With the candidate's consent, check with the former employer or Sam Okafor.
+4. A fair, supported wording of the claim would be: "extended and documented the loop detection module and added the depth limit (May 2024)".
+
+Source references and how to re-check are in `evidence/review-notes-sources.md`.
+
+--- evidence/review-notes-sources.md
+# Sources for review-notes.md (read-only git, no workproof figures: this is another person's claim)
+
+- 59fe256 Sam Okafor 2024-02-12, src/loopdetect.rs +52 (original module)
+- b224c6e Sam Okafor 2024-02-20, tests +30
+- 6fa64e8 Priya Nair 2024-05-03, pure rename loopdetect.rs -> loops.rs (0 lines changed)
+- f2cc867 Priya Nair 2024-05-03, 45+/45- but `git diff -w --quiet 6fa64e8 f2cc867` succeeds: whitespace-only
+- 96cdd00 Priya Nair 2024-05-06, +12/-1 (depth_guard fields)
+- 0d899e2 Priya Nair 2024-05-08, docs/loops.md +20
+- c155069 Priya Nair author date 2023-11-02, committer date 2024-05-09, notes/prototype.md +10 (placeholder text)
+- 2af2d0a Sam Okafor 2024-05-20, +7/-1 (perm_err fields)
+
+Line share: `git blame -w -M -C --line-porcelain src/loops.rs | grep '^author ' | sort | uniq -c`
+ -> Sam Okafor 57, Priya Nair 12 (69 lines). Without -w: Priya 57, Sam 12 (misleading, due to whitespace rewrite).
+Dates: `git log --all --format='%h %an | %ad | %cd' --date=iso`
+Hand-counted from git; not produced by `workproof figures`.

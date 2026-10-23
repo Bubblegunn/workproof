@@ -1,0 +1,4 @@
+- Maintained a widely used open-source JavaScript library for writing asynchronous code in a straightforward, step-by-step style, contributing 63 of its commits between November 2013 and July 2015 and shipping releases from version 3.0 through 4.6.
+- Re-engineered the library's core to run on standard promises (major release 4.0, late 2014), simplifying the design, removing the benchmark suite and unused dependencies, and keeping existing users' code working.
+- Diagnosed and fixed hard-to-reproduce reliability bugs, including a "generator is already running" failure and mishandled callbacks, adding regression tests so the faults stayed fixed.
+- Reviewed and merged outside contributions as a project maintainer, and set up automated testing across current and upcoming runtime versions, test-coverage reporting and clearer documentation.

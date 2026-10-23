@@ -1,0 +1,7 @@
+I saved the paragraph to `self-review.md` (about 100 words). Check one thing before you send it, because it assumes your git identity is yours.
+
+- **Whose commits these are:** The repo's git config says "Jonathan Ong", but your account email is <email:38e0984e>. I counted commits under the Jonathan Ong identities (`<email:d29caa5c>`, `<email:4132b6bd>` and the GitHub noreply address). If those aren't you, the paragraph is wrong.
+- **What the numbers say:** Those identities account for about 49% of the 1,416 lines in the repo by `git blame`, and about 75 of the 299 commits (~25%). TJ Holowaychuk wrote the original code, has the most commits (145) and about 39% of the lines. The paragraph says you're the second-largest contributor and not the sole author.
+- **What the receipts report showed:** I ran the miner. It shows none of your Claude Code activity in this repo, so it can't answer "how much is mine". I used git blame instead. The paragraph says the repo has no Claude Code sessions. It also says there have been no commits since 2016, so none of this is recent work.
+- **Line counts:** They include docs and config files, not only source. Your manager may recount, so I said so in the text.
+- **Receipts files:** I did not save the usual receipts `.md` and `.html` reports to your home directory. They would name unrelated projects, such as `proactive-gate` and `workproof`, and they don't help with this question.

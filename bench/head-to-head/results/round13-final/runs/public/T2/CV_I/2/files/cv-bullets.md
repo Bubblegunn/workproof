@@ -1,0 +1,4 @@
+- Maintained `co`, an open-source generator-based async control flow library for Node.js, with 73 commits from 2013 to 2015 and releases 4.3.0 through 4.6.0.
+- Switched the library to a Promise-based implementation, replaced Q with Bluebird, and made every result pass through `Promise.resolve()`.
+- Fixed "Generator is already running" errors for calls without a callback, and added support for regular functions that throw.
+- Added yielding of objects with preserved key ordering, and added a clearer error message when a non-yieldable value is yielded.

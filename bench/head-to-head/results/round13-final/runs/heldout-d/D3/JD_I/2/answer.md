@@ -1,0 +1,1 @@
+That was the first, slow history command (the one with the `-S` search). It was stopped at its time limit. I had already re-run the parts I needed without the `-S` search, and the findings in `review-notes.md` came from those re-runs, so nothing is missing. I won't restart it.

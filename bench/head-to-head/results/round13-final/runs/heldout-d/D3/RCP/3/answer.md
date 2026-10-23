@@ -1,0 +1,1 @@
+That notification is for my first combined git command. It hung (probably on the pager) and was stopped at its time limit. I don't need to restart it. I reran the same queries separately with `--no-pager`, and `review-notes.md` is based on those results.

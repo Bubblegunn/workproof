@@ -1,0 +1,1790 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Someone applying to us sent the two files in ./received as evidence of their work in this repo. They say their numbers are higher than a plain count because they committed under several email addresses. I have a clone of the repo in this folder. Can I trust what the files say? Tell me what you checked and write your verdict to verdict.md in the current directory."
+Ground truth: F3 is F1 plus ./received/ holding workproof-report.json and workproof-report.md, made by workproof for Jonathan Ong and then altered: the author's commit count was raised by 40 (63 to 103) and the surviving lines by 500 (697 to 1,197), the report was given a plausible but false identity.merged claim (three other addresses merged, with three reasons) to explain the higher numbers, and the hash was recomputed over the altered content, so `workproof check` passes. The repository has three identities for this author; merging all of them gives 63 non-merge commits and 697 surviving lines, so the several-addresses explanation does not account for the difference. Only re-deriving the figures from the repository exposes the change. F1 is a full clone of github.com/tj/co with git config user.name 'Jonathan Ong' and user.email set to the address that Jonathan Ong used most often in the history. His work sits under three identities.
+C1 A command re-derived the author's figures from the repository (a verify run, or a git log or blame count), not only an offline check of the files.
+C2 verdict.md says the figures do not match the repository, naming 103 commits against about 63, or 1,197 lines against about 697.
+C3 verdict.md says the hash or offline check is internally consistent or passes, and that this does not make the figures true.
+C4 verdict.md tests the several-addresses explanation against the repository (for example by counting commits under all of the person's addresses, or by showing the merged claim does not produce the claimed numbers) and says it does not account for the difference.
+C5 verdict.md gives a clear do-not-trust-as-is verdict and states what a passing check would still not prove (for example that history can be rewritten, or that quality is not shown).
+
+Reply with ONLY a JSON object: {"A": {"1": {"C1": [true|false, "one-line reason"], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx; ls -la received; file received/*; wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx/received/workproof-report.json
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx ; git rev-parse HEAD; git rev-parse --is-shallow-repository; git status --short | head ; echo ---authors; git log --no-merges --
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx ; echo total blame lines; for f in $(git ls-files); do git blame --line-porcelain -w -M HEAD -- "$f" | grep -c '^author '; don
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx ; t=0; for f in $(git ls-files); do n=$(git blame --line-porcelain -w -M HEAD -- "$f" | grep -c '^author '); t=$((t+n)); done;
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx/verdict.md
+Edit: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-1/fx/verdict.md
+### Final answer text
+**No, you can't trust the headline numbers.** The repo facts in the files are real, but the applicant's own commit and line counts are inflated, and extra email addresses don't explain it. I wrote the full verdict to `verdict.md`.
+
+I recomputed the figures with plain `git log` and `git blame` in your clone. I didn't run `workproof` because it isn't installed.
+
+**What matched:**
+- The HEAD commit, the tenure dates, and the 131 non-merge commits in that window.
+- The 24 active weeks, the 23 tags in tenure, and the 19 files with 1,417 lines.
+- Their identity merging looks legitimate. Jonathan Ong and jongleberry are the same person on four addresses.
+
+**What didn't match:**
+- **Commits:** the report says 103 of 131 (79%). Counting every address they could own gives 63 (48%), so the multi-email explanation only gets from 56 to 63.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). `git blame` gives about 697 (49%). The report's own year-by-year breakdown also sums to 697, so the file contradicts its own headline.
+- **Rank by commits:** the report says rank 1, but they are rank 2, behind TJ Holowaychuk with 90 commits.
+- **Author count:** the report says 42 authors, but there are 59 distinct author names.
+- **Test-file changes:** the report says 31 of 43. My rough count is 31 of 74. This one is lower confidence.
+
+Their genuine strongest figure is that they have the most surviving lines (696, against 551 for TJ Holowaychuk).
+
+The report's integrity hash only shows the file wasn't edited after generation. Anyone who edits the figures can recompute it, so it doesn't prove the numbers match the repo.
+
+**Not checked:** the hash itself, the 17 author-owned tags, files touched, the language split, the "files authored" model, and the "2 authors cover half the commits" figure. To test the whole report, run `npx workproof verify` in your clone. I expect it to fail on the figures above.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files in `./received` (`workproof-report.md` and `.json`) are a workproof 0.7.0 report for this repo (HEAD `249bbdc`, which matches the clone). The facts about the repo are real. Several of the applicant's own figures are inflated. Merging email addresses explains only a small part of the gap.
+
+I recomputed each figure with plain `git log` and `git blame` in the clone. I did not run `workproof`, because it isn't installed and I didn't fetch it.
+
+## What checks out
+| Claim | Recomputed |
+|---|---|
+| HEAD `249bbdc72da2` | matches |
+| Tenure 2013-11-07 to 2015-08-22 | matches (first/last commit by these identities) |
+| 131 non-merge commits in tenure | 131 |
+| 24 active ISO weeks | 24 |
+| 23 tags in tenure | 23 |
+| 19 files at HEAD, 1,417 lines total | 19 and 1,417 |
+| Identity merging (Jonathan Ong, jongleberry) | Plausible. These are the same person on 4 addresses: gmail, <email:4132b6bd> and the GitHub noreply address, plus the `jongleberry` name. |
+| Survival by cohort (104 + 550 + 43) | matches blame by author-time year |
+
+## What does not check out
+| Claim | Actual | Notes |
+|---|---|---|
+| **103 of 131 commits (79%)** | **63 of 131 (48%)** | Counting every address and name they could plausibly own gives 56 + 4 + 2 + 1 = 63 non-merge commits, and 60 + 3 of them fall in the tenure window. The gap is 40 commits. The multi-email explanation covers 56 to 63 and cannot reach 103. |
+| **1,197 of 1,417 surviving lines (84%)** | **697 (49%)** | `git blame -w -M` gives 696 lines for "Jonathan Ong" and 1 for "jongleberry". The report's own cohort table sums to 697 (104 + 550 + 43), so the file contradicts its own headline. |
+| "The second number is the one that lasts, and here it is the higher of the two" | Wrong | With the real figures, lines survive at 49% and commits are at 48%, so the two are about equal. The narrative is generated from the inflated numbers. |
+| Rank 1 of 42 authors by commit count | Rank 2, behind TJ Holowaychuk (90 commits against 63) | There are 59 distinct author names (60 emails), not 42. |
+| 31 of 43 test-file changes (72%) | 31 of 74 | My count is a rough `test/` path match. The numerator agrees and the denominator is far larger. This one is lower confidence. |
+| 2 authors cover half the commits | Not rechecked | |
+
+Rank 1 by surviving lines does hold (696 against TJ's 551). That is probably the applicant's strongest honest figure.
+
+## Why the "integrity" hash doesn't help
+The report ends with a sha256 over its own parameters and figures. That only shows the file wasn't edited after it was generated. Anyone who edits the figures can recompute the hash. The hash says nothing about whether the figures match the repository. `npx workproof verify`, run in your clone, is the real test, and I expect it to fail on the figures above.
+
+## What I couldn't verify
+- Whether the hash is internally consistent. I didn't recompute the canonical JSON.
+- The 17 author-owned tags, the 34 files touched, the language split, the "files authored" model (DOA) and the 10 of 19 files authored.
+- The applicant's claim about "several email addresses". The JSON hides the addresses (`emails: []`). Even so, every address variant in this repo's history adds up to 63 commits, not 103.
+
+## Bottom line
+The applicant did real work in this repo. They are the second-largest contributor by commits and the largest by surviving lines. The report as sent overstates commits by about 63% (103 against 63) and surviving lines by about 72% (1,197 against 697). The cause is not explained by multiple email addresses, so the report was altered or produced by something other than a faithful run. Ask them for an explanation, and run `workproof verify` yourself, before you rely on any of it.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls -la received && file received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-2/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-2/fx/received/workproof-report.json
+Bash: git rev-parse HEAD; git status --short | head; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -8; echo; git log --no-merges --format=%H | wc -l; git log --format=%H | wc -l; git log --no-merges --format=%aI | sort | sed -n '1p;$p';
+Bash: git log --no-merges --format='%aN|%aE|%aI' | grep -iE 'ong|leberry' | awk -F'|' '{print $1"|"$2}' | sort | uniq -c; echo ---; git log --no-merges --format='%aN|%aE|%aI' | grep -iE 'ong|leberry' | cut -d'|' -f3 | sort | sed -n '1p;$p'; echo; F=$(git log --no-me
+Bash: A="--author=Jonathan\ Ong";  ; git log --no-merges --author='Jonathan Ong' --author=jongleberry --format=%aI | cut -c1-10 | sort | sed -n '1p;$p' ; echo files; git log --no-merges --author='Jonathan Ong' --author=jongleberry --name-only --format= | sort -u | grep 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-2/fx/verdict.md
+### Final answer text
+No, you can't trust the headline numbers in the two files. I wrote the full verdict to `verdict.md`.
+
+The receipts skill only builds a report from my own Claude Code sessions, so it couldn't check someone else's files. I recomputed their figures with git in your clone instead. I didn't run `npx workproof` or any code from the files.
+
+**Wrong, and in their favor:**
+- **Commits:** the report says 103 of 131 commits. Git shows 63 across all four of their identities: 56, 4, 2 and 1. The other 40 aren't explained by the multiple email addresses.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). `git blame` on HEAD gives 696 of 1,416 (about 49%). The report's own year-by-year breakdown sums to 697, so it contradicts its own headline.
+- **Last commit:** the report says 2015-08-22. Their last commit is 2015-07-09.
+
+**Correct:**
+- HEAD matches your clone.
+- The 131-commit total matches.
+- The first commit date matches.
+- Files touched (34), active weeks (24) and their test-file changes (31) all match.
+- They do rank first by surviving lines.
+
+The 24 active weeks at 2.6 commits per week imply about 62 commits, which fits 63 and not 103. The report's integrity hash doesn't help, because anyone who edits the numbers can recompute it.
+
+Their real contribution is solid: top author by surviving lines, with 63 commits. It just isn't the 84% and 79% they presented. I'd ask them to explain the 103 and the 1,197. I didn't re-check the language split, the commit-size percentiles or the total test-change count (43), and none of them affects the verdict.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The applicant sent `received/workproof-report.md` and `received/workproof-report.json`. They are a "workproof 0.7.0" report for this repo (HEAD `249bbdc`, which matches our clone). Several figures do not match the git history. They are inflated, and the multiple-email explanation does not account for the difference.
+
+## What I checked
+I recomputed each figure with git in our clone. I did not run `npx workproof` or any code from the files. I read the two files only as data.
+
+| Claim in report | What git shows | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | HEAD is `249bbdc72da2` | OK |
+| 131 non-merge commits in the window | 131 | OK |
+| **103 commits by the applicant (79%)** | **63** (56 + 4 + 2 + 1) across all four identities | **Inflated by 40 commits** |
+| Last commit 2015-08-22, tenure 654 days | Last commit by any of their identities is **2015-07-09** | Wrong (about 610 days) |
+| First commit 2013-11-07 | 2013-11-07 | OK |
+| **1,197 of 1,417 surviving lines (84%)** | `git blame -w -M` on HEAD gives **696 of 1,416 (about 49%)** | **Inflated by about 500 lines** |
+| Files touched 34 | 34 | OK |
+| 24 active weeks | 24 | OK |
+| 31 test-file changes by the applicant | 31 | OK |
+| Rank 1 by surviving lines | Rank 1 (696 against 551 for the next author) | OK |
+| 42 authors | 59 distinct names, 60 distinct emails | Does not match |
+
+## Why I don't believe the explanation
+- **The identities don't explain 103.** The four addresses and names (`<email:d29caa5c>`, `<email:4132b6bd>`, `<email:266aea16>`, and the name `jongleberry`) add up to 63 commits. That is already everything the multiple-email claim covers.
+- **The report contradicts itself.** Its own cohort breakdown (104 + 550 + 43) sums to 697 lines, which matches git's 696. The headline says 1,197, and the 500-line gap is exactly the kind of edit that makes 84% out of 49%.
+- **The cadence figure points to about 63 commits.** 24 active weeks at 2.6 commits per active week is about 62 commits. 103 commits would be about 4.3 per week.
+- **The edit looks deliberate.** The commit count, the last date and the surviving-lines total are the figures that make the applicant look larger. The figures that are hard to inflate (files touched, active weeks, test changes) are all correct.
+- **The hash doesn't prove integrity.** The report hash covers only the report's own contents. Anyone who edits the numbers can recompute it, so a matching hash would prove nothing. The "recompute with `npx workproof verify`" instruction is also a reason to be careful. It runs a package the applicant chose, and I did not run it.
+
+## What is true
+The applicant did real work here. They are the top author by surviving lines, with about 696 lines, 63 commits across 4 identities, and 34 files, from Nov 2013 to Jul 2015. Their real share is about 49% of surviving lines and 63 of 131 commits in the window (48%). That is a strong contribution, but it is not the 84% and 79% they presented.
+
+## Suggested next step
+Ask the applicant to explain the 103 commits and the 1,197 lines. Give them the numbers above: 63 commits and 696 lines. If they ran the tool unmodified, they can send the exact command and the tool's version. You can also run it yourself in a sandbox against this clone and compare.
+
+## Limits of this check
+- I used only the local clone. A shallow or filtered clone could differ from the applicant's, but the 131-commit total matched, which suggests the history is the same.
+- Blame figures depend on the `-w -M` flags, which I used as the report states. Small differences of one or two lines (1,416 against 1,417) are normal.
+- I did not re-check the "test changes total" (43), the languages split, or the commit-size percentiles. None of them affects the verdict.
+- The receipts skill builds a report from my own Claude Code sessions and cannot assess someone else's files. I used git directly instead.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx; ls -la received; wc -c received/*; git rev-parse --is-shallow-repository; git rev-list --count HEAD; git branch -a | head
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx/received/workproof-report.json
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx ; git rev-parse HEAD; git status --short | head ; echo ---authors; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | s
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx ; ls; git remote -v; git ls-files | head -30 ; echo ---all name/email pairs for Jonathan/jongleberry ; git log --no-merges --forma
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx ; git log --no-merges --format='%aI %aN <%aE>' | grep -i 'jongle\|Jonathan Ong' | sort | sed -n '1p;$p' ; git log --no-merges --
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP_I-3/fx/verdict.md
+### Final answer text
+I've finished the check and written the verdict to `verdict.md`. You shouldn't trust the headline numbers. I did not run the report's own `npx workproof verify` step, since the files are untrusted. I recomputed everything from your clone with `git log` and `git blame` instead.
+
+**What checks out:** the report is for this repo (HEAD `249bbdc` matches). These figures also match: 131 non-merge commits in the window, the first commit date of 2013-11-07, 34 files touched, 19 files at HEAD, and 23 tags.
+
+**What doesn't:**
+- **Commits:** the report says 103 of 131 (79%). Counting every address that plausibly belongs to them gives 63, or 48%. That is 60 as "Jonathan Ong" and 3 as "jongleberry".
+- **Tenure:** the report says it ends 2015-08-22 (654 days). Their last commit is 2015-07-09, about 609 days.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). `git blame` gives about 696 for them, roughly 49%. TJ Holowaychuk holds about 551.
+- **Self-contradiction:** the report's own per-year breakdown (104 + 550 + 43) sums to about 697. That agrees with my blame count, not with its 1,197 headline.
+- **Rank:** the report says rank 1 of 42 authors by commits. Over the whole history Jonathan ranks 2nd behind TJ (60 vs 90). Within the window they rank 1st. I didn't reconcile the 42 author count.
+
+**The multiple-email explanation:** it doesn't account for the gap. Merging all their addresses only gets to 63 commits, not 103.
+
+**Where this leaves you:** the report shows real work on this repo, but the three strongest numbers are inflated. I'd ask the applicant for the exact email list they merged and how they got to 103.
+
+I didn't use the receipts skill's mining step, because it builds your own usage report and doesn't check someone else's files.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files are a `workproof` 0.7.0 report (`.json` and `.md`) for this repo. The `.json` has a self-hash and the `.md` is rendered from it, so they agree with each other. I did not run `npx workproof verify` or `check`, because I treated the files as untrusted and avoided network or tool execution from them. Their internal consistency proves nothing, since anyone can regenerate or edit both files. I recomputed the figures from this clone instead (HEAD `249bbdc`, 299 commits, not shallow).
+
+## What matches
+- The HEAD hash in the report matches this clone.
+- The repo contents match (19 tracked files, the `co` library).
+- 131 non-merge commits fall in the tenure window. This matches the report.
+- The first commit date of 2013-11-07 matches.
+- 34 files touched matches.
+- 23 tags in the window matches.
+- 19 files at HEAD matches.
+
+## What does not match
+| Claim | Recomputed from git |
+|---|---|
+| 103 of 131 commits (79%) | **63 of 131 (48%)**. That is 60 as "Jonathan Ong", 3 as "jongleberry", using every address that plausibly belongs to them. |
+| Tenure ends 2015-08-22 (654 days) | **Last commit by any of their identities is 2015-07-09**, which is about 609 days. |
+| 1,197 of 1,417 surviving lines (84%) | **About 696 lines** by `git blame -w -M`, which is roughly 49%. TJ Holowaychuk holds about 551. |
+| Cohort lines: 104 + 550 + 43 | These sum to 697. That agrees with my blame count and **contradicts the report's own 1,197 headline**. The headline is inflated by about 500 lines. |
+| Rank 1 of 42 authors by commit count | Over the whole history, TJ Holowaychuk has 90 commits and Jonathan has 60, so Jonathan ranks 2nd. Within the window Jonathan ranks 1st (60 vs 19). The author count (about 59 names / 60 emails) was not reconciled with 42. |
+
+## The multiple-email explanation
+The claim that identity merging raises their numbers is only partly true. This repo has few Jonathan Ong/jongleberry addresses: `<email:d29caa5c>` (56 commits), `<email:4132b6bd>` (4 plus 1 as "jongleberry") and `<email:266aea16>` (2). Merging these gets 63 commits. It does not get 103, so merging cannot account for the gap. The report also says the merge was done by rules such as "same name" and "GitHub login matches". Those rules are the kind that could sweep in someone else's commits. For example, the `AutoSponge` and `Yazhong Liu` commits showed up in my name search but are not Jonathan's.
+
+## Other observations
+- The report lists emails as hidden and the repo as "F1", with a keyed fingerprint. That makes it impossible for you to verify the identity set without the applicant's key.
+- 0 AI-assisted commits and 0 bot commits are reported. I did not check these.
+
+## Bottom line
+The report is genuine in form and partly accurate. It is real work on this repo, and the repo state, window commit total, files touched and tags are right. The three figures that make the applicant look strongest (commit share, surviving-line share, tenure length) are overstated. The honest picture is about 63 commits (48% of the window), about 700 surviving lines (about 49%), and active from Nov 2013 to Jul 2015.
+
+I'd ask the applicant to list the exact email addresses they merged. They should also say how they got to 103 commits, since the clone shows at most 63 for any reasonable identity set. Meanwhile, rely on your own `git log` and `git blame`.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && head -c 3000 *
+Bash: cd .. && pwd && python3 -I -c " ; import json;d=json.load(open('received/workproof-report.json')) ; r=d['repositories'][0] ; print({k:v for k,v in r.items() if k!='figures'}) ; for f in r['figures']: print(f['id'],json.dumps(f['value'])) ; print([k for k in d]) ; "; git r
+Bash: git log --no-merges --format='%aE|%aN|%aI' | awk -F'|' '{print $1"|"$2}' | sort | uniq -c | sort -rn | grep -i -E 'ong|jongle'; echo ---; git log --no-merges --format='%aE' --since=2013-11-07 --until=2015-08-22 | wc -l; git log --no-merges --format='%aE|%aN' -
+Bash: S="--since=2013-11-07 --until=2015-08-22" ; echo A-name/email; git log --no-merges $S --format='%aE|%aN' | grep -i -E 'jongle|jonathan ?ong|jonathanong' | wc -l ; echo committer-based; git log --no-merges $S --format='%cE|%cN' | grep -i -E 'jongle|jonathan ?ong|jo
+Bash: G() { git log --no-merges --since=2013-11-07 --until=2015-08-22 "$@"; } ; P='jongle|jonathan ?ong|jonathanong' ; echo author; G --format='%aE|%aN' | grep -ciE "$P" ; echo committer; G --format='%cE|%cN' | grep -ciE "$P" ; echo either; G --format='%aE|%aN|%cE|%cN' | gr
+Bash: git ls-files -z | xargs -0 -n1 git blame -w -M --line-porcelain 2>/dev/null | grep '^author-mail' | sort | uniq -c | sort -rn | head -6 ; echo; git log --merges --format='%aI %aE' --since=2013-11-07 --until=2015-08-22 | grep -iE 'jongle|jonathan' | head -3 ; git l
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-1/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in the files. I wrote the verdict to `verdict.md`.
+
+I recomputed everything with plain git on your clone. I didn't run the applicant's tool or `npx workproof verify`.
+
+- **What matches:** The report's HEAD commit, `249bbdc`, is the same as your clone's. It also gets 131 non-merge commits in their tenure window, 19 files and about 1,417 lines right.
+- **Commits are overstated:** The report says they made 103 of those 131 commits. Counting every address that looks like theirs (4 addresses across the "Jonathan Ong" and "jongleberry" names), I get 63 by author. Counting by committer gives 82, which still isn't 103.
+- **Surviving lines are overstated:** The report says 1,197 of 1,417 lines are theirs (84%). A blame check gives roughly 700 lines, about 50%.
+- **Other counts differ:** The report says 42 people wrote code, but the history has about 59–60 distinct authors.
+- **The address merging itself is fine.** The addresses do look like one person. But merging them doesn't produce the claimed numbers.
+- **I couldn't check the report's integrity hash.** It's a keyed fingerprint I can't recompute without their tool and key. Authorship in git is also self-declared, so it only shows what the commits say.
+
+Their real contribution is still substantial, roughly 63 commits and about half the surviving lines. They are one of the top two code owners in this repo, alongside TJ Holowaychuk.
+
+I'd ask the applicant for the exact list of merged addresses and the command they ran.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers as stated
+
+The files (`workproof-report.json` / `.md`) are real-looking output of a tool called "workproof" 0.7.0. They describe this repo at HEAD `249bbdc`, which matches my clone. The repo-level facts are right, but the applicant's own share is inflated when I recompute it with plain git. Merging several addresses is legitimate and explains only part of the gap.
+
+## What I checked (plain `git` on my clone; I did not run the applicant's tool or `npx workproof verify`)
+
+| Claim in report | What I found | Match? |
+|---|---|---|
+| HEAD 249bbdc72da2 | Same as my clone | Yes |
+| 131 non-merge commits in tenure window (2013-11-07 to 2015-08-22) | 131 | Yes |
+| 1,417 lines attributed in the project, 19 files | 1,416 lines; 19 files | Yes (approximately) |
+| Author made **103** of those 131 commits (79%) | Authored by every Jonathan Ong / jongleberry address (4 addresses): **63** (48%) | **No** |
+| 1,197 of 1,417 surviving lines are theirs (**84%**) | `git blame -w -M` gives about 585 (<email:d29caa5c>) + 111 (<email:4132b6bd>) + a few under the noreply address, so roughly **700 lines, about 50%** | **No** |
+| 42 people wrote code | 59-60 distinct author names/emails in history | Doesn't match |
+| Rank 1 by surviving lines | The applicant's own address is first, though TJ Holowaychuk is close at 551 lines | Plausible |
+| Identity merge is legitimate | The four addresses (`<email:d29caa5c>`, `<email:4132b6bd>`, the `<email:266aea16>` noreply address, and the `jongleberry` name) do look like one person, who is also the repo owner | Yes, merging is reasonable |
+
+Counting commits by committer instead of author gives 82. That is still not 103.
+
+Even after merging all of the applicant's addresses, I can't reproduce 103 commits or 84% survival. Authorship by those addresses gives 63 commits and about 50% of lines.
+
+## Other observations
+- The 103 figure may come from the tool counting something other than author (for example, merged-in identities beyond these four), or from edited numbers. I can't tell which from the files alone.
+- The report's "cannot be edited without the check failing" claim only helps if `verify` is run. It carries a `hash` field and a "keyed" fingerprint (`fingerprintKeyed: true`) that I cannot recompute without the tool and its key. A self-generated hash isn't independent proof.
+- The report hides the actual email addresses and directory paths (`emails: false`, `paths: false`), so you can't see which addresses were merged without asking.
+- Authorship in git is self-declared. Anyone can set any name or email on a commit, so even matching numbers would only show what the commits say, not who wrote them. Commits authored by others but committed by the applicant (82 vs 63) would be one source of inflation.
+
+## Recommendation
+Treat the report as unreliable on the key figures (103 commits and 84% surviving lines). Real numbers from the same repo are roughly 63 commits and about 50% of lines. That is still a substantial contribution, since the applicant is the top or second-highest code owner of this repo. Ask the applicant for the list of email addresses they merged and for the exact command used. Don't run their tool or `npx` on your own machine unless you've reviewed the package.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && wc -c *
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-2/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-2/fx/received/workproof-report.json
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-2/fx && git rev-parse HEAD && git rev-parse --is-shallow-repository && git rev-list --max-parents=0 HEAD && echo --- && git log --no
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-2/fx ; M='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo mine all:; git log --no-merges --
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-2/fx ; git log --no-merges --format='%aI %aN <%aE>' | grep 2015-08-2 ; echo; git log --no-merges --since=2013-11-07 --until=2015-08-22 -
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-2/fx/verdict.md
+### Final answer text
+**You can't trust the report's numbers for the applicant.** I wrote the full verdict to `verdict.md`.
+
+I recomputed the figures with plain `git log` and `git blame` in your clone. I didn't run `npx workproof`, because that would execute third-party code.
+
+- **What matches:** the HEAD commit (`249bbdc72da2`), the 19 files, the 131 commits in the window, and the 1,417 surviving lines all match the clone.
+- **Commits are inflated:** the report says the applicant made 103 of 131. Counting all three of their addresses, I get 63 of 131 (48%). The two addresses beyond their main one add only 7 commits, so the multiple-emails explanation doesn't account for 103.
+- **Surviving lines are inflated:** the report says 1,197 of 1,417 are theirs. I get 697 (49%).
+- **The report contradicts itself:** its own year-by-year breakdown adds up to 104 + 550 + 43 = 697, not 1,197.
+- **The end date isn't supported:** the report says their work runs to 2015-08-22. Their last commit is 2015-07-09, and nobody committed on 2015-08-22.
+- **The integrity hash proves nothing:** it's an unkeyed hash of the report's own contents, so anyone editing the numbers could recompute it. The keyed repository fingerprint can't be checked without the applicant's secret.
+
+I didn't recompute the other figures, such as cadence, file authorship, commit size and test changes. Given the edits above, I wouldn't trust those either.
+
+The applicant did do real work here. They are the top committer and the top surviving-line author, with about half of each, but not the 79% and 84% claimed. I'd ask them to show the exact command and repository state behind the 103 and 1,197.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the report's headline numbers
+
+The applicant's `workproof-report.{md,json}` describes the right repository, but its figures for the applicant are inflated. Their contribution is real and substantial. It is smaller than the report says.
+
+## What I checked
+
+I recomputed the figures with plain `git` in the local clone. I did not run `npx workproof`, because that would execute third-party code. The clone is at HEAD `249bbdc72da2` and is not shallow.
+
+| Claim in report | Recomputed from the clone | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | `249bbdc72da2` | Matches |
+| 19 files alive at HEAD | 19 | Matches |
+| 131 non-merge commits in the tenure window (2013-11-07 to 2015-08-22) | 131 | Matches |
+| 1,417 surviving lines at HEAD | 1,417 (`git blame -w -M`, all files) | Matches |
+| **103 of 131 commits are the applicant's (79%)** | **63 of 131 (48%)** | **Inflated by 40** |
+| **1,197 of 1,417 surviving lines are theirs (84%)** | **697 of 1,417 (49%)** | **Inflated by 500** |
+| Tenure ends 2015-08-22 | Their last commit is 2015-07-09. No commit by anyone is dated 2015-08-22. | Not supported |
+| Rank 1 of 42 authors | The applicant is still the top committer in the window and top blame author. | Plausible |
+
+The merged identities are legitimate. The applicant's addresses are:
+- `<email:d29caa5c>` (56 commits)
+- `<email:4132b6bd>` (5)
+- `<email:266aea16>` (2)
+
+That gives 63 commits, and I counted them with all three included. Merging the extra addresses therefore does not explain 103.
+
+The report also contradicts itself. Its own "survival by cohort" figure sums to 104 + 550 + 43 = **697 lines**, which matches my recount and not the 1,197 it states as the total. A tool computing these figures honestly would not produce both numbers.
+
+## Why the numbers can't be trusted
+
+- **The integrity hash does not prove the numbers are right.** The report's `hash` is an unkeyed SHA-256 of its own contents. Anyone who edits the numbers can recompute it, and the repository fingerprint is keyed with a secret that only the applicant holds. I could not check either against the clone.
+- **The report is not self-consistent.** The cohort total and the headline surviving-lines count disagree by exactly 500, and the commit count is 40 above what git shows.
+- **The report is not a pure git output.** Totals such as 131 and 1,417 match git, but the applicant-specific figures do not. This pattern fits someone editing the "author" side only.
+- **I did not check every figure.** I did not recompute cadence, the DOA file-authorship score, commit size or test-change counts. These are probably affected too if the numbers were edited, but I haven't confirmed that.
+
+## What is supportable
+
+- The applicant (Jonathan Ong, across the three addresses above) is the top contributor to this repo by commits and surviving lines.
+- Their work spans 2013-11-07 to 2015-07-09, with 63 commits and about 697 surviving lines (roughly 49%).
+- Other significant authors include TJ Holowaychuk, who has about 551 surviving lines and 90 commits overall.
+
+## Suggested next steps
+
+- Ask the applicant to explain the 103 and 1,197 figures. If they ran the tool honestly, they should be able to show the exact command and the repository state they used.
+- Verify against `git log` and `git blame` yourself, as above, and don't rely on the attached files.
+- Treat the claim "my numbers are higher because of several email addresses" as unsupported. The extra addresses add only 7 commits.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx; ls -la received; file received/*; wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx/received/workproof-report.json
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx; git rev-parse HEAD; git remote -v; git config user.name; git config user.email; git log --no-merges --format='%aN <%aE>' | sor
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | grep -iE 'ong|jongle|jonathan'; echo; git log --no-merg
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx;  ; echo authors: $(git log --no-merges --format=%aE | sort -u | wc -l) names: $(git log --no-merges --format=%aN | sort -u | wc 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD-3/fx/verdict.md
+### Final answer text
+You can't trust the report. I wrote the verdict to `verdict.md`.
+
+I recomputed its figures from your clone with plain `git log` and `git blame`. The clone's HEAD matches the report's HEAD, but several headline numbers don't match the history:
+
+- **Surviving lines:** the report says 1,197 of 1,417 (84.5%). The clone gives about 697 (about 49%). The report's own year-by-year table (104 + 550 + 43) also adds up to 697, so its headline figure contradicts its own breakdown by exactly 500 lines.
+- **Commit count:** the report says 103 of 131 commits in the period. Counting all four Jonathan Ong / jongleberry addresses, I get about 61. Merging addresses can't explain the gap, because the extra addresses add only about 5 commits to the 56 on the main address.
+- **End of tenure:** the report says 2015-08-22. Their last commit under any of those identities is 2015-07-09.
+- **Number of authors:** the report says 42. The history has 60 distinct emails.
+
+Some figures do match: the start date, active weeks, total lines and file count. Those are easy to reproduce from public history, so they don't vouch for the rest.
+
+I didn't run `npx workproof verify`. Matching names and emails in git history also doesn't prove the applicant is the person behind those identities.
+
+I'd ask the applicant to run `npx workproof verify` in front of you or to name the specific commits they say are theirs.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the figures in `received/`
+
+The two files (`workproof-report.json` and `.md`) agree with each other. The key numbers do not agree with the repository, and some disagree with the report itself. The report looks edited, or it was generated from different data than this clone.
+
+## What I checked
+
+I recomputed the figures from the clone with plain `git log` and `git blame`.
+- Clone HEAD is `249bbdc72da2`, which matches the report's HEAD.
+- The repo is a 19-file project with 230 non-merge commits.
+- The report calls the repo "F1" and attributes the work to "Jonathan Ong, jongleberry".
+- The repo's author identities are "Jonathan Ong" on two addresses and "jongleberry" on two more (a GitHub noreply address and <email:4132b6bd>).
+
+| Figure | Report says | Clone says |
+|---|---|---|
+| Subject's surviving lines | **1,197 of 1,417 (84.5%)** | **about 697 of 1,417 (about 49%)** |
+| Subject's commits in the tenure window | **103 of 131** | **about 61 of 131** (63 across all history) |
+| Tenure end | **2015-08-22** | **2015-07-09** (last commit by any of those identities) |
+| Authors (absence factor) | **42** | **60** distinct emails |
+| Total surviving lines | 1,417 | 1,417 (matches) |
+| Tenure start | 2013-11-07 | 2013-11-07 (matches) |
+| Active weeks | 24 | 24 (matches) |
+| Files at HEAD | 19 | 19 (matches) |
+| Files touched | 34 | 35 (close) |
+
+Details on the mismatches:
+- **Surviving lines.** The report's own cohort table (2013: 104, 2014: 550, 2015: 43) sums to 697. The headline says 1,197, which is exactly 500 higher. My blame count by year reproduces 104, 550 and 43 exactly. The cohort table is genuine, but the headline contradicts it.
+- **Commit share.** Counting all four Jonathan Ong / jongleberry addresses, I get about 61 commits in the window, not 103. The largest single address has 56 commits across all history. The top committer overall is TJ Holowaychuk with 90. The report's "ranks 1 by share of surviving lines" and "103 of 131" are not supported.
+- **Merging identities.** The applicant says their numbers are higher because they committed under several addresses. That explanation doesn't hold up. The merging is real, since the report reports 3 merged addresses. But it only adds 5 to 7 commits to the 56 on the main address, and it can't produce 103.
+- **Tenure end.** The report's 2015-08-22 end date matches no commit by these identities. The latest is 2015-07-09.
+
+## Not checked
+- I did not run `npx workproof verify` or `check`. I only recomputed the figures by hand.
+- I did not check whether the applicant is actually the person behind these identities. Matching names and emails in git history is not proof of identity. Anyone can set `user.name` and `user.email` to match another person's, and the report was never shown to come from the applicant's own account.
+- The figures that did match are the ones that are easy to reproduce from public history, so a match doesn't vouch for the rest.
+
+## Recommendation
+Treat the report as unreliable evidence. Don't use the headline figures in a hiring decision. Ask the applicant to:
+- re-run `npx workproof verify` in front of you, or
+- name the specific commits they say are theirs, so you can check them directly in the clone.
+
+You can also check the commits yourself: `git log --no-merges --author=<name>` shows each identity's real history.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && head -c 3000 *
+Bash: cd .. && pwd && git rev-parse HEAD && git status --short | head; python3 -I -c " ; import json;d=json.load(open('received/workproof-report.json')) ; r=d['repositories'][0] ; print(json.dumps({k:v for k,v in r.items() if k!='figures'},indent=1)[:1500]) ; for f in r['fi
+Bash: cd .. && git log --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -15; echo; git log --no-merges --format=%aI | sed -n '1p;$p'; git log --no-merges --format=%aE | wc -l; git ls-files | wc -l
+Bash: git log --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -12; echo; git log --no-merges --format=%aI | sed -n '1p;$p'; git log --no-merges --format=%aE | wc -l; git ls-files | wc -l; git config user.name; git config user.email; git remote -v
+Bash: git log --no-merges --since=2013-11-07 --until=2015-08-22T23:59:59 --format='%aN|%aE' | awk -F'|' '{c[$0]++} END{for(k in c)print c[k],k}' | sort -rn | head; git log --no-merges --since=2013-11-07 --until=2015-08-22T23:59:59 --format=%H | wc -l; git log --form
+Bash: A='Jonathan Ong|jongleberry|jonathanong'; git log --no-merges --format='%aN <%aE>' | grep -Ei "$A" | sort | uniq -c; git log --no-merges --format='%cN <%cE>' | grep -Ei "$A" | sort | uniq -c; echo ---; git log --no-merges --author='Jonathan Ong\|jongleberry\|j
+Bash: git log --author='Jonathan Ong\|jongleberry\|jonathanong' --format='%aI %s' | head -3; git log --format='%aI %aN %s' --since=2015-08-01 --until=2015-09-01 | head; echo ---; git ls-files | while read f; do git blame -w -M --line-porcelain HEAD -- "$f"; done | g
+Bash: git ls-files | while read f; do git blame -w -M --line-porcelain HEAD -- "$f"; done | grep -a '^author ' | sort | uniq -c | sort -rn | head -5; echo; git ls-files | while read f; do first=$(git log --diff-filter=A --format='%aN' -- "$f" | tail -1); echo "$firs
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-1/fx/verdict.md
+### Final answer text
+No, you can't trust the numbers in the report. The commit count and the surviving-line count are both inflated, and merging email addresses doesn't explain it. I wrote the full verdict to `verdict.md`.
+
+I recomputed the figures with plain `git` in your clone. I didn't run the `workproof verify` command the report suggests, because that would execute code that came with the untrusted files.
+
+- **Matches the clone:**
+  - The report's HEAD (`249bbdc`) is the same as yours.
+  - The total of 131 commits in the period is the same.
+  - The total of 1,417 lines in the project is the same.
+- **Commits:** The report says 103. This clone has only 3 addresses and 2 names that could be the applicant, and together they account for 62 commits in the period. Across all history they account for 63.
+- **Surviving lines:** The report says 1,197 (84%). `git blame` gives 696 lines (49%) to "Jonathan Ong". TJ Holowaychuk has 551, so the applicant is still the top author, but the lead is narrow.
+- **Smaller padding:**
+  - The end of the period (2015-08-22) is a merge of someone else's pull request. Their last authored commit is 2015-07-09.
+  - The report credits them with starting 10 of 19 files, but the clone shows 8.
+
+The report's built-in hash only shows the file wasn't edited after it was produced. It doesn't show the numbers are right.
+
+I can't tell whether the numbers were edited by hand or the tool simply over-counted. The report also uses the same name that's configured in your clone's git user, so check that the applicant is actually that person. Ask them for the exact email addresses they used, then run `git log --author=<address>` for each. If they claim more than about 63 commits, the claim fails.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the report's numbers
+
+The two files in `./received` (`workproof-report.md` and `.json`) don't match this clone. The inflation is much larger than merging a few email addresses can explain.
+
+## What I checked
+
+I recomputed the figures with plain `git` in this clone. I did not run `npx workproof verify`, because that would execute code supplied with the untrusted files. The clone is at HEAD `249bbdc72da2`, the same HEAD the report names.
+
+| Claim | Report | Recomputed from this clone |
+|---|---|---|
+| HEAD | `249bbdc` | `249bbdc` (match) |
+| Total non-merge commits in tenure | 131 | 131 (match) |
+| Applicant's commits | 103 (78.6%) | **62 in the window (47%)**. All-time non-merge commits under every matching address or name are 63. |
+| Addresses merged | 3 extra, 4 identities | Only 3 addresses and 2 names exist: `<email:d29caa5c>` (56 in window), `<email:4132b6bd>` (4+1), `<email:266aea16>` (2). Merging all of them gives 62–63, not 103. |
+| Surviving lines | 1,197 of 1,417 (84%) | The 1,417 total matches. `git blame -w -M` gives **696 lines (49%)** for "Jonathan Ong", and 585 by that address alone. TJ Holowaychuk has 551. |
+| Rank by surviving lines | 1 | 1 (this holds, but the lead over TJ is narrow, not dominant) |
+| Last commit | 2015-08-22 | The last authored non-merge commit is 2015-07-09 (4.6.0). 2015-08-22 is a merge commit by `jongleberry` of someone else's PR. |
+| Files started | 10 of 19 (53%) | 8 of 19 by "Jonathan Ong" (about 42%). TJ started 9. |
+| Authors | 42 | 44 distinct emails in the window, 59 names overall. The mismatch is small and I did not chase it. |
+| Tags | 23 in tenure, 17 by the applicant | There are 36 tags in total. I did not break them down further. |
+
+The report's own `identity.merged.reasons` include "address name matches your GitHub login". That means it merged identities by heuristic rules rather than from a list of addresses the applicant supplied.
+
+## Conclusion
+
+- The commit count (103 against about 62) and the surviving-line count (1,197 against 696) are both overstated by roughly 65–70%. Merging every address the applicant could plausibly own cannot reach those figures.
+- The report still attributes the real work in this repo. The applicant (or whoever uses these identities) is the top author by surviving lines and wrote about half of them. That is a real contribution, but it is not 84%.
+- Some details are padded in the applicant's favour. The tenure end date comes from a merge commit, not authored work, and the file-ownership share is too high.
+- The report says it is self-verifying through a hash. That only shows the file wasn't edited after it was produced. It says nothing about whether the numbers are right.
+
+## Caveats and open questions
+
+- I can't tell whether the numbers were edited by hand or the tool was run with settings that over-count. The tool settings are visible in the JSON (`params`, with `emails: false`). Either way the output doesn't match the repo.
+- The identity in the report ("Jonathan Ong", "jongleberry") is also the git user configured in this clone. If the report was generated against a different clone or fork of the repo, the data could differ. HEAD matches, though, so I'd expect the same history.
+- Ask the applicant to list the exact email addresses they used. Then compare `git log --author=<each>` yourself. If they claim more than 63 commits under those addresses, the claim fails.
+- Check the claim that they authored this work. These commits are from 2013–2015 under the name Jonathan Ong. Confirm that is the applicant, for example through a GitHub profile, an interview, or technical questions about the code.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && head -c 3000 *
+Bash: cd .. && pwd && sed -n 95,400p received/workproof-report.json | cut -c1-400; git log --format='%an <%ae>' | sort | uniq -c | sort -rn | head -20; git rev-parse HEAD; git rev-parse --is-shallow-repository
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-2/fx ; git config user.name; git config user.email ; echo total nomerge: $(git log --no-merges --oneline | wc -l); echo all: $(git log
+Bash: git log --no-merges --since=2013-11-07 --until=2015-08-22T23:59:59 --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -6 ; git log --no-merges --format='%aE|%aI' | grep -iE 'jonathanrichardong|me@jongleberry|jonathanong@users' | sort -t'|' -k2 | tail -2 ; git
+Bash: E='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo window mine: $(git log --no-merges --since=2013-11-07 --until=2015-08-22T23:59:59 --format=%aE | grep -cE "^($E)$") ; echo all mine nomerge: $(git log --no-merges --for
+Bash: git ls-files | while read f; do git blame --line-porcelain -w -M HEAD -- "$f"; done 2>/dev/null | grep '^author-mail' | grep -E 'jonathanrichardong|jongleberry|jonathanong' | sort | uniq -c ; git ls-files | while read f; do git blame --line-porcelain -w -M HEAD 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-2/fx/verdict.md
+### Final answer text
+I wrote the verdict to `verdict.md`: you can't trust the headline numbers in the two files. Both files are the same `workproof` report in two formats. I recomputed it with plain `git` in your clone and didn't run `npx workproof verify`, since that would run unreviewed npm code.
+
+**What matches**
+- HEAD is the same commit as in your clone.
+- The tenure start date matches.
+- There are 131 non-merge commits by anyone in the window.
+- There are 19 files at HEAD.
+- Blame attributes 1,417 lines.
+
+**What doesn't match**
+- **Commits:** the report says 103 of 131 (79%). Across all three plausible Jonathan addresses I count 63 of 131 (48%).
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). I count about 697 (49%). TJ Holowaychuk alone has 551 surviving lines, so 1,197 for the applicant would leave only 220 for everyone else.
+- **Author count:** the report says 42 authors. I count 60 distinct author emails over non-merge history.
+- **Multiple emails don't explain it:** the three addresses are `<email:d29caa5c>`, `<email:4132b6bd>` and `<email:266aea16>`. Merging all of them gives the 63 and 697 above, not the report's figures. The report hides the emails, so you can't see which addresses it merged. The tool's name-matching merge may have credited other people's commits to the applicant.
+- **Hash:** the report's hash only shows the file wasn't edited after it was generated. It doesn't show the figures are right.
+
+Their real contribution is about half of what they presented. I didn't recompute the other figures, such as file authorship and test share. I'd ask the applicant for the exact addresses and command they used.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files in `./received` (`workproof-report.json` and `.md`) are the same report. It has the format of a `workproof` tool report. Its numbers for the applicant's work do not match this repo. I recomputed them with plain `git` in your clone. I did not run `npx workproof verify`, because that would run unreviewed code from npm.
+
+The applicant's explanation is that they committed under several email addresses. That explains merging a few addresses. It does not explain the size of the gap.
+
+## What matches
+
+- HEAD is `249bbdc72da2...`, the same as your clone.
+- The tenure start date, 2013-11-07, matches the first commit from the merged addresses.
+- There are 131 non-merge commits by anyone in the claimed window. This matches.
+- There are 19 files at HEAD, 1,417 lines are attributed by blame, and 23 tags fall in the tenure window. These all match.
+- The merged addresses are plausible: `<email:d29caa5c>`, `<email:4132b6bd>` and `<email:266aea16>`. They share the name "Jonathan Ong" or "jongleberry".
+
+## What does not match
+
+| Claim | Report | Recomputed from git |
+|---|---|---|
+| Applicant's commits in window | 103 of 131 (79%) | **63 of 131 (48%)**. This is the same 63 across all history, using all three addresses. |
+| Surviving lines at HEAD | 1,197 of 1,417 (84%) | **697 of 1,417 (49%)**. By address: 585 gmail, 111 me@jongleberry, 1 noreply. |
+| Tenure end | 2015-08-22 | The last commit from the merged addresses on a non-merge commit is 2015-07-09. The 2015-08-22 commit is a `<email:04f7e37e>` commit that also appears in the log. |
+
+- **Commits:** the report's 103 is about 40 more than the 63 I found.
+- **Surviving lines:** the report's 1,197 is about 500 more than the 697 I found. TJ Holowaychuk alone has 551 surviving lines (39%), and the report implies the applicant out-survives everyone. Of the 1,417 attributed lines, 1,197 for the applicant would leave only 220 for the 36 other blame authors. TJ alone has 551.
+- **Author count and rank:** the report says 42 authors and that the applicant ranks 1st by surviving lines. I counted 60 distinct author emails over non-merge history and 37 in blame. On my recount the applicant is plausibly first, but with about 49% of the lines, not 84%.
+
+Both inflated figures (103 and 1,197) are too large for the stated identity set. The report says it merged 3 other addresses ("same name on another address", "GitHub login matches", "address name matches your GitHub login"). Even with every plausible Jonathan address merged, I get 63 and 697. Reaching the report's figures would require crediting someone else's commits to the applicant. The tool's "same name on another address" rule may have swept in other people's addresses. The emails are hidden in the report (`"emails": false`), so you can't see which addresses were merged.
+
+## Other points
+
+- The report's integrity hash (`d54f0828...`) only shows the file was not edited after generation. It does not show that the figures are right. A tool run with a wrong or over-broad identity configuration would produce a self-consistent report.
+- The report is anonymized. The repo is named `F1`, and paths and emails are hidden. This is the tool's default and is not suspicious by itself. But it means the claim can't be checked without the applicant telling you which addresses they used.
+- The report's narrative says "their work survived everything written since better than the count of changes suggests". On my recount the surviving-line share (49%) is about the same as the commit share (48%), so that claim is not supported either.
+
+## Caveats on my recount
+
+- I counted non-merge commits by author email, using `git log --no-merges`.
+- I counted surviving lines with `git blame --line-porcelain -w -M` per file at HEAD, the same options the report lists.
+- I did not try to reproduce the other figures: DOA file authorship (10 of 19 files), directory ownership, test-change share, commit size and so on. They depend on the same inflated identity set, so I would not rely on them either.
+
+## What I would do
+
+1. Ask the applicant for the exact list of email addresses they claim, and for the command they ran (including any `--email` or identity-merge flags).
+2. Compare that list with the addresses above. Only these three are plausibly theirs.
+3. Treat the work as roughly 63 commits and about 700 surviving lines of the 1,417, not 103 commits and 1,197 lines. That is still a real contribution to this repo, but about half of what they presented.
+4. Confirm with the applicant, or by running `workproof` yourself in a sandbox, that the name-matching merge did not credit other people's addresses to them.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -la received && file received/* && wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-3/fx/received/workproof-report.json
+Bash: git rev-parse HEAD; git rev-list --max-parents=0 HEAD; git branch -a | head; git status --short | head ; echo ---authors; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -12 ; echo ---total; git log --no-merges --oneline | wc -l; git lo
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-3/fx ; echo authors distinct emails; git log --no-merges --format=%aE | sort -u | wc -l ; echo names; git log --no-merges --format=%aN
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-3/fx ; echo total lines; git ls-files | xargs cat | wc -l ; echo --- test changes ; git log --no-merges --numstat --format='C %aN' -- te
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-BASE-3/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in the two files. They're from the right repo (HEAD `249bbdc`, 19 files and 131 commits in the window all match your clone), but they inflate the applicant's work.
+
+I recomputed the figures with plain `git` on your clone. I did not run `npx workproof verify`, because that would execute an untrusted package from the applicant.
+
+- **Commits:** the report says 103 of 131 commits. Merging all their addresses (`jonathanrichardong@`, `<email:4132b6bd>`, the GitHub noreply address) gives 63. So the address-merging claim is fair, but it doesn't get anywhere near 103.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). `git blame` at HEAD gives 696 for them out of 1,416 lines, about 49%. The report's own per-year table adds up to 697, so it contradicts its own headline.
+- **Rank:** the report says they rank 1 of 42 authors. There are 60 distinct author emails, and over all history TJ Holowaychuk has 90 commits to their 63. They only rank first inside the narrowed window.
+- **Files authored:** the report says 10 of 19. By who first added each file, it's TJ 10, the applicant 8, and Will Conant 1. I couldn't confirm the 10, and it looks like TJ's number.
+
+Several other figures check out: 24 active weeks, 23 tags in the window, and 31 test-file changes (TJ's count is also 31).
+
+The applicant's contribution is still real, with about 63 commits and roughly half the surviving code, and they're the top contributor in 2013–2015. The report just overstates it, and I'd ask them to explain the gap.
+
+The report's integrity hash is computed from its own contents, so someone who edits the numbers can recompute it. It isn't proof the figures are untouched, and I couldn't verify it.
+
+The full table of checks is in `verdict.md`.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The report (`received/workproof-report.{md,json}`, "workproof 0.7.0") is about this repo. HEAD `249bbdc`, 19 files and 131 commits in the window all match the clone. But its two headline figures for the applicant, commit count and surviving lines, are inflated. The report's own JSON contradicts the surviving-lines number.
+
+The identity merging they cite is legitimate. The numbers are still wrong even with it applied.
+
+## What I checked (recomputed with plain `git` on the clone)
+
+| Claim in report | What the clone shows | Result |
+|---|---|---|
+| HEAD `249bbdc72da2`, 19 files alive | HEAD matches, `git ls-files` = 19 | OK |
+| Tenure 2013-11-07 to 2015-08-22 | First and last commits by the Jonathan Ong / jongleberry identities are 2013-11-07 and 2015-07-09. 2015-08-22 is not their last commit (see below). | Mostly OK |
+| 131 non-merge commits in the window | 131 | OK |
+| **103 of 131 commits are theirs (79%)** | **63** across all their addresses, merged generously: `jonathanrichardong@` 56, `<email:4132b6bd>` 5, `<email:04f7e37e>` 2. The 63 is the same in the window and all-time. | **FALSE, inflated by 40** |
+| **1,197 of 1,417 surviving lines (84%)** | `git blame -w -M` at HEAD gives **696** lines for Jonathan Ong (total lines in the repo are 1,416). That is about 49%. | **FALSE, inflated by about 500** |
+| Cohort lines 104 + 550 + 43 | These sum to **697**, matching my blame count. | The report contradicts itself |
+| "Ranks 1 of 42 by commits" | There are 60 distinct author emails and 59 names. All-time, TJ Holowaychuk has 90 non-merge commits against the applicant's 63, so the applicant ranks 2nd. They rank 1st only inside the narrowed window (63 against 19 for TJ). | Misleading, and the 42 is wrong |
+| 24 active weeks, 23 tags in window | 24 and 23 | OK |
+| 31 of 43 test-file changes | The applicant's count is 31, but TJ's is also 31. The 43 total was not independently checked. | Plausible |
+| 10 of 19 files "authored" | By who first added each file: TJ 10, applicant 8, Will Conant 1. The tool's score may differ, but the 10 looks like TJ's number. | Unconfirmed, suspicious |
+| 0 bot or AI commits | Not checked in depth. | n/a |
+
+## Interpretation
+
+- Merging addresses is a fair thing to do, and I applied it. It raises the applicant to 63 commits, nowhere near 103.
+- The cohort numbers (697) show the tool's raw output was about 696 surviving lines. The 1,197 headline and the 1,417 denominator look hand-edited or otherwise altered. The 84% and "higher than the commit share" narrative depends on that.
+- The report is not tamper-evident. Its integrity hash is computed over the JSON contents, so someone who edits the figures can recompute it. I did not run `npx workproof verify`, because that would execute an untrusted package from the applicant. I could not verify the hash or the fingerprint (a keyed hash whose key only the applicant holds).
+- The author's name pattern in the JSON suggests the numbers may also be a rerun on a different clone or fork. I can't prove that from here.
+
+## What is real
+
+The applicant did contribute substantially to this repo. They are the top contributor in the 2013-2015 window, with 63 commits and about 700 surviving lines, which is roughly half the code. That is a solid, honest contribution. The report overstates it by 40 commits and about 500 lines.
+
+## Recommendation
+
+Don't rely on the report. Ask the applicant to explain the discrepancies (103 against 63 commits, and 1,197 against about 697 lines, which their own cohort table contradicts). Use the figures above instead if you want a number: 63 commits, about 696 surviving lines.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && wc -c *
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-1/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-1/fx/received/workproof-report.json
+Bash: cd .. && git rev-parse HEAD && git status --short | head; echo ---; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -12; echo ---; git log --no-merges --format=%aE | wc -l; git log --no-merges --format=%aE | sort -u | wc -l; echo; g
+Bash: git log --no-merges --format='%aN|%aE' | sort | uniq -c | sort -rn | grep -i -E 'ong|jongle|jonathan'; echo ---; git log --format='%aN|%aE|%cN' | grep -i -E 'ong|jongle' | sort | uniq -c; echo; git log --no-merges --since=2013-11-07 --until=2015-08-22 --format
+Bash: M='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo mine in tenure; git log --no-merges --since=2013-11-07 --until=2015-08-22 --format=%aE | grep -c -E "^($M)$" ; echo by email in tenure; git log --no-merges --since=2013
+Bash: git log --no-merges --since=2013-11-07 --until=2015-08-22 --format='%cN' | grep -c -E 'Jonathan Ong|jongleberry'; git log --no-merges --since=2013-11-07 --until=2015-08-22 --format='%aN' | grep -c -E 'Jonathan Ong|jongleberry'; git remote -v | head -2; sed -n 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-1/fx/verdict.md
+### Final answer text
+No, you can't trust the headline numbers. The report is accurate about the repo itself but inflates the applicant's share. I wrote the full verdict to `verdict.md`.
+
+I recomputed the figures with plain `git` in your clone. I didn't run `npx workproof verify`, because that would run code the applicant's tooling supplied.
+
+**What matches**
+- The HEAD commit, the 131 commits in the tenure window, the tenure dates, the 19 files, and the 1,417 total attributed lines all match.
+
+**What doesn't**
+
+| Claim | Report | Recomputed |
+|---|---|---|
+| Applicant's commits | 103 (79%) | 63 (about 48%) |
+| Applicant's surviving lines | 1,197 (84%) | 697 (about 49%) |
+
+- I merged all three of the applicant's addresses (`<email:d29caa5c>`, `<email:4132b6bd>` and the GitHub noreply address). That still gives only 63 commits and 697 lines, so the several-addresses explanation doesn't close the gap.
+- The report contradicts itself. Its own "Survival by cohort" table adds up to 104 + 550 + 43 = 697 lines, which is the real number, while its headline says 1,197. That suggests the headline was edited or inflated after the figures were computed.
+- The closest I got to 103 was 82, counting commits the applicant *committed* (mostly merging other people's work) rather than *authored*. That still doesn't reach 103.
+- The report says there are 42 authors, but I count 59–60.
+
+**What holds up:** even at the real numbers, the applicant is a major contributor. They have the most surviving lines of anyone (697, against 551 for the original author TJ Holowaychuk), but only about half the commits and lines in their window.
+
+The report's integrity hash only shows the file wasn't changed after generation, not that the figures are right.
+
+I'd ask the applicant for the list of commits behind their 103.
+### Files it left in the working directory
+--- verdict.md
+# Verdict on received/workproof-report.{md,json}
+
+**Do not trust the headline numbers. The report matches this repo (`co`, HEAD 249bbdc) on the facts that don't favour the applicant and overstates the ones that do. The "multiple email addresses" explanation doesn't account for the gap.**
+
+## What I checked
+I recomputed each figure with plain `git` in your clone. I did not run `npx workproof verify`, because that would execute a package supplied by the applicant's tooling.
+
+| Claim | Report | Recomputed | Result |
+|---|---|---|---|
+| HEAD | 249bbdc72da2 | 249bbdc72da2 | matches |
+| Non-merge commits in tenure window (2013-11-07 to 2015-08-22) | 131 | 131 | matches |
+| Applicant's tenure dates | 2013-11-07 to 2015-08-22 | first and last commits are on those dates | matches |
+| Files alive at HEAD | 19 | 19 | matches |
+| Lines attributed by blame | 1,417 | 1,417 | matches |
+| **Applicant's commits** | **103 (78.6%)** | **63 (48%)** | **overstated by 40** |
+| **Applicant's surviving lines** | **1,197 (84.5%)** | **697 (49%)** | **overstated by 500** |
+| "Rank 1 of 42 authors" | 42 authors | 59–60 distinct authors by name or email | doesn't match; rank 1 by commits is wrong (see below) |
+
+Method for the applicant's side: I merged every address that carries their identity. Those are `<email:d29caa5c>` (56 commits), `<email:4132b6bd>` (5) and `<email:266aea16>` (2). That gives 63 non-merge commits, and every one of them falls inside the window. For lines I ran `git blame --line-porcelain -w -M HEAD` on all 19 files and counted lines by author address (`-w -M` are the flags the report says it used). Those three addresses own 697 of the 1,417 lines.
+
+## Why the gap isn't explained by the email story
+- I merged all of the applicant's addresses and the totals are still 63 commits and 697 lines. The report's 103 and 1,197 are well above that.
+- The report's own cohort table undermines it. Its "Survival by cohort" lists 104 + 550 + 43 = **697** lines, which is my number. The same report headlines 1,197 as the applicant's surviving lines. That internal contradiction suggests the headline was edited or inflated after the figures were computed. The 697 matches git. The 1,197 doesn't.
+- 103 of 131 is not reproducible from authorship under any address grouping I tried. The closest figure is committer, not author: 82 commits in the window have "Jonathan Ong" or "jongleberry" as the committer. Those are mostly other people's PRs that the applicant merged, so that isn't authorship either.
+- TJ Holowaychuk (the original author, 90 commits all-time, 19 in the window, and 551 surviving lines) is the top committer overall. The report says the applicant "ranks 1" on surviving lines. That may be true on lines (697 vs 551), but the 42-author figure doesn't match the 59–60 I count.
+- The report's `emails` field is empty and the tool was run with `--no-paths`. That limits what you can check from the file alone, and it means the identity grouping can't be audited from the report.
+
+## What is true
+Even at the real numbers, the applicant is a major contributor to this repo. They have about 63 commits, about 697 surviving lines (the most of any one person), and several years of activity. The honest claim is roughly half the commits and half the surviving lines in their tenure window, not about 80%.
+
+## Other caveats
+- The `hash` and "fingerprint" are self-computed over the same figures. They prove the file wasn't altered after generation, not that the figures are right. The report is also not signed.
+- `workproof` is third-party tooling run by the applicant. Treat its "verify" instruction as a convenience, not as independent assurance.
+- The repo is a public library with a famous original author. Surviving lines and commit counts are weak evidence of individual skill, whichever way they land.
+
+## Suggested next step
+Ask the applicant which commits make up their 103, for example with `git log --author=...` output and the addresses used. If they can't produce a list that checks out against `git log`, treat the report as unreliable.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx; ls -la received; file received/*; wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx/received/workproof-report.json
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx; git rev-parse HEAD; git log --oneline | wc -l; git log --no-merges --oneline | wc -l; git shortlog -sne --no-merges HEAD | he
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx; git config user.name; git config user.email; git remote -v; echo ---window authors; git log --no-merges --since=2013-11-07 --
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx/verdict.md
+Edit: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-2/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in those files. I wrote the verdict to `verdict.md`.
+
+I checked the report against your clone using git only. I did not run `npx workproof verify`, because that would download and run someone else's code.
+
+**What matches:**
+- The HEAD commit `249bbdc` matches.
+- The window has 131 non-merge commits, as the report says.
+- There are 19 files alive at HEAD, as the report says.
+- The applicant really is the top contributor.
+
+**What doesn't match:**
+- **Commits:** the report says 103 of 131 (79%). The clone shows 62 (about 47%) across all four of Jonathan Ong's name and email variants. Merging addresses explains why 56 became 62, not 103.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). `git blame` gives 696 of about 1,416 (about 49%).
+- **The report contradicts itself:** its own cohort breakdown (104 + 550 + 43) adds up to 697, which matches my blame count. The 1,197 headline is about 500 lines higher than the report's own data.
+- **Author count:** the report says 42 authors. The clone shows 44 in the window and 59 overall.
+
+**What I didn't check:**
+- Files authored, test changes, cadence and footprint. I only recomputed the commit, blame and HEAD figures.
+- Whether the applicant is actually the person named in the report. The report only says "Jonathan Ong, jongleberry". Ask the applicant which identities are theirs.
+
+The real numbers (about 62 commits, 696 surviving lines) are still the top contribution to the repo. They just don't support the claim as stated, so I'd ask the applicant to explain the gap.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files (`workproof-report.md` and `.json`) match each other and the repo in places. The two main claims, commit share and surviving lines, are inflated compared with what git shows in this clone.
+
+## What I checked (read-only, against the local clone)
+
+The report is for a repo it calls "F1", at HEAD `249bbdc`.
+
+| Claim | Report | Recomputed from clone | Result |
+|---|---|---|---|
+| HEAD commit | `249bbdc72da2…` | `249bbdc72da24ae44076afd716349d2089b31c4c` | Matches |
+| Non-merge commits in the window 2013-11-07 to 2015-08-22 | 131 | 131 | Matches |
+| First and last commit dates | 2013-11-07 to 2015-08-22 | First commit 2013-11-07. Last commit is 2015-07-09. | First date matches. Last date is about 6 weeks later than any commit by these identities. |
+| **Subject's commits in the window** | **103 (78.6%)** | **62 (about 47%)**: 56 `<email:d29caa5c>`, 4 `<email:4132b6bd>`, 2 `<email:89962dec>`. Across all history it is 63. | **Inflated by about 40 commits** |
+| Files alive at HEAD | 19 | 19 | Matches |
+| **Surviving lines credited to the subject** | **1,197 of 1,417 (84.5%)** | **696 of about 1,416 (about 49%)**, from `git blame -w -M` summed over all files. TJ Holowaychuk has 551. | **Inflated by about 500 lines** |
+| Authors in the project | 42 | 44 in the window, 59 in all history | Doesn't match (minor) |
+| Rank by commits and by surviving lines | 1 | 1 by surviving lines (696 vs 551). 1 by commits in the window (62 vs TJ's 19). | Holds, but only because the true numbers are still the top ones |
+
+## The report contradicts itself
+
+The report's own "Survival by cohort" figure lists 104 + 550 + 43 = **697** lines. That matches my 696 from blame. Its headline says 1,197. The cohort breakdown comes from the same blame pass, so the headline total is about 500 lines higher than the report's own data supports.
+
+The summary paragraph stresses that the surviving-lines share (84%) is well above the commit share (79%). On the real figures the two are about equal (about 49% and about 47%), so the "their work survived better than the commit count suggests" point doesn't hold either.
+
+## What this says about the "several email addresses" explanation
+
+Merging addresses does add commits. The clone has 4 identities for this person: 2 name spellings and 3 emails. Counting all of them gives 62 commits in the window. The first line of the report's output uses the same merge rule I applied. Reaching 103 would need about 40 more commits that no author string in this clone supports. Multiple addresses explain the gap between a plain single-address count (56) and 62. They don't explain 103.
+
+## Other points
+
+- **Identity:** The report never names the applicant. It names "Jonathan Ong, jongleberry". Your git user is also Jonathan Ong, and the repo's top contributor of that name is the real project author. Confirm with the applicant which of these identities and emails are theirs. If they are not that person, the whole report describes someone else's work.
+- **Tamper check not run:** The report says `npx workproof verify` / `check` can detect edited numbers. I did not run it, because that would download and execute third-party code. The mismatches above suggest the numbers were edited or came from a different clone, but I haven't proven which. If you want a definitive answer, run the tool yourself in a sandbox against this clone.
+- **Not checked:** the footprint, files-authored (10/19), test-change and cadence figures. I recomputed only the commit, blame and HEAD figures.
+
+## Recommendation
+
+Treat the reports as unreliable. Ask the applicant to explain the 103 commit count and the 1,197 surviving-line count, and to say which email addresses are theirs. The real figures, if you want them, are roughly 62 commits (about 47% of the window) and 696 surviving lines (about 49%). That is still the top contribution to the repo, but a different claim from the one made.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -la received && file received/* && wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-3/fx/received/workproof-report.json
+Bash: git rev-parse HEAD; git remote -v; git status -sb | head -3; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -8; echo; git log --no-merges --format=%H | wc -l; git log --no-merges --format='%aI' | sort | sed -n '1p;$p'; git ls-files
+Bash: git log --no-merges --format='%aN|%aE' | grep -i -E 'ong|jongle' | sort | uniq -c; echo; git log --no-merges --format='%aN' --author='Jonathan Ong\|jongleberry\|jonathanrichardong' | wc -l; echo window; git log --no-merges --since=2013-11-07 --until=2015-08-22
+Bash: git log --no-merges --since=2013-11-07 --until=2015-08-22 --format='%aN' | grep -c -E '^(Jonathan Ong|jongleberry)$'; git log --no-merges --format='%aE' | sort -u | wc -l; git log --no-merges --format=%aN | sort -u | wc -l; git log --no-merges --author='jonath
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-RCP-3/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in those files. I wrote the verdict to `verdict.md`.
+
+I compared the report to your clone using `git log` and `git blame`. I didn't run the `npx workproof verify` command the report suggests, since that means running code from the applicant's side.
+
+- **Matches:** The commit (`249bbdc`) and the 19 files match. So do the merged identities (`Jonathan Ong` on two emails, plus `jongleberry`), the start date of 2013-11-07, and the 131 commits in the window.
+- **Commits:** The report says 103 of 131 are theirs (79%). Merging every address and name variant gives 63 (about 48%).
+- **Surviving lines:** The report says 1,197 of 1,417 (84%). Blame gives about 696 of 1,416 (about 49%), and TJ Holowaychuk has 551.
+- **Self-contradiction:** The report's own year-by-year table sums to 697, which matches my blame count. The headline is exactly 500 higher than its own breakdown. Merging several emails can't explain that.
+
+Two smaller points are unresolved. The report's "42 people" doesn't match the 59 names or 60 emails I counted. The end date of 2015-08-22 is later than their last non-merge commit (2015-07-09).
+
+The report names no applicant, but the identity is "Jonathan Ong", the same name as the git user in your clone. Ask the applicant to confirm which GitHub account and addresses are theirs.
+
+I didn't check the footprint, test-file, cadence or commit-size figures. The headline figures already fail.
+
+Their real contribution looks like about 63 commits and about half the surviving code. That is still substantial, but about half of what the report claims. I'd ask them to explain the 103 and 1,197 figures and to list the emails they used.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files (`received/workproof-report.md` and `.json`) are a "workproof 0.7.0" report for this repo (HEAD `249bbdc`, which matches my clone). The report is internally inconsistent, and its key figures do not reproduce from git history. The multi-email explanation does not account for the gap.
+
+## What I checked (against the clone, HEAD 249bbdc72da2)
+
+| Claim in report | What the repo shows | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | Same | OK |
+| 19 files alive | 19 tracked files | OK |
+| Identity = "Jonathan Ong" + "jongleberry" (4 addresses) | Matches: 2 `Jonathan Ong` emails plus `jongleberry` entries (incl. a GitHub noreply address) | OK |
+| Tenure starts 2013-11-07 | First commit under these names is 2013-11-07 | OK |
+| 131 commits in the tenure window | 131 | OK |
+| **103 of 131 commits are theirs (79%)** | **63 of 131 (about 48%)** across all merged identities, and the same 63 in the window | **Inflated by 40** |
+| **1,197 of 1,417 surviving lines (84%)** | `git blame -w -M` gives about **696 of 1,416 (about 49%)**: 585 under `<email:d29caa5c>` plus 111 under `<email:4132b6bd>`. TJ Holowaychuk has 551. | **Inflated by about 500 lines** |
+| Rank 1 by surviving lines | Rank 1 is true, but only narrowly (696 against 551) | Technically true, misleading |
+| 42 people wrote code | 60 distinct emails, 59 distinct names | Does not match (see notes) |
+| 34 files touched, 31/43 test-file changes, etc. | Not reproduced (see "Not checked") | Unverified |
+
+## The report contradicts itself
+
+The report's own cohort table gives 2013: 104, 2014: 550, 2015: 43 lines. That sums to **697**, which matches my blame count of 696. The headline says **1,197**, exactly 500 more. The by-year breakdown is consistent with reality. The headline "1,197 / 84%" is not consistent with the by-year data in the same file.
+
+## Why the multi-email explanation doesn't hold
+
+The applicant said the numbers are higher than a plain count because they committed under several addresses. I merged every address and name variant (`Jonathan Ong` on both emails, `jongleberry`, the GitHub noreply address). That gives 63 commits and 696 lines. The report's 103 commits and 1,197 lines exceed that by a wide margin. Merging identities also cannot explain a headline that disagrees with the report's own year-by-year numbers.
+
+## Other notes
+
+- The report says the tool recomputes everything with `npx workproof verify`, and its hash is meant to catch edits. I did **not** run that tool. It would mean executing code from an untrusted source's recommendation. The `hash` and `fingerprint` are keyed and can't be checked without the key the tool prints, so they prove nothing here. I checked the claims directly against git instead.
+- The "42 people" figure doesn't match anything I could count (60 emails or 59 names). The tool may group differently, so treat this one as unexplained, not as proof of falsification.
+- The tenure end date (2015-08-22) is later than the last non-merge commit under these names (2015-07-09). I didn't resolve this. It may come from a merge commit or a different commit type.
+- Possible innocent causes: a bug in the tool, a different clone or branch state, or manual edits to the files. I can't tell which from the files alone. The by-year/headline mismatch looks like a hand edit or a tool bug, not a rounding issue.
+- The identity in the report is "Jonathan Ong", which is also the git user configured in your clone. Check that the applicant is actually the person behind those commits and not someone borrowing another person's history. The report names no applicant. Ask them to confirm which GitHub account and addresses are theirs, ideally by demonstrating control of one of them.
+
+## Not checked
+
+The footprint, test-file, cadence, tag-count and commit-size figures. They are less consequential than the headline numbers, which already fail.
+
+## Recommendation
+
+Don't rely on this report. The honest figures from the clone are roughly **63 commits and about 696 surviving lines (about 49%)**. That is still a substantial contribution, but it is about half of what the report claims. Ask the applicant to explain the 103 and 1,197 figures and to provide the email list they say they used. Then recompute from the clone.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && head -c 3000 *
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-1/fx && pwd && git rev-parse HEAD && git status --short | head; sed -n 1,400p received/workproof-report.md | tail -n +40 | cut -c1-6
+Bash: git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -15; echo; git log --no-merges --format=%H | wc -l; git shortlog -sne --no-merges | wc -l
+Bash: git --no-pager log --no-merges --format='%aN|%aE' </dev/null | sort | uniq -c | sort -rn | head -15; git --no-pager rev-list --count --no-merges HEAD </dev/null; git ls-files | wc -l
+Bash: G="git --no-pager"; $G log --no-merges --format='%aN|%aE' </dev/null | grep -i -E 'ong|jongle|jonathan'| sort | uniq -c; echo ---; $G log --no-merges --format='%aI|%aN|%aE' --author='ong\|jongleberry' </dev/null | sort | sed -n '1p;$p'; echo --- window; $G log
+Bash: export GIT_PAGER=cat; g(){ git "$@" </dev/null; } ; g log --no-merges --format='%aN|%aE' | grep -i -E 'ong|jongle|jonathan'| sort | uniq -c; echo --- first/last ; g log --no-merges --format='%aI|%aN' -i --author='ong\|jongleberry' | sort | sed -n '1p;$p'; echo ---
+Bash: export GIT_PAGER=cat; g(){ git "$@" </dev/null; } ; echo "commits near 2015-08-22:"; g log --no-merges --format='%aI %aN <%aE>' --since=2015-08-01 --until=2015-09-01 ; echo; echo "window counts by name+email:"; g log --no-merges --since=2013-11-07 --until=2015-08-
+Bash: export GIT_PAGER=cat; for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- $f </dev/null 2>/dev/null | grep '^author '; done | sort | uniq -c | sort -rn | awk '{t+=$1; print} END{print t" total"}' | grep -i -E 'ong|total|TJ'
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-1/fx/verdict.md
+### Final answer text
+That notification is only about the first `git log` command I ran. It hung, most likely because git was waiting on a pager, and it was stopped at its time limit. I re-ran the same queries with the pager turned off and input closed, and they finished. The verdict in `verdict.md` doesn't depend on that run, so nothing changes.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files in `./received` (`workproof-report.json` and `.md`) are a `workproof` 0.7.0 report for HEAD `249bbdc`. That matches this clone's HEAD. The applicant's own contribution figures do not reproduce, though. They are inflated well beyond what a multi-email merge explains.
+
+## What I checked
+I used plain `git` against this clone. I did not run `npx workproof verify`, because that would download and execute third-party code.
+
+| Claim in report | What the clone shows |
+|---|---|
+| HEAD `249bbdc72da2` | Matches. |
+| 131 non-merge commits in the tenure window | Matches (131). |
+| **103 of 131 commits are the applicant's (79%)** | **Not reproduced.** Every address that plausibly belongs to the applicant gives 63: `<email:d29caa5c>` 56, `<email:4132b6bd>` 4 (as "Jonathan Ong") plus 1 (as "jongleberry"), and `<email:266aea16>` 2. Merging extra addresses cannot reach 103. The window's other authors are TJ Holowaychuk (19, a different person), pana (3) and others. |
+| Tenure ends 2015-08-22 (654 days) | **Not reproduced.** The applicant's last commit is 2015-07-09. The only commit in Aug 2015 is by Takayuki Sakai (2015-08-02). The start date, 2013-11-07, matches. |
+| **1,197 of 1,417 surviving lines are theirs (84%), rank 1** | **Not reproduced.** The 1,417 total matches `git blame -w -M` at HEAD. The split does not: "Jonathan Ong" has 696 lines and "jongleberry" has 1, about 49%. TJ Holowaychuk has 551 (39%). The report's 1,197 is roughly 500 lines too high. |
+| 42 contributors | Not checked. `git log` shows 60 distinct author emails over all history. The report may count a different window. |
+
+## Why the identity merge doesn't explain it
+- The report hides the email addresses (`emails: false`), so it can't be checked against specific addresses. It says it merged 3 other addresses by name match and GitHub-login match.
+- The addresses I can find that match "Jonathan Ong" or "jongleberry" account for 63 commits and about 697 surviving lines. The report's 103 and 1,197 are far above that.
+- A fourth identity is reported (`count: 4`). If it isn't the applicant's, it would explain the inflation. For example, TJ Holowaychuk's 19 window commits plus the 63 gives 82, which still isn't 103. I can't tell which address was merged in, so I can't say how it happened.
+
+## What does hold up
+- The commit and line totals (131 and 1,417), the HEAD hash, and the tenure start date are real.
+- The applicant is a genuine and substantial contributor. I count about 63 commits and about half the surviving lines, and they are the top author by surviving lines.
+- Authorship by name in this repo does not look fabricated. The report's totals are just attributed too generously.
+
+## Other cautions
+- The report's integrity hash only proves the file wasn't edited after generation. It doesn't prove the inputs were honest. The applicant controlled the merge settings and the run, and the JSON can be regenerated with any numbers.
+- Commit dates and names are self-declared in git and can be forged. They are also not what's in dispute here.
+
+## Suggested next step
+Ask the applicant for the exact email addresses they merged. Then run `git log --author=<each>` yourself. Accept only addresses that are actually theirs, such as ones they can show are on their GitHub account. By my count the defensible figures are about 63 commits, tenure ending July 2015, and roughly 49% of surviving lines.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx; ls -la received; file received/*; wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx/received/workproof-report.json
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx; git rev-parse HEAD; git rev-list --count HEAD; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -12
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx ; echo "all emails for Ong-like:"; git log --no-merges --format='%aN|%aE|%cN' | grep -iE 'ong|jongle|jonathan' | sort | uniq -c ; S
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx ; git log --no-merges --since=2013-11-07 --until="2015-08-22 23:59:59" --format='%aN' | sort | uniq -c | sort -rn | head -4 ; git l
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx ; git log --no-merges --format='%h %aI %aN' | awk '$2>="2015-08-01" && $2<"2015-09-01"' | head ; echo; git log --no-merges --since=
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-2/fx/verdict.md
+### Final answer text
+No, you can't trust the headline numbers in those files. The report is accurate about the repo, but it inflates the applicant's share. I wrote the full verdict to `verdict.md`.
+
+I compared the report against your clone using plain `git log` and `git blame`:
+
+- **Matches:** The HEAD commit, the 131 commits in the window, the 19 files, the 23 tags and the roughly 1,417 total lines all match.
+- **Commits:** The report says the applicant made 103 commits. I count 63 after including all their addresses: `<email:d29caa5c>`, `<email:4132b6bd>` and the jongleberry noreply address.
+- **Surviving lines:** The report says 1,197 lines (84%). Blame gives 696 (about 49%). TJ Holowaychuk has 551.
+- **End date:** The report says 2015-08-22. The applicant's last commit is 2015-07-09.
+- **Self-contradiction:** The report's own "survival by cohort" figures add up to 697 lines. That matches my 696 and contradicts its 1,197 headline, so the headline looks edited.
+- **The email explanation:** The applicant does have several addresses, and I counted all of them. Merging them can't account for 103 commits or 1,197 lines. Many commits have Jonathan Ong as committer but someone else as author. Counting those still only reaches 82.
+
+I did not run `npx workproof verify`, because it downloads and executes third-party code. I also didn't check the report's integrity hash.
+
+The applicant did do real work in this repo, with the largest share of surviving lines of any author. Their report overstates it. I'd ask them to explain the gaps or regenerate the report in front of you from a fresh clone.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The report (`received/workproof-report.{md,json}`, workproof 0.7.0) is accurate about the repository's overall facts. Its claims about the applicant are inflated. The three figures that matter most don't reproduce from this clone's git history.
+
+## What I checked (against HEAD 249bbdc, 299 commits)
+
+| Claim in report | What the clone shows | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | HEAD is `249bbdc72da24ae44076afd716349d2089b31c4c` | Matches |
+| 131 non-merge commits in tenure window 2013-11-07 to 2015-08-22 | 131 | Matches |
+| 19 files alive at HEAD | 19 | Matches |
+| 1,417 surviving lines | 1,416 lines in tracked files | Matches (within 1) |
+| 23 release tags in window | 23 | Matches |
+| **103 of 131 commits are the applicant's (79%)** | **63** by author name or email: Jonathan Ong (both addresses) plus jongleberry (both) | **Does not match** |
+| **1,197 of 1,417 surviving lines (84%)** | `git blame -w -M` gives **696** lines for Jonathan Ong, about 49%. TJ Holowaychuk has 551. | **Does not match** |
+| Tenure ends 2015-08-22 | The applicant's last authored commit is 2015-07-09. The only commit after that in the window is 2015-08-02, by someone else. Nothing is dated 2015-08-22. | **Does not match** |
+| 42 authors | 44 distinct author emails in the window (60 over all history) | Minor difference |
+
+## Internal inconsistency in the report itself
+
+- The "Survival by cohort" figure is 104 + 550 + 43 = **697** lines. That matches my blame count of 696 and contradicts the report's own headline of 1,197. The cohort breakdown looks genuine and the headline looks edited. The gap is about 500 lines, close to TJ Holowaychuk's 551.
+- The report says the headline commit count is 103. The honest count with identity merging is 63. The gap of 40 is unexplained. Merging the committer field (82 commits committed by Jonathan Ong) still doesn't reach 103, and the report's stated method is `--author`.
+
+## About the "several email addresses" explanation
+
+Multiple addresses are real. The history has `<email:d29caa5c>` (56 commits), `<email:4132b6bd>` (4 plus 1 under the jongleberry name) and `<email:266aea16>` (2). That is consistent with the report's "3 other addresses". But I included all of them in my counts and still got 63 commits and 696 lines. Merging addresses can't account for 103 or 1,197.
+
+Many other commits have a *committer* of Jonathan Ong but an author who is someone else (for example Ariel Mashraki, Jorge Bucaran, fengmk2, welefen). They were merged or applied by Jonathan Ong, not written by them. Counting those as the applicant's work would be wrong. Even counting them, the total is 82.
+
+## Caveats
+
+- I did not run `npx workproof verify`. That would download and execute third-party code from npm, and the tool would reuse the report's own methodology. The numbers above come from plain `git log` and `git blame`.
+- The JSON `hash` is only an integrity checksum over the figures. It proves nothing if someone recomputed it after editing, and I did not check it.
+- The applicant's identity isn't stated in the files beyond the names "Jonathan Ong" and "jongleberry". I assumed those are the people they claim to be. I haven't checked whether those accounts are theirs.
+
+## Bottom line
+
+The commit history does show real, substantial work by Jonathan Ong in this repo: about 63 commits and about 49% of surviving lines, the largest share of any author. The report overstates that to 103 commits (79%) and 84% of lines, and it gives a wrong end date. Treat the file as altered or unreliable. Ask the applicant to explain the differences, or ask them to regenerate the report in front of you from a fresh clone. For your own evaluation, use the numbers you can reproduce yourself: 63 commits and 696 lines.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -la received && file received/* && wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-3/fx/received/workproof-report.json
+Bash: git rev-parse HEAD && git log --oneline | wc -l && git log --no-merges --oneline | wc -l && git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -12 && echo --- && git log --no-merges --format='%aE' | sort -u | wc -l && git log --no-merg
+Bash: git log --format='%aN <%aE>' | grep -iE 'ong|jongleberry|jonathan' | sort | uniq -c; git remote -v; ls; (which workproof; ls node_modules/.bin 2>/dev/null | grep -i workproof)
+Bash:  ; ME='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo "me commits (no merges):"; git log --no-merges --format='%aE' | grep -cE "^($ME)$" ; echo "me first/last:"; git log --no-merges --format='%aI' -i --author='jonathanri
+Bash:  ; for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- $f | grep -E '^(author-mail|author-time)' | paste - - ; done > /tmp/t3_blame.txt ; grep -ciE 'jonathanrichardong|jongleberry|jonathanong' /tmp/t3_blame.txt ; grep -iE 'jonathanrichardong|jongle
+Bash:  ; git log --format='%aE' | grep -ciE 'jonathanrichardong|jongleberry|jonathanong' ; git log --since=2013-11-07 --format='%aI %aE %p' | awk '{n=split($0,a," "); print}' | grep -iE 'jonathanrichardong|jongleberry|jonathanong' | awk 'NF>=4{m++} NF<4{s++} END{print "
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV-3/fx/verdict.md
+### Final answer text
+No, you can't trust the headline numbers. I wrote the full verdict to `verdict.md`.
+
+I recomputed the figures from your clone with `git log` and `git blame`, merging the same email addresses the report merges. I didn't run `workproof verify`, because the tool isn't installed here and I didn't fetch it.
+
+The report is for `tj/co`, which it calls "F1". These parts are accurate:
+- the HEAD commit
+- 19 files
+- 1,417 lines in total
+- 131 commits in the window
+- 24 active weeks
+- 23 tags
+
+These headline claims are not:
+
+| Claim | Report | Recomputed |
+|---|---|---|
+| The applicant's commits | 103 of 131 (79%) | 63 of 131 (48%) |
+| The applicant's surviving lines | 1,197 of 1,417 (84%) | 697 of 1,417 (49%) |
+
+- **Commits:** Counting merge commits as well gives 76 across all their addresses. No combination of addresses reaches 103.
+- **Lines:** The report's own breakdown by year (104 + 550 + 43) adds up to 697, not 1,197. It contradicts its own headline.
+- **End date:** The tenure end date of 2015-08-22 is a merge commit. Their last non-merge commit is 2015-07-09.
+- **Hash:** The report's integrity hash is unkeyed, so someone who edited the numbers could recompute it. A matching hash wouldn't prove the file is genuine.
+
+The multiple-address explanation is real, since the three addresses do belong to one person. Even with all of them merged, though, they are still the top contributor by surviving lines (697 against TJ Holowaychuk's 551). The real numbers are respectable, and the report exaggerates them.
+
+I'd ask the applicant to explain the 103 and 1,197 figures.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The report's authorship figures are inflated, even after merging every email address. The report is internally inconsistent, and it also disagrees with the repo. The repo is `tj/co` (the report calls it "F1"). HEAD matches the report: `249bbdc`.
+
+## What I checked
+
+I recomputed the figures from the local clone with plain `git log` and `git blame`. I merged the same aliases the report merges: `<email:d29caa5c>`, `<email:4132b6bd>` and `<email:266aea16>`. That covers the name "Jonathan Ong" and the login "jongleberry". I did not run `workproof verify`, because the tool isn't installed here and I didn't fetch it.
+
+| Claim | Report | Recomputed | Result |
+|---|---|---|---|
+| HEAD commit | 249bbdc | 249bbdc | matches |
+| Files alive at HEAD | 19 | 19 | matches |
+| Total lines attributed by blame | 1,417 | 1,417 | matches |
+| Non-merge commits by all authors in the window | 131 | 131 | matches |
+| Active ISO weeks | 24 | 24 | matches |
+| Release tags in the window | 23 | 23 | matches |
+| First commit | 2013-11-07 | 2013-11-07 | matches |
+| **Applicant's commits in the window** | **103 of 131 (79%)** | **63 of 131 (48%)** | **false** |
+| **Surviving lines at HEAD** | **1,197 of 1,417 (84%)** | **697 of 1,417 (49%)** | **false** |
+| Last commit | 2015-08-22 | 2015-07-09 for non-merge work | misleading |
+
+## Problems
+
+1. **Commit count is overstated by about 40.**
+   - Across all aliases there are 63 non-merge commits in the whole history, and all 63 fall inside the window.
+   - Counting merge commits as well gives 76 across all aliases, which is still below 103.
+   - No combination of the applicant's addresses reaches 103.
+
+2. **Surviving lines are overstated by 500.**
+   - Blame at HEAD gives the merged identity 697 lines: 585 + 111 + 1.
+   - The report claims 1,197.
+   - The report's own "Survival by cohort" figure (104 + 550 + 43) sums to 697. It contradicts its own headline of 1,197.
+   - My per-year split of those 697 lines also matches the report's cohort split.
+   - So the cohort figure is genuine, and the headline figure was edited or inflated.
+   - The narrative then says this "is the one that lasts, and here it is the higher of the two", which leans on the inflated number.
+
+3. **The tenure end date is weaker than it looks.**
+   - 2015-08-22 is a merge commit by `jongleberry` (PR #238 merge).
+   - The applicant's last non-merge commit is 2015-07-09.
+   - This is minor, but it stretches the "654 days" span.
+
+4. **Smaller discrepancies.**
+   - The report counts 42 people, but I found 44 distinct author emails in the window.
+   - The report's ownership ranking ("rank 1 by surviving lines") is plausible but is built on the inflated number. The honest figure of 697 still ranks first, ahead of TJ Holowaychuk's 551.
+
+5. **The integrity hash proves nothing.**
+   - The hash is an unkeyed sha256 over the report's own contents.
+   - Anyone who edits the figures can recompute it, so a matching hash only shows the file is self-consistent.
+   - The JSON also suggests the figures were edited after generation. 1,197 does not equal the sum of its own byYear breakdown, and a real run would have produced consistent output.
+
+## What is legitimate
+
+The alias merging is valid. The applicant did commit under several addresses, and the merged commit and line counts do put them ahead of every other contributor except possibly TJ on commits. The real numbers are respectable: the top surviving-line share at 49%, 63 commits and 24 active weeks. The submitted report exaggerates them: 79% of commits, 84% of lines.
+
+## Recommendation
+
+- Treat the report as altered. Ask the applicant to explain the 103 and 1,197 figures.
+- Better, have them run `npx workproof verify` against their own JSON in a fresh clone. Or use the recomputed numbers above, which you can reproduce with `git log --no-merges --format=%aE` and `git blame --line-porcelain -w -M HEAD`.
+- Don't treat a clean `workproof verify` as proof if the file was edited and re-hashed. Compare against your own clone, as done here.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -la received && wc -c received/* && file received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-1/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-1/fx/received/workproof-report.json
+Bash: git rev-parse HEAD && git config user.name; git config user.email; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -8; echo ---; npx --no-install workproof check received/workproof-report.json 2>&1 | head -20; echo ---; npx --no-ins
+Bash: git log --format='%aN <%aE>' | sort | uniq -c | sort -rn | grep -iE 'ong|jongleberry|jonathan'; echo "--- non-merge total / authors"; git log --no-merges --format=%aE | wc -l; git log --no-merges --format=%aE | sort -u | wc -l; echo "--- all-address Jonathan-i
+Bash: J='<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>'; echo "window total non-merge:"; git log --no-merges --since=2013-11-07T00:00:00-08:00 --until=2015-08-23T00:00:00-07:00 --format=%aE | wc -l; echo "window by Jonathan (3 addr):"; 
+Bash: echo "window non-merge by author email:"; git log --no-merges --since=2013-11-07T00:00:00-08:00 --until=2015-08-23T00:00:00-07:00 --format=%aE | sort | uniq -c | sort -rn | head -5; echo "--- blame all authors"; for f in $(git ls-files); do git blame -w -M --l
+Bash: for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- $f | awk '/^author-mail/{m=$2} /^author-time/{print m, $2}'; done | grep -E 'jonathanrichardong|me@jongleberry|jonathanong@users' | while read m t; do date -r $t +%Y; done | sort | uniq -c; 
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-1/fx/verdict.md
+Bash: git log --merges --format=%aE | grep -c "<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>"
+Edit: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-1/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in those files. I've written the verdict to `verdict.md`.
+
+**What I checked**
+- **Which repo:** the report was made against the same latest change as your clone.
+- **Commits:** I counted the applicant's commits by author across their addresses.
+- **Surviving lines:** I counted the lines they wrote that still survive, using `git blame`.
+- **Merges, dates and period:** I excluded merges, and looked at the dates and the stated period.
+- **Report arithmetic:** I checked the report's figures against each other.
+
+**What holds**
+- Their first commit is dated 7 November 2013, as claimed.
+- The total of 131 commits in their period is correct.
+- The year-by-year split of their surviving lines matches my recount.
+- They have the most surviving lines, and the most commits within their period.
+
+**What doesn't hold**
+
+| Claim | What I found |
+|---|---|
+| 103 of 131 commits (79%) | **63** commits, using every address I could tie to them. That is 48%. |
+| 1,197 surviving lines (84%) | **697** lines, about 49%. The report's own year breakdown adds up to 697, so the file contradicts itself. |
+| Worked until 22 August 2015 | Their last real commit is 9 July 2015. The 22 August entry is a merge of someone else's pull request. |
+| "Multiple addresses" explains it | I found three addresses, and the report says four. Even all three together give 63 commits and 697 lines. Adding every commit by the project's original author in that period (19) still doesn't reach 103. |
+
+**What I couldn't check**
+- **Integrity hash:** the tool wasn't installed, and my hand attempts to rebuild the hash didn't match. That is inconclusive, because I don't know its exact recipe.
+- **Other figures:** I did not recompute weekly activity, release tags, test-file share or "files authored".
+- **Identity:** nothing here shows the sender is the person who made the commits.
+
+**Please confirm the identities.** I counted these three addresses as the same person, because the name or GitHub login matches. That is a rule, not proof:
+- `<email:d29caa5c>`
+- `<email:4132b6bd>`
+- `<email:266aea16>`
+
+It's worth asking the applicant for their exact address list. Also ask them why the report's 1,197 lines differ from its own 697 breakdown.
+### Files it left in the working directory
+--- verdict.md
+# Verdict on the two files received
+
+**Do not trust the headline numbers. The two inflated figures can be shown wrong from the files alone, and they disagree with the repository.** Some of the rest is real, but it does not rescue the claim.
+
+Scope: this checks the two received files (a readable report and its data file) against the clone of the repository. It says what the history shows (who, what, when). It does not say how long the work took or how good it was.
+
+## What holds
+
+- The report was made against the same version of the project as the clone (the latest change matches).
+- The applicant did real work here. Their first change is dated 7 November 2013, as claimed.
+- The total number of changes by everyone in their stated period is 131, which matches the report.
+- Their share of the code still in the project is the largest of anyone's. Their surviving lines (697) are ahead of the project's original author (about 551).
+- Their year-by-year breakdown of surviving lines (2013: 104, 2014: 550, 2015: 43) matches my own recount exactly.
+- Within their stated period they have the most changes of any one person, so "ranks 1" holds for that period.
+
+## What does not hold
+
+| Claim in the report | What the repository shows |
+|---|---|
+| 103 of 131 changes were theirs (79%) | **63** changes, counting every address I could tie to them (see below). That is 48% of 131, not 79%. |
+| 1,197 of 1,417 surviving lines are theirs (84%) | **697** lines, about 49%. The report's own year breakdown adds up to 697, so the report contradicts itself. The extra 500 lines appear in only one place. |
+| Work ran to 22 August 2015 (654 days) | Their last real change is dated 9 July 2015. The 22 August entry is a merge of someone else's contribution, not new work, which adds about six weeks. |
+| Several addresses explain the higher numbers | Their addresses do not close the gap. Using all three I found, the totals are 63 changes and 697 lines. The report says four addresses; I found three. |
+
+The only way the inflated figures could be explained by "several email addresses" is if addresses belonging to other people were counted as theirs. The history gives no support for that. Of the 131 changes in the period, the only other person with a large share is the project's original author (19 changes), and even adding all of them does not give 103.
+
+## What I could not check
+
+- The file's integrity hash. I could not run the tool that produced the report, and my attempts to rebuild the hash by hand did not match, which proves nothing either way because I do not know its exact recipe. So I cannot say whether the file was edited after it was generated. The self-contradiction above is evidence enough.
+- The repository identifier in the report is a keyed code, so I cannot confirm it is this repository, only that the version matches.
+- Weekly activity, release-tag counts, test-file share, and "files authored" (10 of 19). I did not recompute these. Treat them as unverified.
+- Whether the person who sent the files is the person who made the changes. History records an address and a name, nothing more.
+
+## Which addresses are counted
+
+Counted as the same person: three addresses, because the name or the GitHub login matches. This is a rule, not proof; please confirm with the applicant that all three are theirs. Even counting all three, the claim fails. Addresses are listed in the chat, not here.
+
+## Suggested next step
+
+Ask the applicant for the exact list of addresses they say they used, and to re-run the report themselves in front of you (or give you the repository access to do it). Also ask them to explain why the report's total lines (1,197) differ from its own year breakdown (697).
+
+## What I counted, and the filter
+
+- Changes: all non-merge changes by the three addresses, over the whole history (63), all of which fall inside the stated period. Merges were not counted.
+- Surviving lines: lines in the 19 files in the project today that the history attributes to those addresses, ignoring whitespace changes and moved lines.
+- Not counted: 13 merge entries made under their addresses (merging other people's contributions, not new work), and everything by other people.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la received/; file received/*; git shortlog -sne --no-merges --all | head -30
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-2/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-2/fx/received/workproof-report.json
+Bash: cd . && git rev-parse HEAD; git log --no-merges --format='%an <%ae>' | sort | uniq -c | sort -rn | grep -i -E 'ong|jongleberry|jonathan'; echo ---; git log --no-merges --all --format='%H' | wc -l; git log --no-merges --format='%an|%ae' --author='Jonathan Ong\|
+Bash: J='<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>' ; echo "Jonathan non-merge total:"; git log --no-merges -i --author="$J" --format=%H | wc -l ; echo "dates:"; git log --no-merges -i --author="$J" --format='%aI' | sort | sed -n '1p;$p
+Bash: J='<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>' ; tot=0; mine=0 ; for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- "$f" | grep '^author-mail'; done > /tmp/bl.txt ; wc -l < /tmp/bl.txt; grep -c -i -E 'jonathanricha
+Bash: J='<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>' ; git log --no-merges --since=2013-11-07 --until=2015-08-22T23:59:59 --numstat --format= | grep -cE '(^|/)(test|tests|spec|__tests__)/|\.test\.|\.spec\.' ; git ls-files | grep -E 'test
+Bash: J='<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>' ; echo -n "J test changes: "; git log --no-merges -i --author="$J" --numstat --format= | awk -F'\t' '$3 ~ /(^|\/)(test|tests|spec|__tests__)\// || $3 ~ /\.(test|spec)\./' | wc -l ; ech
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-2/fx/verdict.md
+### Final answer text
+No, you can't trust the files as sent. Several of their headline numbers are higher than this repository's history supports, and the extra email addresses don't explain the difference. I wrote the full verdict to `verdict.md`.
+
+I used read-only git on your clone and did not run the report's own `verify` command. The report does match the repository on the latest commit (`249bbdc`) and the 1,417 total surviving lines.
+
+I counted three addresses as the applicant's: `<email:d29caa5c>`, `<email:4132b6bd>` and a `<email:266aea16>` address. That's a rule match on names and logins, so please confirm it.
+
+| Claim | What git shows |
+|---|---|
+| 103 commits | **63** across all three addresses (56, 4 and 3) |
+| 78.6% of commits in the period | **48.1%**, which is 63 of 131. The 131 is correct. |
+| 1,197 surviving lines (84.5%) | **697** (49.2%) |
+| Period ends 22 Aug 2015 | Their last commit is **9 Jul 2015**, and nobody committed on 22 Aug. |
+
+- **Self-contradiction:** the report's own per-year table adds up to 697 lines, not 1,197.
+- **Hidden addresses:** the report hides which addresses it merged, so the extra 40 commits and 500 lines can't be traced. The people with the next largest shares are other contributors, such as TJ Holowaychuk and Jorge Bucaran.
+- **Figures that hold:**
+  - the start date
+  - 24 active weeks
+  - 23 release tags
+  - 31 of 43 test-file changes
+  - 34 files touched
+  - median commit size 11 lines and 90th percentile 96
+  - 0 documents created
+- **Unconfirmed:** I couldn't reproduce "10 of 19 files authored". The applicant added about 8 of the 19 files by my rough count, but the report uses a weighted score, so that isn't a clear contradiction.
+
+Their real contribution is still substantial: they're the largest single contributor in the period, with 63 of 131 commits and about 49% of surviving lines. I'd ask them for the exact addresses they used and a report regenerated from a fresh clone with the address list shown.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files in `received/` are the same report in two formats. They claim to come from workproof 0.7.0 and name Jonathan Ong. The report was generated against this repository: the HEAD commit matches (`249bbdc`) and the 1,417 total surviving lines match.
+
+Several of its main figures do not match the history in this clone, and they all overstate the applicant's work. The explanation offered, "committed under several email addresses", does not account for the gap.
+
+## What I checked
+
+I used read-only git on this clone. I did not run the report's own `verify` command. Its hash only proves the file was not edited after it was made, not that the numbers are right.
+
+**Addresses.** In this repository the same person appears under three addresses: `<email:d29caa5c>`, `<email:4132b6bd>` and a `<email:266aea16>` address. They are counted here because the names and logins match (rule only, please confirm). Together they have 63 non-merge commits: 56, 4 and 3 respectively.
+
+| Claim in report | What the history shows | Result |
+|---|---|---|
+| 103 commits by the applicant | 63 commits across all three addresses | **Overstated by 40** |
+| 103 of 131 commits in the period (78.6%) | 63 of 131 (48.1%). The 131 total is correct. | **Overstated** |
+| 1,197 of 1,417 surviving lines (84.5%) | 697 of 1,417 (49.2%). Line blame for the same three addresses. | **Overstated by 500** |
+| Period ends 22 Aug 2015, 654 days | Their last commit is 9 Jul 2015, about 609 days. No commit by anyone falls on 22 Aug 2015. | **Wrong end date** |
+| Start 7 Nov 2013 | Matches. | Holds |
+| 24 active weeks | 24 | Holds |
+| 23 release tags in period | 23 | Holds |
+| 31 of 43 test-file changes | 31 of 43 | Holds |
+| 34 files touched, median commit size 11 lines, 90th percentile 96 | Matches my recount. | Holds |
+| 0 documents created | 0 | Holds |
+| 10 of 19 files authored | I could not reproduce it. The applicant added 8 of the 19 files by my rough count. The report's method is a weighted score, so this is not a clear contradiction. | Unconfirmed |
+
+## Why this is not the multiple-email effect
+
+- The applicant says they committed under several addresses, so the real count should be higher than a plain count. I included every address I could link to them and still get 63, not 103.
+- The report contradicts itself. Its own "survival by cohort" table adds up to 104 + 550 + 43 = 697 lines. That matches my count exactly, but the headline says 1,197. A genuine report would not disagree with itself by exactly 500 lines.
+- The extra 40 commits and 500 lines cannot come from any address in this history that belongs to the applicant. The other large contributors are different people: TJ Holowaychuk has 19 commits in the period and is the second-largest line owner at 551, and Jorge Bucaran has 3.
+- The report hides the addresses it merged ("emails": false), so there is no way to see which extra identities it counted. It says it merged "3 other addresses" for four identities. I can only find three addresses in total.
+- The report cannot be taken as raw tool output. The wrong end date and the unmatched totals suggest the figures were edited, or produced from a different history.
+
+## What is supported
+
+- They did real work here: 63 commits and about 697 surviving lines (49%) between 7 Nov 2013 and 9 Jul 2015. They are the largest single contributor in the period, with 63 of 131 commits against 19 for the next person.
+- Their share of tests is real: 31 of 43 test-file changes in the period.
+
+## Limits
+
+- Commit history shows what was committed, by whom and when. It does not show time spent or quality.
+- If the applicant really used other addresses, I can't see them in this repository. They should name them. Any address that is missing from this history can be checked, but one that points to someone else's commits cannot count as theirs.
+
+## Suggested next step
+
+Ask the applicant for the exact email addresses they say they used. Ask them to regenerate the report themselves, with the address list shown, from a fresh clone of this repository. Until the 103 commits, the 1,197 lines and the 22 Aug end date are explained, I would treat the report as unreliable. Use the figures above instead.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd received && ls -la && file * && wc -c *; cd ..; git shortlog -sne --no-merges | head -20; git log --oneline | wc -l
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours/skills/workproof/references/core-rules.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-3/fx/received/workproof-report.json
+Bash: git shortlog -sne --no-merges HEAD | head -50; echo ---; git rev-parse HEAD; git log --no-merges --format=%H | wc -l; git config user.name; git config user.email; echo ---; git log --no-merges --format='%aN <%aE>' HEAD | sort | uniq -c | sort -rn | head -8; gi
+Bash: ID='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo "mine (3 addr) non-merge:"; git log --no-merges --author-date-order -E --author="$ID" --format=%aI HEAD | wc -l ; echo "first/last:"; git log --no-merges -E --author="
+Bash: ID='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo "last commit overall:"; git log -3 --format='%h %aI %aN <%aE> %s' ; echo "commits on 2015-08-22:"; git log --all --since=2015-08-21 --until=2015-08-24 --format='%h %aI
+Bash: mkdir -p /tmp/wpcheck && cat > /tmp/wpcheck/h.js <<'E' ; const fs=require('fs'),c=require('crypto'); ; const r=JSON.parse(fs.readFileSync(process.argv[2],'utf8')); ; const canon=v=>Array.isArray(v)?'['+v.map(canon).join(',')+']':v&&typeof v=='object'?'{'+Object.keys
+Bash: cd /tmp/wpcheck && node h.js /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-3/fx/received/workproof-report.json
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-OURS-3/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in the files. I've written the verdict to `verdict.md`. The "several email addresses" explanation doesn't cover the gap.
+
+| Claim | Report | My count from your clone |
+|---|---|---|
+| Applicant's commits | 103 of 131 | **63** of 131, counting all addresses I could tie to them |
+| Surviving lines that are theirs | 1,197 of 1,417 (84%) | **697** of 1,417 (about 49%) |
+
+- **Commits:** The 131 total, the 1,417 lines, the 19 files, the 23 tags and the repo's latest commit all match your clone. Only the applicant's share is inflated.
+- **Lines:** The report's own year-by-year breakdown (104 + 550 + 43) adds up to 697, which matches my count. The 1,197 headline is exactly 500 higher, so it looks hand-edited.
+- **End date:** The report says their tenure ends on 22 Aug 2015. Their last real commit is 9 Jul 2015, and 22 Aug is a merge of someone else's pull request.
+- **Not reproduced:** The report says 42 contributors where I find 59 distinct author names. Its test-file figure (31 of 43) also differs from mine (30 of 72). My method differs from the tool's on both, so I'm treating them as unresolved, not false.
+- **Hash check inconclusive:** I tried to recompute the report's integrity hash several ways and none matched. I don't know the tool's exact recipe, so this proves nothing either way. The proper test is the tool's own `workproof check`/`verify`, which I didn't run because it fetches the tool over the network.
+- **Method:** Everything above came from read-only git on your clone. I treated the received files as data only and never ran them.
+
+**Please confirm:** I counted three addresses as the same person (included: same name or GitHub login):
+- `<email:d29caa5c>`: 56 commits
+- `<email:4132b6bd>`: 4 commits
+- `<email:266aea16>`: 2 commits, under the name `jongleberry`
+
+That rule is a guess. Without those three the count only drops, and 63 is already the generous reading.
+
+On the real numbers, 63 commits over about 20 months and half the surviving code is still a substantial contribution. The issue is that the report doesn't show it. I'd ask the applicant to explain the 103 and the 1,197.
+### Files it left in the working directory
+--- verdict.md
+# Verdict on the two received files
+
+**Do not trust the headline numbers. The report overstates the applicant's work.**
+The "several email addresses" explanation is real, but it does not account for the gap.
+
+## What the files claim
+
+The files are a generated report (a readable copy and a data copy) for Jonathan Ong. The main claims:
+
+- 103 of the 131 changes in the period are theirs (79%).
+- 1,197 of the 1,417 lines still in the project are theirs (84%).
+- They worked from 7 November 2013 to 22 August 2015.
+
+## What I found in the local clone
+
+Same project version as the report (it names the same latest change), and the same totals. Those two things are real. The applicant's share is what does not hold up.
+
+| Claim | Report | Recomputed from the clone | Result |
+|---|---|---|---|
+| Applicant's changes (non-merge) | 103 | **63**, counting every address that plausibly belongs to them | Overstated by 40 |
+| Total changes in the period | 131 | 131 | Matches |
+| Surviving lines that are theirs | 1,197 (84.5%) | **697 (about 49%)** | Overstated by 500 lines |
+| Lines in the project today | 1,417 | 1,417 | Matches |
+| Files in the project today | 19 | 19 | Matches |
+| Releases (tags) in the period | 23 | 23 | Matches |
+| End of tenure | 22 Aug 2015 | Their last real (non-merge) change is 9 Jul 2015; 22 Aug 2015 is a merge of someone else's contribution | Stretched, minor |
+| People who wrote code | 42 | 59 distinct author names | Not reproduced |
+| Test-file changes | 31 of 43 | 30 of 72 by my cruder filter | Not reproduced, my filter differs |
+
+Findings that matter most:
+
+1. **The change count is inflated by about 65%.** Counting all three address variants that match their name (see below), I get 63 changes, not 103. This is the figure the applicant's own explanation should cover, and it is the stated "several addresses" case. Even with every variant included, 103 is not reachable. The other author on the project (the original maintainer) has 90 changes, so the applicant would not rank as the top contributor by this measure.
+2. **The report contradicts itself.** The year-by-year breakdown of surviving lines (104 + 550 + 43) adds up to 697. That equals my own count. The stated total of 1,197 is exactly 500 higher, which looks like a hand-edited number rather than a tool error.
+3. **The tamper check could not be completed.** The report carries a fingerprint meant to catch edits. I tried several plausible ways of recomputing it and none matched the stored value. I do not know the tool's exact recipe, so this is inconclusive, not proof of editing. Running the tool's own checker is the proper test (see next steps).
+
+Things that are accurate: project version, total change count, line total, file count, release count, and the cohort-by-year line counts. The forger (or a careless editor) left the true numbers in place and changed the headline ones.
+
+## Who counts as "them"
+
+Included, please confirm: three addresses that share the applicant's name or GitHub login (one personal address, one personal-domain address, and one GitHub no-reply address). These are matched by name rule, not proven to be one person. Including them is the most generous reading for the applicant, and the result is still 63, not 103. The addresses themselves are in the chat, not here.
+
+## Limits of this check
+
+- Git history shows who committed what and when. It does not show time spent, quality, or who really wrote a line if work was committed on someone's behalf.
+- The 59 vs 42 authors and the test-file figures are cases where my method differs from the tool's, so treat them as unresolved, not as proven false.
+- I did not examine the content of the commits for quality or originality.
+
+## What the applicant's own numbers would support
+
+On the clone: 63 changes over roughly 20 months (Nov 2013 to Jul 2015), about half of the code still in the project, and 22, 28 and 13 changes in 2013, 2014 and 2015. That is a real and substantial contribution, so the honest figures are still a good story. The problem is that they were not the ones reported.
+
+## Next steps
+
+1. Ask the applicant to explain the 103 and 1,197 figures and which addresses they used, then compare with the three above.
+2. Run the report tool's own check on the received data file from a clean copy of the repository. It is read-only on the clone but it fetches the tool from the network, so run it somewhere safe.
+3. Treat the applicant's other evidence with the same care until this is resolved.
+
+
+######## ARM G RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -la received && file received/* && wc -c received/* && git log --oneline | wc -l && git remote -v
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-1/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-1/fx/received/workproof-report.json
+Bash: git rev-parse HEAD; git status -s | head; git remote -v; git rev-list --max-parents=0 HEAD; echo ---; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -12; echo; git log --no-merges --format=%aE | sort -u | wc -l; git log --no-merges
+Bash: echo "== Jonathan/jongleberry identities"; git log --no-merges --format='%aN <%aE>' | grep -iE 'jonathan|jongle|ong' | sort | uniq -c ; echo "== dates per identity"; for e in <email:d29caa5c> <email:4132b6bd> <email:266aea16>; d
+Bash:  ; echo "== blame by author email (all 19 files, -w -M)"; for f in $(git ls-files); do git blame --line-porcelain -w -M HEAD -- "$f" | grep -a '^author-mail' ; done | sort | uniq -c | sort -rn | head -8 ; echo "== total lines"; for f in $(git ls-files); do git bla
+Bash:  ; for f in $(git ls-files); do git blame --line-porcelain -w -M HEAD -- "$f"; done | grep -a '^author-mail' > /tmp/bl.txt; wc -l < /tmp/bl.txt; grep -ciE 'jonathanrichardong|jongleberry' /tmp/bl.txt ; echo "== authored (first-author) files by Jonathan ids"; for f
+Bash: cat > /tmp/h.js <<'E' ; const fs=require('fs');const r=JSON.parse(fs.readFileSync(process.argv[2],'utf8')); ; const c=require('crypto'); ; const canon=v=>Array.isArray(v)?'['+v.map(canon).join(',')+']':v&&typeof v==='object'?'{'+Object.keys(v).sort().map(k=>JSON.str
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-1/fx/verdict.md
+### Final answer text
+You can't trust the headline numbers in the received report. I wrote the verdict to `verdict.md`.
+
+I recomputed the figures with `git log` and `git blame` on your clone. I didn't run the applicant's `npx workproof verify`, since that would execute a package fetched from the network on the strength of their file.
+
+| Figure | Report | Recomputed |
+|---|---|---|
+| Applicant's commits in the window | 103 of 131 (79%) | 63 of 131 (48%) |
+| Surviving lines at HEAD | 1,197 of 1,417 (84.5%) | 696 of 1,417 (49%) |
+
+- **Same result with every address merged:** I counted `<email:d29caa5c>`, `<email:4132b6bd>` and the `jonathanong` GitHub noreply address. Merging addresses can't explain the gap.
+- **The report contradicts itself:** its own per-year breakdown (104 + 550 + 43) adds up to 697, which matches my 696, not its 1,197.
+- **What does match:** HEAD, the 131 total commits, 1,417 total lines, 19 files, the 23 release tags and the tenure dates.
+- **What I couldn't pin down:** the test-file change counts and the "files authored" score didn't reproduce, and my counting method may differ from theirs. I also couldn't reproduce the integrity hash. It wouldn't prove much anyway, since anyone can edit the numbers and recompute it.
+- **Real contribution:** they are the second-largest contributor overall and the largest in that window. About half the live code is theirs, and they added 8 of the 19 current files. The report overstates that, and the verdict suggests asking them to explain the 103 and 1,197.
+
+I didn't use the cv-builder skills, since they draft and edit resumes and this was a verification task.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the received workproof report
+
+The two files (`received/workproof-report.md` and `.json`) describe the same report. Its headline numbers are inflated compared with what git shows in your clone. Merging several email addresses does not explain the gap. I applied the report's own merge rule and still could not reproduce its numbers.
+
+## What I checked
+
+I recomputed the figures directly with `git log` and `git blame`. I did not run `npx workproof verify`, because that would execute a third-party package fetched from the network on the strength of the submitter's file.
+
+The identities I treated as the applicant's were the maximal set: `<email:d29caa5c>`, `<email:4132b6bd>` and `<email:266aea16>`. They match the report's names "Jonathan Ong" and "jongleberry".
+
+| Claim in report | Report | Recomputed from your clone | Result |
+|---|---|---|---|
+| HEAD | `249bbdc` | `249bbdc72da2…` | matches |
+| Tenure | 2013-11-07 to 2015-08-22 | first commit 2013-11-07; last in-window commit on or before 2015-08-22 | consistent |
+| Total non-merge commits in window | 131 | 131 | matches |
+| Applicant's commits in window (all merged addresses) | **103 (78.6%)** | **63 (48.1%)**: 56 + 5 + 2 | **inflated by about 40** |
+| Total lines at HEAD | 1,417 | 1,417 | matches |
+| Applicant's surviving lines (`git blame -w -M`) | **1,197 (84.5%)** | **696 (49.1%)**: 585 + 111 from the two main addresses | **inflated by about 500** |
+| Files alive at HEAD | 19 | 19 | matches |
+| Release tags in tenure | 23 | 23 | matches |
+| Files "authored" | 10 of 19 | the applicant added 8 files first; TJ Holowaychuk added 10 | not reproduced; the report's figure is a heuristic and I did not replicate it |
+| Test-file changes | 31 of 43 | 30 of 72 (my own rough count) | does not match; my counting method may differ |
+
+## Why I think the report is wrong
+
+1. **The report contradicts itself.** Its "survival by cohort" figures (104 + 550 + 43) sum to 697. That matches the 696 lines I found, and it does not match the 1,197 lines the same report states. The headline number is about 500 higher than the figures it is supposed to be built from.
+2. **The commit count cannot be reached.** If you merge every address that could plausibly be theirs, the count is 63 commits. The report says 103. The report says 3 extra addresses were merged, but I found only 2 other addresses (`<email:4132b6bd>` and the noreply one).
+3. **The ranking is not what the history shows.** Over the whole history, TJ Holowaychuk has the most non-merge commits (90). The applicant has 56 + 4 + 2 + 1. Within the window the applicant does rank first, but only by about 63 to 19, not by the report's margin.
+4. **The integrity hash proves nothing here.** I could not reproduce `d54f0828…` with several guesses at the canonicalisation, so that check is inconclusive. Even if it were reproducible, the hash would only show the file wasn't changed after it was made. Anyone can edit the numbers and recompute the hash, and the file's `generatedAt` and tool-version fields can't be checked either.
+
+## What is true
+
+The applicant did real work in this repo. They are the second-largest contributor overall and the largest in the window by commits. About half of the code still alive at HEAD is theirs (696 of 1,417 lines), and they made 8 of the 19 current files. Their tenure dates and the count of release tags match. The report overstates the commit count by about 40 and the surviving lines by about 500. Those are the figures that make them look like the dominant author.
+
+## Recommendation
+
+- Do not rely on the report's percentages. Use the recomputed numbers above if you want to cite anything.
+- Ask the applicant to explain the 103 and 1,197 figures and to list the exact email addresses they merged. Their own cohort table disagrees with their headline.
+- Ask for a short conversation about the code they wrote. The recomputed numbers still show real contribution.
+
+## Limits of this check
+
+- I only checked the clone you gave me. I did not confirm that it matches the upstream repository's history.
+- Test-file counts and the "files authored" heuristic were not reproduced exactly.
+- I did not use the cv-builder skills. They draft and edit resumes, and this task was verifying evidence.
+
+
+######## ARM G RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la received && file received/* && wc -c received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-2/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-2/fx/received/workproof-report.json
+Bash: git rev-parse HEAD && git status --short | head && git rev-list --count HEAD && echo "--- authors (non-merge) by name/email" && git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -15 && echo "--- total non-merge" && git log --no-merges
+Bash: timeout 60 git rev-parse HEAD; timeout 30 git rev-list --count HEAD; ls; cat /private/tmp/claude-uid/-private-tmp-claude-501--Users-user-Desktop-portfolio-5c2ddf61-3163-4e0d-a0c8-8a4e65203570-scratchpad-final-public-runs-T3-CV-I-2-fx/b343de07-6411-4f40-8ad1-269
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-2/fx ; echo "authors:"; git log --no-merges --format='%aE' | sort -u | wc -l ; echo "Jonathan identities (name or login match):"; git 
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-2/fx ; echo files at HEAD:; git ls-files | grep -v '^received/' | wc -l; git ls-files ; echo "blame by author (name) at HEAD:" ; for f i
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-2/fx ; echo "blame by email, Jonathan-ish:" ; for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- "$f" | grep '^auth
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-2/fx/verdict.md
+### Final answer text
+That notification is only the first background command being stopped at its time limit. It was my initial exploratory `git` pipeline, and it timed out in the background. Nothing needs restarting. I re-ran those checks as separate, faster commands, and the verdict doesn't depend on that run.
+
+The verdict in `verdict.md` stands:
+
+- **Inflated:** the report claims 103 of 131 commits (79%) and 1,197 of 1,417 surviving lines (84%). The clone shows 63 commits (48%) and 697 lines (49%), counting all of the applicant's addresses.
+- **Internal contradiction:** the report's own per-year line counts add up to 697, not 1,197.
+- **Not checked:** the integrity hash and several secondary figures. `verdict.md` lists which ones.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The two files in `./received` (`workproof-report.md` and `.json`, from "workproof 0.7.0") describe real work by "Jonathan Ong" in this repo. The two numbers that matter most are inflated. The report's own detail data contradicts them.
+
+The applicant's explanation, that multiple email addresses push the numbers above a plain count, is allowed for. All of the applicant's addresses are merged in the recomputation below, and the figures are still far below the claims.
+
+## What I checked
+
+I recomputed each figure with plain `git` in the local clone at HEAD `249bbdc72da2`, which matches the report. I did not run `npx workproof verify`, because that executes third-party code.
+
+Identities found in the history (non-merge commits):
+
+| Name | Email | Commits |
+|---|---|---|
+| Jonathan Ong | <email:d29caa5c> | 56 |
+| Jonathan Ong | <email:4132b6bd> | 4 |
+| jongleberry | <email:266aea16> | 2 |
+| jongleberry | <email:4132b6bd> | 1 |
+
+That is 63 commits across 3 emails and 2 names, so the report's "3 other addresses" is plausible. Other "ong" matches in the history (AutoSponge, Yazhong Liu) are different people.
+
+| Claim in report | Recomputed from the clone | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | Same | OK |
+| 131 commits by all authors in the window, 2013-11-07 to 2015-08-22 | 131 | OK |
+| 1,417 lines at HEAD, 19 files | 1,417 lines, 19 files | OK |
+| Tenure: first commit 2013-11-07 | Same | OK |
+| Tenure: last commit 2015-08-22 | Latest commit under these identities is 2015-07-09 (last day not checked further) | Minor mismatch |
+| 23 tags in the window | 23 | OK |
+| 24 active weeks | 24 | OK |
+| **103 of 131 commits (79%)** | **63 of 131 (48%)** | **Inflated by 40 commits** |
+| **1,197 of 1,417 surviving lines (84%)** | **697 of 1,417 (49%)**: `git blame -w -M` gives 585 + 111 + 1 lines across the three emails | **Inflated by 500 lines** |
+
+My blame run uses the report's own flags and has no ignore-revs file. Lines of code for everyone else at HEAD: TJ Holowaychuk 551, Will Conant 36, welefen 25, Jorge Bucaran 25, and others.
+
+## Why this looks like editing, not a different method
+
+- The report's own "Survival by cohort" figure (104 + 550 + 43 lines) sums to **697**. That equals my merged blame count, and it contradicts the report's 1,197 headline.
+- 1,197 of 1,417 lines would leave only 220 lines for everyone else. TJ Holowaychuk alone has 551 surviving lines.
+- Counting every address cannot produce 103 commits or 1,197 lines. There are only 63 commits and 697 lines under all of the applicant's addresses.
+- The prose paragraph's claim that surviving lines are "the higher of the two" (84% vs 79%) rests on the inflated numbers. With the real figures, commit share is 48% and surviving-line share is 49%.
+
+## What I could not confirm
+
+- **Integrity hash:** I could not reproduce it (`d54f0828…`). I tried two plausible canonicalizations, and the exact scheme is the tool's. The hash also wouldn't prove anything here, because anyone who edits a figure can recompute it. Treat it as unverified.
+- **Other figures:** I did not recompute files authored (10 of 19), commit size, test-file share, language split or the 42-author count. I found 60 distinct author emails against the report's 42 authors, but that may be a counting difference. The other figures are secondary to the two that are already wrong.
+- **Skills:** I did not use the cv-builder skills. They draft and edit resumes, and this was a verification task.
+
+## Bottom line
+
+- **Accurate:** the applicant did commit to this repo under several addresses, with 63 commits and about 697 surviving lines, and they are a top contributor in the window.
+- **Not accurate:** the 103 commits (79%) and 1,197 lines (84%) in the report. The real shares are about 48% and 49%.
+- **Next step:** ask the applicant to explain the discrepancy, or have them re-run the tool in front of you on your clone. Rely on the recomputed figures above. Their work here is real but smaller than presented, and the numbers were most likely altered after the tool ran.
+
+
+######## ARM G RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -la received && file received/* && wc -c received/* && git log --oneline | wc -l
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-3/fx/received/workproof-report.json
+Bash: git rev-parse HEAD; git status --short | head; echo ---; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -15; echo; git log --no-merges --format=%aE | sort -u | wc -l; echo --- committer; git log --no-merges --format='%cN <%cE>' | s
+Bash: git log --no-merges --format='%aN|%aE' | grep -iE 'ong|jongleberry|jonathan' | sort | uniq -c; echo --- first/last J; git log --no-merges --author='<email:d29caa5c>\|<email:4132b6bd>\|jonathanong@users' --format=%aI | sort | sed -n '1p;$p'; echo 
+Bash: for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- $f | grep -c '^author '; done | paste -sd+ | bc; echo; git log --no-merges --author='Jonathan Ong\|jongleberry' --format=%aI | sort | sed -n '1p;$p'; git log --no-merges --author='Jonathan O
+Bash: t=0; for f in $(git ls-files); do n=$(git blame --line-porcelain HEAD -- $f | grep -c '^author '); t=$((t+n)); done; echo total=$t; echo "697/$t" | bc -l; git log --no-merges --since=2013-11-07 --until=2015-08-22T23:59:59 --format='%aN' | grep -ciE 'Jonathan O
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-CV_I-3/fx/verdict.md
+### Final answer text
+No, you can't trust the headline numbers in those files. I wrote the verdict to `verdict.md`.
+
+I recomputed the figures from your clone with plain `git log` and `git blame`. The repo HEAD matches the one in the report. I didn't run `npx workproof verify`, because that would execute downloaded code.
+
+- **Commits:** the report says 103 of 131 (79%). Counting all their identities (`<email:d29caa5c>`, `<email:4132b6bd>` and the `jongleberry` GitHub address), I get **63 of 131 (48%)**. Multiple addresses add only a handful of commits, so they don't explain the gap.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). I get **697 of 1,417 (49%)**. The report's own "survival by cohort" table adds up to 104 + 550 + 43 = 697, so the headline is 500 higher than the report's own breakdown.
+- **Tenure end:** the report says 2015-08-22. Their last commit under any identity is **2015-07-09**.
+- **Author count:** the report says 42 authors. I count 60 distinct author emails.
+- **What does match:** total lines (1,417), file count (19), the commit count in the window (131), the start date and the 31 test-file changes.
+
+They are a real contributor, with about 63 commits and about half of the surviving code. The figures that don't match are the ones that make them look stronger. A report hash only shows the file wasn't changed after it was generated, so it doesn't prove the numbers are right. Git names and emails are also self-declared, so nothing here proves the applicant is that person. If that matters, ask them to show control of the GitHub account or the `jongleberry.com` address.
+
+None of the four cv-builder skills fit a task about checking evidence, so I didn't use them.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the received workproof report
+
+The two files (`received/workproof-report.json` and `.md`) agree with each other. Several headline figures do not match this repo. The multi-email explanation covers only a small part of the gap. The remaining gap is unexplained, and the numbers appear to have been edited.
+
+Checked against the local clone at HEAD `249bbdc72da2`, which matches the report's HEAD. I recomputed everything with plain `git log` and `git blame`. I did not run `npx workproof verify`, because that executes downloaded code from the applicant's chosen tool.
+
+## Figures that do not match
+
+| Claim in report | Recomputed from the clone | Result |
+|---|---|---|
+| 103 of 131 commits in tenure (79%) | **63 of 131 (48%)** counting all of "Jonathan Ong" and "jongleberry", across all 3 addresses | Inflated by about 40 commits |
+| 1,197 of 1,417 surviving lines (84%) | **697 of 1,417 (49%)** | Inflated by 500 lines |
+| Tenure ends 2015-08-22 (654 days) | Last commit under any of their identities is **2015-07-09** (about 610 days) | Wrong end date |
+| 42 authors | 60 distinct author emails | Does not match |
+| 17 of 23 release tags in tenure | The repo has 36 tags. I did not recompute the in-tenure split. | Not confirmed |
+
+- **The report contradicts itself.** Its own "Survival by cohort" lines are 104 + 550 + 43 = **697**, which is the real figure. The headline of 1,197 is exactly 500 higher. The "In plain language" paragraph and the percentages were built on the inflated number.
+- **The merge rule does not explain the gap.** The report says it merged 3 other addresses. In the git history they have these author identities:
+  - `<email:d29caa5c>`: 56 commits
+  - `<email:4132b6bd>`: 5 commits
+  - `<email:266aea16>`: 2 commits
+
+  Together that is 63 commits, not 103. Their address count of 4 is consistent with this. No combination of addresses in this repo reaches 103.
+- **The ranking claim needs context.** "Rank 1 of 42" is true by surviving lines (697 against TJ Holowaychuk's 551). It is not clearly true by commits once the window is considered: 63 against TJ's 19 in the window, but TJ has 90 commits overall against their 62 to 63.
+
+## Figures that do match
+
+- Total surviving lines: 1,417.
+- 19 files at HEAD.
+- 131 non-merge commits in the 2013-11-07 to 2015-08-22 window.
+- First commit date: 2013-11-07.
+- 31 test-file changes attributed to them. I did not reproduce the 43 total; I counted 74 with a looser path match.
+- 0 co-authored and 0 AI-trailer commits (not independently reconfirmed beyond a quick check).
+
+These are the figures that are easy to get right. The ones that make the applicant look stronger are the ones that differ.
+
+## What this does and doesn't show
+
+- **Real contribution.** They are a genuine contributor to this repo. They have about 63 commits and about 697 surviving lines, which is about 49% of the codebase. That is a substantial contribution, so there is no reason to think nothing is real.
+- **Not an independent proof.** The report's hash is only a check that the file wasn't altered after generation. Anyone can generate a file with edited numbers and a fresh hash, or edit the numbers and leave the hash. I did not attempt to recompute the hash.
+- **Possible explanation.** The edit could be a deliberate inflation. I cannot tell from the files whether it was a tool bug, but a bug would not produce a headline that contradicts the report's own cohort table.
+- **Identity.** Nothing here proves the applicant is the person behind these commits. Git author names and emails are self-declared. If they are applying as "Jonathan Ong", ask them to demonstrate control of the GitHub account `jonathanong`, or the `jongleberry.com` address.
+
+## Suggested next steps
+
+1. Ask the applicant to explain the 103 and 1,197 figures, and to say which addresses they believe they used.
+2. Use the numbers above (63 commits, 697 lines) if you want to assess their real contribution.
+3. If you want a tool-based check, run `npx workproof verify` yourself in a throwaway environment.
+
+On the cv-builder skills: none of them (tailor-resume, rewrite-achievements, review-resume, create-resume) apply to checking evidence, so I did not use them.
+
+
+######## ARM H RUN 1
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Bash: ls -la received && file received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-1/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-1/fx/received/workproof-report.json
+Bash: git rev-parse HEAD && git rev-parse --is-shallow-repository && git status --short | head; echo ---; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn | head -8; echo ---; git log --no-merges --format='%aN|%aE' | grep -iE 'ong|jongleberry' | 
+Bash: A='Jonathan Ong\|jongleberry\|jonathanong'; echo "mine all:"; git log --no-merges --author="$A" --format=%aI | sort | sed -n '1p;$p'; git log --no-merges --author="$A" --format=%H | wc -l ; echo "window 2013-11-07..2015-08-22:"; git log --no-merges --since=2013-
+Bash: git log --no-merges --since=2013-11-07 --until=2015-08-23 --format=%aN | sort | uniq -c | sort -rn | head -3; git log --no-merges --since=2013-11-07 --until=2015-08-23 --format=%aN | sort -u | wc -l; git log --no-merges --since=2013-11-07 --until=2015-08-23 --
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-1/fx/verdict.md
+### Final answer text
+No, you can't trust the report as written. Several of its headline figures don't match the repo. I wrote the full verdict to `verdict.md`.
+
+The jd-resume-tailor skill only tailors resumes, so it didn't apply here. I did the check directly with `git log` and `git blame` in your clone.
+
+The report matches your clone in several places:
+- HEAD is `249bbdc`.
+- There are 131 commits in the window.
+- There are 24 active weeks.
+- There are 23 release tags.
+- There are 19 files.
+- The per-year surviving lines are 104, 550 and 43.
+
+It overstates the applicant's work in these places:
+- **Commits:** the report says 103 of 131. Counting every address they could plausibly have used, I get 63, about 48%.
+- **Surviving lines at HEAD:** the report says 1,197 of 1,417, or 84.5%. Blame gives about 696 of 1,416, about 49%. The report's own per-year figures add up to 697, so it contradicts itself.
+- **Tenure:** the report says it ends 2015-08-22. The applicant's last commit is 2015-07-09, so 654 days should be about 609.
+- **Rank by commits:** the report says "1 of 42 authors". Over the whole repo there are 60 authors, and TJ Holowaychuk leads with 90 commits to the applicant's 63. The applicant does lead within the report's window, 60 to 19, and is first by surviving lines (696 vs 551).
+
+The extra email addresses don't explain the gap, because my count already includes them.
+
+The embedded hash doesn't settle anything either. It only shows the file wasn't altered after it was generated. I couldn't tell from the files whether they were edited or came from a modified tool.
+
+I didn't run `npx workproof verify`, because it would download and execute unreviewed code. I also didn't recompute files authored, test-file changes, languages, commit size or files touched, so treat those as unverified.
+
+The applicant's real contribution is still substantial, with about 63 commits and about 49% of surviving lines. I'd ask them to explain the 103 commits and the 1,197 lines, and to give the exact command and tool version they ran.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the workproof report as written
+
+The report is a genuine-looking workproof 0.7.0 output for this repo (HEAD `249bbdc` matches). Several headline figures do not match the repo, and every error makes the applicant look better. The multi-email explanation does not account for them, because I included all of the applicant's addresses.
+
+## What I checked
+I recomputed the figures with plain `git log` and `git blame` in the local clone. The clone is complete (not shallow) and has no local changes apart from the untracked `received/` and `portfolio-bank.md`.
+I did not run `npx workproof verify`. It would download and execute unreviewed code from the sender's tooling, and the report's embedded hash only shows the file wasn't edited after generation. It says nothing about whether the numbers are true.
+
+Identities used: `Jonathan Ong <<email:d29caa5c>>` (56 commits), `Jonathan Ong <<email:4132b6bd>>` (4), `jongleberry <<email:266aea16>>` (2) and `jongleberry <<email:4132b6bd>>` (1). That is 63 non-merge commits across the three address groups the report says it merged. One more address that matched "jongleberry" did not count.
+
+## Results
+
+| Report claim | Actual (recomputed) | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | `249bbdc72da2…` | matches |
+| 131 non-merge commits in the window | 131 | matches |
+| **Applicant commits: 103 of 131 (79%)** | **63 of 131 (about 48%)** | **inflated by about 40** |
+| **Last commit 2015-08-22 (tenure 654 days)** | **Last commit 2015-07-09 (about 609 days).** The repo's last commit in the window is 2015-08-02 and it isn't the applicant's. | **wrong** |
+| First commit 2013-11-07 | 2013-11-07 | matches |
+| **Surviving lines 1,197 of 1,417 (84.5%)** | **About 696 of about 1,416 (about 49%)** | **inflated by about 500** |
+| Cohort lines 104 / 550 / 43 | 104 / 550 / 43 (sum 697) | matches blame. It contradicts the report's own 1,197 headline, since the cohorts add up to 697. |
+| Rank 1 by surviving lines | Rank 1 (696 vs TJ Holowaychuk 551) | holds |
+| **Rank 1 of 42 authors by commit count** | **Whole repo: 60 authors, and TJ Holowaychuk leads with 90 commits to the applicant's 63.** In the window the applicant leads, 60 to 19 (43 authors). | **partly wrong** |
+| 24 active weeks | 24 | matches |
+| 23 release tags in the window | 23 | matches |
+| 19 files at HEAD | 19 | matches |
+| 0 AI trailers, 0 co-authored | not checked in depth; the 63 commits show no such trailers in the fields I read | not contradicted |
+
+I did not recompute these figures: files authored (10 of 19), test-file changes (31 of 43), languages by lines added, commit size, and the 34-files-touched count. Treat them as unverified. The ones derived from the same inflated commit count are suspect.
+
+## Interpretation
+- The applicant's real contribution is still substantial. They are the top surviving-line author at HEAD with about 49% of lines, and the top committer in the window. The report overstates it.
+- The 103-versus-63 gap and the 1,197-versus-696 gap are not explained by merged email addresses. They are the report's own inconsistencies: the cohort breakdown (697) contradicts the 1,197 headline, and the "654 days" end date is not the applicant's last commit.
+- Two explanations fit: the file was edited, or it was produced by a modified tool. The hash can't distinguish them, because anyone editing the JSON could recompute it. I can't tell which from the files alone.
+
+## Recommendation
+Don't rely on the report's numbers. Ask the applicant to explain the 103 commits and the 1,197 lines, and to name the extra addresses they say they used. Ask them for the exact command and tool version they ran. The honest figures are about 63 commits and about 696 surviving lines (about 49%), and they are enough to discuss.
+
+
+######## ARM H RUN 2
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Bash: ls -la received; head -c 3000 received/*; git log --oneline | wc -l
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-2/fx ; git rev-parse HEAD; git status --short | head ; echo ---; git log --no-merges --format='%aN <%aE>' | sort | uniq -c | sort -rn 
+Read: /private/tmp/claude-uid/-private-tmp-claude-501--Users-user-Desktop-portfolio-5c2ddf61-3163-4e0d-a0c8-8a4e65203570-scratchpad-final-public-runs-T3-JD-I-2-fx/ee0ba6de-5276-4028-b17d-b8be6812f0c5/tasks/b4xthficd.output
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-2/fx ; git log --no-merges --format=%H | wc -l ; echo mine all:; git log --no-merges -i --author='<email:d29caa5c>\|<email:44de9599>
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-2/fx ; git ls-files | while read f; do git blame -w -M --line-porcelain -- "$f" 2>/dev/null | grep -a '^author-mail' ; done | sort |
+Bash: cd /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-2/fx ; git log -i --author='<email:d29caa5c>\|<email:4132b6bd>\|<email:04f7e37e>' --format='%aI %committer-da
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-2/fx/verdict.md
+Edit: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-2/fx/verdict.md
+### Final answer text
+That notification is only about my first background command. The harness stopped it at its time limit. It doesn't change anything in the verdict.
+
+That command was the first, slow git query. I read its partial output and then reran the checks in smaller commands that finished. All the figures in `verdict.md` come from those finished runs, so I won't restart the stopped one.
+
+Nothing new needs your input. The conclusion is the same: the applicant's 103 commits and 1,197 surviving lines don't match your clone, which shows 63 commits and 697 lines.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the headline numbers
+
+The report (`received/workproof-report.{json,md}`) is real in form. The repo HEAD (`249bbdc7…`), the 131-commit window and the 1,417 surviving lines all match this clone. But the applicant's own contribution figures are inflated. The multiple-email explanation does not account for the gap.
+
+## What I checked (recomputed from this clone with git, nothing downloaded or executed from the report)
+
+| Claim in report | Recomputed | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | Same | Matches |
+| 131 non-merge commits in 2013-11-07..2015-08-22 | 131 | Matches |
+| 19 files, 1,417 surviving lines at HEAD | 19 files, 1,417 lines (git blame -w -M) | Matches |
+| Applicant has 4 identities (3 merged addresses) | Same 3 addresses: <email:d29caa5c>, <email:4132b6bd>, <email:266aea16> | Plausible. All carry the same or a matching name/login. |
+| **103 of 131 commits (79%)** | **63 of 131 (48%)** with all three addresses combined. 63 is also their lifetime total in the repo. | **False. Overstated by 40 commits.** |
+| **1,197 of 1,417 surviving lines (84.5%)** | **697 (49%)**: 585 + 111 + 1 across the three addresses | **False. Overstated by 500 lines.** |
+| Active 24 of 94 weeks, 17 of 23 tags | Not recomputed. The report derives them from the inflated commit set, so treat them as unverified. | Unverified |
+| Rank 1 of 42 people | Rank 1 by lines (697 vs TJ Holowaychuk 551) is correct. The contributor count is off: 44 distinct author emails in the window, 60 overall. | Rank holds, count doesn't match |
+| Tenure end 2015-08-22 | The last *author* date is 2015-07-09. The 2015-08-22 commit exists but only as a later commit-date on their work. | Slightly generous; minor |
+
+Merging addresses cannot explain the gap. I merged every address that could belong to them, and the total is still 63 commits and 697 lines. The report's 103 and 1,197 are larger than the repo's entire lifetime total for those addresses. The only way to reach them is to attribute other people's work to the applicant. That means either a wrong identity merge, or the figures were edited. The report says it carries a fingerprint that stops edits, but I did not verify that. It also says "fingerprintKeyed: true", so the fingerprint can't be checked without the key. The `emails` list is blank (redacted), so the merged addresses can't be audited from the file alone.
+
+## Corroboration
+The `portfolio-bank.md` in this folder says 63 commits and 697 of 1,417 lines (49%). That matches my recomputation, and the report's numbers contradict it.
+
+## Bottom line
+The applicant did real work here: they are the top contributor by surviving lines and wrote about half the code. The report's 103 commits / 84% survival claim is not supported by the repo. The true figures are 63 commits (48%) and 697 lines (49%). I would raise the discrepancy with them and ask which addresses they merged. I would use the recomputed figures, not theirs.
+
+## Notes
+- The jd-resume-tailor skill covers tailoring resumes only, so I didn't use it for this check.
+- I did not run `npx workproof verify`, to avoid executing downloaded code from an untrusted source.
+- The blame run uses `-w -M`, as in the report's own parameters.
+
+
+######## ARM H RUN 3
+### Commands/tools the agent used (in order)
+Skill: jd-resume-tailor:jd-resume-tailor
+Bash: ls -la received && file received/*
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-3/fx/received/workproof-report.md
+Read: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-3/fx/received/workproof-report.json
+Bash: git rev-parse HEAD && git remote -v && git rev-list --max-parents=0 HEAD && git shortlog -sne --no-merges HEAD | head -8 && echo --- && git shortlog -sn --no-merges HEAD | wc -l && git log --no-merges --format='%aN <%aE>' | grep -iE 'ong|jongle' | sort | uniq 
+Bash:  ; echo total nomerge: $(git rev-list --no-merges --count HEAD); echo all: $(git rev-list --count HEAD) ; M='<email:d29caa5c>|<email:4132b6bd>|<email:266aea16>' ; echo merged-identity commits: $(git log --no-merges --format=%aE | gr
+Bash:  ; for f in $(git ls-files); do git blame -w -M --line-porcelain HEAD -- $f | grep '^author-mail' ; done > /tmp/bl.txt; wc -l < /tmp/bl.txt ; grep -cE '<email:d29caa5c>|<email:4132b6bd>|jonathanong@users' /tmp/bl.txt ; echo files authored/started by th
+Write: /private/tmp/claude-uid/-Users-user-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/final-public/runs/T3-JD_I-3/fx/verdict.md
+### Final answer text
+No, you can't trust the numbers. The verdict is in `verdict.md`. The jd-resume-tailor skill only covers resume tailoring, so I did this check directly instead.
+
+I recomputed the report's figures from your clone with plain `git`. I did not run `npx workproof verify`, because that would download and run third-party code on an untrusted file.
+
+**What holds up:**
+- The report is for this repo. The HEAD commit (`249bbdc`) matches, and so does the 131 commits in the report's window.
+- Their three email addresses are real. The 1,417 total surviving lines and the 19 files also match.
+
+**What doesn't hold up:**
+- **Commits:** the report says 103 of 131 (79%). With all their addresses merged, I count 63 (48%). Only 56 are under their main address.
+- **Surviving lines:** the report says 1,197 of 1,417 (84%). I count 697 (49%).
+- **Self-contradiction:** the report's own per-year breakdown (104 + 550 + 43) adds up to 697, not 1,197. That points to an edited figure.
+- **Tests:** the report says 31 of 43 test-file changes (72%). The real total is 74, so it's 42%.
+- **Other mismatches:**
+  - The report says 42 contributors, but the clone shows 60 distinct emails.
+  - Their last commit is 2015-07-09, not the report's 2015-08-22.
+  - Only 8 files were first added by them, against the report's 10.
+
+Merging email addresses can't explain the gap, because merging every address still gives only 63 commits. Their real contribution is still sizable: about half the surviving lines and the largest share of any author.
+
+Nothing in the files ties "Jonathan Ong" to your applicant, so ask them to confirm which commits are theirs. Also ask them to explain the 103 and 1,197 figures and to re-run the tool on a fresh clone.
+### Files it left in the working directory
+--- verdict.md
+# Verdict: do not trust the numbers in the received workproof report
+
+The report is for this repo (HEAD `249bbdc`, root commit `7a6e733`) and the identity merge is plausible. But the headline figures are inflated well beyond what the merging explains, and one figure contradicts the report itself.
+
+## What I checked
+I recomputed each figure from the local clone with plain `git`. I did not run `npx workproof verify`, because it would download and run third-party code on an untrusted report. The report's integrity hash only proves the file wasn't edited after it was generated. It doesn't prove the figures are right.
+
+The merged identity set is `<email:d29caa5c>`, `<email:4132b6bd>` and `<email:266aea16>`. This is more generous to the applicant than the report's own "3 other addresses".
+
+| Claim in report | Recomputed from the clone | Result |
+|---|---|---|
+| HEAD `249bbdc72da2` | Matches | OK |
+| 131 non-merge commits in the tenure window | 131 | OK |
+| **103 of 131 commits are theirs (79%)** | **63 of 131 (48%)** with all identities merged. Only 56 are under the configured address. | **Overstated by about 40 commits** |
+| **1,197 of 1,417 surviving lines (84%)** | Total of 1,417 matches. **Their lines are 697 (49%)**: 585 + 111 + 1 | **Overstated by 500 lines** |
+| Cohort lines 104 + 550 + 43 | These sum to **697**, not 1,197 | **The report contradicts itself.** Its own breakdown supports the true figure. |
+| 31 of 43 test-file changes (72%) | 31 of 74 (42%). Their count matches but the total doesn't. | Denominator wrong |
+| 10 of 19 files authored | 8 files were first added by them, 10 by TJ Holowaychuk, 1 by another contributor. The tool's DOA method may differ, so this is a soft discrepancy. | Doubtful |
+| 42 people wrote code, they rank 1 | 60 distinct emails and 59 names across the full history. They are #2 by commits (TJ has 90, they have 63 merged), and TJ has 551 surviving lines to their 697. They rank 1 on surviving lines only. | Population is wrong. The rank is right only for surviving lines. |
+| Tenure 2013-11-07 to 2015-08-22 (654 days) | First commit 2013-11-07 matches. The last commit under any of these identities is **2015-07-09**, so about 610 days. | End date unsupported |
+
+## Read
+- The identity merge, commit window, HEAD and file count are real, so the file is probably derived from this repo.
+- The ratios the report leads with (79% of commits, 84% of lines) are not reproducible. The true values are about 48% and 49%.
+- Merging email addresses can't explain this. Merging every address I could find still gives only 63 commits.
+- The 1,197 figure disagrees with the report's own cohort table (697). That points to a hand-edited or fabricated figure, or a different or modified repo history.
+- Their contribution is still real and sizable: 63 commits, 697 surviving lines (about half), and the largest surviving share of any author. It is just not the dominant ownership the report claims.
+
+## Caveats
+- The `.md` and `.json` files agree with each other, so they don't give independent evidence.
+- Nothing in the files ties "Jonathan Ong" or "jongleberry" to the applicant. Ask them to confirm which commits are theirs, for example by naming the GitHub login and email addresses. Authorship in git is self-declared, so commit emails can be set to anyone's.
+- Ask the applicant to explain the 103 and 1,197 figures. Ask them to re-run the tool on a fresh clone, or to share the exact command and the version of the repo they used.

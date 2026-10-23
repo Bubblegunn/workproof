@@ -1,0 +1,4 @@
+- Co-maintained co (tj/co), an open-source generator-based async control-flow library for Node.js and io.js, with 73 commits from November 2013 to July 2015.
+- Replaced the library's thunk-based core with a Promise implementation for the 4.0.0 release, and made every yielded result pass through `Promise.resolve()`.
+- Added code coverage reporting with Istanbul, Travis CI runs on io.js, and tests for regular functions that throw; removed unused dependencies and out-of-date examples and benchmarks.
+- Released versions 3.1.0 through 4.6.0 and merged 12 community pull requests; improved the error message for non-yieldable values and preserved key ordering in object results.

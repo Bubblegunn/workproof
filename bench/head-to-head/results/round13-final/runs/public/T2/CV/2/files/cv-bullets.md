@@ -1,0 +1,4 @@
+- Maintained and released `co`, a widely used generator-based control-flow library for Node.js, shipping versions 3.0 through 4.6 across roughly two years (2013–2015).
+- Led the 4.0 rewrite from a thunk/callback core to a Promise-based implementation. This included always wrapping results in `Promise.resolve()` and dropping the Bluebird/Q dependency, which gave users a cleaner async API.
+- Added support for yielding objects (with key ordering preserved) and for delegated generators and regular functions. Also improved the error message for non-yieldable values.
+- Fixed hard-to-diagnose bugs such as "Generator is already running" and callback-argument handling. Added a test suite with coverage reporting and Travis CI across Node and io.js versions, and removed stale benchmarks and dependencies.

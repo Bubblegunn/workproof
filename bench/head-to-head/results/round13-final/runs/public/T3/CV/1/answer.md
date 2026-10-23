@@ -1,0 +1,1 @@
+That notification is only about the first `git log` command I ran. It hung, most likely because git was waiting on a pager, and it was stopped at its time limit. I re-ran the same queries with the pager turned off and input closed, and they finished. The verdict in `verdict.md` doesn't depend on that run, so nothing changes.

@@ -1,0 +1,4 @@
+- Shipped 63 non-merge commits to the co JavaScript repository between 7 November 2013 and 22 August 2015, which sustained a steady contribution record across three git identities. [P01-F1]
+- Developed 697 of the 1,417 lines surviving at HEAD in git blame, which makes 49% of the current Node.js codebase a single-author contribution. [P01-F2]
+- Implemented 31 of the 41 test-file changes in the period, which kept most of the project's test updates with a single contributor. [P01-F3]
+- Designed code and tests together on a Node.js project, which left 49% of surviving lines and 31 of 41 test-file changes attributable to one author. [P01-F2, P01-F3]

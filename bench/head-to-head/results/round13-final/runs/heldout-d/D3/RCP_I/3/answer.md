@@ -1,0 +1,1 @@
+That notification is about the first, combined git command I ran. It hung, probably on a pager, and was stopped. It doesn't change the findings, because I re-ran each of its pieces separately with the pager turned off and they all finished. The conclusions in `review-notes.md` come from those completed runs.

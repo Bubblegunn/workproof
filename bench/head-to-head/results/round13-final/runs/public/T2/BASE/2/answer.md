@@ -1,0 +1,3 @@
+I saved four bullets to `cv-bullets.md` in the current directory. I took "your work" to mean the commits under your git identity, Jonathan Ong (also `jongleberry`). That is 76 commits on the `co` library, from Nov 2013 to Aug 2015. TJ Holowaychuk wrote most of the repo, so the bullets say "co-maintained" and don't claim you created it.
+
+I didn't check the diffs for the "memory leak" and "plain functions that throw" fixes. Those come from commit messages, so confirm they were your own work before you paste them. The bullets also don't include any usage numbers, such as download counts. If you have those, adding them would make the first bullet stronger.

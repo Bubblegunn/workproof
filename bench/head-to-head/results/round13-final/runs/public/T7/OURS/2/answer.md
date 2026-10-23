@@ -1,0 +1,1 @@
+Not in your facts: Python, PyTorch, Docker, Pinecone, FAISS, and edge deployment beyond ONNX. Add them to your bank if they are true.

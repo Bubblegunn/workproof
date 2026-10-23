@@ -1,0 +1,3 @@
+- Built features and fixes in the co JavaScript and Node.js repository, which grew to 63 non-merge commits between 7 November 2013 and 22 August 2015. [P01-F1]
+- Engineered the co codebase, which still carries 697 of its 1,417 lines (49%) at HEAD in git blame. [P01-F2]
+- Developed the co test suite, which accounts for 31 of 41 test-file changes in the period. [P01-F3]

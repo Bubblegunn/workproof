@@ -1,0 +1,4 @@
+- Maintained `co`, a widely used open-source generator-based async control-flow library for Node.js, with about 75 commits from Nov 2013 to Aug 2015, including the 3.x and 4.x releases up to v4.6.0.
+- Led the v4.0 rewrite from a thunk/callback design to a Promise-based core. Replaced the Q dependency with Bluebird in 3.x, and wrapped every result in `Promise.resolve()` for consistent behaviour.
+- Added yielding of objects with preserved key ordering, clearer errors when a non-yieldable value is yielded, and support for plain functions that throw. Fixed "Generator is already running" bugs and context/argument passing through thunks.
+- Set up test and release tooling: Travis CI across Node and io.js versions, Istanbul coverage reporting, a Browserify browser build, and component.json packaging. Removed stale benchmarks, examples and unused dependencies, and reviewed and merged community pull requests.

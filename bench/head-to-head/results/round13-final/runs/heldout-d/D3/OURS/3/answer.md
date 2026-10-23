@@ -1,0 +1,9 @@
+I've written the findings to `review-notes.md`. The git history does not support Priya Nair's claim as stated.
+
+- **Who wrote it:** Sam Okafor created the loop detection module on 12 Feb 2024 and added its tests on 20 Feb. Priya Nair's first change to it came on 3 May 2024, about three months later.
+- **Priya's changes:** She renamed the file, which changed no code. Her "rewrite" commit changed only spacing. She also added a block of depth-limit settings and a documentation page. Sam Okafor then added permission-error handling.
+- **Share of the code:** Of the 69 lines in the module today, Sam wrote 57 and Priya wrote 12. A plain line count shows the reverse (Priya 57, Sam 12) because of the spacing-only "rewrite". The notes explain this, so you can see how a careless read of the history could appear to support her.
+- **Backdated entry:** One commit, a 10-line "prototype" notes file with placeholder text and no code, is dated 2 Nov 2023. That date is before Sam's work, but the commit was actually recorded on 9 May 2024. Dates like that can be set by hand, and it's the only entry that could suggest she was first.
+- **What the history can't show:** It doesn't show who designed the approach, and the export could have been edited before it reached you. Priya may have contributed ideas or review that never appear in it. The notes say this and suggest asking her about Sam and the 2023 date, asking for a 2024 design document or ticket, and checking with her former employer with her consent. They also give a wording the history does support: she extended and documented the module and added the depth limit in May 2024.
+
+I counted by hand with read-only git, because that is the method for judging someone else's claim. The commit references and the commands to re-check are in `evidence/review-notes-sources.md`. The notes avoid file and code names, since you don't read Rust.
