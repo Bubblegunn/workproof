@@ -1,0 +1,508 @@
+import { open, stat } from "node:fs/promises";
+import { resolve } from "node:path";
+import { git, configuredEmail, wallClock } from "./git.js";
+import { foldIdentity, possibleSplits } from "./figures/identity.js";
+import { isBotIdentity } from "./figures/bot.js";
+
+/**
+ * `workproof figures`: the counts a document about one person's work needs, each on a labelled line
+ * with the filter it stands for, and a read-back of a finished document. It is read-only and states
+ * no verdict. Whatever it prints is a candidate for a reader to check, never a pass or a fail.
+ */
+
+export interface FiguresOptions {
+  repo: string;
+  authors: string[];
+  since?: string;
+  until?: string;
+  doc?: string;
+  json: boolean;
+}
+
+export interface FigureRow {
+  label: string;
+  /** A number, a short text, or `not computed (<reason>)`. A figure that could not be computed is never 0. */
+  value: number | string;
+  filter: string;
+  computed: boolean;
+  /** Indented lines under the figure: the commits or files behind it, printed as data. */
+  detail?: string[];
+}
+
+export interface DocHit { line: number; integer: number; noun: string; excerpt: string; labels: string[] }
+export interface DocReadback {
+  file: string;
+  hits: DocHit[];
+  shows: { label: string; count: number; lines: number[]; examples?: string[] }[];
+  note?: string;
+}
+export interface FiguresResult { repo: string; window: string; rows: FigureRow[]; candidates: string[]; doc?: DocReadback }
+
+const RS = "\x1e";
+const US = "\x1f";
+const GS = "\x1d";
+const MAX_LINES = 60;
+const MAX_DOC_BYTES = 1024 * 1024;
+const MAX_DOC_LINE = 2000;
+const LARGE_FILE_LINES = 40;
+const MAX_FILES_READ = 200;
+const MAX_BLOB_BYTES = 512 * 1024;
+
+interface LogCommit {
+  sha: string;
+  email: string;
+  name: string;
+  author: Date;
+  authorLocal: Date;
+  committer: Date;
+  committerLocal: Date;
+  committerEmail: string;
+  parents: number;
+  coAuthors: string[];
+  coAuthorNames: string[];
+  body: string;
+}
+
+/** Strips control characters and caps the length: subjects, names and paths are data and must not break the layout. */
+const data = (s: string, max = 80): string => {
+  const flat = s.replace(/[\p{Cc}\p{Zl}\p{Zp}]+/gu, " ").trim();
+  return flat.length > max ? `${flat.slice(0, max - 3)}...` : flat;
+};
+
+/** The first meaningful line of a git failure, for a "not computed" reason. */
+function reasonOf(err: unknown): string {
+  const e = err as { stderr?: unknown; message?: unknown };
+  const text = [typeof e.stderr === "string" ? e.stderr : "", typeof e.message === "string" ? e.message : String(err)].join("\n");
+  const line = text.split("\n").map((l) => l.trim()).find((l) => /^(fatal|error):/i.test(l)) ?? text.split("\n").find((l) => l.trim()) ?? "git failed";
+  return data(line.replace(/^(fatal|error):\s*/i, ""), 120);
+}
+
+const notComputed = (label: string, filter: string, reason: string): FigureRow => ({ label, value: `not computed (${reason})`, filter, computed: false });
+
+interface Bound { at?: Date; /** A date-only bound: compared with the author's local calendar date. */ day?: string }
+
+const RELATIVE = /^(?:now|today|yesterday|\d{1,4}\s+(?:second|minute|hour|day|week|month|year)s?\s+ago)$/i;
+
+/** Date-only values are calendar days in the author's own offset; a full ISO time is an instant; "N days ago" is read by git. Anything else is an error, never a zero. */
+async function windowBound(value: string | undefined, kind: "since" | "until", cwd: string): Promise<Bound | undefined> {
+  if (!value) return undefined;
+  const bad = () => new Error(`git could not read the date "${data(value, 40)}"`);
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const d = new Date(`${value}T00:00:00Z`);
+    if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) throw bad();
+    return { day: value };
+  }
+  // A time without Z or an offset would be read in the runner's own timezone, so it is refused.
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/i.test(value)) {
+    const direct = new Date(value);
+    if (Number.isNaN(direct.getTime())) throw bad();
+    return { at: direct };
+  }
+  if (!RELATIVE.test(value.trim())) throw bad();
+  const out = (await git(["rev-parse", `--${kind}=${value}`], cwd)).trim();
+  const m = out.match(/^--(?:max|min)-age=(\d+)$/);
+  if (!m) throw bad();
+  return { at: new Date(Number(m[1]) * 1000) };
+}
+
+async function readLog(cwd: string): Promise<LogCommit[]> {
+  const format = `--format=%H%x1f%aE%x1f%aN%x1f%aI%x1f%cE%x1f%cI%x1f%P%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%B`;
+  // -z ends each commit with NUL, which git never allows inside a message, so a message holding RS or US cannot forge a record.
+  const out = await git(["log", "-z", "--no-color", "HEAD", format], cwd);
+  const commits: LogCommit[] = [];
+  for (const block of out.split("\0")) {
+    if (!block.trim()) continue;
+    const [sha, email, name, aIso, cEmail, cIso, parents, trailers, ...bodyParts] = block.split(US);
+    if (!sha || !aIso || !cIso || !/^[0-9a-f]{40,64}$/.test(sha.trim()) || trailers === undefined) continue;
+    const co = (trailers ?? "").split(GS).map((t) => t.trim()).filter(Boolean);
+    commits.push({
+      sha: sha.trim(),
+      email: (email ?? "").toLowerCase(),
+      name: name ?? "",
+      author: new Date(aIso),
+      authorLocal: wallClock(aIso),
+      committer: new Date(cIso),
+      committerLocal: wallClock(cIso),
+      committerEmail: (cEmail ?? "").toLowerCase(),
+      parents: (parents ?? "").trim().split(" ").filter(Boolean).length,
+      coAuthors: co.map((v) => (v.match(/<([^>]+)>/)?.[1] ?? "").toLowerCase()).filter(Boolean),
+      coAuthorNames: co.map((v) => v.replace(/\s*<[^>]*>\s*$/, "").trim()).filter(Boolean),
+      body: bodyParts.join(US).slice(0, 4000),
+    });
+  }
+  return commits;
+}
+
+interface Numstat { sha: string; files: { path: string; added: number | null; deleted: number | null }[] }
+
+/** numstat of exactly the named commits (no walk), optionally ignoring whitespace or keeping only added files. One git call per mode. */
+async function numstatOf(shas: string[], cwd: string, mode: { ignoreWhitespace?: boolean; addedOnly?: boolean }): Promise<Map<string, Numstat>> {
+  const out = new Map<string, Numstat>();
+  if (!shas.length) return out;
+  const args = ["-c", "core.quotepath=false", "log", "--no-walk=unsorted", "--stdin", "--numstat", "--format=%x1e%H", "--no-color"];
+  if (mode.ignoreWhitespace) args.push("-w");
+  if (mode.addedOnly) args.push("--diff-filter=A");
+  const raw = await git(args, cwd, `${shas.join("\n")}\n`);
+  // A record starts with RS and a full object name on its own line; an RS inside a file name is not followed by that.
+  for (const block of raw.split(/\x1e(?=[0-9a-f]{40,64}\n)/)) {
+    if (!block.trim()) continue;
+    const [sha, ...rest] = block.replace(/^\x1e/, "").split("\n");
+    const files: Numstat["files"] = [];
+    for (const line of rest) {
+      const parts = line.split("\t");
+      if (parts.length < 3) continue;
+      files.push({ path: parts.slice(2).join("\t"), added: parts[0] === "-" ? null : Number(parts[0]), deleted: parts[1] === "-" ? null : Number(parts[1]) });
+    }
+    out.set(sha!.trim(), { sha: sha!.trim(), files });
+  }
+  return out;
+}
+
+const HEADER_PATTERNS: [string, RegExp][] = [
+  ["licence", /\blicen[cs]e[ds]?\b|SPDX-License-Identifier|all rights reserved/i],
+  ["copyright", /\bcopyright\b|\(c\)\s{0,3}(?:19|20)\d{2}|©/i],
+  ["source URL", /\b(?:source|from|taken from|adapted from|originally|via|see)\b.{0,40}https?:\/\/\S{1,200}|https?:\/\/(?:gist\.)?github\.com\/\S{1,200}|https?:\/\/(?:raw\.githubusercontent|gitlab|stackoverflow|unpkg|cdnjs)\S{0,200}/i],
+];
+
+/** Which header kinds the first 12 lines of a text carry. Each line is cut to 300 characters first, so no pattern runs long. */
+export function headerKinds(text: string): string[] {
+  const head = text.split("\n").slice(0, 12).map((l) => l.slice(0, 300));
+  return HEADER_PATTERNS.filter(([, re]) => head.some((l) => re.test(l))).map(([kind]) => kind);
+}
+
+const sha7 = (sha: string) => sha.slice(0, 7);
+const day = (d: Date) => (Number.isNaN(d.getTime()) ? "invalid date" : d.toISOString().slice(0, 10));
+
+export async function computeFigures(opts: FiguresOptions, now: Date = new Date()): Promise<FiguresResult> {
+  const cwd = resolve(opts.repo);
+  const rows: FigureRow[] = [];
+  const candidates: string[] = [];
+  let since: Bound | undefined;
+  let until: Bound | undefined;
+  let windowError = "";
+  try {
+    since = await windowBound(opts.since, "since", cwd);
+    until = await windowBound(opts.until, "until", cwd);
+  } catch (err) {
+    windowError = reasonOf(err);
+  }
+  const dateOnly = [since, until].some((b) => b?.day);
+  const sinceText = opts.since ? data(opts.since, 40) : "start of history";
+  const untilText = opts.until ? data(opts.until, 40) : "now";
+  const windowText = `author date ${sinceText} to ${untilText}${dateOnly ? " (date-only bounds are the local calendar date in the commit's own offset)" : ""}`;
+  const filter = `${windowText}, reachable from HEAD`;
+  const result = (): FiguresResult => ({ repo: data(cwd, 200), window: windowText, rows, candidates });
+
+  let log: LogCommit[];
+  let head = "";
+  try {
+    if (!(await stat(cwd).then((st) => st.isDirectory(), () => false))) throw new Error("fatal: the --repo path is not a directory");
+    log = await readLog(cwd);
+    head = sha7((await git(["rev-parse", "HEAD"], cwd)).trim());
+  } catch (err) {
+    const reason = windowError || reasonOf(err);
+    for (const label of ["authored non-merge commits", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future"]) rows.push(notComputed(label, filter, reason));
+    return result();
+  }
+  if (windowError) {
+    rows.push(notComputed("window", filter, windowError));
+    return result();
+  }
+  const within = (d: Date, local: Date, lo: Bound | undefined, hi: Bound | undefined) =>
+    !Number.isNaN(d.getTime()) && (!lo || (lo.day ? day(local) >= lo.day : d >= lo.at!)) && (!hi || (hi.day ? day(local) <= hi.day : d <= hi.at!));
+  const inWindow = (c: LogCommit) => within(c.author, c.authorLocal, since, until);
+  const inCommitWindow = (c: LogCommit) => within(c.committer, c.committerLocal, since, until);
+  const beforeStart = (c: LogCommit) => !!since && (since.day ? day(c.authorLocal) < since.day : c.author < since.at!);
+
+  // Identity: exactly what was named (an address matches addresses, a name matches names). Candidates are printed, never merged.
+  let wanted = opts.authors;
+  // Only the configured address is the identity; a same-name address shows up as a candidate, never as a silent merge.
+  if (!wanted.length) wanted = [await configuredEmail(cwd)].filter(Boolean);
+  const folded = wanted.map(foldIdentity).filter(Boolean);
+  const mineEmails = new Set<string>();
+  const mineNames = new Set<string>();
+  for (const c of log) {
+    const hit = folded.some((w) => (w.includes("@") ? w === foldIdentity(c.email) : w === foldIdentity(c.name)));
+    if (hit) {
+      mineEmails.add(c.email);
+      mineNames.add(c.name);
+    }
+  }
+  const identity = { emails: [...mineEmails].sort(), names: [...mineNames].sort() };
+  const isMine = (c: LogCommit) => mineEmails.has(c.email);
+  const nonMerge = log.filter((c) => c.parents <= 1);
+  const windowed = nonMerge.filter(inWindow);
+  const who = identity.emails.length ? `identities ${identity.emails.map((e) => data(e, 80)).join(", ")}` : "";
+  const noIdentity = wanted.length
+    ? "no commit has that author name or address"
+    : "no author given and git config has no user.email; pass --author";
+  const idRow = (label: string, f: string, value: () => number | string, detail?: () => string[]): void => {
+    if (!identity.emails.length) rows.push(notComputed(label, f, noIdentity));
+    else rows.push({ label, value: value(), filter: f, computed: true, ...(detail ? { detail: detail() } : {}) });
+  };
+
+  const mine = windowed.filter(isMine);
+  idRow("authored non-merge commits", `${who}; ${filter}`, () => mine.length);
+
+  // Identity candidates: same rules as the report's split warning, plus trailers and committer. Printed, never merged.
+  const splits = identity.emails.length ? possibleSplits(nonMerge.map((c) => ({ name: c.name, email: c.email })), identity) : [];
+  const splitEmails = new Set(splits.map((s) => s.email));
+  const byCandidate = windowed.filter((c) => splitEmails.has(c.email));
+  for (const s of splits.slice(0, 8)) {
+    const n = byCandidate.filter((c) => c.email === s.email).length;
+    candidates.push(`identity candidate | ${data(s.name, 40)} <${data(s.email, 80)}> | ${data(s.reason, 100)}; ${n} authored non-merge commits in the window; not merged`);
+  }
+  if (splits.length > 8) candidates.push(`identity candidate | ${splits.length - 8} more | not listed here; not merged`);
+  const named = identity.emails.length ? nonMerge.filter((c) => !isMine(c) && c.coAuthors.some((e) => mineEmails.has(e))) : [];
+  if (named.length) candidates.push(`identity candidate | commits by others with a Co-authored-by trailer naming an identity | ${named.filter(inWindow).length} in the window; not merged`);
+  const committed = identity.emails.length ? nonMerge.filter((c) => !isMine(c) && mineEmails.has(c.committerEmail)) : [];
+  if (committed.length) candidates.push(`identity candidate | commits authored by others and committed by an identity address | ${committed.filter(inWindow).length} in the window; not merged`);
+  idRow("authored non-merge commits, with identity candidates", `${who} plus ${splits.length} candidate addresses (not merged); ${filter}`, () => mine.length + byCandidate.length);
+
+  const everyone = windowed.filter((c) => !isBotIdentity(c.email));
+  rows.push({ label: "all authors, non-merge commits", value: windowed.length, filter: `every author; ${filter}`, computed: true });
+  rows.push({ label: "distinct authors", value: new Set(windowed.map((c) => c.email)).size, filter: `author addresses among those commits; bots included (${windowed.length - everyone.length} bot commits); ${filter}`, computed: true });
+  idRow("authored non-merge commits, by committer date", `${who}; committer date ${sinceText} to ${untilText} (the window above uses author date)`, () => nonMerge.filter((c) => isMine(c) && inCommitWindow(c)).length);
+
+  const merges = log.filter((c) => c.parents > 1 && isMine(c) && inWindow(c));
+  idRow("merge commits by the identities", `${who}; ${filter}`, () => merges.length, () => merges.slice(0, 5).map((c) => `${sha7(c.sha)} merge ${day(c.author)} "${data(c.body.split("\n")[0] ?? "", 60)}"`));
+
+  const replayed = nonMerge.filter((c) => isMine(c) && beforeStart(c) && inCommitWindow(c));
+  idRow("authored before the window, committed inside it", `${who}; author date before ${opts.since ? data(opts.since, 40) : "the window start"}, committer date inside the window (rebase or replay)`, () => (since ? replayed.length : "no window start given"), () => replayed.slice(0, 5).map((c) => `${sha7(c.sha)} author ${day(c.author)} committer ${day(c.committer)}`));
+
+  const known = new Set(log.map((c) => c.sha));
+  const reverts = windowed.filter(isMine).map((c) => ({ c, targets: [...c.body.matchAll(/This reverts commit ([0-9a-f]{40})/g)].map((m) => m[1]!) })).filter((r) => r.targets.length);
+  const reverted = new Set(reverts.flatMap((r) => r.targets.filter((t) => known.has(t))));
+  idRow("revert commits", `${who}; ${filter}; detected by "This reverts commit <sha>"`, () => reverts.length, () => reverts.slice(0, 5).map((r) => `${sha7(r.c.sha)} reverts ${r.targets.map(sha7).join(", ")}`));
+  idRow("commits reverted by those reverts", `${who}; targets present in this history`, () => reverted.size);
+
+  // Numstat figures: raw, with whitespace ignored, and the added files that are large.
+  const shas = mine.map((c) => c.sha);
+  if (!identity.emails.length) {
+    for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header"]) rows.push(notComputed(label, filter, noIdentity));
+  } else {
+    try {
+      const raw = await numstatOf(shas, cwd, {});
+      const wsFree = await numstatOf(shas, cwd, { ignoreWhitespace: true });
+      const sum = (m: Map<string, Numstat>, k: "added" | "deleted") => [...m.values()].reduce((t, s) => t + s.files.reduce((u, f) => u + (f[k] ?? 0), 0), 0);
+      const wsOnly = shas.filter((s) => {
+        // git leaves a file out of `-w --numstat` when nothing but whitespace changed in it, so a file missing there counts as zero.
+        const changed = raw.get(s)?.files ?? [];
+        const ignoring = new Map((wsFree.get(s)?.files ?? []).map((f) => [f.path, f] as const));
+        const zero = (f: { path: string }) => { const w = ignoring.get(f.path); return !w || (w.added === 0 && w.deleted === 0); };
+        // A pure rename or mode change has no changed line in either mode, so it is not whitespace-only.
+        return changed.length > 0 && changed.every(zero) && changed.some((f) => (f.added ?? 0) + (f.deleted ?? 0) > 0);
+      });
+      rows.push({ label: "whitespace-only commits", value: wsOnly.length, filter: `${who}; ${filter}; every file change is zero under git show -w --numstat`, computed: true, detail: wsOnly.slice(0, 5).map((s) => `${sha7(s)} "${data(log.find((c) => c.sha === s)!.body.split("\n")[0] ?? "", 60)}"`) });
+      const lineFilter = `${who}; non-merge commits; ${filter}; binary files not counted`;
+      rows.push({ label: "lines added, raw", value: sum(raw, "added"), filter: lineFilter, computed: true });
+      rows.push({ label: "lines deleted, raw", value: sum(raw, "deleted"), filter: lineFilter, computed: true });
+      rows.push({ label: "lines added, whitespace ignored", value: sum(wsFree, "added"), filter: `${lineFilter}; git -w`, computed: true });
+      rows.push({ label: "lines deleted, whitespace ignored", value: sum(wsFree, "deleted"), filter: `${lineFilter}; git -w`, computed: true });
+      const added = await numstatOf(shas, cwd, { addedOnly: true });
+      const large = [...added.values()].flatMap((s) => s.files.filter((f) => (f.added ?? 0) >= LARGE_FILE_LINES && !f.path.startsWith('"')).map((f) => ({ sha: s.sha, ...f })));
+      const withHeader: { sha: string; path: string; added: number | null; kinds: string[] }[] = [];
+      let inspected = 0;
+      for (const f of large.slice(0, MAX_FILES_READ)) {
+        try {
+          const size = Number((await git(["cat-file", "-s", `${f.sha}:${f.path}`], cwd)).trim());
+          if (!(size <= MAX_BLOB_BYTES)) continue;
+          const kinds = headerKinds(await git(["cat-file", "blob", `${f.sha}:${f.path}`], cwd));
+          inspected++;
+          if (kinds.length) withHeader.push({ ...f, kinds });
+        } catch {
+          // a blob that cannot be read is counted as not inspected below
+        }
+      }
+      rows.push({ label: "large added files", value: large.length, filter: `${who}; ${LARGE_FILE_LINES} or more lines added in one commit; ${filter}${large.length > MAX_FILES_READ ? `; only the first ${MAX_FILES_READ} read` : ""}`, computed: true });
+      rows.push({ label: "large added files with a licence, copyright or source-URL header", value: withHeader.length, filter: `first 12 lines of each large added file; ${inspected} of ${large.length} large files inspected (blobs over ${MAX_BLOB_BYTES} bytes, unreadable blobs and files past the first ${MAX_FILES_READ} are not); possible third-party file, a reader decides`, computed: true, detail: withHeader.slice(0, 5).map((f) => `${sha7(f.sha)} "${data(f.path, 70)}" ${f.added} lines added; header: ${f.kinds.join(", ")}`) });
+    } catch (err) {
+      const reason = reasonOf(err);
+      for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header"]) rows.push(notComputed(label, filter, reason));
+    }
+  }
+
+  const future = log.filter((c) => isMine(c) && c.author > now);
+  const early = log.filter((c) => isMine(c) && c.committer < c.author);
+  const futureCommit = log.filter((c) => isMine(c) && c.committer > now);
+  idRow("author date in the future", `${who}; any date, compared with ${now.toISOString().slice(0, 10)}`, () => future.length, () => future.slice(0, 3).map((c) => `${sha7(c.sha)} author ${day(c.author)}`));
+  idRow("committer date in the future", `${who}; any date, compared with ${now.toISOString().slice(0, 10)}`, () => futureCommit.length, () => futureCommit.slice(0, 3).map((c) => `${sha7(c.sha)} author ${day(c.author)} committer ${day(c.committer)}`));
+  idRow("committer date earlier than author date", `${who}; any date`, () => early.length, () => early.slice(0, 3).map((c) => `${sha7(c.sha)} author ${day(c.author)} committer ${day(c.committer)}`));
+  const badDates = log.filter((c) => isMine(c) && (Number.isNaN(c.author.getTime()) || Number.isNaN(c.committer.getTime())));
+  idRow("commits with an unparseable date", `${who}; any date; left out of every dated figure above`, () => badDates.length, () => badDates.slice(0, 3).map((c) => `${sha7(c.sha)}`));
+  let shallow = "";
+  try {
+    shallow = (await git(["rev-parse", "--is-shallow-repository"], cwd)).trim() === "true" ? "; shallow clone, older history is missing" : "";
+  } catch {
+    // an old git without the flag: nothing to say
+  }
+  rows.unshift({ label: "repository", value: head ? `HEAD ${head}` : "HEAD", filter: `${log.length} commits reachable from HEAD${shallow}; author and committer addresses are as .mailmap shows them`, computed: true });
+  return result();
+}
+
+const NOUN = "(?:merge commits?|commits?|lines?|files?|merges?|reverts?|reverted|authors?|sessions?|days?)";
+const NUM = "(\\d{1,3}(?:,\\d{3})+|\\d+)";
+// Bounded: at most two words between the number and the noun, each word at most 20 letters, and lines are cut to MAX_DOC_LINE first.
+// "N of M" and "N to M" / "N-M" keep both numbers. A filler word "of", "percent" or "per" means the number is not a count of the noun.
+const COUNT_RE = new RegExp(`(?<![\\w.\\-/:,])${NUM}(?:\\s+of\\s+${NUM}|\\s*(?:to|[-\\u2013])\\s*${NUM})?\\s+((?:[A-Za-z-]{1,20}\\s+){0,2}?)(${NOUN})\\b`, "gi");
+const NOT_A_COUNT = /\b(?:of|percent|per|pct|out)\b/i;
+const EMAIL_RE = /[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){1,4}/g;
+const SHELL_RE = /^\s{0,8}(?:[$>]\s{0,2})?(?:npx|npm|pnpm|yarn|node|git|workproof|cd|curl|brew|pip3?|python3?|bash|sh|gh)\s+\S|`(?:npx|npm|git|workproof|node)\s[^`]{1,200}`/;
+const BRANCH_RE = /\b(?:(?:origin|upstream|feature|fix|bugfix|hotfix|release|chore|refactor|develop)\/[A-Za-z0-9._-]{1,60}|refs\/(?:heads|remotes)\/[A-Za-z0-9._\/-]{1,80})|\bbranch\s{1,3}[`'"]([A-Za-z0-9._\/-]{1,60})[`'"]/g;
+
+/** Reads a finished document (read only, at most 1 MB, a regular file) and lists what to check. Never prints a verdict. */
+export async function readBack(file: string, rows: FigureRow[]): Promise<DocReadback> {
+  const path = resolve(file);
+  const empty = (note: string): DocReadback => ({ file: data(file, 200), hits: [], shows: [], note });
+  let text: string;
+  try {
+    const st = await stat(path);
+    if (!st.isFile()) return empty("not computed (the path is not a regular file)");
+    if (st.size > MAX_DOC_BYTES) return empty(`not computed (the file is ${st.size} bytes; the limit is ${MAX_DOC_BYTES})`);
+    const handle = await open(path, "r");
+    try {
+      const buf = Buffer.alloc(MAX_DOC_BYTES + 1);
+      const { bytesRead } = await handle.read(buf, 0, buf.length, 0);
+      if (bytesRead > MAX_DOC_BYTES) return empty(`not computed (the file is over ${MAX_DOC_BYTES} bytes)`);
+      text = buf.subarray(0, bytesRead).toString("utf8");
+    } finally {
+      await handle.close();
+    }
+  } catch (err) {
+    return empty(`not computed (${data((err as { code?: string }).code ?? "cannot read the file", 60)})`);
+  }
+  const numeric = rows.filter((r) => r.computed && typeof r.value === "number");
+  // Each noun can only match its own rows; sessions and days match no computed row.
+  const ownRow = (noun: string, label: string): boolean => {
+    const n = noun.replace(/s$/, "").replace(/^reverted$/, "reverted");
+    if (/^merge( commit)?$/.test(n)) return label.startsWith("merge commits");
+    if (n === "commit") return /commits/.test(label) && !/^(?:merge commits|revert commits|whitespace-only|commits reverted)/.test(label);
+    if (n === "revert") return label === "revert commits";
+    if (n === "reverted") return label === "commits reverted by those reverts";
+    if (n === "author") return label === "distinct authors";
+    if (n === "line") return label.startsWith("lines ");
+    if (n === "file") return label.startsWith("large added files");
+    return false;
+  };
+  const labelsFor = (n: number, noun: string) => numeric.filter((r) => r.value === n && ownRow(noun, r.label)).map((r) => r.label);
+  const hits: DocHit[] = [];
+  const seen = new Set<string>();
+  const lines = text.split(/\r?\n/);
+  const shows = { email: [] as number[], shell: [] as number[], fence: [] as number[], branch: [] as number[] };
+  const emails = new Set<string>();
+  const branches = new Set<string>();
+  let cut = 0;
+  lines.forEach((full, i) => {
+    if (full.length > MAX_DOC_LINE) cut++;
+    const line = full.slice(0, MAX_DOC_LINE);
+    for (const m of line.matchAll(COUNT_RE)) {
+      if (NOT_A_COUNT.test(m[4] ?? "")) continue;
+      for (const g of [m[1], m[2], m[3]]) {
+        if (g === undefined) continue;
+        // A bare run of 7 or more digits is an id or a SHA, not a count.
+        if (/^\d{7,}$/.test(g)) continue;
+        const integer = Number(g.replace(/,/g, ""));
+        const noun = m[5]!.toLowerCase();
+        const key = `${i}:${integer}:${noun}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const at = Math.max(0, (m.index ?? 0) - 30);
+        hits.push({ line: i + 1, integer, noun, excerpt: data(line.slice(at, at + 100), 100), labels: labelsFor(integer, noun) });
+      }
+    }
+    const found = line.match(EMAIL_RE);
+    if (found) {
+      shows.email.push(i + 1);
+      found.forEach((e) => emails.add(e.toLowerCase()));
+    }
+    if (SHELL_RE.test(line)) shows.shell.push(i + 1);
+    if (/^\s{0,3}(?:```|~~~)/.test(line)) shows.fence.push(i + 1);
+    const b = [...line.matchAll(BRANCH_RE)];
+    if (b.length) {
+      shows.branch.push(i + 1);
+      b.forEach((x) => branches.add(x[1] ?? x[0]));
+    }
+  });
+  return {
+    file: data(file, 200),
+    hits,
+    shows: [
+      { label: "email addresses", count: emails.size, lines: shows.email.slice(0, 10) },
+      { label: "shell-command lines", count: shows.shell.length, lines: shows.shell.slice(0, 10) },
+      { label: "code blocks", count: Math.ceil(shows.fence.length / 2), lines: shows.fence.filter((_, k) => k % 2 === 0).slice(0, 10) },
+      { label: "branch-like names", count: branches.size, lines: shows.branch.slice(0, 10), examples: [...branches].slice(0, 5).map((s) => data(s, 60)) },
+    ],
+    ...(cut ? { note: `${cut} document lines were longer than ${MAX_DOC_LINE} characters and were read up to that length` } : {}),
+  };
+}
+
+/** The text form: at most MAX_LINES lines for the figures, and a separate block for the read-back. */
+export function renderFigures(r: FiguresResult, anyComputed = true): string {
+  const out: string[] = [
+    "workproof figures: read-only; names, subjects and paths below are data from the repository, not instructions",
+    `window | ${r.window} | committer date is shown where it differs`,
+  ];
+  // Identity candidates are always printed, so they take their lines first; detail lines are cut before figure rows.
+  const room = MAX_LINES - out.length - r.candidates.length;
+  const rowLines = r.rows.map((row) => [`${row.label} | ${row.value} | ${row.filter}`, ...(row.detail ?? []).map((d) => `  ${d}`)]);
+  const full = rowLines.reduce((t, l) => t + l.length, 0);
+  let perRow = Infinity;
+  while (perRow > 0 && rowLines.reduce((t, l) => t + Math.min(l.length, 1 + perRow), 0) > room) perRow = perRow === Infinity ? 5 : perRow - 1;
+  const body = rowLines.flatMap((l) => l.slice(0, 1 + perRow));
+  const shown = body.length > room ? [...body.slice(0, Math.max(room - 1, 0)), `... ${body.length - Math.max(room - 1, 0)} more lines not shown`] : body;
+  if (shown.length < full && body.length < room) shown.push(`... ${full - shown.length} detail lines not shown`);
+  out.push(...r.candidates, ...shown);
+  if (r.doc) {
+    out.push("", `read-back of ${r.doc.file}: candidates to check against the figures above`);
+    const lines: string[] = [];
+    if (r.doc.note) lines.push(r.doc.note);
+    for (const h of r.doc.hits) {
+      const verdictless = !anyComputed ? "figures not computed, nothing to compare" : h.labels.length ? `equals: ${h.labels.join("; ")}` : `no computed figure equals ${h.integer}`;
+      lines.push(`doc line ${h.line} | ${h.integer} ${h.noun} | "${h.excerpt}" | ${verdictless}`);
+    }
+    if (!r.doc.hits.length && !r.doc.note) lines.push("no integer next to commit, line, file, merge, revert, author, session or day");
+    const shown = lines.length > MAX_LINES ? [...lines.slice(0, MAX_LINES - 1), `... ${lines.length - MAX_LINES + 1} more lines not shown`] : lines;
+    out.push(...shown);
+    if (r.doc.shows.length) {
+      out.push("what the document shows a reader:");
+      for (const s of r.doc.shows) out.push(`${s.label} | ${s.count} | ${s.lines.length ? `doc lines ${s.lines.join(", ")}` : "none"}${s.examples?.length ? `; e.g. ${s.examples.join(", ")}` : ""}`);
+    }
+  }
+  return out.join("\n") + "\n";
+}
+
+export function parseFiguresArgs(args: string[]): FiguresOptions {
+  const opts: FiguresOptions = { repo: process.cwd(), authors: [], json: false };
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    const value = (): string => {
+      const v = args[++i];
+      if (v === undefined || v === "") throw new Error(`${a} needs a value`);
+      return v;
+    };
+    if (a === "--repo") opts.repo = resolve(value());
+    else if (a === "--author") opts.authors.push(value());
+    else if (a === "--since") opts.since = value();
+    else if (a === "--until") opts.until = value();
+    else if (a === "--doc") opts.doc = value();
+    else if (a === "--json") opts.json = true;
+    else throw new Error(`unknown option ${a}`);
+  }
+  return opts;
+}
+
+/** `workproof figures`: returns the exit code, 0 whenever it ran and 1 for a usage error. */
+export async function runFigures(args: string[], out: { write(s: string): unknown } = process.stdout): Promise<number> {
+  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]";
+  let opts: FiguresOptions;
+  try {
+    opts = parseFiguresArgs(args);
+  } catch (err) {
+    console.error(`${err instanceof Error ? err.message : String(err)}\n${usage}`);
+    return 1;
+  }
+  const result = await computeFigures(opts);
+  if (opts.doc) result.doc = await readBack(opts.doc, result.rows);
+  out.write(opts.json ? `${JSON.stringify(result, null, 2)}\n` : renderFigures(result, result.rows.some((r) => r.computed && typeof r.value === "number")));
+  return 0;
+}

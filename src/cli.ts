@@ -12,6 +12,7 @@ import { buildVerdict, parseReportText } from "./verdict.js";
 import { buildBullets, DEFAULT_MAX_WORDS } from "./bullets.js";
 import { stopCheck } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
+import { runFigures } from "./figures.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-signers <file>]
@@ -30,6 +31,14 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
                  a Markdown summary of your work in each repository, from the report's figures: commits and surviving
                  lines, the addresses counted (with the rule that merged each), and what it does not show; a fixed template, no model
+       workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]
+                 labelled counts for a document about one person's work, one line each as "label | value | filter":
+                 authored commits in the window (author date; committer date shown), identity candidates (printed, never
+                 merged), merges, rebased commits, reverts, whitespace-only commits, lines raw and with whitespace ignored,
+                 large added files with a licence or source header, odd dates; "not computed (<reason>)" when git fails.
+                 --doc <file> reads a finished document and lists, for each number next to commit, line, file and similar
+                 words, the figures that equal it (a relative <file> is resolved against the current directory, not --repo), plus the emails, shell commands, code blocks and branch names it shows.
+                 It states no verdict and exits 0 whenever it ran; read-only
        workproof attest <report.json> [--local <ssh-key>]
        workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
        workproof sessions --dir <folder>
@@ -102,7 +111,7 @@ export function starHintDecision(o: { stdoutIsTTY: boolean; stderrIsTTY: boolean
 
 /** Classifies the arguments: only a plain run that writes a report may show the hint. Pure. */
 export function starHintCommandFor(argv: string[]): "report" | "other" {
-  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine"].includes(argv[0] ?? "")) return "other";
+  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures"].includes(argv[0] ?? "")) return "other";
   if (argv.some((a) => a === "--help" || a === "-h" || a === "--version" || a === "--json")) return "other";
   const f = argv.indexOf("--format");
   if (f >= 0 && argv[f + 1] === "json") return "other";
@@ -428,6 +437,10 @@ async function main() {
   if (process.argv[2] === "sessions") runSessions(process.argv.slice(3));
   if (process.argv[2] === "bullets") {
     process.exitCode = await runBullets(process.argv.slice(3));
+    return;
+  }
+  if (process.argv[2] === "figures") {
+    process.exitCode = await runFigures(process.argv.slice(3));
     return;
   }
   if (process.argv[2] === "mine") {

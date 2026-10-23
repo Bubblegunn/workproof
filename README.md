@@ -333,6 +333,7 @@ workproof verify <report.json> [--repo <dir>]... [--fingerprint-key <hex>]
 workproof verdict <report.json> [--repo <dir>]... [--author <name|email>]... [--fingerprint-key <hex>] [--out <file>]
 workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--max-words N] [--out <file>]
 workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
+workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]
 workproof attest <report.json> [--local <ssh-key>]
 workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
 workproof sessions --dir <folder>

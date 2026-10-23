@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+**Round 12: `workproof figures`, a read-back, one copy of the rules.** `workproof figures` is a read-only command that prints
+labelled figures for a document about one person's work (`label | value | filter`, at most about 60 lines, no verdict): authored
+commits in the window by author date with the committer date shown, identity candidates (printed, never merged), merges, commits
+rebased into the window, reverts, whitespace-only commits, lines raw and with whitespace ignored, large added files with a licence
+or source header, and odd dates; a git failure prints `not computed (<reason>)`, never 0. `--doc <file>` reads a finished
+document and lists each number next to a counting noun with the figures that equal it, plus the emails, shell commands, code
+blocks and branch names it shows. `references/core-rules.md` is now the only copy of the document rules (SKILL.md rule 9 points to
+it) and gains three clauses: run `figures` before counting and after writing, not computed is not zero, and an out-of-scope
+request is answered plainly with one scope line. The skill description is under 1,000 characters and names near-miss requests it
+is not for; a lint test guards its length and the out-of-scope exception.
+
 **Round 11: general rules for documents about someone's work, and a wider trigger.** The skill now carries eight general rules
 (identity candidates shown as "included: <rule>, please confirm", the window by author date, a separate "not counted" list, no
 commands in the body for a non-technical reader, counts run with the stated filter, licence headers and whitespace-only commits,
