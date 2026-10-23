@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import crypto from "node:crypto";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 const root = path.join(import.meta.dirname, "..");
@@ -367,7 +368,7 @@ function exportFixture() {
 }
 
 function runDir(folder, ...extra) {
-  return spawnSync(process.execPath, [cli, "sessions", "--dir", folder, ...extra], { encoding: "utf8", env: { ...process.env, WORKPROOF_HOME: home } });
+  return spawnSync(process.execPath, [cli, "sessions", "--dir", folder, ...extra], { encoding: "utf8", env: { ...process.env, WORKPROOF_HOME: home, ...(process.env.WP_TEST_TZ ? { TZ: process.env.WP_TEST_TZ } : {}) } });
 }
 
 test("sessions --dir --since/--until: exact counts and rows, boundary days inclusive, the rest left out", () => {
@@ -427,7 +428,7 @@ test("sessions --dir without a window keeps today's keys and values, and adds th
     assert.equal(r.filesRepeatingASession, 1);
     assert.equal(r.sessionsWithoutDate, 1);
     assert.equal(r.window, undefined);
-    assert.equal(r.sessionRows.length, 4, "the session with no timestamp has no row");
+    assert.deepEqual(r.sessionRows, [], "rows are printed only for a window");
   } finally {
     fs.rmSync(folder, { recursive: true, force: true });
   }
@@ -489,5 +490,58 @@ test("sessions --dir --since/--until: at most 100 session rows, the count still 
     assert.ok(r.notes.some((n) => n.includes("sessionRows lists 100 of the 101 sessions in the window")));
   } finally {
     fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir: a message id copied into a resumed session is credited to the session that started first, whatever the file order", () => {
+  for (const order of [["a.jsonl", "b.jsonl"], ["b.jsonl", "a.jsonl"]]) {
+    const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-export-"));
+    try {
+      const rowsOld = [userRow("OLD00000-1", local(2026, 1, 10, 9, 0)), reply("OLD00000-1", local(2026, 1, 10, 9, 1), "msg-copied", "claude-test-a", usage(10, 100), "tool-copied")];
+      const rowsNew = [userRow("NEW00000-2", local(2026, 3, 10, 9, 0)), reply("NEW00000-2", local(2026, 3, 10, 9, 1), "msg-copied", "claude-test-a", usage(10, 100), "tool-copied")];
+      fs.writeFileSync(path.join(folder, order[0]), jsonl(order[0] === "a.jsonl" ? rowsOld : rowsNew));
+      fs.writeFileSync(path.join(folder, order[1]), jsonl(order[1] === "a.jsonl" ? rowsOld : rowsNew));
+      const jan = JSON.parse(runDir(folder, "--since", "2026-01-01", "--until", "2026-02-01").stdout);
+      assert.equal(jan.assistantResponses, 1);
+      assert.deepEqual(jan.sessionRows.map((r) => [r.responses, r.toolCalls]), [[1, 1]]);
+      const mar = JSON.parse(runDir(folder, "--since", "2026-03-01", "--until", "2026-04-01").stdout);
+      assert.equal(mar.assistantResponses, 0, "the copied id belongs to the January session");
+      assert.deepEqual(mar.sessionRows.map((r) => [r.responses, r.toolCalls]), [[0, 0]]);
+    } finally {
+      fs.rmSync(folder, { recursive: true, force: true });
+    }
+  }
+});
+
+test("sessions --dir: a timestamp that is not an ISO time leaves the session undated, and the home folder name is never printed as a folder", () => {
+  const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-export-"));
+  try {
+    fs.writeFileSync(path.join(folder, "j.jsonl"), jsonl([{ type: "user", sessionId: "JUNK0000-1", timestamp: "1", message: { role: "user", content: "x" } }]));
+    fs.writeFileSync(path.join(folder, "h.jsonl"), jsonl([userRow("HOME0000-2", local(2026, 3, 3, 9, 0), os.homedir()), userRow("PROJ0000-3", local(2026, 3, 4, 9, 0), "/x/ledger-api")]));
+    const r = JSON.parse(runDir(folder, "--since", "2026-01-01", "--until", "2026-12-31").stdout);
+    assert.equal(r.sessionsWithoutDate, 1);
+    assert.equal(r.uniqueSessions, 2);
+    const byId = Object.fromEntries(r.sessionRows.map((x) => [x.id, x.folder]));
+    assert.equal(byId["HOME0000"], undefined);
+    assert.equal(byId["PROJ0000"], "ledger-api");
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir: the window uses the local calendar date of the first timestamp, not the UTC date", () => {
+  // 2026-03-31T23:30:00Z is 1 April in Pacific/Kiritimati (UTC+14) and 31 March in America/Los_Angeles (UTC-7).
+  const cases = [["Pacific/Kiritimati", "2026-04-01", "2026-03-31"], ["America/Los_Angeles", "2026-03-31", "2026-04-01"]];
+  for (const [tz, hit, miss] of cases) {
+    const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-export-"));
+    try {
+      fs.writeFileSync(path.join(folder, "t.jsonl"), jsonl([userRow("TZ000000-1", "2026-03-31T23:30:00.000Z")]));
+      process.env.WP_TEST_TZ = tz;
+      assert.equal(JSON.parse(runDir(folder, "--since", hit, "--until", hit).stdout).uniqueSessions, 1, `${tz} on ${hit}`);
+      assert.equal(JSON.parse(runDir(folder, "--since", miss, "--until", miss).stdout).uniqueSessions, 0, `${tz} on ${miss}`);
+    } finally {
+      delete process.env.WP_TEST_TZ;
+      fs.rmSync(folder, { recursive: true, force: true });
+    }
   }
 });

@@ -5,6 +5,7 @@ W=$(cd "$1" && pwd); SP=${2:-r13-dev}
 HERE=$(cd "$(dirname "$0")" && pwd); H2H=$(cd "$HERE/.." && pwd)
 export PATH="/Users/efe/claude-kredi-runs/sub-shim:$(echo "$PATH" | tr ':' '\n' | grep -v 'sdk-shim' | paste -sd: -)"
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+export HOME_REAL=${HOME_REAL:-$HOME}
 export H2H_TASKS=$HERE/dev-tasks.json
 for v in 1 2 3; do
   python3 "$H2H/assemble.py" "$W/runs" "$W/grades/v$v" "$SP-$v" "$W/fixtures" >/dev/null || exit 1

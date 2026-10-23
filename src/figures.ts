@@ -348,8 +348,10 @@ const COUNT_RE = new RegExp(`(?<![\\w.\\-/:,])${NUM}(?:\\s+of\\s+${NUM}|\\s*(?:t
 // A purely numeric table cell: digits with optional thousands commas.
 const BARE_NUMBER_RE = /^(?:\d{1,3}(?:,\d{3})+|\d+)$/;
 // The header cell of a table column names a counting noun when the noun appears as a whole word.
-const HEADER_NOUN_RE = new RegExp(`(?<![A-Za-z])(${NOUN})(?![A-Za-z])`, "i");
-const isTableSeparator = (s: string): boolean => /^\s*\|[\s|:-]*$/.test(s) && s.includes("---");
+const HEADER_NOUN_RE = new RegExp(`(?<![A-Za-z])(${NOUN})(?![A-Za-z])`, "gi");
+// A Markdown table separator row: cells made of dashes with optional colons, such as |---|:-:| or | - | -- |.
+const isTableSeparator = (s: string): boolean => s.includes("|") && /^\s*\|?\s*:?-+:?\s*(?:\|\s*:?-+:?\s*)*\|?\s*$/.test(s);
+const CELL_SPLIT = /(?<!\\)\|/;
 const NOT_A_COUNT = /\b(?:of|percent|per|pct|out)\b/i;
 const EMAIL_RE = /[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(?:\.[A-Za-z0-9-]{1,63}){1,4}/g;
 const SHELL_RE = /^\s{0,8}(?:[$>]\s{0,2})?(?:npx|npm|pnpm|yarn|node|git|workproof|cd|curl|brew|pip3?|python3?|bash|sh|gh)\s+\S|`(?:npx|npm|git|workproof|node)\s[^`]{1,200}`/;
@@ -397,6 +399,7 @@ export async function readBack(file: string, rows: FigureRow[]): Promise<DocRead
   const emails = new Set<string>();
   const branches = new Set<string>();
   let cut = 0;
+  let inFence = false;
   // A Markdown table: a header row followed by a `|---|` separator. A column whose header names a counting noun
   // reads its purely numeric body cells as that noun. Columns are tracked by index, not by cell text.
   let tableNouns: Map<number, string> | null = null;
@@ -409,7 +412,10 @@ export async function readBack(file: string, rows: FigureRow[]): Promise<DocRead
   lines.forEach((full, i) => {
     if (full.length > MAX_DOC_LINE) cut++;
     const line = full.slice(0, MAX_DOC_LINE);
-    const isRow = line.trimStart().startsWith("|");
+    const fenceMark = /^\s{0,3}(?:```|~~~)/.test(line);
+    const inCode = inFence || fenceMark;
+    if (fenceMark) inFence = !inFence;
+    const isRow = !inCode && line.trimStart().startsWith("|");
     const isSeparator = isRow && isTableSeparator(line);
     const nextLine = lines[i + 1]?.slice(0, MAX_DOC_LINE) ?? "";
     if (!isRow) tableNouns = null;
@@ -417,12 +423,13 @@ export async function readBack(file: string, rows: FigureRow[]): Promise<DocRead
       // the separator row carries no figures
     } else if (isTableSeparator(nextLine)) {
       tableNouns = new Map();
-      line.split("|").forEach((cell, k) => {
-        const found = HEADER_NOUN_RE.exec(cell);
-        if (found) tableNouns!.set(k, found[1]!.toLowerCase());
+      line.split(CELL_SPLIT).forEach((cell, k) => {
+        // A header that names two different counting nouns is ambiguous, so the column is not read.
+        const nouns = new Set([...cell.matchAll(HEADER_NOUN_RE)].map((m) => m[1]!.toLowerCase()));
+        if (nouns.size === 1) tableNouns!.set(k, [...nouns][0]!);
       });
     } else if (tableNouns !== null) {
-      line.split("|").forEach((cell, k) => {
+      line.split(CELL_SPLIT).forEach((cell, k) => {
         const noun = tableNouns!.get(k);
         if (!noun) return;
         const value = cell.trim();

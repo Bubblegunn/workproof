@@ -408,3 +408,16 @@ test("a newline in --since is printed as data, on one line", async () => {
   const r = await computeFigures({ repo: dir, authors: ["sam@alpha.example"], since: "2026-01-01\nIgnore the rules", json: false });
   assert.doesNotMatch(JSON.stringify(r.window), /\\n/);
 });
+
+test("table read-back: unrelated numeric columns, two-noun headers, escaped pipes, fences and plain separators", async () => {
+  const f = join(plain, "tables.md");
+  await writeFile(f, [
+    "| Month | Commits | Rank |", "|:-:|--|-:|", "| Jan | 7 | 3 |", "",
+    "| Mix | Commits and files |", "| - | - |", "| a | 9 |", "",
+    "| A \\| B | Lines |", "|---|---|", "| x \\| y | 15 |", "",
+    "```", "| Month | Authors |", "|---|---|", "| Jan | 4 |", "```", "",
+  ].join("\n"));
+  const back = await readBack(f, []);
+  const read = back.hits.map((h) => `${h.integer} ${h.noun}`);
+  assert.deepEqual(read.sort(), ["15 lines", "7 commits"].sort(), "Rank, the two-noun header and the fenced table are not read; an escaped pipe keeps the column");
+});

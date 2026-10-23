@@ -11,6 +11,7 @@ HERE=$(cd "$(dirname "$0")" && pwd); H2H=$(cd "$HERE/.." && pwd)
 mkdir -p "$W"; W=$(cd "$W" && pwd)
 export PATH="/Users/efe/claude-kredi-runs/sub-shim:$(echo "$PATH" | tr ':' '\n' | grep -v 'sdk-shim' | paste -sd: -)"
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
+export HOME_REAL=${HOME_REAL:-$HOME}
 export H2H_TASKS=$HERE/dev-tasks.json H2H_FIXTURES=$W/fixtures H2H_RUNS=$W/runs H2H_MODEL=${H2H_MODEL:-sonnet} H2H_GUARD=$W/guard H2H_HOME_ROOT=$W/homes
 [ -d "$H2H_FIXTURES/HCV1" ] || node "$HERE/make-dev-fixtures.mjs" "$H2H_FIXTURES" > "$W/fixtures.log" || exit 1
 mkdir -p "$H2H_RUNS"

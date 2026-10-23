@@ -10,6 +10,7 @@
 // Original code for this package (MIT).
 
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 const SECRET = /\b(?:sk|pk|rk)-[A-Za-z0-9_-]{16,}\b|\b(?:ghp|gho|ghu|ghs|github_pat|xox[abprs]|AKIA|AIza)[A-Za-z0-9_-]{12,}|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{5,}|\b[A-Fa-f0-9]{32,}\b|\b[A-Za-z0-9+/_-]{40,}={0,2}(?![A-Za-z0-9])/g;
@@ -38,6 +39,8 @@ function findJsonl(dir) {
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : 0);
 
+// A timestamp counts only in the ISO form the logs use; Date.parse alone would accept "1" or "hello 5".
+const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 /** A real calendar date written YYYY-MM-DD (2026-02-30 is refused), or null. */
 export function calendarDate(value) {
@@ -58,7 +61,9 @@ function localDate(ms) {
 function folderName(cwd) {
   const segment = cwd.split(/[\\/]/).filter(Boolean).pop() ?? '';
   const clean = segment.replace(/\p{Cc}/gu, '').slice(0, 64);
-  return clean ? redact(clean) : null;
+  // The home folder's own name is the user name: it is never printed.
+  const own = new Set([os.userInfo().username, path.basename(os.homedir())].filter(Boolean));
+  return clean && !own.has(clean) ? redact(clean) : null;
 }
 
 const MAX_SESSION_ROWS = 100;
@@ -105,7 +110,7 @@ export function usageFromDir(dir, range = null) {
         info = { first: null, last: null, folder: null };
         sessions.set(key, info);
       }
-      const t = typeof row.timestamp === 'string' ? Date.parse(row.timestamp) : NaN;
+      const t = typeof row.timestamp === 'string' && ISO_TIME.test(row.timestamp) ? Date.parse(row.timestamp) : NaN;
       if (Number.isFinite(t)) {
         if (info.first === null || t < info.first) info.first = t;
         if (info.last === null || t > info.last) info.last = t;
@@ -114,7 +119,11 @@ export function usageFromDir(dir, range = null) {
       if (row.type !== 'assistant' || !row.message || typeof row.message !== 'object') continue;
       const m = row.message;
       for (const b of Array.isArray(m.content) ? m.content : []) {
-        if (b && b.type === 'tool_use' && typeof b.id === 'string' && !toolIds.has(b.id)) toolIds.set(b.id, { name: typeof b.name === 'string' ? b.name : '(unknown)', session: key });
+        if (b && b.type === 'tool_use' && typeof b.id === 'string') {
+          const seen = toolIds.get(b.id);
+          if (seen) seen.sessions.add(key);
+          else toolIds.set(b.id, { name: typeof b.name === 'string' ? b.name : '(unknown)', sessions: new Set([key]) });
+        }
       }
       const id = typeof m.id === 'string' && m.id ? m.id : typeof row.uuid === 'string' ? `uuid:${row.uuid}` : null;
       if (!id) continue;
@@ -126,8 +135,11 @@ export function usageFromDir(dir, range = null) {
         cacheRead: num(u.cache_read_input_tokens),
         cacheCreation: num(u.cache_creation_input_tokens),
       };
-      const before = messages.get(id)?.entry;
-      if (!before || entry.output + entry.input + entry.cacheRead + entry.cacheCreation >= before.output + before.input + before.cacheRead + before.cacheCreation) messages.set(id, { entry, session: key });
+      const prior = messages.get(id);
+      const before = prior?.entry;
+      // A resumed session copies earlier message ids: the id keeps every session it appeared in and is credited to the earliest.
+      const owners = prior ? prior.sessions.add(key) : new Set([key]);
+      if (!before || entry.output + entry.input + entry.cacheRead + entry.cacheCreation >= before.output + before.input + before.cacheRead + before.cacheCreation) messages.set(id, { entry, sessions: owners });
     }
     if (!any && text.trim() === '') sessions.delete(fallback);
     if ([...fileSessions].some((k) => seenInEarlierFile.has(k))) filesRepeating++;
@@ -136,6 +148,8 @@ export function usageFromDir(dir, range = null) {
 
   // Sessions with a parseable time, in the window when one is given. A session is in the window
   // when its first timestamp's local calendar date lies between since and until, both included.
+  // The session an id is credited to: the one that started first (undated last, then by id), so file order does not matter.
+  const owner = (set) => [...set].sort((a, b) => (sessions.get(a)?.first ?? Infinity) - (sessions.get(b)?.first ?? Infinity) || (a < b ? -1 : a > b ? 1 : 0))[0];
   const dated = [...sessions.entries()].filter(([, info]) => info.first !== null);
   const sessionsWithoutDate = sessions.size - dated.length;
   const inRange = ([, info]) => {
@@ -152,7 +166,8 @@ export function usageFromDir(dir, range = null) {
   const byModel = new Map();
   const responsesBySession = new Map();
   let syntheticOrEmpty = 0;
-  for (const { entry: e, session } of messages.values()) {
+  for (const { entry: e, sessions: owners } of messages.values()) {
+    const session = owner(owners);
     if (kept && !kept.has(session)) continue;
     if (e.model === '<synthetic>' || e.input + e.output + e.cacheRead + e.cacheCreation === 0) {
       syntheticOrEmpty++;
@@ -172,14 +187,16 @@ export function usageFromDir(dir, range = null) {
   const toolCounts = new Map();
   const toolsBySession = new Map();
   let toolTotal = 0;
-  for (const { name, session } of toolIds.values()) {
+  for (const { name, sessions: owners } of toolIds.values()) {
+    const session = owner(owners);
     if (kept && !kept.has(session)) continue;
     toolTotal++;
     toolCounts.set(name, (toolCounts.get(name) ?? 0) + 1);
     toolsBySession.set(session, (toolsBySession.get(session) ?? 0) + 1);
   }
   const rank = (m) => [...m.entries()].sort((a, b) => (b[1].responses ?? b[1]) - (a[1].responses ?? a[1]) || a[0].localeCompare(b[0]));
-  const sessionRows = rowSessions.slice(0, MAX_SESSION_ROWS).map(([key, info]) => ({
+  // Rows are printed only for a window: the default output keeps its earlier shape and prints no folder names.
+  const sessionRows = !range ? [] : rowSessions.slice(0, MAX_SESSION_ROWS).map(([key, info]) => ({
     id: redact(key.slice(0, 8)),
     first: new Date(info.first).toISOString(),
     last: new Date(info.last).toISOString(),
@@ -190,7 +207,7 @@ export function usageFromDir(dir, range = null) {
   const windowNotes = range
     ? [
         `Window: sessions whose first timestamp falls on a local calendar date from ${range.since ?? 'the first date in the export'} to ${range.until ?? 'the last date in the export'}, both included. Sessions with no parseable timestamp are left out and counted in sessionsWithoutDate.`,
-        `The totals above cover only the sessions in the window. sessionRows lists ${sessionRows.length} of the ${rowSessions.length} sessions in the window (at most ${MAX_SESSION_ROWS}). The number of rows the reader keeps is the session count it may state.`,
+        `The totals above cover only the sessions in the window. sessionRows lists ${sessionRows.length} of the ${rowSessions.length} sessions in the window (at most ${MAX_SESSION_ROWS}). The number of rows the reader keeps is the session count it may state. exportedFiles and filesRepeatingASession cover the whole folder, not the window.`,
       ]
     : [];
   const result = {
