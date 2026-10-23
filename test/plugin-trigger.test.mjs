@@ -93,7 +93,7 @@ test("the UserPromptSubmit hook has a timeout", () => {
   assert.equal(h.timeout, 5);
 });
 
-test("the three copies of the rules carry the same eight keywords", () => {
+test("the rules live in core-rules.md only: the hint carries the eight keywords and SKILL.md rule 9 is a pointer", () => {
   const keywords = ["please confirm", "rebase", "not counted", "sidecar", "whitespace", "what holds", "author date|author versus committer", "evidence/"];
   const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
   const skill = readFileSync(join(root, "skills", "workproof", "SKILL.md"), "utf8");
@@ -102,9 +102,21 @@ test("the three copies of the rules carry the same eight keywords", () => {
   for (const k of keywords) {
     const re = new RegExp(k, "i");
     assert.match(core, re, `core-rules lacks ${k}`);
-    assert.match(skill, re, `SKILL.md lacks ${k}`);
     assert.match(flatCtx, re, `hint context lacks ${k}`);
   }
+  const rule9 = skill.split("\n").find((l) => l.startsWith("9. ")) ?? "";
+  assert.match(rule9, /references\/core-rules\.md/);
+  assert.ok(rule9.length < 700, `SKILL.md rule 9 is ${rule9.length} characters; the bullets live in core-rules.md`);
+  assert.doesNotMatch(skill, /^   - (Identity|Window|Deliverables|Audience|Counts|Provenance|Dates):/m, "SKILL.md still repeats the document rules");
+});
+
+test("the hint and the session pointer lead to the figures command through core-rules.md", () => {
+  const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
+  assert.match(core, /npx workproof figures/);
+  const ctx = JSON.parse(run(hook, gitDir, phrasings.claim_check[0]).stdout).hookSpecificOutput.additionalContext;
+  assert.match(ctx.replace(/\s+/g, " "), /run `npx workproof figures` first/);
+  const out = JSON.parse(run(session, gitDir, "").stdout).hookSpecificOutput.additionalContext;
+  assert.match(out, /figures/);
 });
 
 test("a matching prompt gets the intent class and the rules block", () => {
@@ -159,11 +171,27 @@ test("core-rules.md carries each rule inside its numbered line", () => {
   }
 });
 
-test("SKILL.md carries the figure rule and the filtered-count rule", () => {
-  const skill = readFileSync(join(root, "skills", "workproof", "SKILL.md"), "utf8");
-  for (const k of ["lines written", "reverted", "third-party", "state both", "basis", "never (written as )?a session count", "no number", "does not replace the lines-written figure"]) {
-    assert.match(skill, new RegExp(k, "i"), `SKILL.md lacks ${k}`);
+test("core-rules.md carries the figure rule, the filtered-count rule and the three round 12 clauses", () => {
+  const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
+  for (const k of ["lines written", "reverted", "third-party", "state both", "basis", "never a session count", "no number", "does not replace lines written"]) {
+    assert.match(core, new RegExp(k, "i"), `core-rules.md lacks ${k}`);
   }
+  assert.match(core, /run `npx workproof figures` first, write each figure with its printed label/);
+  assert.match(core, /run `figures --doc <file>`; fix or label any number matching no computed figure/);
+  assert.match(core, /not computed is not zero/);
+  assert.match(core, /Out of scope: do the task, add one scope line, no refusal/);
+});
+
+test("core-rules.md stays under the 3000 bytes the hint reads, so no rule is cut mid-line", () => {
+  const f = join(root, "skills", "workproof", "references", "core-rules.md");
+  const text = readFileSync(f, "utf8");
+  assert.ok(Buffer.byteLength(text) < 3000, `${Buffer.byteLength(text)} bytes`);
+});
+
+test("near-miss negatives: general git help, code review, commit messages and repo health reports stay silent even inside a repository", () => {
+  assert.ok(phrasings.near_miss.length >= 15, `${phrasings.near_miss.length} near-miss phrasings`);
+  const fp = phrasings.near_miss.filter((p) => matches(gitDir, p));
+  assert.deepEqual(fp, []);
 });
 
 test.after(() => {

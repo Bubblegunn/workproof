@@ -289,3 +289,32 @@ test("SKILL.md rule 8: the last chat message of every task states the results of
   assert.ok(!/8\. The last chat message[^\n]*(@|\/Users\/)/.test(b), "the rule names no address or path");
   assert.ok(Buffer.byteLength(b) < 21000, "SKILL.md grew past 21000 bytes (round 11 added the general document rules, iteration 2 the figure and count rules)");
 });
+
+test("lint: the description stays inside the limit and names the near-miss requests it is not for", () => {
+  const d = frontmatter(read(`${skillDir}/SKILL.md`)).description;
+  assert.ok(d.length <= 1024, `description is ${d.length} characters`);
+  assert.ok(d.length <= 1000, `description is ${d.length} characters; round 12 keeps 24 characters of room`);
+  assert.ok(d.includes("Do not use for"), "description has no near-miss negatives");
+  const negatives = d.slice(d.indexOf("Do not use for"));
+  for (const k of ["rebase", "merge conflicts", "code review", "commit-message", "code-quality"]) assert.ok(negatives.includes(k), `negatives lack ${k}`);
+  assert.ok(d.indexOf("Do not use for") > d.indexOf("Use for any request"), "negatives come after the intent classes");
+});
+
+test("lint: no line demands every section or field unconditionally unless the file also names an out-of-scope exception", () => {
+  const demands = /\b(always|must|every time)\b[^.\n]{0,60}\b(output|include|produce|print|fill)\b[^.\n]{0,40}\b(every|all|each)\s+(section|heading|field)s?\b/i;
+  const exception = /out of scope|outside (this|the) skill|not about a person/i;
+  assert.ok(demands.test("You must always output every section of the template."), "the lint pattern does not catch its own sample");
+  for (const f of [`${skillDir}/SKILL.md`, `${skillDir}/references/core-rules.md`]) {
+    const text = read(f);
+    const bad = text.split("\n").filter((l) => demands.test(l));
+    if (bad.length) assert.match(text, exception, `${f} demands every section with no out-of-scope exception: ${bad[0].slice(0, 80)}`);
+  }
+  const core = read(`${skillDir}/references/core-rules.md`);
+  assert.match(core, /Out of scope: do the task, add one scope line, no refusal/);
+});
+
+test("SKILL.md rule 8 keeps the numbers the user asked for and never reads as state every number", () => {
+  const rule8 = read(`${skillDir}/SKILL.md`).split("\n").find((l) => l.startsWith("8. ")) ?? "";
+  assert.ok(rule8.includes("the numbers and lists the user asked for"));
+  assert.doesNotMatch(rule8, /every (number|figure)|all (the )?(numbers|figures)/i);
+});
