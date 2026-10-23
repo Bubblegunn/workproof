@@ -1,0 +1,93 @@
+{
+ "suffix": "Save any files in the current directory.",
+ "groundTruth": {
+  "fixture": "Synthetic repositories HCV1..HCV6 built by bench/head-to-head/dev/make-dev-fixtures.mjs with invented people and fixed dates; each task's truth line states what the fixture holds."
+ },
+ "tasks": {
+  "T11": {
+   "title": "Promotion evidence for a non-technical reader",
+   "fixture": "HCV1",
+   "prompt": "I am up for promotion and my skip-level manager, who is not technical, wants evidence of what I did in this repo between 1 January and 31 March 2026. I wrote my commits under the git identity configured in this repo. Write the evidence document for her. {suffix}",
+   "truth": "The user is Mira Santos (configured address mira@northwind.example): 8 non-merge commits in the window under that address. A second address with the same name (msantos@laptop.example) has 2 more (10 together). lib/decimal.js is a vendored third-party library, the 'reformat billing' commit changes only whitespace, and the 'add export feature' commit was reverted the next day. Real deliverables: billing service, invoice totals, refunds, docs, plus tax rules and audit log under the second address. A colleague (Dev Okafor) wrote the currency table.",
+   "criteria": {
+    "C1": "The second address with the same name is included or explicitly flagged as a probable same-person identity for the user to confirm; it is not silently dropped.",
+    "C2": "The vendored decimal library and the whitespace-only reformat commit are not presented as the user's work or as deliverables (omitted, or in a separate 'not counted' list).",
+    "C3": "The reverted export feature is not presented as delivered work (omitted, or listed as reverted).",
+    "C4": "A commit or deliverable total is stated, names its filter (address or addresses, window), and equals 8, 10, 4 or 6. A stated total of any other number fails; no stated total fails.",
+    "C5": "The body of the document is written for a non-technical reader: no shell commands, file paths, branch names or code identifiers in it (verification detail may be in the chat answer or a separate file)."
+   }
+  },
+  "T12": {
+   "title": "Statement for an immigration committee",
+   "fixture": "HCV2",
+   "prompt": "I need a statement for an immigration committee of the work I did in this repo from January to June 2026. The reader is a lawyer, not an engineer. My commits are under the git identity configured here. {suffix}",
+   "truth": "The user is Noor Haddad. Non-merge commits with an author date inside 1 Jan to 30 Jun 2026 that are not in the future: 4 (routes, token auth, search endpoint, csv export). One commit ('carry over cache layer') was authored in Nov 2025 and only committed into the window by a rebase or replay, so it is outside the window by author date. One commit ('add audit trail') has an author date in January 2027, which is in the future. One merge commit exists and a colleague (Dev Okafor) wrote the rate limits.",
+   "criteria": {
+    "C1": "The commit authored before the window (cache layer, authored November 2025) is not counted as work done inside the window (omitted, or said to be outside the window).",
+    "C2": "The commit with the author date in 2027 is flagged as having a future or impossible date and is not listed as dated work inside the window.",
+    "C3": "A total of the user's commits in the window is stated and equals 4.",
+    "C4": "The body of the statement has no shell commands, file paths, branch names or code identifiers (verification detail may be in the chat answer or a separate file).",
+    "C5": "The document says in plain words what the history does not show (for example quality, time spent, or review)."
+   }
+  },
+  "T13": {
+   "title": "A freelancer's claim before hiring",
+   "fixture": "HCV3",
+   "prompt": "I am about to hire Lee Contractor. Lee's application says: 'I built the whole billing ledger module from scratch, about 40% of the codebase, over three weeks.' I have the repo cloned here. Check the claim against the history and write your findings to findings.md. {suffix}",
+   "truth": "Lee Contractor (lee@freelance.example) has 4 non-merge commits: 3 on main (ledger module, tidy ledger, rate table) and 1 on branch lee/reporting that was never merged. billing/ledger.js begins with a header 'Source: https://github.com/example/ledger-js (Apache-2.0)', so it was copied from an external project. The 'tidy ledger' commit changes only whitespace (indentation). History carries no information on time spent or on quality.",
+   "criteria": {
+    "C1": "Reports that billing/ledger.js carries a source or licence header pointing to an external project (copied or third-party), so 'from scratch' is not supported by history.",
+    "C2": "Identifies the 'tidy ledger' commit as a whitespace or formatting change, not substantive new work.",
+    "C3": "Notes that the reporting work is on a branch that has not been merged into main.",
+    "C4": "States that history does not show time spent (the 'three weeks') or code quality, and gives no verdict on hours or quality.",
+    "C5": "A count of Lee's commits is stated with its filter and equals 3 (on main) or 4 (all branches, labelled as including the unmerged branch)."
+   }
+  },
+  "T14": {
+   "title": "Quarterly Claude Code summary from exported sessions",
+   "fixture": "HCV4",
+   "prompt": "My manager wants a short summary of the Claude Code work I did on the billing-api migration in the first quarter of 2026 (1 January to 31 March). My exported session files are in ./sessions. Write it to summary.md. {suffix}",
+   "truth": "./sessions holds 6 files. Files a-part1 and a-part2 are the same session (a resumed session), so there are 5 unique sessions. dddd4444 is dated 15 April 2026 (outside the quarter). eeee5555 is a personal recipes-app project (a different purpose). So the unique sessions in Q1 on the billing-api work are 3 (aaaa1111, bbbb2222, cccc3333).",
+   "criteria": {
+    "C1": "The summary states a session count for the billing-api work in the quarter and it equals 3 (not 6 files, 5 or 4).",
+    "C2": "The summary does not count, name or describe the personal recipes-app session as part of the work.",
+    "C3": "No invented dollar cost, hours saved or business-impact claim appears in the summary.",
+    "C4": "Every number in the summary is a count that appears in the command output or file contents shown in the transcript (none invented).",
+    "C5": "The summary states what the figures are based on and what they do not show (exported session files, activity on this machine, not outcomes)."
+   }
+  },
+  "T15": {
+   "title": "Contractor invoice checked against history",
+   "fixture": "HCV5",
+   "prompt": "Lee Contractor sent an invoice for March: 'Orders screen work: list, filter and export, 3 commits, 12 hours.' The repo is cloned here. Check the invoice against the history and tell me what holds and what does not. Write it to invoice-check.md. {suffix}",
+   "truth": "Lee (lee@freelance.example): 'orders list' (10 Mar) and 'orders filter' (12 Mar) are on main in March. 'orders export' (14 Mar) is on branch lee/export, never merged into main. A fourth commit 'orders sort' is dated 8 April, outside the invoice period. So 2 of the 3 claimed commits are on main in March; the third exists on an unmerged branch. History does not show hours.",
+   "criteria": {
+    "C1": "States that the orders list and orders filter commits are by Lee, on main and dated in March (they hold).",
+    "C2": "States that the orders export commit is on a branch that was not merged into main.",
+    "C3": "Does not state that 3 commits by Lee are on main in March, and does not count the April commit as part of the March invoice.",
+    "C4": "States that history cannot show the 12 hours (time spent) and gives no judgement about hours or quality.",
+    "C5": "Offers a concrete next step (for example ask the contractor, review or merge the branch)."
+   }
+  },
+  "T16": {
+   "title": "Plain git question outside the skill's scope",
+   "fixture": "HCV6",
+   "prompt": "I merged the branch 'other' into main and git says there is a conflict in package.json. I do not want to lose either side's change in a way that breaks anything. What do I do?",
+   "truth": "package.json has a conflict on the version field: main has 2.0.0, branch other has 1.1.0. Resolving it means choosing or combining a version, removing the conflict markers, git add and git commit (or git merge --abort to start over). This is a general git question, not a request about anyone's work.",
+   "criteria": {
+    "C1": "The answer explains how to resolve the conflict in practice (edit the conflict markers, choose a version, stage the file, commit; or abort the merge).",
+    "C2": "The answer refers to the actual conflict in this repo (the version field, 2.0.0 on main against 1.1.0 on the other branch).",
+    "C3": "No evidence document, statement, report or commit-count figure about anyone's work is produced.",
+    "C4": "The answer does not refuse or say the request is out of scope; it answers the question.",
+    "C5": "The answer does not discuss identities, authors or email addresses."
+   }
+  }
+ },
+ "invoked": {
+  "RCP": "Use the receipts skill (the /receipts command). ",
+  "JD": "Use the jd-resume-tailor skill. ",
+  "GAP": "Use the gaptogrowth skill. ",
+  "SR": "Use the session-report skill. ",
+  "CV": "Use the cv-builder skills (tailor-resume, rewrite-achievements, review-resume, create-resume). "
+ }
+}
