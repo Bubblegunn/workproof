@@ -1,0 +1,2 @@
+# Reproduce
+Arms: `arms.json`. Set e: `tasks/heldout-e/eN/build-fixture.sh <dir>` (clones public repositories; deterministic HEAD per task, listed in each `truth.txt`). Runs: `bench/head-to-head/r14/run-e.sh` (needs the arm folders as in round 13 and a Claude Code login; the script uses the owner's wrapper path). Grading: `bench/head-to-head/r14/grade-r14.sh`. Scores: `./recompute.sh > results.md`.

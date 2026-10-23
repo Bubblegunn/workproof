@@ -1,0 +1,53 @@
+{
+ "note": "natural = task prompt unchanged; invoked = the 'invoked' prefix of bench/head-to-head/tasks.json. All arms: --plugin-dir, --setting-sources project, --strict-mcp-config, permissions skipped, subscription wrapper, model sonnet. Same arm folders as round 13 (same builds, same pins).",
+ "arms": [
+  {
+   "name": "OURS",
+   "source": "https://github.com/Bubblegunn/workproof",
+   "licence": "MIT",
+   "pin": "f74cb3c12c75dc6d35778362377157a536e37b85",
+   "install": "git archive, npm ci, npm run build, bench/ removed from the arm copy; npx workproof shimmed to the build",
+   "prompt": "natural"
+  },
+  {
+   "name": "BASE",
+   "source": "none (empty plugin)",
+   "pin": "n/a",
+   "prompt": "natural"
+  },
+  {
+   "name": "RCP / RCP_I",
+   "source": "https://github.com/anthropics/claude-plugins-official (plugins/receipts)",
+   "licence": "Apache-2.0",
+   "pin": "465f09344424225c25d438f2e052732c3d688d2f",
+   "install": "git archive; minimal .claude-plugin/plugin.json added; mine-transcripts.mjs patched only so the session folder can be redirected: os.homedir() -> (process.env.RECEIPTS_HOME || os.homedir())",
+   "prompt": "natural / invoked"
+  },
+  {
+   "name": "JD / JD_I",
+   "source": "https://github.com/day-raval/jd-resume-tailor",
+   "licence": "MIT",
+   "pin": "701801493babf6ee75561b5a76b0d0c255bd12e8",
+   "install": "git archive used as plugin directory",
+   "prompt": "natural / invoked"
+  },
+  {
+   "name": "CV / CV_I",
+   "source": "cv-builder-plugin",
+   "licence": "MIT",
+   "pin": "f7c8c3b6d379f8d12ca1c70fc7576652dcdfe16c",
+   "install": "git archive, .mcp.json removed",
+   "prompt": "natural / invoked"
+  }
+ ],
+ "not_run": [
+  {
+   "name": "GAP / GAP_I",
+   "reason": "weakest in rounds 10 and 11 (no git verification); at most three competitors per the spec"
+  },
+  {
+   "name": "SR / SR_I",
+   "reason": "same"
+  }
+ ]
+}

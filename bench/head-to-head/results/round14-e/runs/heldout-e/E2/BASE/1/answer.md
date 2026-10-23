@@ -1,0 +1,1 @@
+That notification is for my first git command, which hung (most likely on a pager) and was stopped at its time limit. It doesn't affect the result. I reran the same queries without the pager and they finished normally, and `WORK_SUMMARY.md` was built from that output. I haven't restarted the stopped command.

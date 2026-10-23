@@ -19,6 +19,7 @@ votes = sorted(d for d in os.listdir(root) if re.fullmatch(r"v\d+", d))
 # runs[(task, arm)][run] = {crit: [vote bools]}
 runs = {}
 usable = {}
+invalid = {}
 for v in votes:
     for t in TASKS:
         try:
@@ -27,12 +28,18 @@ for v in votes:
             grade = json.loads(m.group(0))
         except (OSError, ValueError, AttributeError):
             continue
+        # A vote counts only if every arm letter has runs and every run carries every criterion as [reason, true|false].
+        want = set(cfg["tasks"][t]["criteria"])
+        ok = isinstance(grade, dict) and all(isinstance(grade.get(L), dict) and grade[L] and all(isinstance(cr, dict) and set(cr) >= want and all(isinstance(cr[c], list) and len(cr[c]) == 2 and isinstance(cr[c][1], bool) for c in want) for cr in grade[L].values()) for L in lab)
+        if not ok:
+            invalid[t] = invalid.get(t, 0) + 1
+            continue
         usable[t] = usable.get(t, 0) + 1
         for letter, arm in lab.items():
-            for n, crit in grade.get(letter, {}).items():
+            for n, crit in grade[letter].items():
                 cell = runs.setdefault((t, arm), {}).setdefault(n, {})
                 for c, val in crit.items():
-                    cell.setdefault(c, []).append(bool(val[1]))
+                    if c in want: cell.setdefault(c, []).append(val[1])
 for t in TASKS:
     if usable.get(t, 0) < 3:
         sys.exit(f"error: task {t} has {usable.get(t, 0)} usable votes (need at least 3)")
@@ -42,7 +49,7 @@ for (t, arm), rr in runs.items():
     score[(t, arm)] = [sum(1 for c in crits(t) if passed(crit.get(c, []))) for n, crit in sorted(rr.items())]
 arms = sorted({a for (_, a) in score}, key=lambda a: (a != "OURS", a))
 mean = lambda xs: sum(xs) / len(xs) if xs else 0.0
-print("per task mean (of 5), votes usable per task:", {t: usable[t] for t in TASKS})
+print("per task mean (of 5), valid votes per task:", {t: usable[t] for t in TASKS}, "invalid votes ignored:", invalid)
 print("task | " + " | ".join(arms))
 for t in TASKS:
     print(t + " | " + " | ".join(f"{mean(score.get((t, a), [])):.2f} {score.get((t, a), [])}" for a in arms))

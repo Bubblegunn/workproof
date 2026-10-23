@@ -1,0 +1,3 @@
+That notification is only about the first background command, the initial listing of sessions and authors. The system stopped it at its time limit. I got the same information by rerunning the listing in two smaller commands, so nothing is missing and I won't restart it.
+
+The report is already written and doesn't depend on that command. `Q1-effort-report.md` gives 5 commits and 5 hours 50 minutes of active time. Please check the points I asked you to confirm earlier, mainly the single email address and the hours figure.

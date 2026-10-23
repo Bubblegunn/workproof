@@ -1,0 +1,1 @@
+That notification is the first `git log` command from the start of the session. It hung, probably on the pager, and was stopped at its time limit. I had already re-run it with the pager turned off, so nothing is missing. `WORK_SUMMARY.md` was built from that second run and is unaffected.

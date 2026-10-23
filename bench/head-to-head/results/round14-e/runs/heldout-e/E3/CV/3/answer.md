@@ -1,0 +1,15 @@
+**Short version: none of the five claims holds as written.** Claim 3 is the closest, and it comes with a large caveat. This is from the git history alone, so it shows what's in the repo, not what he did elsewhere.
+
+| # | Claim | Verdict | Evidence |
+|---|---|---|---|
+| 1 | 214 commits in 2025 | **False** | He has 15 commits under his name. The whole repo has only 20 commits dated 2025, from all authors. |
+| 2 | Sole author of errtrace | **False** | He wrote most of it, but Wen Zhao (3 commits) and Tariq Mansour (2 commits) also contributed. Wen Zhao wrote the renderer and public helpers, and about 141 lines survive in the current code. Tariq added tests. |
+| 3 | Over 11,000 lines of Rust | **Technically true, misleading** | He added 11,886 lines of Rust. But 11,500 of those come from one commit, `bc80c20` "generate symbol tables". That commit is `table.rs`, a file of repetitive `pub const SYM_n: u32 = n;` lines. His hand-written Rust is about 390 lines (100 skeleton, 150 frame collection, 40 tests, 90 metrics, plus small amounts). |
+| 4 | Continuous, January to December 2025 | **False** | His commits fall in March, April, June, July, August and September only. There are none in January, February, May, October, November or December. The April commits include four README typo fixes. The later "metrics tests" commits are only about 96 lines in total. |
+| 5 | Shipped in the 1.0.100 release | **False** | The crate version is 1.0.95, and the last release commit is "Release 1.0.95" from December 2024. There are no tags. 1.0.100 doesn't exist in this history. His errtrace work (March 2025 onward) is also after that last release, so it hasn't shipped in any release here. |
+
+**Things to know**
+- His claims file lists `sam.lindqvist@mailbox.example` as his git identity. That email has 8 commits. A second identity, `sam.lindqvist@othercorp.example`, has 7 more commits, all of them "errtrace: metrics" work. I can't tell from git whether it's the same person. Ask him directly. If he says it's him, why did he leave it out of the claims file? If it isn't him, those 7 commits aren't his.
+- This checkout is the open-source `anyhow` crate, with David Tolnay's 800+ commits underneath. His work is a `tools/errtrace` directory added in 2025. It isn't the main crate, and nothing in the history shows it being released. The final commit, from "TalentCo Recruiting", only adds the claims file.
+
+**For the decision:** the repo shows a few weeks of real work. That work is a small tool, a few hundred hand-written lines, and a bulk-generated table that inflates his line count. The commit count, the sole-authorship claim, the "continuous" claim and the release claim are all contradicted. If you still want to talk to him, ask him to explain the gap between 214 and 15 commits, and ask whether he has other work to show.

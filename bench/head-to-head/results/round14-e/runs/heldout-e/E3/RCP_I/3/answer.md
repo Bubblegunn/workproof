@@ -1,0 +1,16 @@
+None of the five claims holds up. I checked them against `git log` in this checkout. I didn't run the receipts skill's usage miner. It reports on your own Claude Code sessions, so it can't tell you anything about a candidate's commits.
+
+| # | Claim | Verdict | Evidence |
+|---|---|---|---|
+| 1 | 214 commits in 2025 | **False** | Sam has **15** commits in the whole repo, all in 2025. The entire repo history has 856 commits. |
+| 2 | Sole author of `tools/errtrace` | **False** | Wen Zhao (3 commits) and Tariq Mansour (2 commits) also committed to it. Wen Zhao wrote the renderer and public helpers, and the two of them wrote tests for render, frames and tables. Sam has 11 of the 16 errtrace commits. |
+| 3 | Over 11,000 lines of Rust | **Technically true, misleading** | Sam added 11,886 lines of `.rs`. But 11,500 of those come from one commit, "generate symbol tables". That commit is `table.rs`, which is a list of `pub const SYM_n: u32 = n;` lines. Without it, Sam's hand-written Rust is about 386 lines. |
+| 4 | Worked continuously January to December 2025 | **False** | Sam's commits run from 2025-03-04 to 2025-09-15, with nothing in January, February or October to December. Activity is also sparse: April 9–15 is five commits (one a test, four README typo fixes), and there are six single-line test commits between June and September. There is also a gap from April 15 to June 2. |
+| 5 | Shipped in release 1.0.100 | **Unsupported** | The repo has no tags. `Cargo.toml` is at version 1.0.95, last bumped in the "Release 1.0.95" commit on 2024-12-22. The string "1.0.100" never appears in `Cargo.toml` history, and no 2025 commit is a release commit. Nothing here shows errtrace shipping in any release. |
+
+- **Two email addresses:** Sam's commits use two addresses. The 8 commits under `sam.lindqvist@mailbox.example` (the identity he gave you) run from March to April. The 7 commits under `sam.lindqvist@othercorp.example` (June to September) are the "metrics" work. That is probably the same person, but it points to a different employer. It's worth asking whether the later work was done on another company's time or code.
+- **Where the repo comes from:** the repo is a copy of David Tolnay's `anyhow` crate. The `tools/errtrace` directory and the 2025 commits were added on top of it. The newest commit, "add candidate submission", was made by "TalentCo Recruiting" on 2026-01-05. So "the project he contributed to" is a repo with a bolted-on module, not an established project.
+
+**What's real:** Sam did write the first parts of errtrace: the skeleton, frame collection and the generated tables. He also wrote a metrics module (90 lines) and some tests. That is about 15 commits of modest hand-written code. It doesn't match "senior contributor with 214 commits and sole authorship".
+
+I'd treat the submission as seriously inflated. If you still want to talk to him, ask him to explain the gaps between his claims and the history. Ask in particular about the 214 commits, the sole-authorship claim and the 1.0.100 release.

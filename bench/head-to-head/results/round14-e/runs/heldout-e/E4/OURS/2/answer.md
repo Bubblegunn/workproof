@@ -1,0 +1,3 @@
+That notification is only the first command I ran, the one that read the rules and listed the folder. It hung and was stopped at the time limit. Its output had already been captured, and the report didn't depend on it, so nothing needs redoing.
+
+`Q1-effort-report.md` is unchanged at 5 commits and 5 h 56 min. I'm still waiting on your answer to my question: should the 31 March session be counted in full, past midnight? If so, the total becomes 6 h 17 min.
