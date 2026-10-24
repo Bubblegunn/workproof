@@ -14,6 +14,7 @@ import { stopCheckAsync } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
 import { runFigures } from "./figures.js";
 import { runReviews } from "./reviews.js";
+import { runOwner } from "./owner.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-signers <file>]
@@ -46,6 +47,12 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
                  "Reviewed-by:" that is not a trailer, other approval only, or no review trailer; a summary and the commits out of scope.
                  Default trailer key Reviewed-by (case-insensitive); --path limits to commits touching the pathspec.
                  Read-only; a git failure prints "not computed (<reason>)" and exits 0; exits 1 for a usage error
+       workproof owner --path <file-or-dir> [--repo <dir>] [--claim <name-or-email>] [--json]
+                 checks a claim that one person wrote or owns a file or directory, from its history at HEAD: surviving lines
+                 by author with whitespace and moves ignored and with plain blame side by side, the commit that created it,
+                 commits by author, whitespace-only and rename-only commits, backdated commits, and namesakes on other
+                 addresses; generated files and lock files are left out and counted. Read-only; states no verdict; exits 0
+                 whenever it ran, 1 for a usage error or a path that is not at HEAD
        workproof attest <report.json> [--local <ssh-key>]
        workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
        workproof sessions --dir <folder> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
@@ -121,7 +128,7 @@ export function starHintDecision(o: { stdoutIsTTY: boolean; stderrIsTTY: boolean
 
 /** Classifies the arguments: only a plain run that writes a report may show the hint. Pure. */
 export function starHintCommandFor(argv: string[]): "report" | "other" {
-  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures", "reviews"].includes(argv[0] ?? "")) return "other";
+  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures", "reviews", "owner"].includes(argv[0] ?? "")) return "other";
   if (argv.some((a) => a === "--help" || a === "-h" || a === "--version" || a === "--json")) return "other";
   const f = argv.indexOf("--format");
   if (f >= 0 && argv[f + 1] === "json") return "other";
@@ -457,6 +464,10 @@ async function main() {
   }
   if (process.argv[2] === "reviews") {
     process.exitCode = await runReviews(process.argv.slice(3));
+    return;
+  }
+  if (process.argv[2] === "owner") {
+    process.exitCode = await runOwner(process.argv.slice(3));
     return;
   }
   if (process.argv[2] === "mine") {
