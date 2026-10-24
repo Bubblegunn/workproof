@@ -16,6 +16,7 @@ const DEE: Person = { name: "Dee Park", email: "dee@south.example" };
 const SAM: Person = { name: "Sam Ortega", email: "sam@alpha.example" };
 const BOT: Person = { name: "releasebot", email: "bot@ci.example" };
 
+const MAILMAP = "Sam Ortega <sam@alpha.example> <old@epsilon.example>\n";
 const WINDOW = ["--since", "2026-03-01", "--until", "2026-03-31"];
 
 const SUBJECT = {
@@ -36,6 +37,8 @@ const SUBJECT = {
   lowercase: "fix(lib): tidy e",
   csvGuard: "=SUM(A1) tidy lib",
   control: "feat(lib): tidy\u001b[2K output\u0007",
+  recorded: "feat(lib): recorded name",
+  spelling: "docs: mailmap for a second spelling",
 };
 
 let dir = "";
@@ -70,7 +73,7 @@ async function build(): Promise<void> {
   dir = await mkdtemp(join(tmpdir(), "workproof-reviews-"));
   git(["init", "-q", "-b", "main"]);
   // Two addresses of one person; the mailmap resolves the old one to the canonical one.
-  await commitAs("base", ADA, "2026-02-10T09:00:00+00:00", "docs: start", "", { "README.md": "readme\n", ".mailmap": "Sam Ortega <sam@alpha.example> <old@epsilon.example>\n" });
+  await commitAs("base", ADA, "2026-02-10T09:00:00+00:00", "docs: start", "", { "README.md": "readme\n", ".mailmap": MAILMAP });
   await commitAs("independent", ADA, "2026-03-02T10:00:00+00:00", SUBJECT.independent, "Reviewed-by: Ben Ortiz <ben@north.example>", { "lib/a.ts": "export const a = 1;\n" });
   await commitAs("selfAddress", ADA, "2026-03-03T10:00:00+00:00", SUBJECT.selfAddress, "Reviewed-by: Ada Lind <ada@north.example>", { "lib/b.ts": "export const b = 1;\n" });
   await commitAs("selfAlias", SAM, "2026-03-04T10:00:00+00:00", SUBJECT.selfAlias, "Reviewed-by: S. Ortega <old@epsilon.example>", { "lib/s.ts": "export const s = 1;\n" });
@@ -118,6 +121,9 @@ async function build(): Promise<void> {
   await commitAs("lowercase", CY, "2026-03-22T10:00:00+00:00", SUBJECT.lowercase, `reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/e.ts": "export const e = 1;\n" });
   await commitAs("csvGuard", ADA, "2026-03-23T10:00:00+00:00", SUBJECT.csvGuard, `Reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/sum.ts": "export const sum = 1;\n" });
   await commitAs("control", ADA, "2026-03-24T10:00:00+00:00", SUBJECT.control, `Reviewed-by: ${DEE.name} <${DEE.email}>`, { "lib/ctl.ts": "export const ctl = 1;\n" });
+  // A second recorded spelling of Ada's name, mapped to the canonical name by .mailmap.
+  await commitAs("spelling", ADA, "2026-03-25T10:00:00+00:00", SUBJECT.spelling, "", { ".mailmap": MAILMAP + "Ada Lind <ada@north.example> A. Lind <ada@north.example>\n" });
+  await commitAs("recorded", { name: "A. Lind", email: ADA.email }, "2026-03-26T10:00:00+00:00", SUBJECT.recorded, `Reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/rec.ts": "export const rec = 1;\n" });
 }
 
 /** Runs the command and returns its output and exit code. */
@@ -127,7 +133,7 @@ async function run(args: string[]): Promise<{ code: number; out: string }> {
   return { code, out };
 }
 
-interface JsonRow { sha: string; author: string; author_date: string; reviewer: string; status: string; satisfies: string; basis: string; subject: string; raw_author_email: string }
+interface JsonRow { sha: string; author: string; author_date: string; reviewer: string; status: string; satisfies: string; basis: string; subject: string }
 interface JsonReport { computed: boolean; reason?: string; convention: string[]; summary: string; rows: JsonRow[]; outOfScope: { reason: string; count: number; shas: string[] }[] }
 
 async function json(extra: string[] = []): Promise<JsonReport> {
@@ -181,7 +187,8 @@ test("a reviewer whose address is a .mailmap alias of the author is self-review 
   const row = rowFor(await json(), SUBJECT.selfAlias);
   assert.equal(row.status, "self-review");
   assert.match(row.basis, /mailmap alias/);
-  assert.equal(row.author, "Sam Ortega <sam@alpha.example>");
+  assert.equal(row.author, "Sam Ortega");
+  assert.equal(row.reviewer, "Sam Ortega");
 });
 
 test("a lowercase reviewed-by key is a valid trailer", async () => {
@@ -251,7 +258,7 @@ test("with --path lib/ a README-only commit is out of scope", async () => {
 test("a bot-authored commit touching lib/ is in scope and takes its status from its trailers", async () => {
   const row = rowFor(await json(["--path", "lib/"]), SUBJECT.bot);
   assert.equal(row.status, "independent review");
-  assert.equal(row.author.startsWith("releasebot <bot@ci.example>"), true);
+  assert.equal(row.author, "releasebot");
 });
 
 test("a csv cell starting with = gets a leading single quote", async () => {
@@ -322,9 +329,21 @@ test("the out-of-scope block lists merges as a count only", async () => {
   assert.deepEqual(merges.shas, []);
 });
 
-test("the raw recorded author address is kept beside the mailmap-resolved one", async () => {
-  const row = rowFor(await json(), SUBJECT.selfAlias);
-  assert.equal(row.raw_author_email, "sam@alpha.example");
+test("the author column names the mapped author and adds the recorded name only when it differs", async () => {
+  const report = await json();
+  assert.equal(rowFor(report, SUBJECT.recorded).author, "Ada Lind (as recorded: A. Lind)");
+  assert.equal(rowFor(report, SUBJECT.independent).author, "Ada Lind");
+});
+
+test("no email address is printed in text, csv or json output, with or without a path filter", async () => {
+  for (const extra of [[], ["--path", "lib/"]]) {
+    for (const format of ["text", "csv", "json"]) {
+      const { out } = await run(["--repo", dir, "--format", format, ...WINDOW, ...extra]);
+      assert.equal(out.includes("@"), false, `${format} ${extra.join(" ")} printed an @`);
+    }
+  }
+  const json2 = await json(["--path", "lib/"]);
+  assert.equal(json2.rows.every((r) => !Object.keys(r).some((k) => k.includes("email"))), true);
 });
 
 test("a second reading gives the same rows (deterministic)", async () => {

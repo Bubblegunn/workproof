@@ -95,9 +95,7 @@ export interface ReviewRow {
   basis: string;
   subject: string;
   authorName: string;
-  authorEmail: string;
   rawAuthorName: string;
-  rawAuthorEmail: string;
   committerDate: string;
 }
 
@@ -123,7 +121,8 @@ function parsePerson(value: string): Person {
   return bare.includes("@") ? { name: "", email: lower(bare) } : { name: bare, email: "" };
 }
 
-const displayPerson = (p: Person): string => (p.name && p.email ? `${p.name} <${p.email}>` : p.name || p.email || "(none)");
+/** Output shows names only: an address is never printed. */
+const displayPerson = (p: Person): string => clean(p.name) || "(no name recorded)";
 
 /** Folds a display name for comparison: no accents, no case, single spaces. */
 const foldName = (s: string): string => s.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -213,7 +212,19 @@ function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => str
   const rule = (t: Trailer) => selfRule(r.author, t, canonOf(t.email));
   const reviews = r.trailers.filter((t) => t.review);
   const others = r.trailers.filter((t) => !t.review);
-  const names = (ts: Trailer[]) => ts.map(displayPerson).join("; ");
+  // Names only; a reviewer who is the author shows the author's name; folded duplicates are removed.
+  const names = (ts: Trailer[]) => {
+    const seen = new Set<string>();
+    const shown: string[] = [];
+    for (const t of ts) {
+      const n = rule(t) ? displayPerson({ name: r.author.name, email: "" }) : displayPerson(t);
+      if (!seen.has(foldName(n))) {
+        seen.add(foldName(n));
+        shown.push(n);
+      }
+    }
+    return shown.join("; ");
+  };
   let status: Status;
   let reviewer = "";
   let basis: string;
@@ -229,7 +240,7 @@ function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => str
   } else if (self.length) {
     status = "self-review";
     reviewer = names(reviews);
-    basis = self.map((t) => `${rule(t)} (${displayPerson(t)})`).join("; ");
+    basis = [...new Set(self.map((t) => `same person: ${rule(t)}`))].join("; ");
   } else if (covered) {
     status = "reviewed via merge (weaker)";
     reviewer = covered.reviewers;
@@ -253,20 +264,18 @@ function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => str
   const isRevert = /^Revert\b/.test(r.subject) || revertTarget !== undefined;
   const note = isRevert ? (revertTarget ? `revert of ${revertTarget.slice(0, 7)}` : "revert (target not named in the message)") : "";
   const raw = r.author;
-  const recorded = raw.rawName !== raw.name || raw.rawEmail !== raw.email;
+  const recorded = clean(raw.rawName) !== clean(raw.name);
   return {
     sha: r.sha,
     localDate: dayOf(r.authorLocal),
-    author: displayPerson({ name: clean(raw.name), email: clean(raw.email) }) + (recorded ? ` (as recorded: ${displayPerson({ name: clean(raw.rawName), email: clean(raw.rawEmail) })})` : ""),
+    author: displayPerson({ name: clean(raw.name), email: "" }) + (recorded ? ` (as recorded: ${displayPerson({ name: clean(raw.rawName), email: "" })})` : ""),
     reviewer: clean(reviewer),
     status,
     satisfies,
     basis: clean([basis, note].filter(Boolean).join("; ")),
     subject: clean(r.subject),
     authorName: clean(raw.name),
-    authorEmail: clean(raw.email),
     rawAuthorName: clean(raw.rawName),
-    rawAuthorEmail: clean(raw.rawEmail),
     committerDate: r.committerDate.toISOString(),
   };
 }
@@ -375,9 +384,7 @@ export function renderReviews(outcome: ReviewsOutcome, format: ReviewsOptions["f
       basis: row.basis,
       subject: row.subject,
       author_name: row.authorName,
-      author_email: row.authorEmail,
       raw_author_name: row.rawAuthorName,
-      raw_author_email: row.rawAuthorEmail,
       committer_date: row.committerDate,
     }));
     return `${JSON.stringify({ computed: true, window: r.window, paths: r.paths, convention: r.convention, summary: r.summary, rows, outOfScope: r.outOfScope }, null, 2)}\n`;
