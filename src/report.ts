@@ -52,7 +52,7 @@ export const hashOf = (params: unknown, repositories: unknown): string =>
  * noreply login, and without --emails no author given as an email address.
  */
 function publicParams(params: Params): Params {
-  const { fingerprintKey: _key, ...rest } = params;
+  const { fingerprintKey: _key, identityKeys: _keys, ...rest } = params;
   if (!rest.author) return rest;
   return { ...rest, author: rest.author.map((a) => (a.includes("@") ? (params.emails ? publicEmail(a) : "(email hidden)") : a)) };
 }

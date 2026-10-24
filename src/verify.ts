@@ -64,7 +64,10 @@ export async function verifyReport(report: Report, repoDirs: string[], opts: { f
     // runs to a fixed point (mergeSplits).
     const shownAddresses = expected.identity.emails.length > 0 && !expected.identity.emails.includes(NOREPLY_PLACEHOLDER);
     const author = shownAddresses ? expected.identity.emails : expected.identity.names;
-    const actual = await analyseRepo(dir, { ...report.params, author, ...(key ? { fingerprintKey: key } : {}) });
+    // A report that carries keyed address hashes is verified against exactly those addresses
+    // (needs the key); an older report has none and resolves as above.
+    const identityKeys = key && expected.identity.keys?.length ? { identityKeys: expected.identity.keys } : {};
+    const actual = await analyseRepo(dir, { ...report.params, author, ...(key ? { fingerprintKey: key } : {}), ...identityKeys });
     for (const f of expected.figures) {
       const a = actual.figures.find((x) => x.id === f.id);
       const e = show(f.value);

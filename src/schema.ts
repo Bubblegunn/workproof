@@ -34,6 +34,7 @@ function checkRepository(problems: Problem[], path: string, r: unknown): void {
     expect(problems, `${path}.identity.emails`, Array.isArray(id.emails), "array");
     expect(problems, `${path}.identity.names`, Array.isArray(id.names), "array");
     expect(problems, `${path}.identity.count`, typeof id.count === "number", "number");
+    if (id.keys !== undefined) expect(problems, `${path}.identity.keys`, Array.isArray(id.keys) && (id.keys as unknown[]).every((k) => typeof k === "string" && hex(64).test(k)), "array of 64 hex strings");
     if (id.merged !== undefined && expect(problems, `${path}.identity.merged`, isObject(id.merged), "object")) {
       const merged = id.merged as Record<string, unknown>;
       expect(problems, `${path}.identity.merged.count`, typeof merged.count === "number", "number");

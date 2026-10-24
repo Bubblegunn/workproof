@@ -5,11 +5,12 @@ import { access } from "node:fs/promises";
 import { join } from "node:path";
 import { listCommits, listTags, rootCommit, headSha, remoteUrl, assertRepository, assertNotShallow, gitVersion, checkAttr, listHeadFiles } from "./git.js";
 import type { Commit } from "./git.js";
+import type { Identity } from "./figures/types.js";
 import { isBot, excludedSet } from "./exclusions.js";
 // surviving-lines ships plain ESM JavaScript without type declarations.
 // @ts-ignore
 import { globToRegExp } from "surviving-lines/bin/surviving-lines.js";
-import { resolveIdentity, possibleSplits, mergeSplits, isMine, SPLIT_HINT } from "./figures/identity.js";
+import { resolveIdentity, foldIdentity, possibleSplits, mergeSplits, isMine, SPLIT_HINT } from "./figures/identity.js";
 import { tenure, commitShare } from "./figures/commits.js";
 import { cadence } from "./figures/cadence.js";
 import { footprint, testsAndDocs } from "./figures/footprint.js";
@@ -41,6 +42,12 @@ export interface Params {
   ignoreRevsFile?: string;
   /** Key for the repository fingerprint; generated per report when absent. */
   fingerprintKey?: string;
+  /**
+   * Verifier only, never written to a report: the keyed hashes of the addresses the report
+   * counted (RepoReport identity.keys). With the fingerprint key they select exactly those
+   * addresses, however the report's author was chosen.
+   */
+  identityKeys?: string[];
   /**
    * Set to false only by --no-merge-identities. Without it, an identity taken from git config
    * absorbs the addresses that look like the same person (see mergeSplits). An explicit author
@@ -84,6 +91,12 @@ export interface RepoReport {
     emails: string[];
     names: string[];
     count: number;
+    /**
+     * One keyed hash per counted address (identityKey), so a verifier holding the fingerprint
+     * key can select the same addresses while the report carries none. Reports written before
+     * this field exist have no keys; verify then resolves by shown emails or names as before.
+     */
+    keys?: string[];
     /** Addresses here that look like the subject and were not counted as them. */
     possiblySplit?: { count?: number; hint?: string; names: string[]; emails?: string[]; reasons: string[] };
     /** Addresses merged into the identity by default, with the fixed categories that merged them. */
@@ -108,6 +121,14 @@ export const NOREPLY_PLACEHOLDER = "(github noreply)";
 export const publicEmail = (email: string): string => (NOREPLY.test(email) ? NOREPLY_PLACEHOLDER : email);
 
 /**
+ * HMAC-SHA256 under the fingerprint key of one address, folded as foldIdentity folds it, with
+ * a domain-separation prefix so it can never equal a repository fingerprint. Without the key
+ * the value cannot be tested against a guessed address.
+ */
+export const identityKey = (key: string, email: string): string =>
+  createHmac("sha256", Buffer.from(key, "hex")).update(`workproof-identity\n${foldIdentity(email)}`).digest("hex");
+
+/**
  * Identifies a repository without naming it. Keyed: HMAC-SHA256 under a per-report key of
  * the root commit and the normalised remote, so a reader cannot look a public repository
  * up from its fingerprint. Unkeyed (no key given): plain sha256, kept for callers that
@@ -128,6 +149,20 @@ const survivingVersion = (): string => {
     return "unknown";
   }
 };
+
+/** The identity made of every address whose keyed hash is listed, or undefined when none is. */
+function identityByKeys(commits: Commit[], keys: string[], key: string): Identity | undefined {
+  const wanted = new Set(keys);
+  const emails = new Set<string>();
+  const names = new Set<string>();
+  for (const c of commits) {
+    if (wanted.has(identityKey(key, c.email))) {
+      emails.add(c.email);
+      names.add(c.name);
+    }
+  }
+  return emails.size ? { emails: [...emails].sort(), names: [...names].sort() } : undefined;
+}
 
 async function ignoreRevsFor(cwd: string, params: Params): Promise<string | null> {
   if (params.ignoreRevsFile) return params.ignoreRevsFile;
@@ -166,11 +201,14 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
   say(`${basename(cwd)}: ${everything.length.toLocaleString("en-US")} commits read`);
   const ex = await applyExclusions(cwd, everything, params);
   const all = ex.commits;
-  const configured = await resolveIdentity(all, params.author, cwd);
+  // A verifier holding the key selects the addresses the report counted by their keyed hashes,
+  // exactly, whatever way the report's author was chosen. Without a match it resolves as before.
+  const keyed = params.identityKeys?.length ? identityByKeys(all, params.identityKeys, key) : undefined;
+  const configured = keyed ?? (await resolveIdentity(all, params.author, cwd));
   // Before any figure is computed. Without --author the identity is whatever git config says,
   // which is one address of a person who may have several, so the addresses that look like the
   // same person are merged in by default. An explicit --author is exact and merges nothing.
-  const explicit = !!(params.author && params.author.length);
+  const explicit = !!keyed || !!(params.author && params.author.length);
   const { identity: id, merged } = !explicit && params.mergeIdentities !== false ? mergeSplits(all, configured) : { identity: configured, merged: undefined };
   if (merged) hooks.merged?.({ repo: basename(cwd), emails: merged.emails, reasons: merged.reasons });
   // Whatever is still a possible split after the merge (none when merging is on, and every
@@ -267,6 +305,7 @@ export async function analyseRepo(cwd: string, params: Params, hooks: AnalyseHoo
       emails: params.emails ? [...new Set(id.emails.map(publicEmail))] : [],
       names: id.names,
       count: id.emails.length,
+      keys: [...new Set(id.emails.map((e) => identityKey(key, e)))].sort(),
       // The addresses are recorded only with --emails, as publicEmail forms, so the basis sentence can list them.
       ...(merged ? { merged: { count: merged.emails.length, reasons: merged.reasons, ...(params.emails ? { emails: merged.emails.map(publicEmail) } : {}) } } : {}),
       ...(splits.length
