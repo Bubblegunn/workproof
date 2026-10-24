@@ -26,7 +26,7 @@ export interface Turn {
   prompt?: string;
   /** The files the turn wrote with the Write tool, in order: the path and the content. */
   writes?: { file: string; content: string }[];
-  /** The text of every tool result of the turn, whatever the tool. */
+  /** The text of every tool result in the transcript tail (not only this turn), whatever the tool. */
   outputs?: string[];
 }
 
@@ -111,6 +111,10 @@ export function parseTurn(jsonl: string): Turn {
   const runs: Run[] = [];
   const writes: { file: string; content: string }[] = [];
   const outputs: string[] = [];
+  for (const l of lines) {
+    if (l.type !== "user") continue;
+    for (const b of blocksOf(l)) if (b.type === "tool_result") outputs.push(resultText(b));
+  }
   let finalText = "";
   for (const l of lines.slice(start)) {
     if (l.type === "assistant") {
@@ -127,7 +131,6 @@ export function parseTurn(jsonl: string): Turn {
     } else if (l.type === "user") {
       for (const b of blocksOf(l)) {
         if (b.type !== "tool_result" || typeof b.tool_use_id !== "string") continue;
-        outputs.push(resultText(b));
         const command = commands.get(b.tool_use_id);
         if (command !== undefined) runs.push({ command, output: resultText(b) });
       }

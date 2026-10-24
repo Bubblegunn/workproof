@@ -4,35 +4,51 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { promisify } from "node:util";
 import { computeFigures, readBack } from "./figures.js";
-import type { DocHit, FigureRow, FiguresOptions } from "./figures.js";
+import type { DocHit, FigureRow, FiguresOptions, FiguresResult } from "./figures.js";
 import type { Turn } from "./stopcheck.js";
 
 /**
- * The answer check of the Stop hook. It compares the numbers and dates a final answer (and any file the turn wrote)
- * states about the repository with `workproof figures`, and blocks only on a near miss: a figure that differs from
- * the computed one by a small margin, with no matching figure and nothing in the sourced text that says it.
- * Precision over recall: whenever a check is unsure it allows.
+ * The answer check of the Stop hook. It compares the commit counts and first/last commit dates that a final answer
+ * (and any file the turn wrote) states about the repository with `workproof figures`, and blocks only on a near miss:
+ * a claimed count that is one figure away (or two for a figure of ten or more, or 2% of it), with a claim context in
+ * the same sentence, no matching figure, and no such number in the sourced text. Precision over recall: when unsure, allow.
  */
 
 export const ANSWER_PREFIX = "Before you finish: a number or date in your answer differs slightly from the repository's own figures.";
-/** Repositories with more commits than this are not checked (the figures would take too long). */
+/** Repositories with more commits than this are not checked. */
 export const MAX_COMMITS = 20000;
 const BUDGET_MS = 6000;
 const GIT_TIMEOUT_MS = 2000;
 const MAX_FINDINGS = 3;
+/** The configured address plus the top two authors. */
+const MAX_IDENTITIES = 3;
 const DAY_MS = 86400000;
-const PROMPT_TRIGGER = /\b(commits?|git history|history of|repo(sitory)?|contribution|promotion|visa|invoice|timesheet|candidate|audit(or)?|statement|evidence|performance review|self-review)\b/i;
+const PROMPT_TRIGGER = /\b(commits?|contributions?|promotion|visa|invoice|timesheet|candidate|performance review|self-review|git history)\b/i;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 const MONTH_RE = `(${MONTHS.join("|")})`;
-/** The nouns the check reads: commits, merge commits, authors and lines. */
-const COUNT_NOUNS = new Set(["commit", "commits", "merge commit", "merge commits", "author", "authors", "line", "lines"]);
+/** The nouns the check reads: commits and merges. */
+const COUNT_NOUNS = new Set(["commit", "commits", "merge", "merges", "merge commit", "merge commits"]);
+/** A number as a count: digits with thousands groups, or plain digits. "3,4,5" is three numbers. */
+const NUMBER_TOKEN = /\d{1,3}(?:,\d{3})+|\d+/g;
+/** A claim context: "I" in capitals, or one of the claim words, somewhere in the same sentence. */
+const CLAIM_CONTEXT = [/\bI\b/, /\b(?:my|we|our|authored|contributed|made|wrote|delivered|committed|has|have|had|total)\b/i];
+/** A sentence about squashing, rebasing, cherry-picking, reverts or pull requests does not state the author's count. */
+const NOT_A_CLAIM = /\b(?:squash\w*|rebase\w*|cherry\w*|revert of|pull requests?)\b|\bPRs?\b/i;
+/** A number directly after one of these is a selection ("the last 8 commits"), not a total. */
+const QUALIFIER_BEFORE = /\b(?:last|past|previous|recent|latest|first|top|only)\s*$/i;
+const DATE_PHRASE = /\b(first|last|earliest|latest|most recent)\s+(?:authored\s+)?(?:commit|activity|contribution)\b/gi;
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+export type FiguresFn = (opts: FiguresOptions) => Promise<FiguresResult>;
 
 export interface AnswerOptions {
   /** Total time for the whole check; on expiry the check allows. */
   budgetMs?: number;
   /** The commit count above which the check is skipped. */
   maxCommits?: number;
+  /** The figures computation (a seam for tests). */
+  figures?: FiguresFn;
 }
 
 export interface Window {
@@ -48,24 +64,26 @@ interface Checked {
 /** A valid calendar date as YYYY-MM-DD, or null. */
 function isoOf(y: number, m: number, d: number): string | null {
   if (m < 1 || m > 12 || d < 1) return null;
-  const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  if (d > last) return null;
+  if (d > lastDay(y, m)) return null;
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-/** The window from the first day of month `from` to the last day of month `to` in one year. */
+const lastDay = (y: number, m: number): number => new Date(Date.UTC(y, m, 0)).getUTCDate();
+
+/** The window from the first day of month `from` to the last day of month `to` in one year, or null. */
 function span(year: number, from: number, to: number): Window | null {
   const since = isoOf(year, from, 1);
-  const until = isoOf(year, to, new Date(Date.UTC(year, to, 0)).getUTCDate());
+  const until = isoOf(year, to, lastDay(year, to));
   return since && until && from <= to ? { since, until } : null;
 }
 
 const monthNumber = (name: string): number => MONTHS.indexOf(name.toLowerCase()) + 1;
 
 /**
- * The date window a prompt states, or null. Forms: two explicit dates (the earliest and the latest are used),
- * Q1..Q4 YYYY, H1/H2 YYYY, first/second half of YYYY, Month to Month YYYY (the whole last month included),
- * in/during YYYY, and a lone YYYY. Anything else, including a single explicit date, is null.
+ * The date window a prompt states, or null. Two explicit dates are a range (the earliest and the latest). Otherwise the
+ * windows of Q1..Q4 YYYY, H1/H2 YYYY, first/second half of YYYY, and Month to Month YYYY (across years too) are collected:
+ * all the same window is used, several quarters are the earliest start to the latest end, and any other mix is null.
+ * A lone year (in, during, or bare YYYY) is used only when no other form matched. Anything else is null.
  */
 export function windowFromPrompt(prompt: string): Window | null {
   const text = prompt.normalize("NFKC");
@@ -82,28 +100,45 @@ export function windowFromPrompt(prompt: string): Window | null {
     const d = isoOf(Number(m[3]), monthNumber(m[1]!), Number(m[2]));
     if (d) dates.push(d);
   }
-  if (dates.length >= 2) {
+  if (dates.length) {
+    if (dates.length !== 2) return null;
     dates.sort();
-    return { since: dates[0]!, until: dates[dates.length - 1]! };
+    return { since: dates[0]!, until: dates[1]! };
   }
-  if (dates.length === 1) return null;
-  const quarter = /\bQ([1-4])\s+(\d{4})\b/i.exec(text);
-  if (quarter) {
-    const q = Number(quarter[1]);
-    return span(Number(quarter[2]), 3 * q - 2, 3 * q);
+  const found: { kind: "quarter" | "other"; w: Window }[] = [];
+  const add = (kind: "quarter" | "other", w: Window | null) => {
+    if (w) found.push({ kind, w });
+  };
+  for (const m of text.matchAll(/\bQ([1-4])\s+(\d{4})\b/gi)) {
+    const q = Number(m[1]);
+    add("quarter", span(Number(m[2]), 3 * q - 2, 3 * q));
   }
-  const half = /\bH([12])\s+(\d{4})\b/i.exec(text) ?? /\b(first|second)\s+half\s+(?:of\s+)?(\d{4})\b/i.exec(text);
-  if (half) {
-    const first = half[1]!.toLowerCase() === "1" || half[1]!.toLowerCase() === "first";
-    return span(Number(half[2]), first ? 1 : 7, first ? 6 : 12);
+  for (const m of text.matchAll(/\bH([12])\s+(\d{4})\b/gi)) {
+    const first = m[1] === "1";
+    add("other", span(Number(m[2]), first ? 1 : 7, first ? 6 : 12));
   }
-  const monthToMonth = new RegExp(`\\b${MONTH_RE}\\s+to\\s+${MONTH_RE}\\s+(\\d{4})\\b`, "i").exec(text);
-  if (monthToMonth) return span(Number(monthToMonth[3]), monthNumber(monthToMonth[1]!), monthNumber(monthToMonth[2]!));
-  const inYear = /\b(?:in|during)\s+((?:19|20)\d{2})\b/i.exec(text);
-  if (inYear) return span(Number(inYear[1]), 1, 12);
+  for (const m of text.matchAll(/\b(first|second)\s+half\s+(?:of\s+)?(\d{4})\b/gi)) {
+    const first = m[1]!.toLowerCase() === "first";
+    add("other", span(Number(m[2]), first ? 1 : 7, first ? 6 : 12));
+  }
+  for (const m of text.matchAll(new RegExp(`\\b${MONTH_RE}\\s+(\\d{4})\\s+to\\s+${MONTH_RE}\\s+(\\d{4})\\b`, "gi"))) {
+    const since = isoOf(Number(m[2]), monthNumber(m[1]!), 1);
+    const until = isoOf(Number(m[4]), monthNumber(m[3]!), lastDay(Number(m[4]), monthNumber(m[3]!)));
+    add("other", since && until && since <= until ? { since, until } : null);
+  }
+  for (const m of text.matchAll(new RegExp(`\\b${MONTH_RE}\\s+to\\s+${MONTH_RE}\\s+(\\d{4})\\b`, "gi"))) {
+    add("other", span(Number(m[3]), monthNumber(m[1]!), monthNumber(m[2]!)));
+  }
+  if (found.length) {
+    const first = found[0]!.w;
+    if (found.every((f) => f.w.since === first.since && f.w.until === first.until)) return first;
+    if (found.every((f) => f.kind === "quarter")) {
+      return { since: found.map((f) => f.w.since).sort()[0]!, until: found.map((f) => f.w.until).sort().at(-1)! };
+    }
+    return null;
+  }
   const years = new Set([...text.matchAll(/\b(?:19|20)\d{2}\b/g)].map((m) => m[0]));
-  if (years.size === 1) return span(Number([...years][0]), 1, 12);
-  return null;
+  return years.size === 1 ? span(Number([...years][0]), 1, 12) : null;
 }
 
 /** Runs read-only git and returns its stdout, or null on any failure or after the git timeout. */
@@ -121,7 +156,7 @@ async function git(args: string[], cwd: string): Promise<string | null> {
   }
 }
 
-/** The configured address and the three most frequent author addresses, lowercase and de-duplicated. */
+/** The configured address and the top two author addresses by commit count, lowercase and de-duplicated. */
 async function identitiesOf(cwd: string): Promise<string[]> {
   const configured = ((await git(["config", "--get", "user.email"], cwd)) ?? "").trim().toLowerCase();
   const counted = ((await git(["shortlog", "-sne", "HEAD"], cwd)) ?? "")
@@ -130,46 +165,55 @@ async function identitiesOf(cwd: string): Promise<string[]> {
     .filter((m): m is RegExpExecArray => m !== null)
     .map((m) => ({ count: Number(m[1]), email: m[2]!.trim().toLowerCase() }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 3)
+    .slice(0, MAX_IDENTITIES - 1)
     .map((c) => c.email);
-  return [...new Set([configured, ...counted])].filter((e) => e.includes("@"));
+  return [...new Set([configured, ...counted])].filter((e) => e.includes("@")).slice(0, MAX_IDENTITIES);
 }
 
-/** Every figure of every (identity, window) pair. Windows are none plus the one the prompt states, if any. */
-async function computeAll(cwd: string, identities: string[], windows: (Window | null)[]): Promise<FigureRow[]> {
+/**
+ * Every computed figure of every (identity, window) pair. The deadline is checked before each computation: once it has
+ * passed, no new computation starts and the result is null (incomplete), so the check allows.
+ */
+export async function computeAll(
+  cwd: string,
+  identities: string[],
+  windows: (Window | null)[],
+  deadline: number,
+  figures: FiguresFn = computeFigures,
+): Promise<FigureRow[] | null> {
   const rows: FigureRow[] = [];
   for (const email of identities) {
     for (const w of windows) {
+      if (Date.now() >= deadline) return null;
       const opts: FiguresOptions = { repo: cwd, authors: [email], json: false };
       if (w) {
         opts.since = w.since;
         opts.until = w.until;
       }
-      rows.push(...(await computeFigures(opts)).rows);
+      rows.push(...(await figures(opts)).rows);
     }
   }
   return rows.filter((r) => r.computed);
 }
 
-/** Every integer digit run of the sourced text, commas removed. */
-function numbersIn(text: string): Set<number> {
-  return new Set([...text.matchAll(/\d[\d,]*/g)].map((m) => Number(m[0].replace(/,/g, ""))));
+/** Every number of a text as its value, thousands groups read as one number. */
+function numberSpans(text: string): { value: number; index: number }[] {
+  return [...text.matchAll(NUMBER_TOKEN)].map((m) => ({ value: Number(m[0].replace(/,/g, "")), index: m.index ?? 0 }));
 }
 
 /** The figure rows that a noun of the answer may be compared with. */
 function classRows(noun: string, label: string): boolean {
   const n = noun.toLowerCase().replace(/s$/, "");
-  if (n === "merge commit") return label.startsWith("merge commits");
+  if (n === "merge" || n === "merge commit") return label.startsWith("merge commits");
   if (n === "commit") return label.startsWith("authored non-merge commits") || label === "all authors, non-merge commits";
-  if (n === "author") return label === "distinct authors";
-  if (n === "line") return label.startsWith("lines added") || label.startsWith("lines deleted");
   return false;
 }
 
-/** A near miss: the claimed N differs from the figure F by at least 1 and at most max(2, ceil(0.1 F)). */
-const nearMiss = (n: number, f: number): boolean => {
+/** A near miss: the claimed N differs from the figure F by at most 1 when F < 10, and by at most max(1, ceil(0.02 F)) otherwise. */
+export const nearMiss = (n: number, f: number): boolean => {
   const d = Math.abs(n - f);
-  return d >= 1 && d <= Math.max(2, Math.ceil(0.1 * f));
+  const band = f < 10 ? 1 : Math.max(1, Math.ceil(0.02 * f));
+  return d >= 1 && d <= band;
 };
 
 const shorten = (s: string, max: number): string => (s.length > max ? `${s.slice(0, max - 3)}...` : s);
@@ -179,20 +223,34 @@ function message(excerpt: string, where: string, row: FigureRow, claimed: number
   return `The answer says "${shorten(excerpt, 80)}" (${where}) but workproof figures prints ${figure} for "${row.label}" (${shorten(row.filter, 120)}). Run \`npx workproof figures --author <the person> [--since --until]\` and use the printed figure with its label, or say which different filter gives ${claimed}.`;
 }
 
-/** The count findings of one readBack hit, or null. */
-function countFinding(hit: DocHit, rows: FigureRow[], sourced: Set<number>, outputCounts: Set<number>): FigureRow | null {
+/** The sentence of a text line that holds the hit's number, or null. */
+function sentenceOf(text: string, hit: DocHit): string | null {
+  const line = text.split(/\r?\n/)[hit.line - 1] ?? "";
+  for (const s of line.split(/(?<=[.!?])\s+/)) {
+    if (numberSpans(s).some((n) => n.value === hit.integer)) return s;
+  }
+  return null;
+}
+
+/** The count finding of one readBack hit, as the figure row it is compared with, or null. */
+function countFinding(hit: DocHit, text: string, rows: FigureRow[], sourced: Set<number>, outputCounts: Set<number>): FigureRow | null {
   if (!COUNT_NOUNS.has(hit.noun.toLowerCase())) return null;
   if (hit.labels.length) return null;
   if (sourced.has(hit.integer) || outputCounts.has(hit.integer)) return null;
-  const near = rows.filter((r) => typeof r.value === "number" && classRows(hit.noun, r.label) && nearMiss(hit.integer, r.value));
-  return near[0] ?? null;
+  const sentence = sentenceOf(text, hit);
+  if (!sentence || !CLAIM_CONTEXT.some((re) => re.test(sentence)) || NOT_A_CLAIM.test(sentence)) return null;
+  const at = numberSpans(sentence).find((n) => n.value === hit.integer)?.index ?? 0;
+  if (QUALIFIER_BEFORE.test(sentence.slice(0, at))) return null;
+  return rows.find((r) => typeof r.value === "number" && classRows(hit.noun, r.label) && nearMiss(hit.integer, r.value)) ?? null;
 }
 
-const DATE_PHRASE = /\b(first|earliest|last|latest|most recent)(?: authored)?(?: (?:commit|activity|contribution))?\b/gi;
-const ISO = /^\d{4}-\d{2}-\d{2}$/;
 const dayCount = (a: string, b: string): number => Math.abs(Date.parse(`${a}T00:00:00Z`) - Date.parse(`${b}T00:00:00Z`)) / DAY_MS;
 
-/** The date findings of one text: an ISO date after a first/last phrase, one to seven days from a computed date of that kind. */
+/**
+ * The date findings of one text: "first/last (authored) commit|activity|contribution" followed within 40 characters, in
+ * the same sentence, by an ISO date that is one to seven days from a computed date of that kind, is none of the computed
+ * dates, and is not in the sourced text.
+ */
 function dateFindings(text: string, where: string, rows: FigureRow[], sourcedText: string): string[] {
   const firsts = rows.filter((r) => r.label === "first authored commit date" && typeof r.value === "string" && ISO.test(r.value));
   const lasts = rows.filter((r) => r.label === "last authored commit date" && typeof r.value === "string" && ISO.test(r.value));
@@ -202,17 +260,19 @@ function dateFindings(text: string, where: string, rows: FigureRow[], sourcedTex
     for (const m of line.matchAll(DATE_PHRASE)) {
       const start = m.index ?? 0;
       const from = start + m[0].length;
-      const rest = line.slice(from, from + 80);
+      const rest = line.slice(from, from + 40);
       const cut = rest.search(/[.;!?](?:\s|$)/);
       const scope = cut >= 0 ? rest.slice(0, cut) : rest;
-      const first = /^(first|earliest)$/i.test(m[1]!);
-      const same = first ? firsts : lasts;
+      const same = /^(first|earliest)$/i.test(m[1]!) ? firsts : lasts;
       for (const dm of scope.matchAll(/\b\d{4}-\d{2}-\d{2}\b/g)) {
         const date = dm[0];
         const [y, mo, d] = date.split("-").map(Number);
         if (!isoOf(y!, mo!, d!) || all.has(date) || sourcedText.includes(date)) continue;
         let nearest: FigureRow | null = null;
-        for (const r of same) if (dayCount(r.value as string, date) <= 7 && (!nearest || dayCount(r.value as string, date) < dayCount(nearest.value as string, date))) nearest = r;
+        for (const r of same) {
+          const gap = dayCount(r.value as string, date);
+          if (gap <= 7 && (!nearest || gap < dayCount(nearest.value as string, date))) nearest = r;
+        }
         if (!nearest) continue;
         const excerpt = line.slice(start, from + (dm.index ?? 0) + date.length);
         out.push(message(excerpt, where, nearest, date));
@@ -222,7 +282,7 @@ function dateFindings(text: string, where: string, rows: FigureRow[], sourcedTex
   return out;
 }
 
-async function check(turn: Turn, cwd: string, opts: AnswerOptions): Promise<string | null> {
+async function check(turn: Turn, cwd: string, opts: AnswerOptions, deadline: number): Promise<string | null> {
   const prompt = turn.prompt ?? "";
   if (!turn.finalText.trim()) return null;
   if (!turn.runs.length && !PROMPT_TRIGGER.test(prompt)) return null;
@@ -237,10 +297,11 @@ async function check(turn: Turn, cwd: string, opts: AnswerOptions): Promise<stri
   const identities = await identitiesOf(cwd);
   if (!identities.length) return null;
   const stated = windowFromPrompt(prompt);
-  const rows = await computeAll(cwd, identities, [null, ...(stated ? [stated] : [])]);
+  const rows = await computeAll(cwd, identities, [null, ...(stated ? [stated] : [])], deadline, opts.figures);
+  if (rows === null) return null;
   const outputs = turn.outputs ?? [];
   const sourcedText = [prompt, ...outputs].join("\n");
-  const sourced = numbersIn(sourcedText);
+  const sourced = new Set(numberSpans(sourcedText).map((n) => n.value));
   const outputCounts = new Set(outputs.map((o) => o.split("\n").filter((l) => l.trim()).length));
   const findings: string[] = [];
   const dir = await mkdtemp(join(tmpdir(), "workproof-answer-"));
@@ -250,7 +311,7 @@ async function check(turn: Turn, cwd: string, opts: AnswerOptions): Promise<stri
       await writeFile(file, t.text, "utf8");
       const doc = await readBack(file, rows);
       for (const hit of doc.hits) {
-        const row = countFinding(hit, rows, sourced, outputCounts);
+        const row = countFinding(hit, t.text, rows, sourced, outputCounts);
         if (row) findings.push(message(hit.excerpt, t.where, row, hit.integer));
       }
       findings.push(...dateFindings(t.text, t.where, rows, sourcedText));
@@ -268,12 +329,14 @@ async function check(turn: Turn, cwd: string, opts: AnswerOptions): Promise<stri
  * Read-only: git and the figures computation only; the text is written to a temporary file that is removed.
  */
 export async function answerReason(turn: Turn, cwd: string, opts: AnswerOptions = {}): Promise<string | null> {
+  const budget = opts.budgetMs ?? BUDGET_MS;
+  const deadline = Date.now() + budget;
   let timer: ReturnType<typeof setTimeout> | undefined;
   const expired = new Promise<null>((resolve) => {
-    timer = setTimeout(() => resolve(null), opts.budgetMs ?? BUDGET_MS);
+    timer = setTimeout(() => resolve(null), budget);
   });
   try {
-    return await Promise.race([check(turn, cwd, opts).catch(() => null), expired]);
+    return await Promise.race([check(turn, cwd, opts, deadline).catch(() => null), expired]);
   } finally {
     clearTimeout(timer);
   }
