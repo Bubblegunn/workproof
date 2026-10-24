@@ -209,7 +209,7 @@ snapshot files are removed before any of them is computed (see Gaming and bias).
 | Co-authored commits | other people's commits naming the author in a `Co-authored-by` trailer | trailers are written by the merger and can be absent or wrong |
 | Absence factor | the smallest set of authors covering half the commits (CHAOSS), and the author's rank | several unmerged emails count as several people |
 | AI-assisted commits | author commits whose trailers or name declare Claude, Cursor, Copilot, Codex, Gemini, ChatGPT, Aider, Devin or Windsurf | a missing trailer is not evidence of unassisted work |
-| Surviving lines | share of lines alive at HEAD, one `git blame -w -M` pass over a deterministic file sample, honouring `.git-blame-ignore-revs` | merit; code deleted on purpose counts for nobody |
+| Surviving lines | share of lines alive at HEAD, one `git blame -w -M` pass over a deterministic file sample, honouring `.git-blame-ignore-revs`; the file list is the text files `git diff --numstat` reports at HEAD (binary files and submodules skipped, an empty file counts as a file with 0 lines, a symbolic link as one line) | merit; code deleted on purpose counts for nobody; a count made from `git grep -I` or `git ls-files` differs by exactly those files |
 | Survival by cohort | the author's surviving lines by the year of the commit that last touched them | newer cohorts have had less time to die |
 
 ## How verification works

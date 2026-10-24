@@ -262,7 +262,7 @@ kilit ve snapshot dosyaları hiçbir figür hesaplanmadan önce çıkarılır (b
 | Ortak yazarlı commit'ler | başkalarının `Co-authored-by` satırında yazarı andığı commit'ler | bu satırları merge eden yazar; eksik ya da yanlış olabilir |
 | Yokluk faktörü | commit'lerin yarısını kapsayan en küçük yazar kümesi (CHAOSS) ve yazarın sırası | birleştirilmemiş birden çok e-posta birden çok kişi sayılır |
 | Yapay zeka destekli commit'ler | satırlarında ya da adında Claude, Cursor, Copilot, Codex, Gemini, ChatGPT, Aider, Devin ya da Windsurf beyan eden yazar commit'leri | eksik bir beyan, yardımsız yazıldığının kanıtı değildir |
-| Hayatta kalan satırlar | HEAD'de yaşayan satırların payı; deterministik dosya örneği üzerinde tek `git blame -w -M` geçişi, `.git-blame-ignore-revs` dikkate alınır | liyakat; bilerek silinen kod kimseye sayılmaz |
+| Hayatta kalan satırlar | HEAD'de yaşayan satırların payı; deterministik dosya örneği üzerinde tek `git blame -w -M` geçişi, `.git-blame-ignore-revs` dikkate alınır; dosya listesi HEAD'de `git diff --numstat`'ın metin saydığı dosyalardır (ikili dosyalar ve alt modüller atlanır, boş dosya 0 satırlı bir dosya, sembolik bağ bir satır sayılır) | liyakat; bilerek silinen kod kimseye sayılmaz; `git grep -I` veya `git ls-files` ile yapılan sayım tam olarak bu dosyalar kadar farklı çıkar |
 | Yıla göre hayatta kalma | yazarın hayatta kalan satırları, onlara son dokunan commit'in yılına göre | yeni yıllar ölmek için daha az zaman bulmuştur |
 
 ## Doğrulama nasıl çalışır

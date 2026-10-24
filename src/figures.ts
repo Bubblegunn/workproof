@@ -1,6 +1,6 @@
 import { open, stat } from "node:fs/promises";
 import { resolve } from "node:path";
-import { git, configuredEmail, wallClock } from "./git.js";
+import { git, configuredEmail, wallClock, instantOf } from "./git.js";
 import { foldIdentity, possibleSplits } from "./figures/identity.js";
 import { isBotIdentity } from "./figures/bot.js";
 
@@ -106,23 +106,28 @@ async function windowBound(value: string | undefined, kind: "since" | "until", c
   return { at: new Date(Number(m[1]) * 1000) };
 }
 
-async function readLog(cwd: string): Promise<LogCommit[]> {
+/** `unreadable` counts records git listed that could not be parsed; they are reported, never silently dropped. */
+async function readLog(cwd: string): Promise<{ commits: LogCommit[]; unreadable: number }> {
   const format = `--format=%H%x1f%aE%x1f%aN%x1f%aI%x1f%cE%x1f%cI%x1f%P%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%B`;
   // -z ends each commit with NUL, which git never allows inside a message, so a message holding RS or US cannot forge a record.
   const out = await git(["log", "-z", "--no-color", "HEAD", format], cwd);
   const commits: LogCommit[] = [];
+  let unreadable = 0;
   for (const block of out.split("\0")) {
     if (!block.trim()) continue;
     const [sha, email, name, aIso, cEmail, cIso, parents, trailers, ...bodyParts] = block.split(US);
-    if (!sha || !aIso || !cIso || !/^[0-9a-f]{40,64}$/.test(sha.trim()) || trailers === undefined) continue;
+    if (!sha || !aIso || !cIso || !/^[0-9a-f]{40,64}$/.test(sha.trim()) || trailers === undefined) {
+      unreadable++;
+      continue;
+    }
     const co = (trailers ?? "").split(GS).map((t) => t.trim()).filter(Boolean);
     commits.push({
       sha: sha.trim(),
       email: (email ?? "").toLowerCase(),
       name: name ?? "",
-      author: new Date(aIso),
+      author: instantOf(aIso),
       authorLocal: wallClock(aIso),
-      committer: new Date(cIso),
+      committer: instantOf(cIso),
       committerLocal: wallClock(cIso),
       committerEmail: (cEmail ?? "").toLowerCase(),
       parents: (parents ?? "").trim().split(" ").filter(Boolean).length,
@@ -131,7 +136,7 @@ async function readLog(cwd: string): Promise<LogCommit[]> {
       body: bodyParts.join(US).slice(0, 4000),
     });
   }
-  return commits;
+  return { commits, unreadable };
 }
 
 interface Numstat { sha: string; files: { path: string; added: number | null; deleted: number | null }[] }
@@ -195,10 +200,11 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
   const result = (): FiguresResult => ({ repo: data(cwd, 200), window: windowText, rows, candidates });
 
   let log: LogCommit[];
+  let unreadable = 0;
   let head = "";
   try {
     if (!(await stat(cwd).then((st) => st.isDirectory(), () => false))) throw new Error("fatal: the --repo path is not a directory");
-    log = await readLog(cwd);
+    ({ commits: log, unreadable } = await readLog(cwd));
     head = sha7((await git(["rev-parse", "HEAD"], cwd)).trim());
   } catch (err) {
     const reason = windowError || reasonOf(err);
@@ -308,7 +314,7 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
         // A pure rename or mode change has no changed line in either mode, so it is not whitespace-only.
         return changed.length > 0 && changed.every(zero) && changed.some((f) => (f.added ?? 0) + (f.deleted ?? 0) > 0);
       });
-      rows.push({ label: "whitespace-only commits", value: wsOnly.length, filter: `${who}; ${filter}; every file change is zero under git show -w --numstat`, computed: true, detail: wsOnly.slice(0, 5).map((s) => `${sha7(s)} "${data(log.find((c) => c.sha === s)!.body.split("\n")[0] ?? "", 60)}"`) });
+      rows.push({ label: "whitespace-only commits", value: wsOnly.length, filter: `${who}; ${filter}; every file change is zero under git show -w --numstat; a commit that changes a binary file is never counted, because -w cannot show that a binary change is only whitespace`, computed: true, detail: wsOnly.slice(0, 5).map((s) => `${sha7(s)} "${data(log.find((c) => c.sha === s)!.body.split("\n")[0] ?? "", 60)}"`) });
       const lineFilter = `${who}; non-merge commits; ${filter}; binary files not counted`;
       rows.push({ label: "lines added, raw", value: sum(raw, "added"), filter: lineFilter, computed: true });
       rows.push({ label: "lines deleted, raw", value: sum(raw, "deleted"), filter: lineFilter, computed: true });
@@ -345,6 +351,10 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
   idRow("committer date earlier than author date", `${who}; any date`, () => early.length, () => early.slice(0, 3).map((c) => `${sha7(c.sha)} author ${day(c.author)} committer ${day(c.committer)}`));
   const badDates = log.filter((c) => isMine(c) && (Number.isNaN(c.author.getTime()) || Number.isNaN(c.committer.getTime())));
   idRow("commits with an unparseable date", `${who}; any date; left out of every dated figure above`, () => badDates.length, () => badDates.slice(0, 3).map((c) => `${sha7(c.sha)}`));
+  // Not tied to an identity: records nobody could place in a window. Shown only when there are some, so no commit disappears unseen.
+  const undated = log.filter((c) => Number.isNaN(c.author.getTime()) || Number.isNaN(c.committer.getTime()));
+  const lost = unreadable + undated.length;
+  if (lost > 0) rows.push({ label: "records that could not be read", value: lost, filter: `every author; ${unreadable} log records git listed but this tool could not parse, ${undated.length} commits with a date it could not parse (left out of every windowed count)`, computed: true, detail: undated.slice(0, 3).map((c) => sha7(c.sha)) });
   let shallow = "";
   try {
     shallow = (await git(["rev-parse", "--is-shallow-repository"], cwd)).trim() === "true" ? "; shallow clone, older history is missing" : "";

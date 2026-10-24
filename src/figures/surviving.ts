@@ -27,14 +27,29 @@ export function blameFlags(copies: boolean, ignoreRevsFile: string | null): stri
 /** The empty tree's id under this repository's hash algorithm, without touching /dev/null. */
 export const emptyTreeId = async (cwd: string): Promise<string> => (await git(["hash-object", "-t", "tree", "--stdin"], cwd, "")).trim();
 
-/** Text files at HEAD with their line counts, in one git call; binaries come back as "-" and are skipped. */
+/** Paths at HEAD that are submodule entries (mode 160000): numstat lists them as one line, but they hold no file to blame. */
+async function submodulePaths(cwd: string): Promise<Set<string>> {
+  const out = await git(["ls-tree", "-r", "-z", "HEAD"], cwd);
+  const paths = new Set<string>();
+  for (const rec of out.split("\0")) {
+    const tab = rec.indexOf("\t");
+    if (tab > 0 && rec.startsWith("160000 ")) paths.add(rec.slice(tab + 1));
+  }
+  return paths;
+}
+
+/**
+ * Text files at HEAD with their line counts, in one git call; binaries come back as "-" and are skipped,
+ * and submodule entries are not files. An empty file is listed with 0 lines; a symbolic link is one line.
+ */
 export async function listTextFiles(cwd: string): Promise<{ path: string; lines: number }[]> {
   const out = await git(["diff", "--numstat", "-z", await emptyTreeId(cwd), "HEAD"], cwd);
+  const submodules = await submodulePaths(cwd);
   const files: { path: string; lines: number }[] = [];
   for (const rec of out.split("\0")) {
     if (!rec) continue;
     const [added, , path] = rec.split("\t");
-    if (added === "-" || path === undefined) continue;
+    if (added === "-" || path === undefined || submodules.has(path)) continue;
     files.push({ path, lines: Number(added) });
   }
   return files;
@@ -107,6 +122,7 @@ export async function survivingLines(cwd: string, id: Identity, opts: SurvivingO
     limits: [
       "Survivorship, not merit: code deleted on purpose counts for nobody.",
       "Whitespace and moved lines keep their original author; copied lines do not unless --copies is used.",
+      "Files counted are the ones git diff --numstat reports as text at HEAD: binary files and submodules are skipped, an empty file is a file with 0 lines, a symbolic link is one line. A count made with another file list (git grep -I, git ls-files, wc -l) can differ by exactly those files.",
       opts.ignoreRevsFile ? `Commits listed in ${opts.ignoreRevsFile} are skipped, so a reformat does not take the lines it touched.` : "A reformat commit takes every line it touched; list such commits in .git-blame-ignore-revs.",
     ],
   };

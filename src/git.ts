@@ -102,7 +102,7 @@ export async function listCommits(cwd: string, opts: { since?: string; until?: s
       sha: sha!,
       email: email!.toLowerCase(),
       name: name!,
-      date: new Date(iso!),
+      date: instantOf(iso!),
       localDate: wallClock(iso!),
       parents: parents ? parents.trim().split(" ").filter(Boolean).length : 0,
       files,
@@ -121,11 +121,27 @@ export async function listCommits(cwd: string, opts: { since?: string; until?: s
  * the author's own calendar.
  */
 export function wallClock(iso: string): Date {
-  const m = iso.match(/([+-])(\d{2}):?(\d{2})$/);
-  const instant = new Date(iso);
+  const m = iso.match(/([+-])(\d{2,}):?(\d{2})$/);
+  const instant = instantOf(iso);
   if (!m || /[Zz]$/.test(iso)) return instant;
   const minutes = (m[1] === "-" ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3]));
   return new Date(instant.getTime() + minutes * 60000);
+}
+
+/**
+ * The instant of a `%aI` / `%cI` value. Git stores any four-digit offset, so a commit can carry
+ * "+051800" and print it as 2011-09-08T02:38:50+518:00, which `new Date` rejects (psf/requests
+ * 5e6ecda). The wall clock minus the stated offset is the instant git itself uses; a value that is
+ * still unreadable gives an invalid Date, which callers must count rather than drop.
+ */
+export function instantOf(iso: string): Date {
+  const direct = new Date(iso);
+  if (!Number.isNaN(direct.getTime())) return direct;
+  const m = iso.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})([+-])(\d{2,}):?(\d{2})$/);
+  if (!m) return direct;
+  const wall = new Date(`${m[1]}Z`).getTime();
+  const minutes = (m[2] === "-" ? -1 : 1) * (Number(m[3]) * 60 + Number(m[4]));
+  return new Date(wall - minutes * 60000);
 }
 
 export interface Tag { name: string; date: Date; email: string }
@@ -137,7 +153,7 @@ export async function listTags(cwd: string): Promise<Tag[]> {
     if (!line.trim()) continue;
     const [name, iso, tagger, tagged, direct] = line.split("\t");
     const email = (tagger || tagged || direct || "").replace(/^<|>$/g, "").toLowerCase();
-    tags.push({ name: name!, date: new Date(iso!), email });
+    tags.push({ name: name!, date: instantOf(iso!), email });
   }
   return tags.sort((a, b) => a.date.getTime() - b.date.getTime());
 }
