@@ -1,0 +1,5 @@
+# Round 15 multi-writer development gate (W4, W5, W6): result
+
+Protocol: `docs/HEAD-TO-HEAD.md`, "Round 15, phase 2" (commit 87e10e7, frozen before any cell ran). 234 cells (13 tasks x 6 arms x 3 runs), Sonnet, subscription wrapper, working folders under /private/tmp. OURS = product commit 68ea88c (`ours16-commit.txt` of the run). Five blind reason-first votes per packet; W5T2 needed three extra votes (new shuffles) because earlier votes were unreadable. `results.txt` is `r15/score-r15.py` output (outcome criteria; seed `r15-gate2`); `lead-check.txt` evaluates the frozen conditions.
+Raw transcripts are kept outside the repository (scratchpad of the controller session).
+Note for the next gate: `claude -p --output-format stream-json` shows only the SessionStart hook unless `--include-hook-events` is given. In a probe with that flag the UserPromptSubmit hint (with the prepared brief) and the Stop hook ran. The cell transcripts of this gate therefore cannot show whether the Stop check blocked.

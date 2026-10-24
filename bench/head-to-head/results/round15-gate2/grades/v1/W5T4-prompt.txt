@@ -1,0 +1,1575 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Our vendor Lumenworks sent their change-control evidence for the audit sample: incoming/change-log.csv lists seven changes with the approver, approval time and the commit that implemented each. Check every row against this repo and write findings.md saying which rows hold up and which don't, and why, in terms the audit committee can follow."
+Ground truth: CHG-2101 HOLDS | (commit 6d975cf author=Rafael Ostrowski author_utc=2025-08-04T09:00:00Z reviewers=['Hedda Brandvold'])
+CHG-2102 DOES_NOT_HOLD | APPROVED_AFTER_COMMIT(commit 2025-08-11T10:00:00Z, approval 2025-08-12T09:00:00Z, gap_min=1380); (commit b6b9ea3 author=Rafael Ostrowski author_utc=2025-08-11T10:00:00Z reviewers=['Hedda Brandvold'])
+CHG-2103 DOES_NOT_HOLD | SELF_APPROVAL(author==approver); (commit 6b929b3 author=Corrin Vasquez author_utc=2025-08-14T13:30:00Z reviewers=['Corrin Vasquez'])
+CHG-2104 DOES_NOT_HOLD | COMMIT_CITES_CHG-2140_NOT_CHG-2104; (commit 81b703f author=Rafael Ostrowski author_utc=2025-08-19T15:00:00Z reviewers=['Hedda Brandvold'])
+CHG-2105 DOES_NOT_HOLD | LATER_COMMIT_SAME_TICKET 233096b 2025-09-09T11:00:00Z reviewed_by=[] not_in_log=True; (commit 1a56185 author=Rafael Ostrowski author_utc=2025-09-02T14:00:00Z reviewers=['Hedda Brandvold'])
+CHG-2106 DOES_NOT_HOLD | LISTED_COMMIT_NOT_IN_REPO; same-ticket commit 8fa3486 authored 2025-09-16T11:00:00Z committed 2025-09-19T08:00:00Z (approval 2025-09-15T10:00:00Z; committed_after_approval=True)
+CHG-2107 DOES_NOT_HOLD | APPROVED_AFTER_COMMIT(commit 2025-09-12T23:10:00Z, approval 2025-09-12T23:30:00Z, gap_min=20); (commit 2dab3d6 author=Rafael Ostrowski author_utc=2025-09-12T23:10:00Z reviewers=['Sunil Pathak'])
+rows_fully_holding = 1 of 7
+Hazards: approval recorded after the commit (by a day); author and approver are the same person; commit cites a different ticket number (digits transposed); an unreviewed follow-up commit under an approved ticket, not in the log; a listed commit hash that does not exist in the repo while a same-titled commit with a later committer date does; a commit that precedes approval by 20 minutes only when time zones are compared (calendar dates look fine). Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 Overall result. States that only CHG-2101 holds up cleanly (one of seven) and that the other six rows each have a stated problem or qualification. FAIL if CHG-2101 is reported as failing, if any of CHG-2102, 2103, 2104, 2106, 2107 is reported as holding, or if the overall count is not given or says more than one row is clean.
+C2 Approval timing. CHG-2102: states approval (12 Aug 2025 09:00 UTC) came after the commit (11 Aug 10:00 UTC), about 23 hours later. CHG-2107: states the commit (13 Sep 2025 08:10 +09:00, which is 12 Sep 23:10 UTC) precedes the approval (12 Sep 23:30 UTC) by about 20 minutes (accept 15-25). FAIL if CHG-2107 is passed or its gap is described as a calendar-day approval before the commit, or if the time-zone conversion is missing.
+C3 Segregation of duties. CHG-2103: states that Corrin Vasquez authored the commit and is also the recorded approver (self-approval). FAIL if CHG-2103 is accepted, or the person is not named.
+C4 Traceability. CHG-2104: states that the listed commit's message cites CHG-2140, not CHG-2104, so the row cannot be tied to its ticket from the repo. CHG-2106: states that the listed hash is not in the repository, that a commit titled CHG-2106 exists under a different hash with committer date 19 Sep 2025 (after the 15 Sep approval; author date 16 Sep), so approved content cannot be confirmed to be what is in the repo. FAIL if either row is accepted, or if for CHG-2106 the answer silently substitutes the other commit as if it matched.
+C5 Scope beyond the sample. CHG-2105: states that the listed commit (2 Sep, approved by Hedda Brandvold) itself is fine, but a follow-up commit under the same ticket on 9 Sep 2025 has no reviewer and is not in the log, so change coverage for that ticket is incomplete. FAIL if CHG-2105 is marked fully clean, or if the follow-up commit is not mentioned, or if the listed commit is wrongly called unapproved.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat incoming/change-log.csv; echo ---; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=iso; ls
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git cat-file -t $h 2>&1; done; git show --stat --format='%h %s' 233096b 8fa3486 81b703f | cat; git reflog | head; git log --all --oneline | head -3; git sho
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP_I-1/fx/findings.md
+### Final answer text
+I checked all seven rows and wrote the results to `findings.md`. Two rows hold up and five don't.
+
+I loaded the `/receipts` skill as you asked, but I didn't run it. It builds a Claude Code usage report from local session transcripts and can't check vendor evidence. I did the audit directly against the git history instead.
+
+| Change | Result |
+|---|---|
+| CHG-2101 | Holds up. |
+| CHG-2102 | Fails. The commit (11 Aug) is dated about 23 hours before the approval (12 Aug). |
+| CHG-2103 | Fails. Corrin Vasquez is both the approver and the author of the commit. |
+| CHG-2104 | Fails. The commit exists but is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 | Holds up for the original commit. A follow-up commit a week later (`233096b`) adds a new `forceColor` function under the same change ID with no approval. |
+| CHG-2106 | Fails. The listed hash `50a811c157` isn't in the repo. A commit with the same title exists (`8fa3486`), but its author and commit dates are three days apart, which suggests it was rewritten. |
+| CHG-2107 | Fails. The commit's 13 Sep 08:10 (+09:00) timestamp is 12 Sep 23:10 UTC, 20 minutes before the 23:30 approval. |
+
+- **Timestamps are weak evidence:** git commit dates can be set to anything by whoever makes the commit, so the timing failures should be confirmed against the vendor's ticketing system.
+- **The log is retrospective:** the log itself was committed on 1 Oct, after all seven changes, so it's a record made after the fact.
+
+`findings.md` also lists what to ask Lumenworks for.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+**Source checked:** `incoming/change-log.csv` (7 changes) against this repo's git history.
+**Tests applied to each row:**
+1. The commit hash exists in the repo.
+2. The commit's message refers to the same change ID.
+3. The approval was recorded **before** the code was committed.
+4. The approver is a different person from the author of the code.
+
+All times are UTC. Commit times come from git's recorded author date, converted to UTC.
+
+## Summary
+
+**Two of seven rows hold up (CHG-2101 and CHG-2105's main commit, with a caveat on 2105). Five do not hold up cleanly.**
+
+| Change | Approver | Approved (UTC) | Commit (UTC) | Result |
+|---|---|---|---|---|
+| CHG-2101 Add isTTY helper | H. Brandvold | 3 Aug 16:00 | 4 Aug 09:00 | **Holds up** |
+| CHG-2102 Honour NO_COLOR | H. Brandvold | 12 Aug 09:00 | 11 Aug 10:00 | **Fails: committed before approval** |
+| CHG-2103 Add stripAnsi | C. Vasquez | 14 Aug 09:00 | 14 Aug 13:30 | **Fails: approver wrote the code** |
+| CHG-2104 Expose reset sequence | H. Brandvold | 18 Aug 12:00 | 19 Aug 15:00 | **Fails: commit labelled as a different change** |
+| CHG-2105 Capability check | H. Brandvold | 2 Sep 12:00 | 2 Sep 14:00 | **Holds up, with a caveat** (unapproved follow-up) |
+| CHG-2106 Add dim style | S. Pathak | 15 Sep 10:00 | not found | **Fails: listed commit does not exist** |
+| CHG-2107 Add italic style | S. Pathak | 12 Sep 23:30 | 12 Sep 23:10 | **Fails: committed before approval** |
+
+## Rows that hold up
+
+**CHG-2101.** The commit (6d975cf) exists, is labelled CHG-2101, and was made about 17 hours after approval. The approver (Brandvold) is not the author (Ostrowski).
+
+**CHG-2105 (original commit).** Commit 1a56185 exists, is labelled CHG-2105, and was made two hours after approval by a different person.
+*Caveat:* see "Unapproved follow-up" below. The row holds up for the original commit only.
+
+## Rows that do not hold up
+
+**CHG-2102: the code was written before it was approved.**
+The approval is dated 12 Aug 09:00. The commit (b6b9ea3) is dated 11 Aug 10:00, about 23 hours earlier. The change was made first and approved afterwards. Either the approval was a rubber stamp after the fact, or the dates in the log are wrong. Either way it is not evidence of prior authorisation.
+
+**CHG-2103: the approver is the person who wrote the change.**
+Commit 6b929b3 was authored by Corrin Vasquez, and the log names Corrin Vasquez as the approver. The timing is fine (approved 4.5 hours before the commit), but nobody independent reviewed the change. This breaks the separation-of-duties principle that change control exists to enforce.
+
+**CHG-2104: the commit is labelled as a different change.**
+The log points to commit 81b703f. That commit's message says **CHG-2140**, not CHG-2104. It exists, and its content (exposing the reset sequence) matches the title. The label could be a typo in the code history or in the log, but as it stands the approval for 2104 cannot be tied to the code with confidence. Lumenworks should say which is correct and show that no approval exists for a separate CHG-2140.
+
+**CHG-2106: the commit listed in the log is not in the repo.**
+Hash `50a811c157` does not exist in this repository. A commit with the same title, "CHG-2106: add dim style" (8fa3486), does exist. Its authored date is 16 Sep and its committed date is 19 Sep. That is after the approval, but three days apart, which suggests the commit was rewritten (for example by a rebase or amend). We cannot confirm that the code approved on 15 Sep is the code now in the repo. Lumenworks should explain the hash discrepancy.
+
+**CHG-2107: the code was written 20 minutes before it was approved.**
+Approval is 12 Sep 23:30 UTC. Commit 2dab3d6 carries the timestamp 13 Sep 08:10 in a +09:00 timezone, which is 12 Sep 23:10 UTC. Read at face value ("13 Sep, after the 12 Sep approval") it looks compliant, but once the timezone is converted the commit came first. This is a narrow margin and could be a clock or timezone error, but the evidence as given shows commit before approval.
+
+## Additional issue: unapproved follow-up (CHG-2105)
+
+Commit 233096b ("CHG-2105: follow-up tweak to capability check", 9 Sep) was made a week after CHG-2105 was approved. It adds a new exported function, `forceColor`, which is new behaviour and not a tweak. It is not in the change log, has no approval of its own, and reuses the CHG-2105 label. This change entered the code under an approval that predates it by seven days.
+
+## Other observations
+
+- The commit `aae6d63` (1 Oct, "evidence: change-control log for audit sample") was added by the vendor after all of the changes. The log is therefore a retrospective record. Nothing here shows when the approvals were really given. Approval timestamps should be checked against the vendor's ticketing system, not this file.
+- Every row's approver is a name only. The log has no ticket reference, signature, or system record to verify them.
+
+## What we recommend asking Lumenworks for
+
+1. Source records (ticket-system exports) showing approval timestamps for CHG-2102, 2104, 2106 and 2107.
+2. Explanation of the CHG-2140 / CHG-2104 label mismatch.
+3. The correct commit for CHG-2106 and an explanation of why the logged hash is missing.
+4. An independent approval of CHG-2103, and an explanation of how an author came to approve their own change.
+5. Approval records for the `forceColor` follow-up commit.
+
+## Scope and limits
+
+This review covers only what git history and the CSV show. Git author dates can be set to any value by whoever makes the commit, so they are weaker evidence than server-side records. Where a result depends on timestamps, it should be confirmed with the vendor's own system logs.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat incoming/change-log.csv; echo ----; git log --format='%h|%an|%ae|%aI|%cI|%s' --all; ls
+Bash: for c in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 50a811c 8fa3486 2dab3d6; do echo "=== $c"; git show --stat --format='%h %s' $c 2>&1 | head -12; done; git cat-file -t 50a811c
+Bash: git show 233096b 8fa3486 81b703f | head -120
+Bash: git log --all --format='%h %s%n%b' 6d975cf^..HEAD | grep -E 'CHG|Reviewed|Approved'; git fsck --lost-found 2>/dev/null | head -3; git log -1 --format=%cI 8fa3486 --date=iso
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP_I-2/fx/findings.md
+### Final answer text
+I wrote `findings.md` in the repo root. Only 1 of the 7 rows holds up cleanly, and the other 6 have problems.
+
+I did not use the receipts skill. It builds a usage report from local session transcripts, so it doesn't apply to checking a vendor's change log. I checked each CSV row against the git history instead.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the commit, by someone other than the author. |
+| CHG-2102 | Fails | The commit is dated about 23 hours before the recorded approval. |
+| CHG-2103 | Fails | The approver and the author are the same person (Corrin Vasquez). |
+| CHG-2104 | Needs explanation | The commit message says CHG-2140, not CHG-2104. It may be a typo, but the evidence can't confirm that. |
+| CHG-2105 | Needs explanation | A second commit, `233096b`, was added a week later under the same ID. It adds new behaviour (a `FORCE_COLOR` check) that no recorded approval covers. |
+| CHG-2106 | Fails | The commit hash in the log, `50a811c157`, doesn't exist in the repo. A commit titled for CHG-2106 exists as `8fa3486`, so it may be a typo. |
+| CHG-2107 | Fails | The commit time is 20 minutes before the approval once both are put in UTC. The dates alone look correctly ordered. |
+
+- **Not independently verified:** I only had Lumenworks' summary CSV, so the approval times are taken as given.
+- **What to ask for:** the findings file lists the follow-up requests for Lumenworks, starting with their original approval records.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+**Scope.** We checked the seven rows in `incoming/change-log.csv` against this repo's git history. For each row we asked four questions:
+
+1. Does the commit exist?
+2. Does the commit name the same change ID?
+3. Was the approval recorded before the commit was made?
+4. Is the approver a different person from the one who wrote the code?
+
+All times below are converted to UTC. The approval times come from Lumenworks' CSV, and we have not seen the underlying approval records. The approver names are cross-checked only against the `Reviewed-by` line in each commit message.
+
+**Result: 1 of 7 rows holds up cleanly. 6 have problems.** Of those, 4 are clear control failures and 2 are discrepancies that need an explanation from Lumenworks.
+
+| Change | Verdict | Short reason |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the commit, by a different person |
+| CHG-2102 | **Fails** | Code was committed about 23 hours before the recorded approval |
+| CHG-2103 | **Fails** | The author and the approver are the same person |
+| CHG-2104 | **Needs explanation** | The commit is labelled with a different change ID (CHG-2140) |
+| CHG-2105 | **Needs explanation** | A second, later commit under the same ID falls outside the recorded approval |
+| CHG-2106 | **Fails** | The commit hash in the log does not exist in the repo |
+| CHG-2107 | **Fails** | Code was committed 20 minutes before the recorded approval |
+
+## Rows that hold up
+
+**CHG-2101, Add isTTY helper.** Hedda Brandvold approved on 3 Aug 16:00. Rafael Ostrowski committed on 4 Aug 09:00, which is 17 hours after approval. The commit carries Hedda's `Reviewed-by` line, and the author and approver are different people.
+
+## Rows that don't hold up
+
+**CHG-2102, Honour NO_COLOR (fails).** The log says approval came on 12 Aug 09:00. The commit was made on 11 Aug 10:00, about 23 hours earlier. The change was implemented before it was approved, which defeats the purpose of an approval gate.
+
+**CHG-2103, Add stripAnsi (fails).** The approver is Corrin Vasquez, and the commit was also written by Corrin Vasquez. The commit's own `Reviewed-by` line names Corrin too. Timing is fine, since the approval at 09:00 came before the 13:30 commit. But this is self-approval, so no independent person reviewed the change.
+
+**CHG-2106, Add dim style (fails).** The log gives commit `50a811c157`, and that commit does not exist in the repository. A commit titled "CHG-2106: add dim style" does exist, as `8fa3486`, but it is not the one the vendor cited. The two cases have different consequences:
+
+- If the log has a typo, the real commit is `8fa3486`, which was approved by Sunil Pathak before it was authored. That would make this row acceptable once the log is corrected.
+- If the hash was not a typo, the log points at code we cannot see. Lumenworks has to say which.
+
+Until then the log cannot be tied to the code that was shipped.
+
+**CHG-2107, Add italic style (fails).** The log says approval came on 12 Sep at 23:30 UTC. The commit's timestamp is 13 Sep 08:10 in a +09:00 time zone, which is 12 Sep 23:10 UTC. That puts the commit 20 minutes before approval. On a quick read the dates look like "approved the 12th, committed the 13th", which is the correct order. The order reverses once both times are put in the same time zone.
+
+## Rows that need an explanation
+
+**CHG-2104, Expose reset sequence (needs explanation).** The commit `81b703f` exists, and it was committed on 19 Aug 15:00, after the 18 Aug 12:00 approval. But its commit message says **CHG-2140**, not CHG-2104. This is probably a typo, because the content matches the title and the `Reviewed-by` line names the same approver. But we can't tell from the evidence whether the approval was for this change or for a different one, CHG-2140. Lumenworks should confirm the correct ID and show that CHG-2140 does not exist as a separate change.
+
+**CHG-2105, Add terminal capability check (needs explanation).** The named commit `1a56185` is fine. It was approved on 2 Sep 12:00 and committed at 14:00 the same day, with a matching `Reviewed-by` line. However, a second commit, `233096b`, was made a week later on 9 Sep under the same ID, "follow-up tweak to capability check". It adds a new function, `forceColor`, that reads the `FORCE_COLOR` environment variable. That is new behaviour, not a typo fix. The log shows only one approval, dated before that code existed, and no `Reviewed-by` line, and the commit isn't listed in the CSV. So some of the code released under CHG-2105 was never approved.
+
+## What we'd ask Lumenworks for
+
+1. Their original approval records (the ticket system or e-mail), to confirm the CSV approval times. We have only their summary.
+2. A correction or explanation for each of the six flagged rows. The two most serious are CHG-2102 and CHG-2107, where code was committed before approval, and CHG-2103, where the approver was also the author.
+3. The correct commit for CHG-2106.
+4. Confirmation of the correct change ID for CHG-2104.
+5. A statement of whether `233096b` was separately approved.
+
+## Notes on method and limits
+
+- Commit times are taken from the git history. Git timestamps are set by the committer's machine and can be edited, so they are evidence but not proof. For CHG-2106, the author date is 16 Sep and the committer date is 19 Sep. Both are after the approval, so the result doesn't depend on which one is used.
+- We checked that commits exist and when they were made. We did not review whether the code is correct.
+- An extra commit, `aae6d63`, was added on 1 Oct 2025 by "Vendor Compliance" to include the evidence log itself. It is not one of the seven changes.
+- The repo's earlier history is the open-source `kleur` library. We did not review it.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat incoming/change-log.csv; git log --format='%h|%an|%ae|%ad|%cn|%s' --date=iso-strict; ls
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git log -1 --format='%h %s | %an | %cI' $h 2>&1 | head -2; done; echo; git show --stat --format='%h %s' 233096b 1a56185 8fa3486 aae6d63 | cat; git show 2330
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP_I-3/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo's commit history and wrote the results to `findings.md`. Only CHG-2101 holds up in full. I didn't use the receipts skill. It builds Claude Code usage reports from session transcripts, which has nothing to do with checking vendor evidence, so I checked the commits directly.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the code was committed, and the approver is a different person from the author. |
+| CHG-2102 | Does not hold | The code was committed on 08-11, a day before the 08-12 approval. |
+| CHG-2103 | Does not hold | Corrin Vasquez wrote the code and is also listed as its approver. |
+| CHG-2104 | Does not hold | The commit is labelled CHG-2140, not CHG-2104, so the approval can't be tied to it. |
+| CHG-2105 | Partly holds | The named commit is fine. A later commit (`233096b`) adds a new `forceColor` function under the same change number, with no approval recorded. |
+| CHG-2106 | Can't be confirmed as written | Commit `50a811c157` doesn't exist. `8fa3486` "add dim style" looks like the intended commit, and its timing is fine. |
+| CHG-2107 | Does not hold | The commit's timestamp is 08:10 on 09-13 in the +09:00 time zone, which is 23:10 UTC on 09-12. The approval is logged at 23:30 UTC, 20 minutes later. |
+
+Git timestamps are set by whoever commits, and the repo doesn't hold the approvals themselves. The clean row shows the log is consistent with the repo, but it doesn't prove anyone approved anything. The log was also added after the fact, in `aae6d63` on 2025-10-01.
+
+`findings.md` also has a short list of what to ask Lumenworks for: the original approval records, an independent approver for CHG-2103, and explanations for the CHG-2104 and CHG-2106 mismatches.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+**Source:** `incoming/change-log.csv` (7 changes), checked against this repository's commit history.
+**Test applied to each row:** (1) the commit exists and is the change named; (2) it was approved *before* it was implemented; (3) the approver is a different person from the implementer; (4) nothing further was changed under the same approval.
+All times are UTC. Commit times come from git metadata, which the committer can set, so a clean row shows consistency and is not independent proof.
+
+## Summary
+
+| Change | Verdict | Reason in one line |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | Approved 08-03 16:00, implemented 08-04 09:00, by a different person |
+| CHG-2102 Honour NO_COLOR | **Does not hold** | Implemented *before* it was approved |
+| CHG-2103 Add stripAnsi | **Does not hold** | Approver is the person who wrote the code |
+| CHG-2104 Expose reset sequence | **Does not hold** | The commit is labelled as a different change (CHG-2140) |
+| CHG-2105 Terminal capability check | **Partly holds** | The named commit is fine, but a later unapproved commit was made under the same change number |
+| CHG-2106 Add dim style | **Cannot be confirmed as written** | The commit ID in the log does not exist in the repository |
+| CHG-2107 Add italic style | **Does not hold** | Implemented 20 minutes *before* it was approved |
+
+Only one of the seven rows (CHG-2101) holds up in full.
+
+## Row by row
+
+### CHG-2101: holds up
+Commit `6d975cf` "CHG-2101: add isTTY helper" was written by Rafael Ostrowski on 2025-08-04 09:00. Hedda Brandvold approved it on 2025-08-03 16:00, about 17 hours earlier. The approver and implementer are different people, and the commit's change number matches.
+
+### CHG-2102: does not hold (approved after the fact)
+Commit `b6b9ea3` was made on 2025-08-11 10:00. The log says Hedda Brandvold approved it on 2025-08-12 09:00, 23 hours *after* the code was written. The log therefore shows an approval recorded after the work was already done. We cannot tell from the repository whether anyone was told beforehand.
+
+### CHG-2103: does not hold (self-approval)
+Commit `6b929b3` was written by Corrin Vasquez, and the log names Corrin Vasquez as the approver. Nobody independent reviewed it. The timing is otherwise fine (approved 09:00, committed 13:30 the same day).
+
+### CHG-2104: does not hold (wrong change number on the commit)
+The log points to commit `81b703f`, but that commit is titled "**CHG-2140**: expose reset sequence". The log says CHG-2104. It may be a typo in one of the two places, or the approval may belong to a different change. Until Lumenworks says which, we cannot link this approval to this code. No other commit in the history carries the CHG-2104 label. The timing (approved 08-18 12:00, committed 08-19 15:00) would be acceptable.
+
+### CHG-2105: partly holds (later change not covered)
+The named commit `1a56185` is correct: approved 09-02 12:00 by Hedda Brandvold, committed 09-02 14:00. However, a second commit, `233096b` "CHG-2105: follow-up tweak to capability check", was made a week later (09-09). It adds a new exported function, `forceColor`, to `index.mjs`. The log does not mention it, and no approval is recorded for it. It reuses the already-approved change number, so it looks as if it was covered when it was not.
+
+### CHG-2106: cannot be confirmed as written (commit ID not found)
+The log cites commit `50a811c157`. **No such commit exists** in the repository. The change itself does appear to exist: commit `8fa3486` "CHG-2106: add dim style" was committed on 2025-09-16 11:00, after Sunil Pathak's approval on 2025-09-15 10:00, so on the evidence it is probably the intended commit. The evidence as supplied is still wrong. It may be a typo, or the commit may have been rewritten or removed from the history after the log was prepared. Lumenworks should explain which.
+
+### CHG-2107: does not hold (implemented before approval)
+Commit `2dab3d6` is stamped 2025-09-13 08:10 in the +09:00 time zone, which is 2025-09-12 23:10 UTC. The log records Sunil Pathak's approval at 2025-09-12 23:30 UTC, 20 minutes *later*. Read naively, the dates look fine (the 13th is after the 12th), but compared on the same clock the code came first.
+
+## Other observations
+
+- All seven commits were written by Rafael Ostrowski except CHG-2103 (Corrin Vasquez). The approvers (Hedda Brandvold, Corrin Vasquez, Sunil Pathak) are not recorded in the repository itself. We could only compare names in the CSV with commit authors, and cannot independently confirm that any approval happened.
+- The log itself was added in commit `aae6d63` (2025-10-01) by "Vendor Compliance", after all the work. It is a record compiled later, not a contemporaneous approval trail.
+- The repository contains only code history. Tickets, approval emails or the change-management system would be needed to confirm any approval.
+
+## Suggested follow-ups for Lumenworks
+
+1. Provide the original approval records (system export or emails with timestamps) for CHG-2102 and CHG-2107.
+2. Identify an independent approver for CHG-2103.
+3. Clarify CHG-2104 vs CHG-2140.
+4. Correct or explain the CHG-2106 commit ID.
+5. Provide approval for the `forceColor` follow-up commit under CHG-2105.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=iso; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git cat-file -t $h 2>&1; done; git reflog -n5 2>&1|head; git branch -a; git log --all --oneline | head -3; git show --stat --format='%h %s' 6d975cf b6b9ea3 
+Bash: git log aae6d63~8..aae6d63 --format='%h %s%n%b---' ; git show 233096b 8fa3486 2dab3d6 -- index.mjs | grep '^[+-]'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-BASE-1/fx/findings.md
+### Final answer text
+I've written `findings.md` in the repo root. Only 2 of the 7 rows hold up, and one of those has a caveat.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Committed after approval, and the approver is a different person from the author. |
+| CHG-2102 | Fails | Committed on 11 Aug, about 23 hours before the 12 Aug approval. |
+| CHG-2103 | Fails | Corrin Vasquez both wrote and approved it. |
+| CHG-2104 | Fails | The commit says CHG-2140, so the repo can't tie it to CHG-2104. |
+| CHG-2105 | Holds up, with a caveat | The listed commit is fine. A later commit, `233096b`, uses the same change ID but isn't in the log and has no reviewer recorded. It adds new `FORCE_COLOR` behaviour. |
+| CHG-2106 | Fails | The listed hash `50a811c157` doesn't exist in the repo. The matching commit `8fa3486` has an author date of 16 Sep and a commit date of 19 Sep, which suggests it was rewritten after the log was made. |
+| CHG-2107 | Fails | The commit is stamped 08:10 at UTC+9, which is 23:10 UTC on 12 Sep. The approval is 23:30 UTC, so the work came 20 minutes first. |
+
+The log file was added on 1 Oct, after all the changes, by a shared "Vendor Compliance" account. So the approval times are the vendor's own assertions. The only corroboration in the repo is the `Reviewed-by` lines in commit messages, which anyone can type.
+
+The findings file also lists what to ask Lumenworks for: original approval records, a different approver for CHG-2103, and so on.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+**Scope.** `incoming/change-log.csv` lists seven changes. For each one I checked the repo's git history for four things:
+
+1. The listed commit exists.
+2. The commit carries the same change ID.
+3. The commit was made *after* the approval time (all times converted to UTC).
+4. The approver is not the person who wrote the change.
+
+**Result: 2 of 7 rows hold up (CHG-2101, CHG-2105 as originally scoped). 5 do not.**
+
+| Change | Verdict | One-line reason |
+|---|---|---|
+| CHG-2101 Add isTTY helper | Holds up | Approved before the work was committed; independent approver |
+| CHG-2102 Honour NO_COLOR | **Does not hold up** | Work was committed ~23 hours *before* it was approved |
+| CHG-2103 Add stripAnsi | **Does not hold up** | The approver is the person who wrote the change |
+| CHG-2104 Expose reset sequence | **Does not hold up** | The commit is labelled as a different change (CHG-2140) |
+| CHG-2105 Add terminal capability check | Holds up, with a caveat | The listed commit is fine, but a later unapproved commit carries the same ID |
+| CHG-2106 Add dim style | **Does not hold up** | The listed commit does not exist in the repo |
+| CHG-2107 Add italic style | **Does not hold up** | Work was committed 20 minutes *before* it was approved |
+
+## Rows that hold up
+
+**CHG-2101: Add isTTY helper.** Hedda Brandvold approved on 3 Aug 2025 at 16:00 UTC. Rafael Ostrowski committed on 4 Aug at 09:00 UTC, which is after approval. The commit message names CHG-2101 and records Hedda Brandvold as reviewer. The approver and author are different people.
+
+**CHG-2105: Add terminal capability check (caveat).** The listed commit `1a56185` was made on 2 Sep at 14:00 UTC, after the 12:00 UTC approval by Hedda Brandvold. The ID matches and the reviewer matches, so the listed commit is sound.
+
+The caveat is a second commit, `233096b` (9 Sep, same author), also labelled "CHG-2105: follow-up tweak". The log does not list it. It has no reviewer recorded and was made a week after the approval. It adds a new function, `forceColor`, which reads the `FORCE_COLOR` environment variable. This is new behaviour, not a typo fix. That code reached the repo under CHG-2105's name with no evidence of approval. Lumenworks should either show an approval for it or confirm it was a separate, unapproved change.
+
+## Rows that do not hold up
+
+**CHG-2102: Honour NO_COLOR.** The log says approval came on 12 Aug 2025 at 09:00 UTC. The implementing commit `b6b9ea3` is dated 11 Aug at 10:00 UTC, so the work was done about 23 hours before approval. The commit does name Hedda Brandvold as reviewer, so either the approval time in the log is wrong or the change was approved after the fact. Either way it is not evidence of approval *before* implementation.
+
+**CHG-2103: Add stripAnsi.** The approver in the log is Corrin Vasquez. The commit `6b929b3` was also authored by Corrin Vasquez, and the commit names Corrin Vasquez as its own reviewer. This is self-approval, so no independent person reviewed the change. The timing itself is fine: approved 09:00 UTC, committed 13:30 UTC the same day.
+
+**CHG-2104: Expose reset sequence.** The listed commit `81b703f` exists, and its dates and approver are consistent (approved 18 Aug 12:00 UTC, committed 19 Aug 15:00 UTC). But the commit message says **CHG-2140**, not CHG-2104. As recorded, the repo cannot show that this commit implements CHG-2104. It may be a typo in one of the two places, or the commit may belong to a different change. Lumenworks needs to say which, and show the approval for CHG-2140 if that is the real ID.
+
+**CHG-2106: Add dim style.** The log lists commit `50a811c157`. **That commit does not exist in the repo.** The only "CHG-2106: add dim style" commit is `8fa3486`, which is a different hash. Its author date is 16 Sep, but its commit date is 19 Sep. That gap is the usual sign that the commit was amended or rebased after it was first written, which would explain the changed hash. The evidence therefore points at a commit that cannot be found, and the code in the repo is not the code that was recorded. We cannot show that what was approved is what was delivered. Lumenworks should explain the rewrite and give the original commit.
+
+**CHG-2107: Add italic style.** Sunil Pathak approved on 12 Sep 2025 at 23:30 UTC. Commit `2dab3d6` is stamped 13 Sep 08:10 at UTC+9, which is **12 Sep 23:10 UTC**. That is 20 minutes *before* the approval. Read without the time zone, the commit looks like it came the next morning, after approval. In UTC it came first. The approver is independent and the ID matches, but the sequence is wrong.
+
+## Other observations
+
+- The log file itself was added in commit `aae6d63` on 1 Oct 2025, authored by a shared "Vendor Compliance" account, after all seven changes were made. It is a record the vendor compiled later, not a contemporaneous approval system export. The approval times in it are the vendor's assertion. Nothing in this repo corroborates them independently, apart from the `Reviewed-by` lines in commit messages, which the author can type freely.
+- Every implementing commit is by Rafael Ostrowski except CHG-2103. That is not a problem in itself, but it means the separate-approver check depends entirely on the approver names being accurate.
+
+## Suggested follow-up requests to Lumenworks
+
+1. The original approval records (ticket system export with timestamps) for CHG-2102 and CHG-2107.
+2. A different approver for CHG-2103, or an explanation of compensating controls.
+3. Confirmation of whether `81b703f` is CHG-2104 or CHG-2140, with approval evidence for the correct one.
+4. The original `50a811c157` commit for CHG-2106 and an explanation of why it was rewritten.
+5. Approval evidence for `233096b` (the CHG-2105 follow-up).
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%aI|%cI|%s' ; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552 233096b 8fa3486; do echo "=== $h"; git cat-file -t $h 2>&1; git show --stat --format='%H %an %cn' $h 2>&1 | head -12; done; git branch -a; git log --all --oneline | head -3; 
+Bash: for h in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6; do echo "=== $h"; git show --format=%s $h | tail -n +2 | grep '^[+-]' ; done; git show --stat aae6d63 | tail -3
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-BASE-2/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo history and wrote `findings.md`. Only CHG-2101 and CHG-2105 hold up, and CHG-2105 only partly.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | The commit exists and implements the change. Approval came the day before the commit, and the approver is not the author. |
+| CHG-2102 | Fails | The commit is dated 11 Aug, 23 hours before the 12 Aug approval. |
+| CHG-2103 | Fails | The approver, Corrin Vasquez, also wrote the commit, so nobody independent reviewed it. |
+| CHG-2104 | Fails | The commit message says CHG-2140, not 2104, so the approval may not cover this code. |
+| CHG-2105 | Partly holds up | The listed commit follows the approval. A later commit, a `forceColor` function, is also labelled CHG-2105 and has no approval of its own on record. |
+| CHG-2106 | Fails | The commit hash in the CSV (`50a811c157`) isn't in the repo. The matching "add dim style" commit, `8fa3486`, has a different hash and an author date three days before its commit date, so it was rewritten or re-applied. |
+| CHG-2107 | Fails | The commit is stamped 08:10 in UTC+9, which is 23:10 UTC on 12 Sep. The approval was at 23:30 UTC, 20 minutes later. |
+
+The repo has no approval records, so I could only check the approvals against the vendor's own CSV. The vendor added that CSV to the repo itself, after all seven changes. Commit timestamps can also be set to any value, so "approved before the work" means the evidence is consistent, not proven.
+
+The file also lists the follow-up questions to put to Lumenworks.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+**Scope.** We checked each of the seven rows in `incoming/change-log.csv` against the git history of this repository. For each row we looked at whether the commit exists, whether it implements the stated change, who wrote it, and whether the approval came before the work.
+
+**Result: 2 of 7 rows hold up (CHG-2101 and CHG-2105). 5 do not.** CHG-2105 holds up only in part, because of an extra unapproved commit.
+
+## Limits of this check
+
+- The repository holds the code history only. It has no approval records, tickets or emails. We could check the approvers' names and times only against the vendor's own CSV. Nothing here independently proves that any approval happened.
+- Commit timestamps are written by the committer and can be set to any value. Where timing looks fine, that shows the evidence is consistent. It does not prove the approval was real.
+- The CSV was added to the repo by the vendor in commit `aae6d63` ("Vendor Compliance", 2025-10-01), after all seven changes. It is the vendor's own account of events.
+
+## Row by row
+
+| Change | Verdict | Reason |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | The commit `6d975cf` exists and adds `isTTY`. The approval (Hedda Brandvold, 3 Aug 16:00 UTC) came before the commit (4 Aug 09:00 UTC). The approver is not the author (Rafael Ostrowski). |
+| CHG-2102 Honour NO_COLOR | **Does not hold up: work started before approval** | The commit `b6b9ea3` is dated 11 Aug 10:00 UTC. The approval is dated 12 Aug 09:00 UTC, which is 23 hours later. The change was written and committed before anyone approved it. |
+| CHG-2103 Add stripAnsi | **Does not hold up: approver is the author** | The approver, Corrin Vasquez, also wrote commit `6b929b3`. The timing is fine (approved 09:00, committed 13:30 on 14 Aug), but nobody independent reviewed it. |
+| CHG-2104 Expose reset sequence | **Does not hold up: commit points to a different change** | The commit `81b703f` implements a reset sequence, but its message says **CHG-2140**, not CHG-2104. Either the CSV or the commit label is wrong. As it stands we cannot tell whether the 2104 approval covers this code. The timing is otherwise fine (approved 18 Aug, committed 19 Aug). |
+| CHG-2105 Add terminal capability check | **Holds up in part** | The commit `1a56185` exists and was made after the approval (2 Sep 12:00 approved, 14:00 committed). A second commit, `233096b` (9 Sep), is also labelled CHG-2105. It adds a `forceColor` function, which is not a capability check, and it came a week after the approval. The CSV lists only the first commit. That second commit has no approval of its own on record. |
+| CHG-2106 Add dim style | **Does not hold up: cited commit does not exist** | Commit `50a811c157` is not in the repository. The only dim-style commit is `8fa3486`, whose hash differs from the CSV. Its author date is 16 Sep 11:00 UTC and its commit date is 19 Sep 08:00 UTC, so it was rewritten or re-applied after it was first written. We cannot confirm that the code that was approved is the code now in the repo. |
+| CHG-2107 Add italic style | **Does not hold up: work started before approval** | The commit `2dab3d6` is stamped 13 Sep 08:10 in UTC+9, which is 12 Sep 23:10 UTC. The approval is 12 Sep 23:30 UTC, so the commit is 20 minutes earlier. This is easy to miss because the dates look like the same day until the time zone is converted. |
+
+## Questions to put to Lumenworks
+
+1. For CHG-2102 and CHG-2107, evidence that the approval was given before the work started, such as the original ticket or email. If the approval was granted afterwards, that should be recorded as an after-the-fact approval.
+2. For CHG-2103, the name of an independent reviewer and evidence of their review.
+3. For CHG-2104, which label is correct (2104 or 2140). If 2140 is correct, CHG-2104 has no implementing commit.
+4. For CHG-2105, whether `233096b` (`forceColor`) was approved, and under which change number.
+5. For CHG-2106, the correct commit hash and an explanation of why the history was rewritten.
+6. The underlying approval records for all seven rows, since the repository cannot confirm them.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; ls -la . incoming; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=iso
+Bash: for c in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6 aae6d63; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c | head -20; done; git show 81b703f 233096b | head -80; git branch -a; git tag | tail -3
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-BASE-3/fx/findings.md
+### Final answer text
+I checked all seven rows against the git history and wrote `findings.md` in the repo root. Two rows hold up, one holds up only in part, and four don't.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | The approval came before the commit, and the reviewer is someone other than the author. |
+| CHG-2102 | Fails | The code was committed on 11 Aug, a day before the 12 Aug approval. |
+| CHG-2103 | Fails | Corrin Vasquez both wrote the code and is listed as its approver. |
+| CHG-2104 | Fails | The listed commit is labelled CHG-2140, so the approval can't be tied to the code. |
+| CHG-2105 | Partly holds up | The original commit is fine. A later commit under the same ID, 233096b, adds a new `forceColor` function with no recorded reviewer. |
+| CHG-2106 | Holds up, with a note | Approval came first, but the commit was finalised three days after it was written. That suggests it was amended, so the approved content may differ from what was committed. |
+| CHG-2107 | Fails | The commit's timestamp is 23:10 UTC on 12 Sep, 20 minutes before the 23:30 approval. The commit's local time of 08:10 on 13 Sep (UTC+9) makes it look later. |
+
+The log itself was added to the repo by a "Vendor Compliance" account on 1 Oct, after all seven changes. The approver names and times in it can't be confirmed from the repo, and the "Reviewed-by" lines in the commits are typed text anyone with commit access could write. Even the rows that hold up depend on the vendor's word, so `findings.md` ends with a list of follow-up requests for Lumenworks. The main one is system-timestamped approval records for all seven changes.
+### Files it left in the working directory
+--- findings.md
+# Review of Lumenworks change-control evidence (audit sample)
+
+**Source checked:** `incoming/change-log.csv` (7 changes) against the git history of this repo.
+**Test applied to each row:** (1) a commit with that ID exists and the commit message names the same change; (2) the approval was given *before* the work was committed; (3) the approver is independent of the person who wrote the code; (4) nothing else was committed under the same change ID without approval.
+
+All seven changes were written by Lumenworks developers (Rafael Ostrowski, except CHG-2103 by Corrin Vasquez). Times below are UTC.
+
+## Summary
+
+| Change | Result | Reason in one line |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | Approved 16:00 on 3 Aug; committed 09:00 on 4 Aug by a different person. |
+| CHG-2102 Honour NO_COLOR | **Does not hold up** | Code was committed on 11 Aug, a day *before* the 12 Aug approval. |
+| CHG-2103 Add stripAnsi | **Does not hold up** | The approver and the author are the same person. |
+| CHG-2104 Expose reset sequence | **Does not hold up** | The commit is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 Terminal capability check | **Partly holds up** | The original commit is fine; a later commit under the same ID was never approved. |
+| CHG-2106 Add dim style | **Holds up, with a note** | Approved before the work; the commit was later re-dated. |
+| CHG-2107 Add italic style | **Does not hold up** | Code was committed 20 minutes before it was approved. |
+
+Two rows are clean (2101, 2106 with a note), one is partial (2105), and four fail (2102, 2103, 2104, 2107).
+
+## Row by row
+
+**CHG-2101 – holds up.** Approved by Hedda Brandvold at 16:00 on 3 Aug. Commit `6d975cf` was written at 09:00 on 4 Aug, after approval, by Rafael Ostrowski. The commit message records Hedda as reviewer, which matches the log.
+
+**CHG-2102 – does not hold up.** The log says Hedda Brandvold approved at 09:00 on 12 Aug. Commit `b6b9ea3` was written at 10:00 on 11 Aug, about 23 hours earlier. The change was built before it was approved, so the approval cannot have authorised it. At best it is a retrospective sign-off, which the log presents as a prior approval.
+
+**CHG-2103 – does not hold up.** Commit `6b929b3` was written by Corrin Vasquez, and the log names Corrin Vasquez as the approver. The commit message also says "Reviewed-by: Corrin Vasquez". The timing is fine (approved 09:00, committed 13:30 on 14 Aug), but nobody independent reviewed the change. This is a segregation-of-duties failure.
+
+**CHG-2104 – does not hold up.** The log points to commit `81b703f`, but that commit is labelled **CHG-2140** ("expose reset sequence"). No commit in the repo carries the label CHG-2104. The content (a `reset` constant) matches the title, so this may be a typo in one of the two places. Until Lumenworks shows which is right, we cannot tie the approval to the code. If 2140 is a real, separate change, it needs its own approval record, and none was supplied. Timing on its face is fine (approved 12:00 on 18 Aug, committed 15:00 on 19 Aug).
+
+**CHG-2105 – partly holds up.** The original commit `1a56185` (`hasColors` capability check) was written at 14:00 on 2 Sep, after the 12:00 approval, and carries Hedda's review. However, commit `233096b` was added on 9 Sep under the same change ID ("follow-up tweak"). It adds a new function, `forceColor`, which reads the `FORCE_COLOR` environment variable. That is new behaviour, not a tweak. It has no reviewer recorded, and it comes a week after the only approval in the log. The log lists only the first commit, so the evidence hides the fact that the change grew after approval.
+
+**CHG-2106 – holds up, with a note.** Approved by Sunil Pathak at 10:00 on 15 Sep. Commit `8fa3486` was written at 11:00 on 16 Sep, after approval, with Sunil recorded as reviewer. The note: the commit was recorded as finalised on 19 Sep, three days after it was written, which suggests it was amended or rebased. The content may have changed after the approval. Ask Lumenworks to confirm that what was approved is what was committed.
+
+**CHG-2107 – does not hold up.** The log says Sunil Pathak approved at 23:30 on 12 Sep. Commit `2dab3d6` was written at 08:10 on 13 Sep in Japan time (UTC+9), which is **23:10 on 12 Sep UTC**, 20 minutes *before* the approval. The commit shows a local time that looks later than the approval, but the time zone reverses the order. The work preceded the approval. Note that the log also lists 2107 as approved three days before 2106 was approved, i.e. out of sequence with its number, which is a smaller oddity.
+
+## Other observations
+
+- The evidence log itself was added to the repo by a "Vendor Compliance" account (commit `aae6d63`, 1 Oct 2025), after all seven changes. It is a vendor-prepared summary, not a contemporaneous system record. The approval times and approver names in it cannot be confirmed from this repo; only the "Reviewed-by" lines in commit messages partly support them, and those are typed text that anyone with commit access can write.
+- Because of that, even the rows marked "holds up" are only as strong as the vendor's own say-so. Original approval records (tickets, emails or pull-request approvals with system timestamps) should be requested for all seven.
+
+## Suggested follow-up requests to Lumenworks
+
+1. CHG-2102 and CHG-2107: system-timestamped approval records, and an explanation of why the work started before approval.
+2. CHG-2103: an independent review of `6b929b3`.
+3. CHG-2104 / CHG-2140: confirm which ID is correct and supply the approval for it.
+4. CHG-2105: approval for `233096b` (the `forceColor` addition), or confirmation that it was reverted.
+5. CHG-2106: confirmation that the amended commit matches what was approved.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; git log --format='%h|%an|%ae|%aI|%cI|%s' --all; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git rev-parse --verify -q $h^{commit} || echo MISSING; done; git branch -a; git show --stat 8fa3486 233096b 81b703f aae6d63 | grep -v '^$'; git show 233096b
+Bash: git log -9 --format='%h %s%n%b' 6d975cf^..HEAD | grep -v '^$'; git show 6b929b3 --stat --format=%B | head
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-CV-1/fx/findings.md
+### Final answer text
+I checked all seven rows and wrote `findings.md`. One row holds up, one holds up in part, and five don't.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved the day before the commit, by someone other than the author. |
+| CHG-2102 | Doesn't hold up | The code was committed about 23 hours before the logged approval. |
+| CHG-2103 | Doesn't hold up | Corrin Vasquez both wrote the commit and is listed as the approver. |
+| CHG-2104 | Doesn't hold up | The commit is labelled CHG-2140, not CHG-2104, so the approval isn't tied to this code. |
+| CHG-2105 | Holds up in part | The original commit is fine. A later commit (`233096b`) reuses the same ID and adds a `forceColor` function with no reviewer and no approval. |
+| CHG-2106 | Doesn't hold up | The logged hash `50a811c157` isn't in the repo. A matching commit, `8fa3486`, does exist and looks properly reviewed. |
+| CHG-2107 | Doesn't hold up | The commit was made at 23:10 UTC, 20 minutes before the 23:30 approval. The commit's +09:00 timestamp makes it look later. |
+
+The log was added by a "Vendor Compliance" account on 2025-10-01, after the work was done. The `Reviewed-by` lines in the commit messages are typed text, so they show who was named, not that an approval happened. `findings.md` suggests asking Lumenworks for approval records from their ticketing system. It also lists the specific questions to put to them.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+**Scope.** We checked the seven rows in `incoming/change-log.csv` against the git history of this repository. For each row we checked four things:
+
+1. The commit exists.
+2. The commit message carries the same change ID.
+3. The approval was given *before* the code was written.
+4. The approver is a different person from the author.
+
+All times are UTC. We converted the commit timestamps, because one is recorded in the +09:00 zone.
+
+## Summary
+
+| Change | Verdict | Reason in one line |
+|---|---|---|
+| CHG-2101 | Holds up | Approved the day before the commit, by someone other than the author. |
+| CHG-2102 | **Does not hold up** | Code was committed 23 hours *before* the logged approval. |
+| CHG-2103 | **Does not hold up** | The approver is the author, so this is self-approval. |
+| CHG-2104 | **Does not hold up** | The commit is labelled with a different change ID (CHG-2140). |
+| CHG-2105 | Holds up in part | The original commit is fine. A later unapproved commit uses the same ID. |
+| CHG-2106 | **Does not hold up** | The commit hash in the log does not exist in the repository. |
+| CHG-2107 | **Does not hold up** | Code was committed 20 minutes *before* the logged approval. |
+
+One row holds up fully and one holds up in part. Five rows have a defect.
+
+## Row-by-row
+
+### CHG-2101, Add isTTY helper: holds up
+- Approver: Hedda Brandvold, 2025-08-03 16:00.
+- Commit `6d975cf` was authored by Rafael Ostrowski on 2025-08-04 09:00, about 17 hours after approval.
+- The message matches the change ID and carries a `Reviewed-by` line for Hedda Brandvold.
+
+### CHG-2102, Honour NO_COLOR: does not hold up
+- Approver: Hedda Brandvold, logged at 2025-08-12 09:00.
+- Commit `b6b9ea3` was made on 2025-08-11 10:00, which is **23 hours before the logged approval**.
+- The change was implemented before it was approved. The approval was retrospective, or the logged time is wrong. Either way the log does not show a valid pre-approval.
+
+### CHG-2103, Add stripAnsi: does not hold up
+- Approver in the log: Corrin Vasquez, 2025-08-14 09:00.
+- Commit `6b929b3` was **authored by Corrin Vasquez** (2025-08-14 13:30), and its own `Reviewed-by` line names Corrin Vasquez.
+- The timing is acceptable, but the person who wrote the change also approved it. That is not independent approval.
+
+### CHG-2104, Expose reset sequence: does not hold up
+- The log points to commit `81b703f`. That commit exists, but its message reads **"CHG-2140: expose reset sequence"**, not CHG-2104.
+- The timing is acceptable: approval on 2025-08-18 12:00, commit on 2025-08-19 15:00.
+- This may be a typo in the commit message or the log. We cannot tell which from the repository. As evidence it does not tie approval CHG-2104 to this code. It also leaves open whether a separate CHG-2140 exists and has its own approval.
+
+### CHG-2105, Add terminal capability check: holds up in part
+- The original commit `1a56185` is sound. It was approved on 2025-09-02 12:00 and committed at 14:00 the same day, with a `Reviewed-by` line for Hedda Brandvold.
+- **Exception:** commit `233096b` ("CHG-2105: follow-up tweak to capability check") was made on 2025-09-09, a week after the approval. It adds a new exported function, `forceColor`, which reads the `FORCE_COLOR` environment variable.
+  - It has no reviewer and no approval.
+  - It reuses the CHG-2105 label, so the log suggests one approved change when the code had a second, unreviewed change.
+- The log lists only the first commit. The second is a change to production code that nobody approved.
+
+### CHG-2106, Add dim style: does not hold up
+- The log cites commit `50a811c157`. **No such commit exists** in the repository.
+- The history does contain a matching change, `8fa3486` ("CHG-2106: add dim style"). It has a `Reviewed-by` line for Sunil Pathak, and its timing is fine: approval on 2025-09-15 10:00, authored on 2025-09-16.
+- The log therefore cites a hash we cannot find. The likely cause is that the history was rewritten (for example by a rebase or amend) after the log was compiled, or that the hash was mistyped.
+- The "committed" date on `8fa3486` is 2025-09-19, three days after the authored date. That is consistent with a rewrite but does not prove one.
+- We recommend asking Lumenworks to explain the discrepancy before accepting this row. The code appears to have been approved, but the evidence as submitted points to a commit we cannot inspect.
+
+### CHG-2107, Add italic style: does not hold up
+- Approver: Sunil Pathak, logged at 2025-09-12 23:30.
+- Commit `2dab3d6` is stamped 2025-09-13 08:10 in the +09:00 zone, which is **2025-09-12 23:10 UTC, 20 minutes before the logged approval**.
+- Read in local clock time (08:10 on the 13th), the commit looks later than a 23:30 approval on the 12th, and that is how it could be mistaken for compliant. Converted to a common time zone, the code came first.
+- The margin is small and could be clock skew, but as recorded the change was made before it was approved.
+
+## Other observations
+- The evidence file `incoming/change-log.csv` was added in commit `aae6d63` on 2025-10-01 by a "Vendor Compliance" account. It is a vendor-supplied document created after the fact, not a system-generated record. Approver names and times in it are self-reported. Only the `Reviewed-by` lines in the commit messages are independent confirmation, and those carry no timestamps.
+- `Reviewed-by` lines are free text typed into a commit message and can be added or edited by the author. They show who was *named*, not that an approval took place. For a firm conclusion we would want the approval records from Lumenworks' ticketing or change-management system.
+
+## Recommended follow-up with Lumenworks
+1. Provide the system-of-record approval entries for CHG-2102 and CHG-2107, showing whether approval preceded implementation.
+2. Provide independent approval for CHG-2103, or confirm that none exists.
+3. Clarify whether CHG-2104 and CHG-2140 are the same change.
+4. Explain why commit `50a811c157` (CHG-2106) is not in the repository.
+5. Explain, with approval evidence, the `forceColor` addition in commit `233096b`.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -R . | grep -v '^./.git' | head -50; cat incoming/change-log.csv; git log --format='%h %an <%ae> %aI | %cI | %s' --all
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "$h -> $(git rev-parse --verify -q $h^{commit} || echo MISSING)"; done; git show --stat --format='== %h %s%n%b' 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa34
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-CV-2/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo's git history and wrote `findings.md`. Only one row, CHG-2101, holds up cleanly.
+
+- **CHG-2101 (holds up):** Approved before the commit, and the approver is not the author.
+- **CHG-2102 (fails):** The work was committed on 11 Aug, a day before the 12 Aug approval.
+- **CHG-2103 (fails):** Corrin Vasquez is both the approver and the author of the commit.
+- **CHG-2104 (fails as submitted):** The commit is labelled CHG-2140, not CHG-2104. It may be a typo, but the approval can't be tied to it.
+- **CHG-2105 (partly holds up):** The listed commit is fine. A later commit under the same number adds a new `forceColor` function with no review or approval. That commit isn't in the log.
+- **CHG-2106 (fails as submitted):** The commit `50a811c157` doesn't exist in the repo. The only "add dim style" commit is `8fa3486`, which suggests history was rewritten.
+- **CHG-2107 (fails):** The commit time is 08:10 on 13 Sep in a +09:00 time zone, which is 23:10 UTC on 12 Sep. That is 20 minutes before the 23:30 approval. It looks later if you ignore the time zone.
+
+I could only check what the repo shows, so the log's approver names and approval times are unverified. Commit timestamps can also be altered. The findings file ends with a list of records to request from Lumenworks.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+**Source checked:** `incoming/change-log.csv` (7 changes) against the git history of this repository.
+
+**Tests applied to each row**
+1. The commit named in the log exists in the repository.
+2. The commit's own label (CHG number) matches the change it is claimed to implement.
+3. The approval was recorded **before** the work was committed.
+4. The approver is a different person from the author of the work. For this test I treated a "Reviewed-by" line naming the approver as the author's own sign-off.
+5. Nothing further was changed under the same approval after it was given.
+
+All times are UTC. The commit time of CHG-2107 was recorded in a +09:00 time zone and has been converted.
+
+## Summary
+
+| Change | Result | One-line reason |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | Approved the day before the commit, by someone other than the author. |
+| CHG-2102 Honour NO_COLOR | **Does not hold up** | Work was committed 23 hours *before* it was approved. |
+| CHG-2103 Add stripAnsi | **Does not hold up** | The approver is also the author of the work (self-approval). |
+| CHG-2104 Expose reset sequence | **Does not hold up as submitted** | The commit is labelled as a different change (CHG-2140). |
+| CHG-2105 Terminal capability check | **Partly holds up** | The original commit is fine, but an unapproved extra change went in under the same number. |
+| CHG-2106 Add dim style | **Does not hold up as submitted** | The commit listed in the log does not exist in the repository. |
+| CHG-2107 Add italic style | **Does not hold up** | Work was committed 20 minutes *before* it was approved. |
+
+Only 1 of 7 rows is clean. One more (CHG-2105) is clean for the part it names.
+
+## Detail
+
+### CHG-2101: holds up
+Approved by Hedda Brandvold on 3 Aug 16:00. Implemented by Rafael Ostrowski in commit `6d975cf` on 4 Aug 09:00, which is after approval. The approver and the author are different people, and the commit carries a matching "Reviewed-by" line for the approver.
+
+### CHG-2102: does not hold up (work preceded approval)
+The log says Hedda Brandvold approved on 12 Aug 09:00. The commit `b6b9ea3` was made on 11 Aug 10:00, about 23 hours earlier. The change was already built before anyone approved it. The commit message does carry a "Reviewed-by" line for the same approver, so a review may have happened, but the log's approval timestamp contradicts that. Lumenworks should explain which date is correct and produce the approval record itself.
+
+### CHG-2103: does not hold up (no independent approval)
+Corrin Vasquez is listed as the approver, and Corrin Vasquez is also the author of commit `6b929b3`. The same person wrote and approved the change. The timing is otherwise acceptable (approval 09:00, commit 13:30, same day). This fails the requirement that the approver be independent of the author.
+
+### CHG-2104: does not hold up as submitted (identifier mismatch)
+The log points to commit `81b703f`, and the code change itself is plausible: it adds the reset sequence, and the timing is fine (approved 18 Aug 12:00, committed 19 Aug 15:00). However, the commit is labelled **CHG-2140**, not CHG-2104. It may be a typing error, but on the evidence provided, the approval for CHG-2104 cannot be tied to this commit. CHG-2140 may also be a separate change with its own approval that was never supplied. Lumenworks should confirm which and supply the approval for whichever is correct.
+
+### CHG-2105: partly holds up (extra unapproved change)
+The commit listed in the log, `1a56185`, is sound. It was approved at 12:00 and committed at 14:00 on 2 Sep, by a different person, and it carries the approver's "Reviewed-by" line.
+
+The problem is a **second commit**, `233096b`, made a week later on 9 Sep under the same CHG-2105 label ("follow-up tweak to capability check"). It adds a new function (`forceColor`, which reads the `FORCE_COLOR` setting). It has no "Reviewed-by" line, no approval record, and does not appear in the log. Reusing the number of an already-approved change lets new code enter without its own approval. It is not a cosmetic edit: it adds new behaviour.
+
+### CHG-2106: does not hold up as submitted (commit not found)
+The log cites commit `50a811c157`. **No such commit exists** anywhere in the repository. The only commit with this title is `8fa3486` ("CHG-2106: add dim style"), which has a different identifier. A change of identifier like this is what normally happens when history is rewritten after the fact (for example by amending or rebasing). That is consistent with what the dates show: `8fa3486` was written on 16 Sep but recorded as committed on 19 Sep.
+
+The substance looks reasonable: `8fa3486` was written after the 15 Sep 10:00 approval, by a different person than the approver. The audit committee should not accept the row until Lumenworks explains the missing identifier and shows that `8fa3486` is the same content that was approved.
+
+### CHG-2107: does not hold up (work preceded approval)
+Sunil Pathak's approval is logged at 12 Sep 23:30. The commit `2dab3d6` is stamped 13 Sep 08:10 in a +09:00 time zone, which is **12 Sep 23:10 UTC**, 20 minutes before the approval. Read at face value (08:10 on the 13th) the commit looks like it came after the approval, which may be how the row was assembled. Once the time zone is accounted for, the order is reversed. The margin is small and could reflect clock or time-zone handling, but as recorded the work preceded approval.
+
+## Limits of this review
+- I checked only what the repository can show: commit existence, labels, authors, timestamps, "Reviewed-by" lines, and the content of the changes. I did not see the approval records themselves, so the CSV's approval times and approver names are Lumenworks' statements and are unverified.
+- Commit timestamps are set by the committer's own machine and can be altered. They are good evidence of inconsistency, but weak proof of when work actually happened.
+- The last commit in the repository (`aae6d63`, 1 Oct) is Lumenworks' own "evidence" commit. It was authored by the vendor after all seven changes, so it adds no independent assurance.
+
+## Requests to Lumenworks
+1. Original approval records (tickets or emails) for all seven changes, with system-generated timestamps.
+2. Explanation for CHG-2102 and CHG-2107 of why work preceded approval.
+3. Independent approval for CHG-2103.
+4. Confirmation of whether CHG-2140 and CHG-2104 are the same change, with the matching approval.
+5. Approval for the `forceColor` addition (`233096b`).
+6. An explanation of the missing commit `50a811c157` and whether history was rewritten.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=iso; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git rev-parse --verify -q $h^{commit} || echo MISSING; done; git log --all --oneline | head -3; git branch -a; git reflog | head; for h in 6d975cf b6b9ea3 6
+Bash: git log --format='%h %s%n%b' 6d975cf^..2dab3d6 | grep -v '^$'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-CV-3/fx/findings.md
+### Final answer text
+I checked all seven rows against the git history and wrote `findings.md`. Only one row (CHG-2101) is fully supported by the repo.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the commit, and the approver is a different person from the author. |
+| CHG-2102 | Fails | The commit was made on 11 Aug, the day before the logged approval on 12 Aug. |
+| CHG-2103 | Fails | Corrin Vasquez wrote the commit and is also listed as its approver. |
+| CHG-2104 | Fails | The listed commit exists but is labelled CHG-2140, and no commit in the repo is labelled CHG-2104. |
+| CHG-2105 | Partly holds up | The main commit is fine. A later commit (9 Sep) under the same ID adds new code with no review and no approval on record. |
+| CHG-2106 | Fails | The listed commit `50a811c157` doesn't exist. The only CHG-2106 commit has a different hash, and its committer date (19 Sep) is later than its author date (16 Sep), which suggests it was rewritten. |
+| CHG-2107 | Fails | The commit is dated 13 Sep 08:10 in a +09:00 time zone, which is 12 Sep 23:10 UTC. The logged approval is 23:30 UTC, so the commit came 20 minutes before it. |
+
+The "Reviewed-by" lines in the commits are written by the author, so they aren't independent proof of approval. Nothing in the repo records the approvals themselves, so I could only check them against the CSV.
+
+The file also lists what to ask Lumenworks for, such as their approval-system records and an explanation for each failed row.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+**Source checked:** `incoming/change-log.csv` (7 changes) against this repository's git history.
+
+**What we tested for each row**
+1. The commit listed exists in the repository.
+2. The commit is the one that implements that change (the change ID in the commit message matches).
+3. The approval came *before* the work was committed.
+4. The approver is a different person from the author of the code (no self-approval).
+5. Nothing else was committed under the same change ID without approval.
+
+## Summary
+
+| Change | Result | Reason in one line |
+|---|---|---|
+| CHG-2101 | **Holds up** | Approved, then committed, by different people |
+| CHG-2102 | **Does not hold up** | Code was committed *before* it was approved |
+| CHG-2103 | **Does not hold up** | The author approved their own change |
+| CHG-2104 | **Does not hold up** | The commit is labelled as a different change (CHG-2140) |
+| CHG-2105 | **Partly holds up** | Original commit is fine; a later, unapproved commit used the same ID |
+| CHG-2106 | **Does not hold up** | Listed commit does not exist in the repository |
+| CHG-2107 | **Does not hold up** | Code was committed 20 minutes *before* it was approved |
+
+Only 1 of 7 rows is fully supported by the repository.
+
+## Row-by-row
+
+**CHG-2101 – Add isTTY helper: holds up.**
+Approved by Hedda Brandvold on 3 Aug 2025 16:00 UTC. Commit `6d975cf` was authored by Rafael Ostrowski on 4 Aug 09:00 UTC, after the approval. The commit message names CHG-2101 and carries a matching Reviewed-by line for Hedda Brandvold. Approver and author are different people.
+
+**CHG-2102 – Honour NO_COLOR: does not hold up.**
+The log says approval was given on 12 Aug 09:00 UTC. Commit `b6b9ea3` was authored on 11 Aug 10:00 UTC, about 23 hours earlier. The change was written and committed before the recorded approval. Either the approval time is wrong or the approval was given after the fact. The vendor should explain which.
+
+**CHG-2103 – Add stripAnsi: does not hold up.**
+Commit `6b929b3` was authored by Corrin Vasquez, and the log lists Corrin Vasquez as the approver. The Reviewed-by line in the commit also names Corrin Vasquez. One person both wrote and approved the change, so there was no independent review. The timing (approval 09:00, commit 13:30 UTC on 14 Aug) is otherwise in order.
+
+**CHG-2104 – Expose reset sequence: does not hold up.**
+The log points to commit `81b703f`. That commit exists, but its message says **CHG-2140**, not CHG-2104. Approval (18 Aug 12:00 UTC) precedes the commit (19 Aug 15:00 UTC) and the approver differs from the author. However, the repository contains no commit labelled CHG-2104. This is either a typo in the commit or in the log, or the approval was recorded against a different change than the one that was built. The vendor needs to show which ticket Hedda Brandvold actually approved.
+
+**CHG-2105 – Add terminal capability check: partly holds up.**
+The main commit `1a56185` (2 Sep 14:00 UTC) follows the approval (2 Sep 12:00 UTC), is by a different person than the approver, and has a matching Reviewed-by line. That part is fine. However, a second commit, `233096b` (9 Sep), is also labelled CHG-2105 as a "follow-up tweak". It adds a new function (`forceColor`), has no Reviewed-by line, and happened a week after the only approval on record. The log does not mention it. The approval covers `1a56185` only; `233096b` went in without evidence of review.
+
+**CHG-2106 – Add dim style: does not hold up.**
+The log lists commit `50a811c157`. **No such commit exists in this repository.** The only commit for CHG-2106 is `8fa3486`, which has a different identifier. Its author date is 16 Sep 11:00 UTC, one day after the 15 Sep 10:00 UTC approval, and its committer date is 19 Sep 08:00 UTC. The author and committer dates differ, which typically means the commit was rewritten or re-applied after it was first made. That would explain why the identifier in the log is not the one in the repository. We cannot confirm that what was approved is what is now in the code. The vendor should explain the discrepancy and provide the original commit if it still exists.
+
+**CHG-2107 – Add italic style: does not hold up.**
+Approval is logged at 12 Sep 23:30 UTC. Commit `2dab3d6` is dated 13 Sep 08:10 in a +09:00 time zone, which is 12 Sep 23:10 UTC. The commit was made 20 minutes *before* the approval. At first glance the dates look correctly ordered (13 Sep after 12 Sep), but this is only because the commit time is shown in local time. Once both are converted to UTC the order is reversed. A Reviewed-by line is present, but it cannot show when the review took place.
+
+## Other observations
+- The Reviewed-by lines in commit messages are written by the author and are not independent proof of approval. The audit should rely on the approval system's own record rather than on these lines or on this CSV.
+- The final commit `aae6d63` (1 Oct 2025), authored by "Vendor Compliance", only adds the evidence file. It contains no product changes.
+- Approvals in the CSV could not be verified against any source other than the CSV itself. Nothing in the repository records the approvals.
+
+## Suggested follow-up requests to Lumenworks
+1. Approval-system records (with timestamps) for CHG-2102, 2104, 2106 and 2107.
+2. An explanation of why CHG-2103 was approved by its own author, and the name of an independent reviewer.
+3. Confirmation of which ticket `81b703f` implements (2104 or 2140).
+4. Approval evidence for follow-up commit `233096b`, and the original of the commit `50a811c157` for CHG-2106.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%cI|%s' ; ls -la; ls incoming
+Bash: git cat-file -t 50a811c157; git branch -a; git stash list; git log --all --oneline | head -3; for c in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6 aae6d63; do echo "=== $c"; git show --stat --format='%H%nauthor %an %aI%ncommit %cn %cI%n%B' 
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-CV_I-1/fx/findings.md
+### Final answer text
+I wrote `findings.md` in the repo root. Only one of the seven rows holds up cleanly. I didn't use the cv-builder skills because they cover resume work, not audit checks.
+
+| Row | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the commit, and the approver matches the commit's `Reviewed-by` line. |
+| CHG-2102 | Fails | The commit is dated 11 Aug, 23 hours before the logged approval on 12 Aug. |
+| CHG-2103 | Fails | Corrin Vasquez wrote the change and is also the approver. |
+| CHG-2104 | Fails as written | The commit is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 | Holds up, with an exception | The logged commit is fine. A later commit under the same number adds `forceColor` with no review trailer. |
+| CHG-2106 | Fails as written | The logged hash `50a811c157` isn't in the repo. A commit with the matching title exists (`8fa3486`), authored 16 Sep and committed 19 Sep. The gap suggests the history was rewritten. |
+| CHG-2107 | Fails | The commit is stamped +09:00, which is 12 Sep 23:10 UTC, 20 minutes before the 23:30 approval. It only looks later if you ignore the time zone. |
+
+- **Limits of the evidence:** The only approver evidence in the repo is the `Reviewed-by` line typed into each commit message, and timestamps can be set to any value. The log was also assembled on 1 Oct, after all seven changes were made.
+- **What I'd ask Lumenworks for:** The report ends with a list of follow-up requests, including the original approval records for all seven rows.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+Scope: the seven rows in `incoming/change-log.csv`. I checked each row against the git history of this repo: commit existence, author, commit message, `Reviewed-by` trailer, timestamps and diff.
+
+## Summary
+
+| Change | Verdict | Reason |
+|---|---|---|
+| CHG-2101 | **Holds up** | Approved before the commit. Approver matches the reviewer. Author and approver are different people. |
+| CHG-2102 | **Does not hold up** | The code was committed about 23 hours before the logged approval. |
+| CHG-2103 | **Does not hold up** | The author and the approver are the same person. |
+| CHG-2104 | **Does not hold up as written** | The commit is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 | **Holds up, with an exception** | The logged commit is fine. A second, unreviewed commit was later made under the same change number. |
+| CHG-2106 | **Does not hold up as written** | The commit hash in the log does not exist in the repo. |
+| CHG-2107 | **Does not hold up** | The commit was made 20 minutes before the logged approval. This is visible only after converting time zones. |
+
+Result: 1 row holds up cleanly, 1 holds up with an exception, and 5 do not hold up as presented.
+
+## Row by row
+
+**CHG-2101, Add isTTY helper: holds up.**
+- Approved by Hedda Brandvold on 3 Aug 16:00 UTC.
+- Commit `6d975cf` was written by Rafael Ostrowski on 4 Aug 09:00 UTC, which is after approval.
+- The commit carries `Reviewed-by: Hedda Brandvold`, which matches the log.
+
+**CHG-2102, Honour NO_COLOR: approval came after the change.**
+- Commit `b6b9ea3` is dated 11 Aug 10:00 UTC.
+- The log says Hedda Brandvold approved it on 12 Aug 09:00 UTC, 23 hours later.
+- The change was therefore made before it was approved. Either the approval was retroactive or the timestamp is wrong. Lumenworks should say which.
+
+**CHG-2103, Add stripAnsi: no independent approval.**
+- Commit `6b929b3` was written by Corrin Vasquez.
+- The log names Corrin Vasquez as the approver, and the commit's `Reviewed-by` trailer also names Corrin Vasquez.
+- The timing is fine (approved 09:00 UTC, committed 13:30 UTC), but the person who wrote the change approved it. That is no independent review. The control is failed unless Lumenworks can show a second approver.
+
+**CHG-2104, Expose reset sequence: change number does not match.**
+- The log points to commit `81b703f`. The code matches the title: it adds the `reset` export.
+- The commit message says **CHG-2140**, not CHG-2104. This could be a typo, or the commit could belong to a different change request.
+- Approval on 18 Aug 12:00 UTC precedes the commit on 19 Aug 15:00 UTC, which is correct.
+- We cannot tell whether the approval covers this commit until Lumenworks confirms which number is right. We should also ask whether a real CHG-2140 exists and has its own approval.
+
+**CHG-2105, Add terminal capability check: logged commit holds up, but there is an unapproved follow-up.**
+- Commit `1a56185` was made on 2 Sep 14:00 UTC, after approval at 12:00 UTC. The reviewer matches.
+- On 9 Sep, Rafael Ostrowski made a second commit, `233096b`, titled "CHG-2105: follow-up tweak to capability check".
+- It was made a week after approval and has **no `Reviewed-by` trailer**. It adds a new function, `forceColor`, which reads the `FORCE_COLOR` environment variable. That is new behaviour, not a trivial tweak.
+- The log lists only the first commit, so this change entered the code under an approved change number without evidence of approval.
+
+**CHG-2106, Add dim style: the commit cited does not exist.**
+- The log cites `50a811c157`. That hash is not in the repo, and there are no other branches or stashes.
+- A commit with the matching title exists: `8fa3486`, "CHG-2106: add dim style", reviewed by Sunil Pathak. It was authored on 16 Sep and committed on 19 Sep, which is after the 15 Sep approval.
+- The authored and committed dates differ by three days. That pattern usually means the commit was rewritten or rebased, which could explain the hash mismatch.
+- As written, the row cannot be verified. Lumenworks should explain the hash and confirm the code under review is the code that shipped.
+
+**CHG-2107, Add italic style: made before approval.**
+- The log gives approval as 12 Sep 23:30 UTC.
+- Commit `2dab3d6` is stamped 13 Sep 08:10 in a +09:00 time zone. In UTC that is 12 Sep 23:10, which is **20 minutes before** the approval.
+- The date looks later than the approval at first glance, but it is earlier once the time zone is applied.
+- The change was made before it was approved. The margin is small, but the control requires approval first.
+
+## Limits of this check
+
+- The approver evidence in the repo is the `Reviewed-by` line in each commit message. The author of the commit typed it, so it is not independent proof that the approver approved. We have not seen the approval records themselves (ticket, email or tool log). I recommend requesting those for every row, including the two that held up.
+- Timestamps in the repo are written by the committer and can be set to any value. They are consistent with the log in places, but they are not tamper-proof.
+- The log file was added in commit `aae6d63` on 1 Oct 2025 by the vendor's compliance account. It was assembled after all seven changes were made, and it is not a contemporaneous record.
+
+## Follow-ups to request from Lumenworks
+
+1. CHG-2102 and CHG-2107: evidence of when approval was actually given, and an explanation for changes made before it.
+2. CHG-2103: a second, independent approver.
+3. CHG-2104: whether the commit belongs to CHG-2104 or CHG-2140, and the approval for whichever is correct.
+4. CHG-2105: approval for follow-up commit `233096b`.
+5. CHG-2106: an explanation of hash `50a811c157` and confirmation that `8fa3486` is the commit that was reviewed.
+6. Source approval records for all seven changes.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%cI|%s' ; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git cat-file -t $h 2>&1; done ; git log -9 --format='%h A:%aI C:%cI %cn' | head -9 ; for h in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6 aa
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-CV_I-2/fx/findings.md
+### Final answer text
+I've written `findings.md` in the repo root. Only one of the seven rows fully holds up. I didn't use the cv-builder skills, since they're for resumes and don't apply here. I checked each row against the git history only, and nothing was committed.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the work, and the approver is independent. |
+| CHG-2102 | Fails | The commit was made on Aug 11, but the approval is dated Aug 12. |
+| CHG-2103 | Fails | Corrin Vasquez wrote the change and is also its approver. |
+| CHG-2104 | Not verified | The commit message says CHG-2140, not CHG-2104. |
+| CHG-2105 | Partly holds up | The named commit is fine. A later commit under the same ID adds `forceColor` with no review. |
+| CHG-2106 | Not verified | Hash `50a811c157` doesn't exist in the repo. The real commit is `8fa3486`, and its author and commit dates differ by three days, which suggests it was amended or rebased. |
+| CHG-2107 | Fails | The commit is stamped 08:10 in UTC+9, which is 23:10 UTC on Sep 12. That is 20 minutes before the 23:30 approval. |
+
+The file also covers the limits of this check, and it lists the follow-up evidence to request from Lumenworks.
+
+- **The log is vendor-made:** Lumenworks added the CSV themselves after all seven changes.
+- **`Reviewed-by` lines prove little:** they are free text in the commit message, so they don't prove anyone reviewed the change.
+- **Next step:** ask Lumenworks for approval records from their ticketing or pull-request system.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+## What was checked
+
+`incoming/change-log.csv` lists seven changes (CHG-2101 to CHG-2107). Each row names an approver, an approval time (UTC) and the commit that implemented it. For each row I checked the following against this repo's git history:
+
+1. The commit hash exists.
+2. The commit message carries the same change ID.
+3. The approval time is before the commit time. Commit times were converted to UTC. One commit is stamped in UTC+9, and that matters for CHG-2107.
+4. The approver is a different person from the author. Otherwise nobody independent has reviewed the change.
+5. The commit's `Reviewed-by` line names the approver in the log.
+6. Nothing was added under the same change ID after approval.
+
+## Summary
+
+| Change | Verdict | Reason in one line |
+|---|---|---|
+| CHG-2101 | **Holds up** | Approved before the work, independent approver, IDs match |
+| CHG-2102 | **Does not hold up** | Approved about 23 hours *after* the commit was made |
+| CHG-2103 | **Does not hold up** | The author approved their own change |
+| CHG-2104 | **Not verified** | The commit is labelled CHG-2140, not CHG-2104 |
+| CHG-2105 | **Partly holds up** | The named commit is fine, but a later unapproved commit uses the same ID |
+| CHG-2106 | **Not verified** | The commit hash in the log does not exist in the repo |
+| CHG-2107 | **Does not hold up** | Approved 20 minutes *after* the commit was made |
+
+Result: 1 holds up, 1 holds up in part, 2 could not be verified, 3 fail.
+
+## Row by row
+
+### CHG-2101: Add isTTY helper. Holds up
+- Approved by Hedda Brandvold on 2025-08-03 16:00 UTC.
+- Commit `6d975cf` was made on 2025-08-04 09:00 UTC, which is after approval.
+- Rafael Ostrowski wrote it and Hedda Brandvold approved it, so the approver is independent.
+- The commit message ID matches, and the `Reviewed-by` line names Hedda Brandvold.
+
+### CHG-2102: Honour NO_COLOR. Does not hold up
+- The log says it was approved on 2025-08-12 09:00 UTC.
+- Commit `b6b9ea3` was made on 2025-08-11 10:00 UTC, so the change was built 23 hours before the recorded approval.
+- This is approval after the fact, not before the work. Whatever sign-off exists cannot have authorised the work in advance.
+
+### CHG-2103: Add stripAnsi. Does not hold up
+- Commit `6b929b3` was written by Corrin Vasquez, and the log names Corrin Vasquez as the approver.
+- The timing is fine (approved 09:00, committed 13:30 UTC on 2025-08-14). The problem is that nobody independent reviewed it.
+- The commit's `Reviewed-by` line also names Corrin Vasquez, so the repo confirms the self-review.
+
+### CHG-2104: Expose reset sequence. Not verified
+- The log points to commit `81b703f`, but that commit's message says **CHG-2140**, not CHG-2104.
+- The rest looks consistent. Approval on 2025-08-18 12:00 UTC came before the commit on 2025-08-19 15:00 UTC, and the `Reviewed-by` line names Hedda Brandvold.
+- This may be a typo in the commit message or in the log. It may also mean the commit belongs to a different change record.
+- We cannot tell which from the repo. Lumenworks should say which is correct and give the CHG-2140 record. It should also show that no separate commit exists for CHG-2104.
+
+### CHG-2105: Add terminal capability check. Partly holds up
+- The named commit `1a56185` is fine. Approved 2025-09-02 12:00 UTC, committed 14:00 UTC, independent approver, and `Reviewed-by` matches.
+- A second commit, `233096b` ("CHG-2105: follow-up tweak to capability check"), was made on 2025-09-09. That is a week after approval.
+- It has **no `Reviewed-by` line** and adds a new function, `forceColor`, which reads the `FORCE_COLOR` environment variable.
+- The log does not mention this commit, and no approval covers it. Code that shipped under CHG-2105 is therefore partly unapproved.
+- Lumenworks should show an approval for `233096b`, or a separate change record for it.
+
+### CHG-2106: Add dim style. Not verified
+- The log cites commit `50a811c157`. **No such commit exists in this repo.**
+- The only CHG-2106 commit is `8fa3486`, with the `dim` function and a `Reviewed-by` line for Sunil Pathak. It was authored on 2025-09-16 11:00 UTC and committed on 2025-09-19 08:00 UTC. Both dates are after the 2025-09-15 10:00 UTC approval.
+- The substance looks plausible, but the evidence does not match the repo. Author and commit dates differ by three days, which suggests the commit was amended or rebased after it was first made. That would explain why the hash changed.
+- Lumenworks should explain the hash discrepancy and confirm that `8fa3486` is the approved change. It should also show what changed between the original and the current commit.
+
+### CHG-2107: Add italic style. Does not hold up
+- The log says it was approved on 2025-09-12 23:30 UTC.
+- Commit `2dab3d6` is stamped 2025-09-13 08:10 in UTC+9, which is **2025-09-12 23:10 UTC**. The commit therefore came 20 minutes *before* the approval.
+- Read at face value, "08:10 on the 13th" looks later than "23:30 on the 12th". The time zones must be converted before comparing.
+- As with CHG-2102, the change was built before it was approved. The margin is small, but the rule is the same.
+
+## Caveats the committee should know
+
+- **The evidence file is vendor-made.** `change-log.csv` was added by "Vendor Compliance" on 2025-10-01, after all seven changes. The approvals in it are Lumenworks' own statements. The repo contains no independent record of them, such as a ticket system export or signed approvals.
+- **The `Reviewed-by` lines are free text.** Anyone can type them into a commit message, so they show only what the author wrote. They do not prove that the named person reviewed or approved the change.
+- **Approver identity and times were not checked at source.** I could only compare the log against git history. The approvers' own records are the next thing to request.
+- **Commit dates can be edited.** The CHG-2106 commit shows the author date and commit date differing. An approval that appears to come before a commit could still be misleading if dates were altered, and a late approval can be hidden the same way. Review of the vendor's hosted repository history, such as reflogs or push records, would settle this.
+
+## Suggested follow-up requests to Lumenworks
+
+1. For CHG-2102 and CHG-2107, evidence of approval before work started, or an acknowledgement of retroactive approval and the exception process used.
+2. For CHG-2103, an independent review of the change, with the reviewer named.
+3. For CHG-2104, confirmation of the correct ID (2104 or 2140) and the matching change record.
+4. For CHG-2105, the approval record for commit `233096b` (`forceColor`).
+5. For CHG-2106, an explanation of hash `50a811c157` and why the commit differs from `8fa3486`.
+6. For all rows, exports from the system of record for approvals (ticketing or pull-request approvals) rather than a hand-built CSV.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=iso; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6 aae6d63; do echo "=== $h"; git show --stat --format='%H %s%n%b' $h | head -15; done; git cat-file -t 50a811c157 2>&1; git log --all --oneline | head -3; git reflog | head
+Bash: git show 233096b 81b703f 8fa3486 b6b9ea3 | grep -v '^index'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-CV_I-3/fx/findings.md
+### Final answer text
+I checked all seven rows against the git history and wrote `findings.md`. Only CHG-2101 is clean. I didn't use the cv-builder skills because they're for resumes and don't apply to an audit check.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the code was committed, by a different person. |
+| CHG-2102 | Fails | Committed 11 Aug 10:00, about 23 hours before the logged approval on 12 Aug 09:00. |
+| CHG-2103 | Fails | Corrin Vasquez approved their own commit. |
+| CHG-2104 | Fails | The commit message says CHG-2140, which isn't in the log. |
+| CHG-2105 | Row holds up, with an exception | The listed commit is fine. A later commit, `233096b`, was made under the same number with no review. It adds a new `forceColor()` function. |
+| CHG-2106 | Can't be verified | Hash `50a811c157` doesn't exist in the repo. The matching commit is `8fa3486`, and its committer date is three days after its author date, so it was rewritten. |
+| CHG-2107 | Fails | The `+09:00` timestamp is 12 Sep 23:10 UTC, 20 minutes before the 23:30 approval. |
+
+The log was added on 1 Oct 2025, after all seven changes, and the `Reviewed-by` lines are free text in commit messages. Neither is strong evidence of approval at the time. `findings.md` also lists what to ask Lumenworks for on each failing row.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+Source checked: `incoming/change-log.csv` (7 rows) against the git history of this repository. For each row I compared the commit hash, the change ID in the commit message, the commit author, the `Reviewed-by` trailer, and the commit time against the approval time. All times are UTC. Commit times use the author date.
+
+## Summary
+
+| Change | Verdict | Reason |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the commit was made. |
+| CHG-2102 | **Does not hold up** | Code was committed about 23 hours before the approval time. |
+| CHG-2103 | **Does not hold up** | The approver is also the person who wrote the code. |
+| CHG-2104 | **Does not hold up** | The commit carries a different change number (CHG-2140). |
+| CHG-2105 | Row holds up, with an exception | A later commit under the same number has no recorded approval. |
+| CHG-2106 | **Cannot be verified** | The commit hash in the log does not exist in the repository. |
+| CHG-2107 | **Does not hold up** | Code was committed 20 minutes before the approval time. |
+
+Only CHG-2101 is clean. One more (CHG-2105) is clean for its listed commit but has an unapproved follow-up.
+
+## Row-by-row detail
+
+**CHG-2101: Add isTTY helper. Holds up.**
+Approved by Hedda Brandvold on 3 Aug 16:00. Commit `6d975cf` was written by Rafael Ostrowski on 4 Aug 09:00, after the approval. Author and approver are different people, and the commit message matches the change ID and title.
+
+**CHG-2102: Honour NO_COLOR. Does not hold up.**
+The log says approval was on 12 Aug 09:00. Commit `b6b9ea3` was written on 11 Aug 10:00, about 23 hours earlier. The commit already carries a `Reviewed-by: Hedda Brandvold` line, so a review of some kind happened by 11 Aug. The log's approval time therefore either is wrong or records approval after the fact. Either way the evidence does not show approval before implementation.
+
+**CHG-2103: Add stripAnsi. Does not hold up.**
+Approver Corrin Vasquez is also the commit author of `6b929b3` (and the `Reviewed-by` line names Vasquez too). The change was approved by the person who wrote it, so no independent approval exists. Timing is fine (approved 09:00, committed 13:30 on 14 Aug), but separation of duties fails.
+
+**CHG-2104: Expose reset sequence. Does not hold up.**
+Commit `81b703f` exists, matches the title, and follows the 18 Aug 12:00 approval (committed 19 Aug 15:00). However, its message is "CHG-2140: expose reset sequence", not CHG-2104. No row in the log covers CHG-2140. Either the commit was mislabelled, or it implements a different change that has no approval on file. Lumenworks needs to explain which.
+
+**CHG-2105: Add terminal capability check. Row holds up, with an exception.**
+Commit `1a56185` was written on 2 Sep 14:00, two hours after the 12:00 approval, and carries Hedda Brandvold's review. That is correct. However, a second commit, `233096b` ("CHG-2105: follow-up tweak to capability check", 9 Sep), was made under the same change number. It has no `Reviewed-by` trailer and is not in the log. It is not a tweak: it adds a new exported function, `forceColor()`, that reads the `FORCE_COLOR` environment variable. That is new, unapproved functionality shipped under an approval given a week earlier for something else. This commit is the exception to raise with the vendor.
+
+**CHG-2106: Add dim style. Cannot be verified.**
+The log lists commit `50a811c157`. That hash does not exist in this repository, including all branches and the reflog. The commit that actually implements "add dim style" is `8fa3486`, reviewed by Sunil Pathak. It was authored 16 Sep 11:00, after the 15 Sep 10:00 approval. Its committer date is 19 Sep 08:00, three days after its author date, which means it was rewritten (rebased or amended) after it was first made. The log therefore points to a version of the commit that is no longer in the history. I can say the change probably happened and was approved in time. I cannot confirm that the code the approver saw is the code that is now in the repository. Lumenworks should explain the hash and the rewrite.
+
+**CHG-2107: Add italic style. Does not hold up.**
+Approval is logged at 12 Sep 23:30 UTC. Commit `2dab3d6` is stamped 13 Sep 08:10 in a +09:00 time zone, which is 12 Sep 23:10 UTC. The code was written 20 minutes before the logged approval. The local date (13 Sep) looks later than the approval date, but the time zone offset reverses that. The commit already carries Sunil Pathak's `Reviewed-by`. It is a narrow miss, but it fails the same test as CHG-2102: approval must come first.
+
+## Other observations
+
+- The log itself was added by commit `aae6d63` on 1 Oct 2025, after all seven changes. It is a vendor-compiled summary, not a record made at the time of each approval. The repository holds no independent approval records (tickets or pull request approvals). The `Reviewed-by` trailers are typed into commit messages and can be edited by the author, so they are weak evidence.
+- Every change touches only `index.mjs` and adds two lines. None includes tests.
+- The author dates and committer dates differ only for CHG-2106, so that is the only commit with visible signs of rewriting.
+
+## Requests to Lumenworks
+
+1. CHG-2102 and CHG-2107: the original approval records (ticket or message) with their timestamps.
+2. CHG-2103: an independent approval, or confirmation that a second reviewer signed off.
+3. CHG-2104: clarify whether the commit belongs to CHG-2104 or to a separate CHG-2140, and provide approval for CHG-2140 if separate.
+4. CHG-2105: the approval record for the `forceColor` follow-up (`233096b`).
+5. CHG-2106: explain hash `50a811c157` and why `8fa3486` was rewritten.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; git log --format='%h|%an|%ae|%aI|%cI|%P|%s' | head -30; ls; ls incoming
+Bash: for c in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552 233096b 8fa3486; do echo "== $c"; git show --stat --format='%h %an %s' $c 2>&1 | head -8; done; git branch -a; git cat-file -t 50a811c157; git log --all --oneline | head -3
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-OURS-1/fx/findings.md
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-OURS-1/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo's history and wrote `findings.md`. One row holds up cleanly, one holds up with a caveat, and five don't. I used read-only git and did not run `workproof figures`.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the work was recorded, by a different person. |
+| CHG-2102 | Fails | The work was recorded about 23 hours before the approval. |
+| CHG-2103 | Fails | Corrin Vasquez is both the approver and the author. |
+| CHG-2104 | Fails | The cited commit is labelled CHG-2140 in the repo, so the approval isn't tied to this change. |
+| CHG-2105 | Holds up, with a caveat | The original work was approved first. A "follow-up tweak" a week later has no approval in the log. |
+| CHG-2106 | Fails | Commit `50a811c157` doesn't exist in the repo. The only "add dim style" commit is `8fa3486`, which I can't confirm is the one meant. |
+| CHG-2107 | Fails | The work was recorded at 23:10 UTC, 20 minutes before the 23:30 approval. The author's local time (13 Sep, 08:10 +09:00) makes it look later. |
+
+- **Timestamps:** I converted all times to UTC so they compare with the log.
+- **Log commit:** The final commit in the repo adds the evidence log itself, so it isn't independent evidence.
+- **What the repo can't show:** The repo can't prove the approvals actually happened, or how thorough any review was. The findings file lists the records to request from Lumenworks.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+## Summary
+
+Lumenworks listed seven changes. We compared each against the repository's record of who made the change and when. **Only one row holds up cleanly (CHG-2101), one holds up with a caveat (CHG-2105), and five do not hold up as submitted.**
+
+| Change | Result | Short reason |
+|---|---|---|
+| CHG-2101 Add isTTY helper | Holds up | Approved about 17 hours before the work was recorded, by a different person |
+| CHG-2102 Honour NO_COLOR | Does not hold up | Work was recorded about 23 hours *before* approval |
+| CHG-2103 Add stripAnsi | Does not hold up | Approver and author are the same person |
+| CHG-2104 Expose reset sequence | Does not hold up | Work is recorded under a different change number (CHG-2140) |
+| CHG-2105 Terminal capability check | Holds up, with a caveat | Original work approved first; a later unapproved follow-up edit exists |
+| CHG-2106 Add dim style | Does not hold up as submitted | The commit reference in the log does not exist |
+| CHG-2107 Add italic style | Does not hold up | Work was recorded 20 minutes *before* approval |
+
+Rows that hold up fully: 1 (CHG-2101). Holds up with a caveat: 1 (CHG-2105). Do not hold up: 5. (Total 7.)
+
+Times below are in UTC. The repository records each change with the author's own local clock and time zone; we converted these so they are comparable with the approval times in the log.
+
+## Row by row
+
+**CHG-2101: holds up.** Approved by Hedda Brandvold on 3 Aug 2025 at 16:00. The work, by Rafael Ostrowski, was recorded on 4 Aug at 09:00, after approval. The approver and author are different people, the reference exists, and the description matches.
+
+**CHG-2102: does not hold up.** Approved on 12 Aug at 09:00. The work was recorded on 11 Aug at 10:00, about 23 hours earlier. The change was made before it was approved, so this is approval after the fact, not control.
+
+**CHG-2103: does not hold up.** Approved by Corrin Vasquez on 14 Aug at 09:00; the work was recorded at 13:30 the same day, so the order is correct. However, the work was authored by Corrin Vasquez as well. The same person approved and made the change, so there was no independent review.
+
+**CHG-2104: does not hold up.** The log cites a commit that exists, but the repository labels that work as **CHG-2140**, not CHG-2104. Timing is fine (approved 18 Aug 12:00; work 19 Aug 15:00). Either the log or the repository label is wrong. We cannot tell which from the repository, so the link between this approval and this work is unproven. Lumenworks should explain the mismatch.
+
+**CHG-2105: holds up, with a caveat.** Approved by Hedda Brandvold on 2 Sep at 12:00; the original work was recorded at 14:00 the same day. But a second record, "follow-up tweak to capability check", was made on 9 Sep at 11:00, a week after approval. The log does not mention it and no approval covers it. It changes the same area, so the approved change is not exactly what is now in the code. Lumenworks should show an approval for the follow-up.
+
+**CHG-2106: does not hold up as submitted.** The commit reference in the log (50a811c157) does not exist in this repository. The only record matching "add dim style" is a different reference (8fa3486), which we cannot confirm is the one intended. If it is, the timing is acceptable on its authored date (approved 15 Sep 10:00; authored 16 Sep 11:00), but it was only finalised in the repository on 19 Sep, and the log does not say so. We cannot tie the approval to any real work as written.
+
+**CHG-2107: does not hold up.** Approved 12 Sep at 23:30. The work was recorded at 23:10 the same evening (08:10 on 13 Sep in the author's local time, which makes it look as if it followed approval). It preceded approval by 20 minutes. Note the log lists this approval *earlier* than CHG-2106's (15 Sep) although it is the higher-numbered change.
+
+## Other observations
+
+- The last record in the repository (1 Oct 2025, "Vendor Compliance") adds the evidence log itself. It was created after all seven changes and is not independent evidence; it tells us what Lumenworks claims, not what happened.
+- Approvers (Hedda Brandvold, Sunil Pathak) have no work of their own in this repository, which is consistent with independence, except in CHG-2103.
+
+## What this review cannot decide
+
+- Whether the approvals actually occurred at the times stated. The log is Lumenworks' own statement; we have no approval system record. Request the original approval tickets or emails.
+- Whether the work was reviewed in substance. The repository shows who made each change and when, not the quality of any review.
+- The recorded times come from each author's own computer clock and could be set incorrectly; they are not independently timestamped.
+
+## Suggested follow-up
+
+Ask Lumenworks for: original approval records for CHG-2102 and CHG-2107 (or an explanation of retrospective approval); an independent approver for CHG-2103; clarification of CHG-2104/CHG-2140; the correct reference for CHG-2106; and approval for the CHG-2105 follow-up.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an <%ae>|%ad|%cd|%P|%s' --date=iso | head -30; ls
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: git cat-file -t 50a811c157; git log --all --oneline | head -3; git branch -a; git tag | tail -3; for c in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6; do echo "== $c"; git show --stat --format='%an %G? %b' $c | head -12; done
+Bash: for c in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8fa3486 2dab3d6; do echo "== $c"; git show --format= $c | grep '^[+-][^+-]'; done; mkdir -p evidence
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-OURS-2/fx/findings.md
+Bash: python3 - <<'E' ; p='findings.md' ; s=open(p).read() ; a=s.index("The work was written at 08:10") ; b=s.index("\n\n## Other") ; s=s[:a]+"The work was recorded at 08:10 on 13 Sep 2025 in a UTC+9 time zone, which is 23:10 UTC on 12 Sep. The log gives the approval as 23:30
+### Final answer text
+I've written `findings.md` in the repo root. Of the seven rows, two hold up and five don't.
+
+I checked each row against the commit history: author, authored time (converted to UTC), the change's contents and the reviewer named in each commit.
+
+- **Holds up:**
+  - CHG-2101: approval came before the work, and the reviewer matches the log.
+  - CHG-2105: the original commit matches. The caveat is that a later "follow-up tweak" under the same number has no reviewer. It adds a new force-colour function the log doesn't mention.
+- **Doesn't hold up:**
+  - CHG-2102: the work was recorded about 23 hours before the stated approval.
+  - CHG-2103: the author and the approver are the same person, Corrin Vasquez.
+  - CHG-2104: the commit in the log is labelled CHG-2140, and no commit carries the CHG-2104 label.
+  - CHG-2106: the log's commit ID, 50a811c157, doesn't exist in the repo. A commit labelled CHG-2106 does exist and names the right reviewer, but it isn't the one the log cites.
+  - CHG-2107: the work was recorded at 23:10 UTC on 12 Sep, 20 minutes before the stated 23:30 UTC approval.
+
+I couldn't check whether the approvals actually happened or when. The approval times in the log and the "Reviewed-by" notes in the commits both come from the vendor, so neither is independent proof. The file recommends getting the approval records straight from Lumenworks' ticketing system.
+
+The file ends with five requests to the vendor, one for each problem above. It doesn't give the committee a pass/fail verdict on Lumenworks overall.
+
+**Edits after the first draft:**
+- I rewrote the CHG-2107 paragraph. The first version was muddled about time zones and speculated about working hours, and the new one just states the two timestamps.
+- I removed a stray remark about commit ordering from the CHG-2106 paragraph.
+- Your note said `findings.md` changed on disk after I last read it. I didn't see those edits, so I haven't reviewed them.
+
+I also created an empty `evidence/` folder, which you can delete.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings for the audit sample
+
+**Scope.** We compared each of the seven rows in the vendor's change log with the repository's recorded history: who wrote each change, when, what the change contained, and who is named as having reviewed it. Dates use the time the change was written (the "author" date), converted to UTC. The history shows what was recorded, who by and when. It does not show whether a review was real or its quality. The approval times in the log come from the vendor and cannot be confirmed from the repository (see "What we could not check").
+
+**Result: 2 of 7 rows hold up. 5 do not.**
+
+| Change | Result | Reason in brief |
+|---|---|---|
+| CHG-2101 Add isTTY helper | Holds up | Approved before the work was recorded; reviewer named in the history matches the log. |
+| CHG-2102 Honour NO_COLOR | Does not hold up | Work was recorded about 23 hours before the approval time stated. |
+| CHG-2103 Add stripAnsi | Does not hold up | The approver is also the person who wrote the change. |
+| CHG-2104 Expose reset sequence | Does not hold up | The referenced work is filed under a different change number (CHG-2140). |
+| CHG-2105 Add terminal capability check | Holds up, with a caveat | Original work matches. A later tweak under the same number has no approval. |
+| CHG-2106 Add dim style | Does not hold up | The commit named in the log does not exist in the repository. |
+| CHG-2107 Add italic style | Does not hold up | Work was recorded 20 minutes before the approval time stated. |
+
+## Row by row
+
+**CHG-2101 – holds up.** Hedda Brandvold's approval (3 Aug 2025, 16:00) precedes the work (4 Aug, 09:00). The history names Hedda Brandvold as reviewer. The author, Rafael Ostrowski, is a different person from the approver, and the change matches its title.
+
+**CHG-2102 – does not hold up.** The work was recorded on 11 Aug 2025 at 10:00. The log gives the approval as 12 Aug at 09:00, about 23 hours later. Either the change was made before it was approved, or the approval time is wrong. The history does name the stated approver as reviewer, so this looks like approval after the fact, not an invented approval. The vendor should explain.
+
+**CHG-2103 – does not hold up.** The change was written by Corrin Vasquez, and the log names Corrin Vasquez as the approver. The history's reviewer note also names Corrin Vasquez. Nobody independent signed this off. This is a failure of separation of duties.
+
+**CHG-2104 – does not hold up.** The commit in the log exists and contains a "reset sequence" addition, but it is labelled CHG-2140, not CHG-2104. No commit in the repository carries the CHG-2104 label. We cannot tell whether this is a typing error in the log or whether the approval was given for a different piece of work. Until the vendor shows the two numbers refer to the same change, the approval cannot be tied to this work.
+
+**CHG-2105 – holds up, with a caveat.** The original capability check was recorded 2 Sep 2025 at 14:00, after Hedda Brandvold's approval at 12:00, and the reviewer matches. However, a second commit on 9 Sep 2025 carries the same CHG-2105 label as a "follow-up tweak". It adds a new function (a force-colour switch), has no reviewer recorded, and is not mentioned in the log. The approval covers the first commit only. This is an unreviewed change released under an approved change number.
+
+**CHG-2106 – does not hold up.** The commit identifier in the log (50a811c157) does not exist anywhere in the repository. The work that appears to correspond to it (the "dim style" change, a different identifier) names Sunil Pathak as reviewer, which matches the approver in the log, and was written on 16 Sep 2025, after the stated approval on 15 Sep. But the log points to something we cannot find, so the row as submitted cannot be verified. Two further points: the repository's own record shows this commit was finalised on 19 Sep, three days after it was written, which the vendor should explain,.
+
+**CHG-2107 – does not hold up.** The work was recorded at 08:10 on 13 Sep 2025 in a UTC+9 time zone, which is 23:10 UTC on 12 Sep. The log gives the approval as 23:30 UTC on 12 Sep, 20 minutes after the work. So the change was made before it was approved. The approval on this row (12 Sep) is also earlier than the one on CHG-2106 (15 Sep), although CHG-2106 was written first in the log's numbering; the vendor should confirm the dates.
+
+## Other observations
+
+- Every one of the seven changes was written by the same person, Rafael Ostrowski, except CHG-2103. Combined with the missing separation on CHG-2103, there is a limited pool of people in the control.
+- The log itself was added to the repository by a "Vendor Compliance" account on 1 Oct 2025, after all the work. It is the vendor's own account of events, not an independent system record.
+- No commits carry digital signatures.
+
+## What we could not check
+
+- **Whether the approvals happened and when.** The log's approval times and the "reviewed by" notes inside the commits are both vendor-supplied text. Neither is independent proof. The next step is to obtain the approval records from the vendor's ticketing system, directly from the system and not through the vendor.
+- **Whether reviews were substantive.** History records names, not the quality of a review.
+- **The identity of the people named.** The addresses are on the vendor's own organisational domain, which cannot prove who they work for.
+
+## Requests to the vendor
+
+1. Explain the timing for CHG-2102 and CHG-2107 and supply system-generated approval timestamps.
+2. Provide independent approval for CHG-2103.
+3. Reconcile CHG-2104 and CHG-2140.
+4. Provide the correct commit for CHG-2106 and an explanation of the missing identifier.
+5. Provide approval for the follow-up commit under CHG-2105, or confirm it was unapproved.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo ---; git log --format='%h|%an <%ae>|%ad|%cd|%s' --date=iso | head -30; ls
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552 233096b 8fa3486; do echo "=== $h"; git cat-file -t $h 2>&1; done; git log --all --oneline | head -3; git branch -a; for h in 6d975cf b6b9ea3 6b929b3 81b703f 1a56185 233096b 8
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-OURS-3/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo and wrote `findings.md`. Two rows hold up and five don't. I compared times in UTC, and I did not assess whether the code is any good.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the work was made, by someone other than the author. |
+| CHG-2102 | Fails | The work was made 23 hours before the logged approval. |
+| CHG-2103 | Fails | The approver, Corrin Vasquez, is also the author. |
+| CHG-2104 | Can't confirm | The commit in the repo is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 | Holds up, with a caveat | The listed commit was approved first. A later "follow-up tweak" under the same number adds new behaviour, and no approval is recorded for it. |
+| CHG-2106 | Can't confirm | The commit hash in the log doesn't exist in the repo. The matching "add dim style" commit has a different hash, and its committer date (19 Sep) is later than its author date (16 Sep). |
+| CHG-2107 | Fails | The work was made at 08:10 on 13 Sep in a +09:00 time zone, which is 23:10 UTC on 12 Sep. That is 20 minutes before the logged approval, even though the dates look the right way round. |
+
+**What the repo can't show:** It records who made each change and when, but not who approved it. The approver names and times come only from Lumenworks's own log. That log was committed on 1 Oct 2025, after all seven changes.
+
+**Reviewed-by notes:** The "Reviewed-by" notes in the commit messages were written by the commit author, so they aren't independent proof either.
+
+`findings.md` is written for the committee, with no commands or code in the body. It ends with suggested requests for Lumenworks's ticket-system records and an appendix of commit references.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings for the audit committee
+
+## What we checked
+
+Lumenworks supplied a log of seven changes. Each row names an approver, the time of approval and the recorded change that implemented it. We compared every row with the project's change history and applied three tests:
+
+1. **Does the recorded change exist, and is it the change described?**
+2. **Was approval given before the work was made?** An approval that comes after the work is a retrospective sign-off, not a control.
+3. **Was the approver independent of the person who made the change?**
+
+All times are in UTC. One change was made in a +09:00 time zone, so we converted it before comparing.
+
+## Result: 2 of 7 rows hold up, 5 do not
+
+| Change | Result | Short reason |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | Approved before the work was made, by someone other than the author. |
+| CHG-2102 Honour NO_COLOR | **Does not hold up** | Approval came about a day after the work was made. |
+| CHG-2103 Add stripAnsi | **Does not hold up** | The approver is the person who made the change. |
+| CHG-2104 Expose reset sequence | **Cannot be confirmed** | The change in the history carries a different change number (CHG-2140). |
+| CHG-2105 Add terminal capability check | **Holds up, with a caveat** | The listed work was approved first, but a later unapproved change was filed under the same number. |
+| CHG-2106 Add dim style | **Cannot be confirmed** | The recorded change number in the log does not exist in the history. |
+| CHG-2107 Add italic style | **Does not hold up** | Approval came 20 minutes after the work was made, once the time zone is converted. |
+
+## Row by row
+
+**CHG-2101: holds up.** Approved by Hedda Brandvold on 3 Aug 16:00. The work was made by Rafael Ostrowski on 4 Aug 09:00, about 17 hours later. The approver and author are different people, and the content matches the title.
+
+**CHG-2102: does not hold up.** The log says approval was on 12 Aug 09:00. The work was made on 11 Aug 10:00, 23 hours before. The approval was given after the fact.
+
+**CHG-2103: does not hold up.** Corrin Vasquez is listed as approver, and Corrin Vasquez also made the change (14 Aug 13:30, four and a half hours after the logged approval). Nobody independent approved it. Separately, the approval time precedes the work, so the sequence is right, but self-approval fails the independence test.
+
+**CHG-2104: cannot be confirmed.** The recorded change exists and does what the title says. However, it is labelled CHG-2140 in the history, not CHG-2104. This may be a typing slip in either place, but nothing in the repository settles it. It is also possible that the approval relates to a different piece of work. Timing is otherwise acceptable (approved 18 Aug 12:00, made 19 Aug 15:00). *Not verifiable here: Lumenworks's change-ticket system would show which number the approval was actually raised under.*
+
+**CHG-2105: holds up for the listed work, with a caveat.** The listed work was approved on 2 Sep 12:00 and made on 2 Sep 14:00, by a different person. But a second change was made on 9 Sep under the same number ("follow-up tweak"). It adds new behaviour (a way to force colour on through an environment setting) and has no approver recorded in the history or in the log. The approval covers only the first piece of work. The follow-up is outside the evidence, even though it carries the same change number.
+
+**CHG-2106: cannot be confirmed.** The log gives a recorded change number that does not exist in the history. The history does contain a change titled "add dim style" under this number, but it is a different record. It was written on 16 Sep, after the 15 Sep approval, and it was then re-saved on 19 Sep. That is the likely reason the numbers differ. The date order is acceptable and the approver is independent, but we cannot show that the approved work is the work now in the history, because the log points to something that is not there. *Not verifiable here: Lumenworks should explain which version was approved and why the record was altered after the log entry was prepared.*
+
+**CHG-2107: does not hold up.** The log says approval was at 12 Sep 23:30. The work was made on 13 Sep at 08:10 in a +09:00 time zone, which is 12 Sep 23:10 in UTC. The work therefore came 20 minutes before the approval. Read at face value, the dates look as though approval came first (12 Sep versus 13 Sep). That reading is wrong once the time zone is applied.
+
+## Patterns worth raising with Lumenworks
+
+- Three rows (CHG-2102, CHG-2107 and, in effect, CHG-2103) show approval that is late or not independent.
+- Two rows (CHG-2104 and CHG-2106) point to records that do not match the history.
+- One row (CHG-2105) shows work added after approval under the same number.
+- Almost all changes were made by one person. Approver names also appear as "reviewed by" notes inside the history, so these notes came from the same people who are named in the log. They are written by the author of the change and are not independent proof of approval.
+
+## Limits of this review
+
+- The history shows who made each change and when. It does not show who approved it or when. The approver names and times come only from Lumenworks's own log, and we have not been able to check them against an independent system.
+- The last entry in the history is the log itself, added on 1 Oct 2025 by a Lumenworks compliance account. So the log was assembled after all seven changes, and the history cannot show whether the approvals were recorded at the time.
+- We used the time each change was written, not the time it was last re-saved. For CHG-2106 the two differ by three days.
+- We checked timing, authorship, and match to the change title. We did not assess whether the work was correct or well made.
+
+## Suggested next steps
+
+1. Ask Lumenworks for the approval records from their ticket system, with timestamps, for all seven changes.
+2. Ask them to explain CHG-2104 (number mismatch), CHG-2106 (missing record) and the unapproved follow-up under CHG-2105.
+3. Ask whether CHG-2102, CHG-2103 and CHG-2107 were approved retrospectively or without independence, and how policy treats that.
+4. Treat only CHG-2101 as fully supported until these answers are received.
+
+## Appendix: references
+
+| Change | Commit in log | Commit in history | Written (UTC) | Logged approval (UTC) |
+|---|---|---|---|---|
+| CHG-2101 | 6d975cf | 6d975cf | 4 Aug 09:00 | 3 Aug 16:00 |
+| CHG-2102 | b6b9ea3 | b6b9ea3 | 11 Aug 10:00 | 12 Aug 09:00 |
+| CHG-2103 | 6b929b3 | 6b929b3 | 14 Aug 13:30 | 14 Aug 09:00 |
+| CHG-2104 | 81b703f | 81b703f (labelled CHG-2140) | 19 Aug 15:00 | 18 Aug 12:00 |
+| CHG-2105 | 1a56185 | 1a56185; also 233096b (follow-up, 9 Sep 11:00) | 2 Sep 14:00 | 2 Sep 12:00 |
+| CHG-2106 | 50a811c | not found; closest is 8fa3486 | 16 Sep 11:00 (re-saved 19 Sep 08:00) | 15 Sep 10:00 |
+| CHG-2107 | 2dab3d6 | 2dab3d6 | 12 Sep 23:10 (13 Sep 08:10 at +09:00) | 12 Sep 23:30 |
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=iso; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $h"; git cat-file -t $h 2>&1; done; git show --stat --format='%h %s' 233096b 8fa3486 81b703f; git show 233096b | head -40; git branch -a; git log --all --oneline
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP-1/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo's git history and wrote `findings.md`. Only one row, CHG-2101, holds up fully.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved before the commit, and the approver is a different person from the author. |
+| CHG-2102 | Fails | The commit was made about 23 hours before the approval. |
+| CHG-2103 | Fails | Corrin Vasquez wrote the code and is also listed as its approver. |
+| CHG-2104 | Fails | The commit is labelled CHG-2140, and no commit mentions CHG-2104. |
+| CHG-2105 | Partly holds up | The first commit is fine. A second commit a week later adds a new `forceColor` function, and the log shows no approval for it. |
+| CHG-2106 | Fails as submitted | The commit ID in the log (`50a811c157`) doesn't exist. The matching "add dim style" commit has a committer date three days after its author date, which points to a history rewrite. |
+| CHG-2107 | Fails | The commit is stamped 20 minutes before the approval once its +0900 timezone is converted to UTC. |
+
+The repo has no ticket or sign-off records, so I could only check the approvers and times for consistency with the commits, not for authenticity. Commit dates also come from the committer's own machine, so they are weaker evidence than server-side push times. The findings file also lists follow-up questions to put to Lumenworks for each failing row.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+**Source checked:** `incoming/change-log.csv` (7 changes) against the git history of this repository.
+**Test applied to each row:** (1) the commit named exists; (2) the commit is labelled with the same change ID; (3) the approver is independent of the author; (4) the approval was given *before* the work was committed.
+
+## Summary
+
+| Change | Result | Reason in one line |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | Approved 3 Aug 16:00 UTC; committed 4 Aug 09:00 UTC by a different person. |
+| CHG-2102 Honour NO_COLOR | **Does not hold up** | Committed *before* it was approved (by about 23 hours). |
+| CHG-2103 Add stripAnsi | **Does not hold up** | Approver is the same person who wrote the code (self-approval). |
+| CHG-2104 Expose reset sequence | **Does not hold up** | The commit is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 Terminal capability check | **Partly holds up** | Original commit is fine. A second, later commit under the same ID was never covered by the approval. |
+| CHG-2106 Add dim style | **Does not hold up as submitted** | The commit ID in the log does not exist in the repository. |
+| CHG-2107 Add italic style | **Does not hold up** | Committed 20 minutes *before* it was approved. |
+
+Only one of seven rows (CHG-2101) is clean. One more (CHG-2105) is clean for its first commit only.
+
+## Detail
+
+**CHG-2101: holds up.** Hedda Brandvold approved on 2025-08-03 16:00 UTC. Rafael Ostrowski committed on 2025-08-04 09:00 UTC (`6d975cf`). The commit exists, carries the right change ID, and the approver is not the author.
+
+**CHG-2102: approval came after the work.** The commit (`b6b9ea3`) is dated 2025-08-11 10:00 UTC. The log records approval on 2025-08-12 09:00 UTC. The change was therefore built and committed without prior approval, and the approval looks retroactive.
+
+**CHG-2103: no independent approval.** The commit `6b929b3` was authored by Corrin Vasquez, and the log names Corrin Vasquez as approver. The timing is acceptable (approved 09:00, committed 13:30 UTC on 14 Aug), but one person approving their own change is not a segregation-of-duties control.
+
+**CHG-2104: the commit belongs to a different change.** The log points to `81b703f` (authored 2025-08-19, after the 18 Aug approval). That commit's message says **CHG-2140**, and no commit in the repository mentions CHG-2104. Either the log has the wrong commit, or the work was recorded under the wrong change ticket. In both cases the approval for 2104 cannot be tied to what was actually delivered. Lumenworks should say which it is.
+
+**CHG-2105: the approval covers only part of the work.** Approval was 2025-09-02 12:00 UTC, and the implementing commit `1a56185` followed at 14:00 UTC, which is correct. However, a second commit (`233096b`, 2025-09-09) was made under the same change ID, "follow-up tweak to capability check". It adds a new exported function, `forceColor`, which reads the `FORCE_COLOR` environment variable. That is new behaviour, not a typo fix. It came a week after the approval, and the log shows no approval for it. The log lists only the first commit, so the extra change is not visible in the evidence.
+
+**CHG-2106: the commit in the log does not exist.** The log cites `50a811c157`. That ID is not in the repository. The commit that matches the title is `8fa3486` ("CHG-2106: add dim style"). Its author date is 2025-09-16 and its committer date is 2025-09-19, which means it was rewritten (rebased or amended) after it was first written. That would explain why the ID in the log no longer exists. As submitted, the row cannot be verified. The commit that does exist is later than the approval (15 Sep 10:00), but because it was rewritten, we cannot confirm that what is in the repository is what was approved. Lumenworks should explain the history rewrite and supply the original commit.
+
+**CHG-2107: committed before approval.** The commit `2dab3d6` is stamped 2025-09-13 08:10 +0900, which is 2025-09-12 23:10 UTC. The log records approval at 2025-09-12 23:30 UTC, 20 minutes later. The time zone is easy to miss: read at face value the dates look like 12 Sep approval and 13 Sep commit, which seems in order. Converted to UTC, the work precedes the approval.
+
+## Caveats
+
+- Commit dates are written by the committer's own machine and can be set to any value. They are good evidence of a problem when they contradict the log, but they cannot on their own prove that a "clean" row is clean. Server-side push or merge-request timestamps would be stronger evidence.
+- This repository holds no approval records (tickets, emails or review sign-offs). The approver names and times were checked only for consistency with the commits, not for authenticity.
+- The final commit `aae6d63` ("evidence: change-control log") was added by Lumenworks on 2025-10-01, after all the changes. The log was assembled after the fact.
+
+## Suggested follow-ups for Lumenworks
+
+1. CHG-2102, CHG-2107: explain why work preceded approval, and provide the original approval record.
+2. CHG-2103: provide an independent approval, or document the exception.
+3. CHG-2104: reconcile with CHG-2140 and confirm which ticket the reset-sequence work belongs to.
+4. CHG-2105: provide the approval for commit `233096b`.
+5. CHG-2106: explain the history rewrite and supply the original commit ID.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat incoming/change-log.csv; echo; git log --format='%h|%an|%ae|%aI|%cI|%s' ; ls -R . | grep -v '^./.git' | head -50
+Bash: for h in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "$h: $(git rev-parse --verify -q $h^{commit} || echo MISSING)"; done; git show --stat --format='%h %s' 233096b 8fa3486 2dab3d6 1a56185 81b703f | cat; git show 233096
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP-2/fx/findings.md
+### Final answer text
+I checked all seven rows against the git history and wrote `findings.md`. Only one row, CHG-2101, holds up without qualification.
+
+| Change | Result | Why |
+|---|---|---|
+| CHG-2101 | Holds up | Approved the day before the commit, and the approver is a different person from the author. |
+| CHG-2102 | Doesn't hold | The commit is dated about 23 hours before the approval. |
+| CHG-2103 | Doesn't hold | The approver, Corrin Vasquez, also wrote the commit, so there was no independent review. |
+| CHG-2104 | Doesn't hold | The cited commit is labelled CHG-2140, not CHG-2104. |
+| CHG-2105 | Holds only in part | The cited commit is fine. A later commit, tagged to the same change, adds a new `forceColor()` function with no approval of its own. |
+| CHG-2106 | Doesn't hold as submitted | The hash `50a811c157` doesn't exist in the repo. The commit `8fa3486` matches by title and its timing is fine, but the evidence as supplied points to nothing you can inspect. |
+| CHG-2107 | Doesn't hold | The commit is stamped 08:10 in a +09:00 timezone, which is 23:10 UTC. That is 20 minutes before the 23:30 UTC approval. |
+
+The approver names and approval times come only from the vendor's CSV. The repo has no independent approval record, apart from one `Reviewed-by` line on the CHG-2106 commit. The CSV itself was added to the repo on 1 Oct 2025, after all seven changes, so it isn't contemporaneous evidence. Commit timestamps are set on the author's own machine and can be altered, so treat the timing findings as indicative rather than proof.
+
+`findings.md` also lists what to ask Lumenworks for, starting with ticket-system records for the CHG-2102 and CHG-2107 approvals.
+### Files it left in the working directory
+--- findings.md
+# Findings: Lumenworks change-control evidence (audit sample)
+
+Source checked: `incoming/change-log.csv` (7 changes) against the git history of this repo.
+
+## What I tested for each row
+1. The commit hash in the log exists in the repo.
+2. The commit message refers to the same change ID.
+3. The approval was given **before** the work was committed.
+4. The approver is **not the person who wrote the change**.
+5. No further changes were made under the same change ID after approval.
+
+## Summary
+
+| Change | Result | Reason in one line |
+|---|---|---|
+| CHG-2101 | Holds up | Approved the day before the commit, by a different person. |
+| CHG-2102 | **Does not hold** | Code was committed ~23 hours before approval. |
+| CHG-2103 | **Does not hold** | Approver is the same person who wrote the change. |
+| CHG-2104 | **Does not hold** | The commit is labelled with a different change ID (CHG-2140). |
+| CHG-2105 | **Holds only in part** | Original commit is fine; a later unapproved addition was shipped under the same ID. |
+| CHG-2106 | **Does not hold as submitted** | The commit hash in the log does not exist in the repo. |
+| CHG-2107 | **Does not hold** | Code was committed 20 minutes before approval. |
+
+Only 1 of 7 rows is clean without qualification.
+
+## Detail
+
+**CHG-2101 – Add isTTY helper: holds up.**
+Approved by Hedda Brandvold on 3 Aug 2025 16:00 UTC. Commit `6d975cf` by Rafael Ostrowski was made 4 Aug 09:00 UTC, after approval. The approver and author are different people, and the message matches the ID.
+
+**CHG-2102 – Honour NO_COLOR: does not hold.**
+Approval is recorded at 12 Aug 09:00 UTC. Commit `b6b9ea3` was made on 11 Aug 10:00 UTC, about 23 hours *earlier*. The work was done before it was approved, so the approval cannot have authorised it. (Vendor may say approval was verbal earlier; if so they need to supply that record.)
+
+**CHG-2103 – Add stripAnsi: does not hold.**
+The approver (Corrin Vasquez) is also the author of commit `6b929b3` (corrin.vasquez@lumenworks.example). The timing is fine (approved 09:00, committed 13:30 on 14 Aug), but the change was approved by the person who made it, so there was no independent review.
+
+**CHG-2104 – Expose reset sequence: does not hold.**
+The log points to commit `81b703f`, but its message reads "CHG-**2140**: expose reset sequence", not CHG-2104. Either the commit was mislabelled, or the log points to the wrong commit. The timing (approved 18 Aug 12:00, committed 19 Aug 15:00) is otherwise fine. Vendor must confirm which is correct; until then the link between approval and code is unproven. It also raises the question of whether a real CHG-2140 exists and whether this work was approved under it.
+
+**CHG-2105 – Add terminal capability check: holds only in part.**
+The named commit `1a56185` is fine: approved 2 Sep 12:00 UTC, committed 2 Sep 14:00 UTC, different approver and author. However, a second commit, `233096b` ("CHG-2105: follow-up tweak to capability check", 9 Sep), was made a week after approval under the same ID. It is not a tweak: it adds a new exported function, `forceColor()`, that reads the `FORCE_COLOR` environment variable. That is new behaviour with no approval of its own, and the log does not mention it. The approval covers the original change only.
+
+**CHG-2106 – Add dim style: does not hold as submitted.**
+The log cites commit `50a811c157`. **No such commit exists in the repo.** The only commit that matches the title is `8fa3486` ("CHG-2106: add dim style"). If that is what the vendor meant, the timing is acceptable (approved 15 Sep 10:00 UTC, authored 16 Sep 11:00 UTC) and it carries a "Reviewed-by: Sunil Pathak" line, but the evidence as supplied points to nothing that can be inspected. Two further points: it was committed on 19 Sep, three days after it was authored, and the hash discrepancy could indicate the history was rewritten after the log was prepared. The vendor should explain the hash.
+
+**CHG-2107 – Add italic style: does not hold.**
+Approval is recorded at 12 Sep 23:30 UTC. Commit `2dab3d6` is stamped 13 Sep 08:10 in a +09:00 timezone, which is 12 Sep 23:10 UTC: **20 minutes before** the approval. At first glance the dates look like "approved the day before", but only if the timezone is ignored. Same problem as CHG-2102, with a smaller gap.
+
+## Other observations
+- All seven changes were authored by two people (Rafael Ostrowski and Corrin Vasquez); approvers were Hedda Brandvold, Sunil Pathak and Corrin Vasquez. Approver names come only from the CSV; the repo holds no independent approval record (except the Reviewed-by line on CHG-2106). Approval times are therefore the vendor's own assertion.
+- The evidence file itself was added to the repo by commit `aae6d63` ("Vendor Compliance", 1 Oct 2025), after all the changes. It is not contemporaneous evidence.
+- Commit timestamps are set by the author's own machine and can be altered, so they are indicative, not proof.
+
+## Recommended requests to Lumenworks
+1. Ticket-system records (not a CSV) showing approval timestamps for CHG-2102 and CHG-2107.
+2. An independent approval for CHG-2103.
+3. Clarification of CHG-2104 vs CHG-2140.
+4. Approval record for `forceColor()` (`233096b`), or confirmation it was reverted.
+5. Explanation of hash `50a811c157` for CHG-2106.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP-3/fx; ls -R . | grep -v '^./.git' | head -50; cat incoming/change-log.csv; git log --format='%h %an <%ae> %ad | %cn %cd | %s' --date=is
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP-3/fx; for c in 6d975cff0e b6b9ea360d 6b929b32f9 81b703fb4a 1a56185bf1 50a811c157 2dab3d6552; do echo "== $c"; git cat-file -t $c 2>&1; 
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T4-RCP-3/fx/findings.md
+### Final answer text
+I checked all seven rows against the repo and wrote `findings.md` for the audit committee. Only one row, CHG-2101, holds up cleanly.
+
+| Change | Verdict | Why |
+|---|---|---|
+| CHG-2101 | Holds up | It was approved before the commit, and the approver is independent. |
+| CHG-2102 | Fails | The code was committed about 23 hours before the approval time. |
+| CHG-2103 | Fails | Corrin Vasquez wrote the commit and is also listed as the approver. |
+| CHG-2104 | Fails | The commit is labelled CHG-2140, so the code isn't tied to the approved ID. |
+| CHG-2105 | Partly holds up | The original commit is fine. A later commit under the same ID adds `forceColor`, a new function, with no approval of its own. |
+| CHG-2106 | Can't be verified as submitted | Commit `50a811c157` doesn't exist in the repo. The only commit labelled CHG-2106 is `8fa3486`, which has a commit date three days after its author date, a sign of rewritten history. |
+| CHG-2107 | Fails | The commit's local time of 13 Sep 08:10 +0900 is 12 Sep 23:10 UTC, 20 minutes before the 23:30 UTC approval. |
+
+- **Evidence added afterwards:** the log was added to the repo on 1 Oct, after all seven changes. The approval times are Lumenworks' own statements, and this repo can't confirm them.
+- **Next step:** `findings.md` ends with follow-up questions for Lumenworks, including a request for the original tickets or approval exports.
+### Files it left in the working directory
+--- findings.md
+# Lumenworks change-control evidence: findings
+
+**Scope.** Each of the seven rows in `incoming/change-log.csv` was checked against the git history in this repo. The checks were:
+- the commit exists;
+- the commit is labelled with the same change ID;
+- the approval time is before the code was written;
+- the approver is not the person who wrote the code.
+
+All times are converted to UTC. Every commit was written by Rafael Ostrowski except CHG-2103, which Corrin Vasquez wrote.
+
+## Summary
+
+| Change | Verdict | Reason |
+|---|---|---|
+| CHG-2101 Add isTTY helper | **Holds up** | Approved before the commit, and the approver is independent |
+| CHG-2102 Honour NO_COLOR | **Does not hold up** | Code was committed about 23 hours before approval |
+| CHG-2103 Add stripAnsi | **Does not hold up** | The approver wrote the code, so this is self-approval |
+| CHG-2104 Expose reset sequence | **Does not hold up** | The commit is labelled CHG-2140, not CHG-2104 |
+| CHG-2105 Terminal capability check | **Partly holds up** | The original commit is fine, but an unapproved follow-up commit was made under the same ID |
+| CHG-2106 Add dim style | **Cannot be verified as submitted** | The commit hash in the log does not exist in the repo |
+| CHG-2107 Add italic style | **Does not hold up** | Code was committed 20 minutes before approval |
+
+Only one row of seven is clean.
+
+## Row by row
+
+### CHG-2101: holds up
+Hedda Brandvold approved it on 3 Aug 16:00. Commit `6d975cf` was made on 4 Aug 09:00, after approval. The commit message carries the right ID, and the approver is not the author.
+
+### CHG-2102: does not hold up
+Commit `b6b9ea3` was made on 11 Aug 10:00. Approval is recorded for 12 Aug 09:00, so the code existed about 23 hours before anyone approved it. The approval was given after the work was done, not before.
+
+### CHG-2103: does not hold up
+Commit `6b929b3` is authored by Corrin Vasquez, and the log names Corrin Vasquez as the approver. The timing is fine (approved 09:00, committed 13:30 the same day). However, the person who made the change also approved it, so no independent party reviewed it.
+
+### CHG-2104: does not hold up
+The log points to commit `81b703f`, which exists, but its message reads "CHG-2140: expose reset sequence". The change ID in the repo differs from the one approved (2140 versus 2104).
+- This may be a typo, but nothing in the evidence shows it. It could equally mean the code was filed under a different change record.
+- The repo cannot tie the code to the approval for CHG-2104.
+- Lumenworks needs to explain which of the two IDs is correct, and whether a CHG-2140 record and approval exist.
+
+### CHG-2105: partly holds up
+- Commit `1a56185` was made on 2 Sep 14:00, after the 12:00 approval. This part is fine.
+- A second commit, `233096b`, was made on 9 Sep under the same ID ("follow-up tweak to capability check").
+  - It adds a new function, `forceColor`, which reads the `FORCE_COLOR` environment variable. That is new behaviour, not a fix to what was approved.
+  - It came a week after the only recorded approval and has no approval of its own.
+  - The log lists only the first commit, so the follow-up is not disclosed in the evidence.
+
+### CHG-2106: cannot be verified as submitted
+The log cites commit `50a811c157`. **That commit does not exist in this repository.** The only commit labelled CHG-2106 is `8fa3486`, which has a different hash.
+- The hash in the log may have been mistyped.
+- The commit may have been rewritten after the log was prepared. The record supports this: `8fa3486` was written on 16 Sep but has a commit date of 19 Sep, three days later, which is what rewriting or rebasing leaves behind.
+- Taking `8fa3486` as the intended commit, the timing is fine. Approval was 15 Sep 10:00, the code was written 16 Sep, and the commit message notes a review by Sunil Pathak.
+- Lumenworks must confirm which commit was reviewed and approved, and explain why the logged hash does not exist.
+
+### CHG-2107: does not hold up
+Commit `2dab3d6` is dated 13 Sep 08:10 in a +09:00 timezone, which is 12 Sep 23:10 UTC. Approval is recorded for 12 Sep 23:30 UTC, so the code was written 20 minutes before it was approved.
+- The log date (12 Sep) and the commit's local date (13 Sep) differ, which could make them look consistent at a glance.
+- Once both are put on the same clock, approval comes second.
+- The gap is small, but the control is "approve first, then build", and this row fails it.
+
+## Other observations
+- The evidence file itself was added by commit `aae6d63` on 1 Oct, by "Vendor Compliance", after all seven changes. The log was assembled after the fact and is not a contemporaneous approval record. The approval times in it are Lumenworks' own statements, and this repo cannot confirm them.
+- The repo holds only the code history. It has no ticketing or approval-system records. To confirm the approvers and approval times, we should ask Lumenworks for the original change tickets and approval emails or system exports.
+
+## Suggested follow-ups to Lumenworks
+1. CHG-2102 and CHG-2107: explain why code was committed before approval. Was there an emergency or retroactive approval process?
+2. CHG-2103: name an independent approver, or confirm that no review took place.
+3. CHG-2104: confirm whether the correct ID is 2104 or 2140, and provide the approval for it.
+4. CHG-2105: provide the approval for the `forceColor` follow-up, or confirm that none exists.
+5. CHG-2106: identify the commit hash `50a811c157`, and say whether history was rewritten after approval.
+6. Provide the original approval records for all seven changes.

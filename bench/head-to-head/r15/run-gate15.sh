@@ -14,11 +14,12 @@ export H2H_FIXTURES=$W/fixtures H2H_RUNS=$W/runs H2H_GUARD=$W/guard H2H_HOME_ROO
 mkdir -p "$H2H_RUNS"
 [ -f "$W/tasks.json" ] || python3 "$HERE/make-gate15.py" "$W" "$W1_STAGE" "$W2_STAGE" "$W3_STAGE" "$D_SRC" "$E_SRC" > "$W/plan.txt" || exit 1
 [ -f "$H2H_GUARD/config.base" ] || "$H2H/guard.sh" init "$H2H_GUARD"
-python3 - "$W" "$N" "${ARMS_ONLY:-}" <<'PY' | while read -r t a n; do [ -f "$H2H_RUNS/$t-$a-$n/DONE" ] || echo "$t $a $n"; done | xargs -P "$P" -L 1 "$H2H/run-one.sh"
+python3 - "$W" "$N" "${ARMS_ONLY:-}" "${GROUPS_ONLY:-}" <<'PY' | while read -r t a n; do [ -f "$H2H_RUNS/$t-$a-$n/DONE" ] || echo "$t $a $n"; done | xargs -P "$P" -L 1 "$H2H/run-one.sh"
 import json, sys
-W, N = sys.argv[1], int(sys.argv[2]); only = sys.argv[3].split()
+W, N = sys.argv[1], int(sys.argv[2]); only = sys.argv[3].split(); only_groups = sys.argv[4].split()
 g = json.load(open(f"{W}/groups.json"))
 for grp, tids in g.items():
+    if only_groups and grp not in only_groups: continue
     arms = ["OURS", "BASE", "RCP_I", "CV_I"] if grp in ("D", "E") else ["OURS", "BASE", "RCP", "RCP_I", "CV", "CV_I"]
     for t in tids:
         for a in arms:

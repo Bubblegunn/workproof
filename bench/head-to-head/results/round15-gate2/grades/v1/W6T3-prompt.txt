@@ -1,0 +1,582 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "My employment with Tolland Robotics started on 1 June 2026, and their lawyer is asking whether the module that is now `src/codec/framing.rs` was written before or after that date, and by whom. Please answer here in chat, in plain words and with dates; I don't need a file."
+Ground truth: plain `git log -- file` commits: 3
+`git log --follow` commits touching it (oldest last):
+   0de2e72|Mateus Brandt <mateus.brandt@tolland.example>|2026-08-12T11:15:00Z|2026-08-12T11:15:00Z|framing: tail helpers
+   876e86e|Mateus Brandt <mateus.brandt@tolland.example>|2026-07-03T14:00:00Z|2026-07-03T14:00:00Z|framing: rewrite core, add extensions
+   efa127c|Mateus Brandt <mateus.brandt@tolland.example>|2026-06-15T09:30:00Z|2026-06-15T09:30:00Z|codec: rename frame to framing
+   88dac5f|Mateus Brandt <mateus@brandt-home.example>|2026-05-27T18:00:00Z|2026-06-09T10:00:00Z|wip: length prefix handling
+   8ac8c58|Mateus Brandt <mateus@brandt-home.example>|2026-05-18T19:00:00Z|2026-05-18T19:00:00Z|move frame into net/
+   bd09438|Mateus Brandt <mateus@brandt-home.example>|2026-04-20T20:30:00Z|2026-04-20T20:30:00Z|frame: length prefix and checksum
+   63c7f65|Pavel Ionescu <pavel.ionescu@freelance.example>|2026-04-02T10:00:00Z|2026-04-02T10:00:00Z|initial frame parser sketch
+first commit: 63c7f65|Pavel Ionescu <pavel.ionescu@freelance.example>|2026-04-02T10:00:00Z|2026-04-02T10:00:00Z|initial frame parser sketch
+path history: ['M\tsrc/codec/framing.rs', 'M\tsrc/codec/framing.rs', 'R094\tsrc/net/frame.rs\tsrc/codec/framing.rs', 'M\tsrc/net/frame.rs', 'R100\tsrc/frame.rs\tsrc/net/frame.rs', 'M\tsrc/frame.rs', 'A\tsrc/frame.rs']
+lines at HEAD: 95 {'after': 68, 'before': 27} {'after': 72, 'before': 28}
+lines by author: {'<mateus.brandt@tolland.example>': 68, '<pavel.ionescu@freelance.example>': 6, '<mateus@brandt-home.example>': 21}
+flag: commit authored before start but committed after: ['88dac5f|Mateus Brandt <mateus@brandt-home.example>|2026-05-27T18:00:00Z|2026-06-09T10:00:00Z|wip: length prefix handling']
+Hazards: file renamed twice (src/frame.rs, src/net/frame.rs, src/codec/framing.rs) so plain history of the current path shows only 3 commits; first author is a different person (Pavel Ionescu, freelance e-mail); early commits under a private e-mail; one commit authored 2026-05-27 but committed 2026-06-09 (after the start date, committer e-mail changed to employer); later heavy rewrite after the start date. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 It traces the file to its origin, 2 April 2026 (before 1 June 2026), commit "initial frame parser sketch" in src/frame.rs, authored by Pavel Ionescu. FAIL if it names 15 June 2026 (the rename) or 3 July 2026 as the start, or never names Pavel Ionescu.
+C2 It says Mateus Brandt then extended it under his private e-mail on 20 April and 18 May 2026 (before the start date), and that the module was later changed under his employer e-mail from 15 June 2026. FAIL if all authorship is attributed to him alone or all to the employer period.
+C3 It flags the commit authored 27 May 2026 but committed 9 June 2026 (after the start), saying the recorded dates differ and which one it relies on. FAIL if that commit is silently treated as made after 1 June, or the difference is not mentioned.
+C4 It states the current-content split: of 95 lines in the file today about 28% (27 lines, range 20-35%) come from before 1 June and about 72% (68 lines) from after; and that only about 6 lines survive from Pavel Ionescu. FAIL if it says the file is entirely before, or entirely after, the start date without qualification.
+C5 It states honest limits in plain words: git dates and author names can be set by the committer and are not proof of who typed it or under what agreement; the question of ownership is for the lawyer, not decided by git. FAIL if it asserts legal ownership or says git proves authorship.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: git log --follow --format='%h | author %an <%ae> %ad | committer %cn %cd | %s' --date=iso-strict -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %ad | %cd | %s' --date=iso-strict | head -30; echo ---; git branch -a
+Bash: git blame -w -M -C --date=short -e src/codec/framing.rs | awk '{print $2, $3}' | sed 's/(//' | sort | uniq -c; echo ---; git blame -w --date=short -e src/codec/framing.rs | cut -c1-110 | head -60; echo; git show --stat --format='%h %s' efa127c 876e86e 0de2e72 
+Bash: git blame -w -M -C --date=short -e src/codec/framing.rs | grep -o '<[^>]*> *[0-9-]*' | sort | uniq -c; wc -l src/codec/framing.rs
+### Final answer text
+The module was started before 1 June 2026 and mostly rewritten after it. The git history can't tell you who "Mateus Brandt" is or whether either address is yours. I'm assuming you are the Mateus Brandt below. Please confirm that before anything goes to the lawyer.
+
+The file has existed under other names since April 2026. It was a frame parser, first in `src/frame.rs`, then in `src/net/frame.rs`, and it became `src/codec/framing.rs` on 15 June 2026. Dates below are the commit author dates in git. For the one commit where the author date and the date it was recorded differ, I give both.
+
+**Before 1 June 2026 (6 files-worth of history, three commits)**
+- **2 April 2026:** Pavel Ionescu, on a freelance address, wrote the first sketch of the frame parser.
+- **20 April 2026:** Mateus Brandt, on a personal address (`brandt-home`), added the length prefix and checksum.
+- **18 May 2026:** Mateus Brandt, same personal address, moved the file into `net/`.
+- **27 May 2026:** Mateus Brandt, same personal address, wrote the length-prefix work-in-progress commit. Git recorded it on 9 June 2026, after your start date. The author date of 27 May is when it was written, but it was only committed after you started, so a lawyer could question it.
+
+**On or after 1 June 2026 (three commits, all on the Tolland address `mateus.brandt@tolland.example`)**
+- **15 June 2026:** the rename from `frame` to `framing`.
+- **3 July 2026:** the core rewrite plus extensions.
+- **12 August 2026:** the tail helpers.
+
+**Who wrote the current 95 lines, by surviving lines (ignoring whitespace and moves)**
+
+| Author | Lines | Dates |
+|---|---|---|
+| Pavel Ionescu | 6 | 2 April 2026 |
+| Mateus Brandt, personal address | 21 | 6 from 20 April and 15 from 27 May 2026 |
+| Mateus Brandt, Tolland address | 68 | 3 on 15 June, 55 on 3 July, 10 on 12 August 2026 |
+
+So about 72% of today's lines (68 of 95) were written after your start date, and about 28% (27 of 95) before it. Of the 27 earlier lines, 6 were written by Pavel Ionescu, not by you.
+
+**What the history can't settle**
+- **Who is Pavel Ionescu?** Only the outside source (Tolland or the freelance arrangement) can say. Git only shows his address.
+- **Who owns the pre-June work?** Neither address proves an employer. Whether the April and May work was done on your own time, and who owns it under your contract, is a question for the lawyer. Git shows only who, what and when.
+- **Is the history reliable?** The dates are what each commit says about itself. They can be altered by rebasing, and the 27 May commit shows the recorded and written dates can differ. Check against an outside record, such as the original remote's history, if the dates will be relied on.
+
+Next step: send the lawyer this breakdown. If it helps, I can also list the exact commits that touch the file. I haven't written anything to disk.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | author %an <%ae> %ad | committer %cn %cd | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --format='%h | author %an <%ae> %ad | committer %cd | %s' --date=iso | head -20; echo ---; git log --diff-filter=A --follow --f
+Bash: git blame -w -M -C --line-porcelain src/codec/framing.rs | awk '/^author /{a=substr($0,8)} /^author-mail /{m=$2} /^author-time /{t=$2} /^\t/{c[a" "m]++} END{for(k in c)print c[k],k}'; echo ---; npx workproof owner --path src/codec/framing.rs --claim "Mateus Br
+### Final answer text
+**Short answer:** it was started before 1 June 2026 and largely rewritten after. Git history shows both periods, so a one-word answer would mislead.
+
+**Written before 1 June 2026**
+- **2 April 2026, Pavel Ionescu** (a freelance address) created the file. It was then `src/frame.rs`, an "initial frame parser sketch" of 25 lines.
+- **20 April 2026, Mateus Brandt** (a personal address, `brandt-home`) added length prefix and checksum handling, 20 lines.
+- **18 May 2026, Mateus Brandt** (same personal address) moved the file into `net/`. This was a pure move with no content change.
+- **27 May 2026, Mateus Brandt** (same personal address) wrote a "wip: length prefix handling" commit, 15 lines. It was authored on 27 May but committed on 9 June, after your start date. The authored date is the earlier one, but a lawyer may notice the 9 June date.
+
+**Written after 1 June 2026**
+- **15 June 2026, Mateus Brandt** (Tolland address) renamed the file to `src/codec/framing.rs`, a 3-line change.
+- **3 July 2026, Mateus Brandt** (Tolland address) did the "rewrite core, add extensions" commit, 55 lines added and 30 removed.
+- **12 August 2026, Mateus Brandt** (Tolland address) added "tail helpers", 10 lines.
+
+**What survives in the file today** (95 lines, ignoring whitespace and moves):
+- 68 lines are from the Tolland-address commits, all after 1 June.
+- 21 lines are from the personal-address commits by Mateus Brandt, all authored before 1 June.
+- 6 lines are Pavel Ionescu's from 2 April.
+
+So about 70% of the current file is post-1 June work, and about 30% predates it.
+
+**What the history can't show**
+- Git dates and author names are self-reported and can be set or rewritten. Nothing here suggests tampering: no commit has a committer date more than 30 days after its author date, and the only gap is the 27 May / 9 June commit above.
+- Mateus Brandt appears under two addresses, one personal and one Tolland. They share a name, but git can't prove they're the same person.
+- Git doesn't show who owned the pre-June work. That includes Pavel's freelance sketch and any personal-time work, and it depends on contracts, not commits.
+- I didn't assume which of these people is you. Your email is `efe@…`, which doesn't match either name. If you are Mateus Brandt, say so and I'll tailor the answer. If you aren't, the lawyer should know the file's main author isn't you.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | author %an <%ae> | author date %aI | committer date %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %aI | %cI | %s' | head -20; echo ---; git config user.email; git shortlog -sne --all
+Bash: npx workproof owner --path src/codec/framing.rs --claim "$(git config user.name)" 2>&1 | head -30
+Bash: npx workproof owner --path src/codec/framing.rs 2>&1 | head -30; echo ---; git blame -w -M -C --line-porcelain src/codec/framing.rs | grep -E '^(author |author-mail |author-time )' | paste - - - | sort | uniq -c | sort -rn | head
+### Final answer text
+**Short answer:** The module was started well before 1 June 2026, but most of what is in it now was written after that date. The history shows two authors, Pavel Ionescu and Mateus Brandt. It doesn't show you as an author.
+
+**Who and when, oldest first** (author dates; the file has been renamed and moved, and git follows it):
+- **2 April 2026:** Pavel Ionescu (a freelance address) created the file as an "initial frame parser sketch".
+- **20 April 2026:** Mateus Brandt (a personal address) added length prefix and checksum handling.
+- **18 May 2026:** Mateus Brandt (personal address) moved it into `net/`. This was a move only, with no content change.
+- **27 May 2026:** Mateus Brandt (personal address) wrote the "length prefix handling" work in progress. It was only committed on 9 June, but the author date of 27 May is the date of the writing.
+- **15 June 2026:** Mateus Brandt (Tolland address) renamed it to `framing`.
+- **3 July 2026:** Mateus Brandt (Tolland address) rewrote the core and added extensions.
+- **12 August 2026:** Mateus Brandt (Tolland address) added the tail helpers.
+
+**What is in the file today:** It has 95 lines, and the count is the same with or without whitespace and moves ignored.
+- **Written after 1 June 2026:** 68 lines (about 72%). All of them are Mateus Brandt's, under his Tolland address.
+- **Written before 1 June 2026:** 27 lines. 21 are Mateus Brandt's (April and May, personal address) and 6 are Pavel Ionescu's (2 April).
+
+**What the history can't settle:**
+- **Your part:** None of the 7 commits is under your name or your address (efe@hellolila.app). If you worked under another name or address, or this came from a branch or machine that isn't in this clone, tell me which. I haven't assumed you are either person.
+- **Employer:** The history doesn't show who employed the authors. The personal address on the April and May work can't show that it was written outside any employment. The Tolland address only shows that it was used from 15 June.
+- **Commit dates:** The dates come from the commit records. They show what was recorded and when, not the real time of writing or its quality.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h | author %an <%ae> | authored %aI | committer %cn | committed %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %aI | %cI | %s' --name-status -M | grep -iE 'frame|framing|^[0-9a-f]{7} ' | head -
+### Final answer text
+The answer is both. The file has parts from before 1 June 2026 and parts from after, and the history shows three different authors or identities.
+
+**Before 1 June 2026** (file was then `src/frame.rs`, later `src/net/frame.rs`):
+- **2 Apr 2026:** Pavel Ionescu (freelance address) added the initial frame parser sketch.
+- **20 Apr 2026:** Mateus Brandt (personal address, brandt-home) added length prefix and checksum handling.
+- **18 May 2026:** Mateus Brandt (personal address) moved the file into `net/`. It was a pure move with no content change.
+- **27 May 2026:** Mateus Brandt (personal address) wrote the "wip: length prefix handling" commit. This one needs care: it was authored on 27 May but only committed on 9 June, which is after your start date. The authorship date is before 1 June. The commit date is after.
+
+**After 1 June 2026** (all by Mateus Brandt, now using a Tolland address):
+- **15 Jun 2026:** renamed `frame` to `framing` and moved it to `src/codec/framing.rs`. Git sees it as 94% the same file, so the rename carried small edits.
+- **3 Jul 2026:** "rewrite core, add extensions."
+- **12 Aug 2026:** "tail helpers."
+
+**What this means for the lawyer:**
+- The module did not start after 1 June. Its origin (Pavel Ionescu's sketch, then Mateus Brandt's personal-address work) predates your start date.
+- The `src/codec/framing.rs` file itself only exists from 15 June.
+- Its current contents are a mix of earlier work and post-start work. The July rewrite may have replaced much of the earlier code, but I haven't checked how much of today's file traces back to each commit. `git blame` would show that if it matters.
+- Pavel Ionescu appears to be a freelancer, so their rights in the original sketch may be a separate question.
+- None of these names is you, as far as I can tell. `git config` has no user name or email set here, so I haven't assumed any of these identities is yours. Please tell me which one is, if any.
+- Git dates come from the committer's own clock and can be rewritten. Treat them as strong evidence, not proof.
+
+I didn't create any report files.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h | author %an <%ae> | authored %aI | committer %cn | committed %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %aI | %cI | %s' | head -30; echo ---; git log --name-status --format='== %h %aI %a
+Bash: git blame -w -M -C --line-porcelain src/codec/framing.rs | grep '^[0-9a-f]\{40\} ' | cut -c1-7 | sort | uniq -c; git show --stat --format=%h 876e86e | tail -3; git show --stat --format=%h 0de2e72 | tail -2
+### Final answer text
+The module was started and partly written before 1 June 2026, and a larger share was written after. Most of it is Mateus Brandt's work. The first sketch was by Pavel Ionescu.
+
+I didn't use the receipts skill. It builds a usage report from your Claude Code sessions and writes files, so it can't tell you who wrote a file or when. I used the repository's git history instead.
+
+**History of the file** (it was `src/frame.rs`, then `src/net/frame.rs`, and became `src/codec/framing.rs` on 15 June):
+
+| Date | Author | Change |
+|---|---|---|
+| 2 Apr 2026 | Pavel Ionescu (freelance.example email) | Created the file as an "initial frame parser sketch". |
+| 20 Apr 2026 | Mateus Brandt (personal email, brandt-home.example) | Added length prefix and checksum. |
+| 18 May 2026 | Mateus Brandt (personal email) | Moved the file into `net/`, with no content change. |
+| Authored 27 May, committed 9 Jun 2026 | Mateus Brandt (personal email) | "wip: length prefix handling". |
+| 15 Jun 2026 | Mateus Brandt (tolland.example email) | Renamed the file to `framing`. |
+| 3 Jul 2026 | Mateus Brandt (tolland.example email) | "Rewrite core, add extensions". |
+| 12 Aug 2026 | Mateus Brandt (tolland.example email) | Added "tail helpers". |
+
+**Surviving lines.** In the current file, 27 of the 95 lines come from before 1 June. That is 6 from Pavel (2 April), 6 from Mateus (20 April) and 15 from Mateus's "wip: length prefix handling" commit. The other 68 lines are from after 1 June: 55 from the 3 July rewrite, 10 from 12 August and 3 from the rename.
+
+**Caveats for the lawyer:**
+- **The "wip" commit has two dates.** It was authored on 27 May but committed on 9 June, which is after your start date. The 27 May date is what a rebase or amend keeps, and the committer date shows it was rewritten later. The 15 lines from that commit are therefore pre-start by authorship date, but their history was touched after 1 June.
+- **Authorship dates can be edited.** Git lets an author set them. The dates above are what the repository records, not independent proof.
+- **Commits before the switch to the Tolland email use a personal address.** That address suggests the pre-June work was done outside Tolland, but the history alone doesn't show that. Whether a pre-June commit counts as Tolland's or yours depends on your contract and IP assignment terms. That is a question for the lawyer.
+- **Pavel Ionescu may matter separately.** His email is a freelance address, and he wrote the original sketch. The lawyer may want to ask who he was working for at the time.
+- **The name on the commits is Mateus Brandt.** I've assumed that is you. If it isn't, the "by whom" answer needs rechecking.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h | author %an <%ae> | authored %aI | committer %cn | committed %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an | %aI | %cI | %s' --name-status -M | grep -iE 'frame|framing|^[0-9a-f]{7} ' | head -40; ec
+Bash: git blame --line-porcelain -w -M -C src/codec/framing.rs | awk '/^author /{a=$0} /^author-mail/{m=$2} /^author-time/{t=$2} /^summary/{print m}' | sort | uniq -c; echo ---; git blame -w -M src/codec/framing.rs | awk '{print $1}' | sort | uniq -c; wc -l src/code
+### Final answer text
+The module was started before 1 June 2026 and then largely rewritten after it. Most of the file as it stands now dates from after 1 June.
+
+I ran the receipts skill as you asked. Its report only has aggregate usage counts, so it can't answer this. I used git history for `src/codec/framing.rs` instead (it was `src/frame.rs`, then `src/net/frame.rs`).
+
+**Before 1 June 2026**
+- **2 April 2026:** Pavel Ionescu (a `freelance.example` address) added the first version, "initial frame parser sketch".
+- **20 April 2026:** Mateus Brandt, using a personal address (`brandt-home.example`), added the length prefix and checksum.
+- **18 May 2026:** Mateus Brandt, same personal address, moved the file into `net/`.
+- **27 May 2026:** Mateus Brandt, same personal address, wrote the "length prefix handling" work-in-progress commit. Its *authored* date is 27 May, but it was *committed* on 9 June 2026, so the commit was rewritten after your start date. The authored date is the one that says when the work was done.
+
+**After 1 June 2026**
+- **15 June 2026:** Mateus Brandt, now on a `tolland.example` address, renamed the file to `src/codec/framing.rs`. The rename was a 94% match, so the content barely changed.
+- **3 July 2026:** Mateus Brandt (`tolland.example`) did "rewrite core, add extensions".
+- **12 August 2026:** Mateus Brandt (`tolland.example`) added "tail helpers".
+
+**What is in the 95-line file today** (by `git blame`):
+- 68 lines are from Mateus Brandt's `tolland.example` commits, all dated after 1 June. That is about 72%.
+- 21 lines are from Mateus Brandt's personal-address commits, dated before 1 June. That is about 22%.
+- 6 lines are from Pavel Ionescu's April sketch. That is about 6%.
+
+**Caveats for the lawyer**
+- Author names, emails and dates in git are recorded by whoever made the commit. They can be changed, for example by a rebase like the one on 9 June, so they are strong evidence but not proof.
+- I don't know whether you are Mateus Brandt. Your git config here has no name or email set, and I haven't assumed it.
+- Whether the pre-June code or Pavel Ionescu's lines belong to Tolland or to someone else is a legal question, not something git can answer.
+- Since the original authors used non-Tolland addresses, the lawyer will probably want to check your agreement's rules on prior work.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %ad | commit %cd | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %ad | %s' --date=iso | head -30; ls src/*
+Bash: git blame -w -C --date=short --line-porcelain src/codec/framing.rs | grep -E '^(author |author-mail|summary )' | paste - - - | sort | uniq -c
+### Final answer text
+The module was written partly before 1 June 2026 and partly after. Most of the current code is from after that date. This comes from the git history, so it shows what the commits record, not who actually did the work.
+
+**Before 1 June 2026 (the file was then called `frame`, under `net/`)**
+- **2 April 2026:** Pavel Ionescu, using a freelance.example address, committed an "initial frame parser sketch". 6 lines of the current file still trace to this.
+- **20 April 2026:** Mateus Brandt, using a personal address (brandt-home.example), added the length prefix and checksum. 6 lines survive.
+- **18 May 2026:** Brandt, on the personal address, moved the file into `net/`.
+- **27 May 2026:** Brandt, on the personal address, wrote "wip: length prefix handling". 15 lines survive. It was only committed on 9 June, after the start date, so the author date and commit date differ here.
+
+**After 1 June 2026 (Brandt using a tolland.example address)**
+- **15 June 2026:** the rename from `frame` to `framing`. 3 lines.
+- **3 July 2026:** "rewrite core, add extensions". 55 lines, which is the largest share of the current file.
+- **12 August 2026:** "tail helpers". 10 lines.
+
+**Current file, by line count (95 lines)**
+- Brandt, tolland.example address, after 1 June: 68 lines.
+- Brandt, personal address, before 1 June: 21 lines.
+- Pavel Ionescu, before 1 June: 6 lines.
+
+Points the lawyer will probably care about:
+- **The 27 May work is the grey area.** It was authored before 1 June but only committed on 9 June.
+- **Dates can be changed.** Git author and commit dates can be edited, so they are evidence and not proof.
+- **Pavel Ionescu is a third party.** He appears to be a freelancer. The history doesn't show who owns his sketch, so that is a separate question from your start date.
+- **I'm not assuming who you are.** I haven't assumed you are Mateus Brandt. If you are, the pre-June work is on your personal address. If you aren't, tell me which author is you and I can redo the breakdown.
+
+I only looked at the history of this one file in this repo. I didn't check other branches, the `net/` directory, or anything outside git, such as when the work was actually done or which machine it was on.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %aI | commit %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %aI | %cI | %s' | head -30; echo ---; git log --name-status --format='%h %s' -M | head -60
+Bash: git blame -w -M --date=short -e src/codec/framing.rs | awk '{print $1,$2}' | sort | uniq -c; git show --stat --format='%h %s' 88dac5f 876e86e 0de2e72 | cat; wc -l src/codec/framing.rs
+### Final answer text
+The file wasn't written on one side of 1 June 2026. Parts of it were written before that date and parts after. It also wasn't written by you. Every commit in its history is by either Mateus Brandt or Pavel Ionescu, and none is by an author with your name or email.
+
+**Before 1 June 2026**
+- **2 April 2026:** Pavel Ionescu (freelance.example address) wrote the first sketch of the frame parser, in `src/frame.rs`.
+- **20 April 2026:** Mateus Brandt, using a personal address (brandt-home.example), added the length prefix and checksum.
+- **18 May 2026:** Mateus Brandt, same personal address, moved the file into `net/`. This was a pure move with no content change.
+- **27 May 2026:** Mateus Brandt, same personal address, wrote the "length prefix handling" work-in-progress commit, which added 15 lines. That commit was only committed on 9 June 2026, which is after your start date. It was written on 27 May, though.
+
+**On or after 1 June 2026**
+- **15 June 2026:** Mateus Brandt, now using a Tolland address, renamed the file to `src/codec/framing.rs`. This commit changed 3 lines that survive today.
+- **3 July 2026:** Mateus Brandt, Tolland address, rewrote the core and added extensions. This commit accounts for 55 of the 95 current lines.
+- **12 August 2026:** Mateus Brandt, Tolland address, added the tail helpers, which are the last 10 lines.
+
+**Today's file:** Of the 95 lines, about 27 (28%) trace back to commits authored before 1 June 2026. Those are 6 lines from Pavel, 6 from Mateus's April commit and 15 from his May work-in-progress commit. The other 68 lines (about 72%) come from commits dated 15 June or later.
+
+**Caveats for the lawyer**
+- Git dates and author names are self-reported and can be changed, so this is evidence rather than proof.
+- This history doesn't show who employed Mateus or Pavel at the time. Pavel's address suggests a freelancer.
+- The shift from a personal to a Tolland email between 27 May and 15 June suggests the earlier work was done outside Tolland. That is an inference, not something the history proves.
+- I only looked at this repository's history. If the code existed elsewhere before it was committed here, this history wouldn't show it.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %ad | commit %cd (%cn) | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %ad | %s' --date=iso -- src/codec/framing.rs src/net | head -50
+### Final answer text
+The module was written in stages on both sides of 1 June 2026, and git doesn't show you as an author at all.
+
+**Before 1 June 2026**
+- **2 April:** Pavel Ionescu (a freelance address) committed the "initial frame parser sketch".
+- **20 April, 18 May and 27 May:** Mateus Brandt committed from a personal email address (`brandt-home.example`). These commits cover the length prefix and checksum, the move into `net/`, and the length-prefix work in progress.
+
+**After 1 June 2026**
+- **15 June:** Mateus Brandt, now using a Tolland address, renamed `frame` to `framing`.
+- **3 July:** Mateus Brandt rewrote the core and added extensions.
+- **12 August:** Mateus Brandt added the tail helpers.
+
+**Caveats for the lawyer**
+- **Dates are self-reported.** Git author and commit dates can be edited, so they are evidence but not proof.
+- **One commit straddles the start date.** "wip: length prefix handling" was authored on 27 May but committed on 9 June, after 1 June. The 27 May date is the author's own claim.
+- **The current code is a mix.** I only read the commit history, not the file's contents. The 3 July "rewrite core" commit may have replaced much of the earlier code. If you want, I can run `git blame` to show which commit each line of the current file comes from.
+- **You aren't in the history.** Your email, `efe@hellolila.app`, appears on none of these commits. If you wrote any of this under another identity, that needs to be established separately.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %ad | commit %cd (%cn) | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %ad | %s' --date=iso | head -30; echo ---; git config user.name; git config user.email
+### Final answer text
+The module wasn't written on one side of 1 June 2026. It was started before that date and substantially rewritten after it. This comes from the git history of `src/codec/framing.rs`, which I followed back through its earlier names (`frame`, then `net/`).
+
+**Before 1 June 2026**
+- **2 April 2026:** Pavel Ionescu (a `freelance.example` address) committed an "initial frame parser sketch".
+- **20 April 2026:** Mateus Brandt added length prefix and checksum handling, using a personal address (`brandt-home.example`).
+- **18 May 2026:** Mateus Brandt moved the file into `net/`, again from the personal address.
+- **27 May 2026:** Mateus Brandt authored the "wip: length prefix handling" commit, still from the personal address. It was committed on 9 June 2026, so its author date is before 1 June but its commit date is after. That gap usually means it was rebased or amended. The code was written on 27 May, but the commit record in the repo is dated 9 June.
+
+**After 1 June 2026**
+- **15 June 2026:** Mateus Brandt renamed `frame` to `framing`, now from a `tolland.example` address.
+- **3 July 2026:** Mateus Brandt made the "rewrite core, add extensions" commit, from the Tolland address.
+- **12 August 2026:** Mateus Brandt added the "tail helpers", from the Tolland address.
+
+**Caveats for the lawyer**
+- None of the authors in this history is identified as you. If you are one of them, tell me which. I can't tell from the repo, and the git config here has no name or email set.
+- Git author and commit dates are self-reported and can be edited, so they are evidence but not proof.
+- I've only looked at the commit metadata. I haven't checked how much of today's file text comes from the pre-June commits and how much from the July rewrite. `git blame` on the file would show that, and I can run it if you want. It would likely matter more to the lawyer than the dates alone.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %ad | commit %cd | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %ad | %s' --date=iso --name-status -M -- 'src/*frame*' 'src/*/frame*' 'src/codec' | head -60
+### Final answer text
+The module was started before 1 June 2026 and has been worked on since, so it's both. The git history of the file (`src/codec/framing.rs`, which used to be `src/frame.rs` and then `src/net/frame.rs`) shows this:
+
+**Before 1 June 2026**
+- **2 April 2026:** Pavel Ionescu (a freelance.example address) created the file as an "initial frame parser sketch".
+- **20 April 2026:** Mateus Brandt, using a personal address (brandt-home.example), added length prefix and checksum handling.
+- **18 May 2026:** Mateus Brandt moved the file into `net/`. This was a pure rename with no content changes.
+- **27 May 2026:** Mateus Brandt, again from the personal address, wrote "wip: length prefix handling".
+
+**After 1 June 2026**
+- **9 June 2026:** The 27 May commit was actually committed on this date. Its author date is 27 May, but its commit date is 9 June, which suggests it was rebased or amended. The work was dated before the start date, but the commit record was written after it.
+- **15 June 2026:** Mateus Brandt, now using a tolland.example address, renamed the file to `src/codec/framing.rs`. The file is 94% similar to before, so there was a small edit.
+- **3 July 2026:** Mateus Brandt (tolland address) "rewrote core, added extensions".
+- **12 August 2026:** Mateus Brandt (tolland address) added "tail helpers".
+
+**In plain words**
+- The original sketch was by Pavel Ionescu, and the substantive early code (length prefix, checksum) was by Mateus Brandt on a personal address, all before 1 June.
+- Everything from 15 June onward, including the core rewrite and the extensions, was by Mateus Brandt on the Tolland address.
+
+**Caveats for the lawyer**
+- I haven't seen the code itself. I can't say how much of the pre-June code survives the 3 July rewrite. `git blame` would show that if it's needed.
+- Author dates and email addresses in git are self-reported and can be edited. The 27 May to 9 June gap shows the history was rewritten at least once. Treat these dates as strong evidence, not proof.
+- I don't know which of these people you are. If you're not Mateus Brandt, the authorship points above are about someone else.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %aI | commit %cI | %s' -- src/codec/framing.rs; echo ---; git log --format='%h %an <%ae> | %aI | %s' --name-status -M --all -- src/net src/codec | head -60
+### Final answer text
+The module's history is mixed. Some of it predates 1 June 2026 and some doesn't, and none of the commits are yours. I read this from the git history of `src/codec/framing.rs`, following it back through its earlier name, `src/net/frame.rs`.
+
+**Before 1 June 2026**
+- **2 April 2026:** Pavel Ionescu (a freelance address) committed the first sketch of a frame parser.
+- **20 April 2026:** Mateus Brandt, from a personal address (brandt-home), added length prefix and checksum handling.
+- **18 May 2026:** Mateus Brandt, from the same personal address, moved the file into `net/`.
+- **27 May 2026:** Mateus Brandt, from the same personal address, wrote the "wip: length prefix handling" commit. It was authored on 27 May but only committed on 9 June, which is after your start date. The authoring date is the one that shows when the work was written.
+
+**After 1 June 2026**
+- **15 June 2026:** Mateus Brandt, now from a Tolland address, renamed the file to `src/codec/framing.rs`. Git scores the rename as 94% similar, so the content barely changed.
+- **3 July 2026:** Mateus Brandt rewrote the core and added extensions.
+- **12 August 2026:** Mateus Brandt added the tail helpers.
+
+**In plain words**
+- The module began before 1 June 2026, written by Pavel Ionescu and then Mateus Brandt, with the latter working from a personal address.
+- Everything from 15 June onward was written by Mateus Brandt on a Tolland address.
+- The 3 July "rewrite core" commit may have replaced much of the earlier code. I haven't compared the current file line by line with the old versions, so I can't say how much of the earlier code survives. `git blame` on the file would show that.
+
+**Caveats**
+- I found no commits by you in this history, so on this record you didn't write any of the module. I only looked at this repository's history. It doesn't show anything you may have done elsewhere, such as reviews or design input.
+- Git dates and author names are self-reported and can be changed by rebasing or by a misconfigured clock. The 27 May and 9 June gap on one commit shows that history was touched at least once. The lawyer may want a second source, such as the hosting platform's push records.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | author: %an <%ae> | authored: %aI | committed: %cI | committer: %cn | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %aI | %cI | %s' --name-status --follow -M -- src/codec/framing.rs src/codec/fr
+Bash: for c in 63c7f65 bd09438 8ac8c58 88dac5f efa127c 876e86e 0de2e72; do echo "== $c"; git show --stat --format='%h %s' -M $c -- src | tail -n +2; done; echo; wc -l src/codec/framing.rs; git blame -w -M --line-porcelain src/codec/framing.rs | grep '^author \|^auth
+### Final answer text
+**Short answer:** the module was started before 1 June 2026 and mostly rewritten after it. Neither the early nor the later work was by you, at least according to the commit history. Every commit is by Mateus Brandt, except the first, which is by Pavel Ionescu.
+
+**Before 1 June 2026** (the file was then `src/frame.rs`, later `src/net/frame.rs`):
+- **2 April 2026:** Pavel Ionescu (a `freelance.example` address) committed the "initial frame parser sketch".
+- **20 April 2026:** Mateus Brandt, using a personal address (`brandt-home.example`), added length prefix and checksum.
+- **18 May 2026:** Mateus Brandt moved the file into `net/`. This was a pure move with no content change.
+- **27 May 2026:** Mateus Brandt, again on the personal address, authored "wip: length prefix handling". Its committer date is **9 June 2026**, so the commit was rewritten or rebased after your start date. The authored date is the earlier one, but that date is editable.
+
+**After 1 June 2026** (the file is now `src/codec/framing.rs`):
+- **15 June 2026:** Mateus Brandt, now using a `tolland.example` address, renamed the file to `framing.rs`. The change was 3 lines.
+- **3 July 2026:** Mateus Brandt did "rewrite core, add extensions", with 55 lines added and 30 removed.
+- **12 August 2026:** Mateus Brandt added "tail helpers", 10 lines.
+
+**What survives in today's 95-line file** (by `git blame`):
+- About 27 lines trace to the pre-June commits.
+  - 12 lines are from the original `src/frame.rs`.
+  - 15 lines are from the 27 May commit, whose committer date is 9 June.
+- About 68 lines come from commits dated 15 June or later.
+- By author, 89 lines are Mateus's and 6 are Pavel's.
+
+**Caveats for the lawyer:**
+- Git dates and author fields are self-reported and can be edited. The 9 June committer date on the "wip" commit shows this has happened at least once.
+- The history doesn't name you as an author. Mateus Brandt's pre-June commits used a personal email, so whether that work was done on Tolland's time or equipment can't be told from git. That would need other evidence.
+- I only read the commit history and blame. I haven't verified who Mateus Brandt or Pavel Ionescu are, or whether this repo is the full history.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | author: %an <%ae> | authored: %aI | committer: %cn | committed: %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %aI | %cI | %s' --name-status -M | head -60
+Bash: git blame -w -M -C --date=short -e src/codec/framing.rs | awk '{print $1, $2}' | sort | uniq -c; wc -l src/codec/framing.rs; git show 876e86e --stat | tail -3
+### Final answer text
+The module was written partly before 1 June 2026 and partly after. Most of the current file was written after.
+
+The file was `src/frame.rs` and then `src/net/frame.rs` before it became `src/codec/framing.rs` on 15 June 2026. Here is its history, with author dates in UTC:
+
+| Date | Author | What |
+|---|---|---|
+| 2 Apr 2026 | Pavel Ionescu (freelance.example address) | Initial frame parser sketch. This created the file. |
+| 20 Apr 2026 | Mateus Brandt (personal address, brandt-home.example) | Length prefix and checksum |
+| 18 May 2026 | Mateus Brandt (personal address) | Moved the file into `net/`, a pure rename |
+| 27 May 2026 | Mateus Brandt (personal address) | "wip: length prefix handling". It was authored on 27 May but only committed on 9 June 2026. |
+| 15 Jun 2026 | Mateus Brandt (tolland.example address) | Rename to `codec/framing.rs` |
+| 3 Jul 2026 | Mateus Brandt (tolland.example address) | "rewrite core, add extensions" |
+| 12 Aug 2026 | Mateus Brandt (tolland.example address) | "tail helpers" |
+
+`git blame` shows who wrote the 95 lines in the file today:
+- **After 1 June 2026:** 68 lines, all by Mateus Brandt with the Tolland address. That is 55 lines from the 3 July rewrite, 10 from the 12 August tail helpers, and 3 from the 15 June rename.
+- **Before 1 June 2026:** 27 lines. 15 are Mateus Brandt's from 27 May, written on a personal address. 6 are Mateus Brandt's from 20 April. 6 are Pavel Ionescu's from 2 April.
+
+Some caveats for the lawyer:
+- **The wip commit date.** The 27 May commit was authored before 1 June but committed on 9 June. The commit date is after the start date, but the author date is the better evidence of when the work was written. Both dates are recorded in the repo.
+- **Dates and addresses are only metadata.** Author dates and email addresses can be set to anything, so they show what the repo records, not proof of who wrote the code or when. I only looked at the git history, not at any employment or contractor agreements.
+- **Pavel Ionescu.** Their contribution is the original sketch. The history doesn't say what their relationship to Tolland Robotics is, or whether it was a freelance engagement for someone else. That may need its own answer.
+- **Your own role.** None of the commits are under your name or your hellolila.app address. If the lawyer's question is about your work, the history doesn't show any contribution from you. The author on all post-June commits is Mateus Brandt.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | author: %an <%ae> | authored: %aI | committed: %cI | %cn | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %aI | %cI | %s' | head -30; echo ---; git log --all --name-status --format='%h %s' -M | g
+Bash: git blame -w -M -C --date=short -e --follow src/codec/framing.rs | awk '{print $1,$2,$3}' | sed 's/^\^//' | sort | uniq -c | sort -rn | head; wc -l src/codec/framing.rs; git blame -w --date=short -e src/codec/framing.rs | cut -c1-60 | awk '{print $1}' | sort |
+### Final answer text
+**Short answer:** it started before 1 June 2026, but most of what is in the file today was written after that date. A small part was written by someone other than the person who wrote the rest.
+
+`src/codec/framing.rs` was created as `src/frame.rs` and renamed along the way. The git history shows these steps:
+
+| Date | Commit | Author | What happened |
+|---|---|---|---|
+| 2 Apr 2026 | `63c7f65` | Pavel Ionescu (freelance.example address) | Created the file as an "initial frame parser sketch". |
+| 20 Apr 2026 | `bd09438` | Mateus Brandt (personal address, brandt-home.example) | Added length prefix and checksum. |
+| 18 May 2026 | `8ac8c58` | Mateus Brandt (personal address) | Moved the file into `net/`. |
+| Authored 27 May 2026, committed 9 Jun 2026 | `88dac5f` | Mateus Brandt (personal address) | "wip: length prefix handling". |
+| 15 Jun 2026 | `efa127c` | Mateus Brandt (tolland.example address) | Renamed `frame` to `framing` and moved it to `src/codec/`. |
+| 3 Jul 2026 | `876e86e` | Mateus Brandt (tolland.example address) | "rewrite core, add extensions". |
+| 12 Aug 2026 | `0de2e72` | Mateus Brandt (tolland.example address) | "tail helpers". |
+
+**Who wrote the current lines.** A line-by-line blame of the 95 lines in the file today gives:
+- **55 lines (about 58%):** Mateus Brandt, 3 July 2026, from the Tolland address. This is the largest share, and it is after 1 June.
+- **10 lines:** Mateus Brandt, 12 August 2026, from the Tolland address.
+- **3 lines:** Mateus Brandt, 15 June 2026, from the Tolland address.
+- **15 lines:** Mateus Brandt, authored 27 May 2026 from the personal address. This is before 1 June, but the commit date is 9 Jun.
+- **6 lines:** Mateus Brandt, 20 April 2026, personal address.
+- **6 lines:** Pavel Ionescu, 2 April 2026.
+
+**Caveats the lawyer should know:**
+- **Which date counts for `88dac5f`:** Git records two dates, and they fall on opposite sides of 1 June. It was authored on 27 May and committed on 9 June. Git dates can be set by the committer, so they are evidence, not proof. Whether that code was written before or after the start date needs the person's own account or other records.
+- **Whose work it is:** Every commit is by "Mateus Brandt", apart from Pavel Ionescu's first sketch. You haven't said you are Mateus, and I haven't assumed it. If you are, the commits before 1 June used a personal email and the later ones used a Tolland email. That fits the employment start date, but it is only a pattern.
+- **Pavel Ionescu's lines:** The 6 lines from the first sketch come from a freelance address. Their ownership may depend on whatever arrangement applied to that work, which git can't show.
+- **What this answers:** This covers only the commit history in this repository. It doesn't show where the code was developed, on whose equipment, or under what agreements.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h | author %an <%ae> %ad | committer %cn %cd | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --all --format='%h | %an <%ae> | %ad | %s' --date=iso --name-status -M | grep -iE 'frame|framing|^[0-9a-f]{7} ' | head -60
+Bash: git blame --line-porcelain src/codec/framing.rs | grep -E '^(author |author-time |summary )' | paste - - - | sort | uniq -c | sort -rn | head; wc -l src/codec/framing.rs
+### Final answer text
+The answer is both: the module was started before 1 June 2026 and built out afterward. This is from the git history of `src/codec/framing.rs`, which was `src/frame.rs` and then `src/net/frame.rs` before it was renamed.
+
+| Date | Author | What |
+|---|---|---|
+| 2 Apr 2026 | Pavel Ionescu (freelance address) | "initial frame parser sketch", which created the file |
+| 20 Apr 2026 | Mateus Brandt (personal address) | length prefix and checksum |
+| 18 May 2026 | Mateus Brandt (personal address) | moved the file into `net/` |
+| 27 May 2026 (author date) | Mateus Brandt (personal address) | "wip: length prefix handling" |
+| 15 Jun 2026 | Mateus Brandt (Tolland address) | renamed `frame` to `framing` |
+| 3 Jul 2026 | Mateus Brandt (Tolland address) | "rewrite core, add extensions" |
+| 12 Aug 2026 | Mateus Brandt (Tolland address) | "tail helpers" |
+
+- **Before 1 June:** the file was created on 2 April 2026 by Pavel Ionescu. Mateus Brandt then worked on it from a personal email address on 20 April, 18 May and 27 May.
+- **After 1 June:** every commit from 15 June onward uses the `tolland.example` address.
+- **Current code, line by line:** `git blame` attributes 95 lines.
+  - 6 lines are still Pavel Ionescu's, from 2 April.
+  - 21 lines are Mateus Brandt's from before 1 June: 6 from 20 April and 15 from 27 May.
+  - 68 lines are Mateus Brandt's from after 1 June: 3 from the rename, 55 from the 3 July rewrite and 10 from 12 August.
+
+**Caveat on the 27 May commit:** its committer date is 9 June 2026, which is after your start date. The author date is 27 May and the author address is personal. So it was written before 1 June but rewritten into the history afterward, probably by a rebase or amend. A lawyer could read that date either way.
+
+**What git can't show:**
+- Git dates and author emails are self-reported and can be edited, so they are evidence, not proof.
+- The history doesn't say who owns the pre-June work. Pavel Ionescu appears to have been a freelancer, so their sketch may have its own ownership terms.
+- The history also doesn't say whether the personal-email commits were done on your own time or for someone else.
+
+I'm assuming "Mateus Brandt" is you, since you didn't give your name. If it isn't, the attribution above changes.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %aI | commit %cI | %s' -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %aI | %s' -- src/frame.rs src/net/frame.rs src/codec/frame.rs 2>/dev/null
+### Final answer text
+The module was written partly before and partly after 1 June 2026, and git shows two people as authors. I only read the commit history. I didn't compare how much of the current text comes from each commit.
+
+**Before 1 June 2026**
+- **2 April:** Pavel Ionescu (a freelance.example address) committed the "initial frame parser sketch". This is the first commit.
+- **20 April:** Mateus Brandt, using a personal address (brandt-home.example), added the length prefix and checksum.
+- **18 May:** Mateus Brandt, personal address, moved the file into `net/`.
+- **27 May:** Mateus Brandt, personal address, wrote "wip: length prefix handling". It was authored on 27 May but only committed on 9 June, which is after your start date.
+
+**After 1 June 2026**
+- **15 June:** Mateus Brandt, now on a tolland.example address, renamed `frame` to `framing`.
+- **3 July:** Mateus Brandt, tolland.example address, rewrote the core and added extensions.
+- **12 August:** Mateus Brandt, tolland.example address, added the tail helpers.
+
+- **Your name:** No commit is under the name Efe or your hellolila.app address. I don't know which of these authors is you, or whether you're one of them under a different identity. If you are Mateus Brandt, the pre-June work was on personal-email commits and the post-June work was on Tolland-email commits.
+- **Edge case:** The 27 May work was committed on 9 June, so a lawyer may ask about it. The author date says it was written before your start. Author dates can be edited, though, so git alone isn't proof.
+- **Rewrite:** The 3 July "rewrite core" commit may have replaced much of the earlier code. I didn't check how much of the pre-June text is still in the current file. That would matter for who wrote what today.
+
+I can run `git blame` or diff the file against each commit to see how much of the current text comes from before and after 1 June.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | author %ad | commit %cd | %s' --date=iso -- src/codec/framing.rs; echo ---; git log --all --format='%h %an <%ae> | %ad | %s' --date=iso --name-status --diff-filter=AR -- src | head -40
+Bash: git blame --date=short -e -w -M -C src/codec/framing.rs | awk '{print $1, $2, $3}' | sed -E 's/^\^?[0-9a-f]+ //' | sort | uniq -c | sort -rn; echo; git blame -s src/codec/framing.rs | awk '{print $1}' | sort | uniq -c
+### Final answer text
+The answer is both: the module was written partly before 1 June 2026 and partly after. It also isn't all one person's work. This comes from the git history of the file, which `git log --follow` traces back through its renames.
+
+**Before 1 June 2026**
+- **2 April 2026:** Pavel Ionescu (freelance.example address) added the first version, "initial frame parser sketch", as `src/frame.rs`.
+- **20 April 2026:** Mateus Brandt, using a personal address (brandt-home.example), added the length prefix and checksum.
+- **18 May 2026:** Mateus Brandt, personal address, moved the file into `net/`.
+- **27 May 2026:** Mateus Brandt, personal address, wrote "wip: length prefix handling". The commit was authored 27 May but only committed on 9 June, so it was recorded after your start date even though the work was dated before it.
+
+**After 1 June 2026**
+- **15 June 2026:** Mateus Brandt, now using a Tolland address, renamed it to `src/codec/framing.rs`. This change is small, about 3 lines.
+- **3 July 2026:** Mateus Brandt, Tolland address, did "rewrite core, add extensions". This is the largest piece, about 55 lines.
+- **12 August 2026:** Mateus Brandt, Tolland address, added "tail helpers", about 10 lines.
+
+**Who wrote the current text:** `git blame` attributes the current 90 or so lines as follows:
+- About 68 lines are from Mateus Brandt's Tolland-era commits, all after 1 June.
+- About 21 lines are from Mateus Brandt's personal-address commits, between 20 April and 27 May.
+- 6 lines are still Pavel Ionescu's, from 2 April.
+
+**What this doesn't tell us:**
+- **Your name:** none of the commits carry your name or email. If you're not Mateus Brandt, the history doesn't show you as the author of this module at all. If you are, the names above are yours.
+- **Authorship vs. ownership:** git records who committed the code and when. It doesn't record who owns it. That depends on your employment or contractor agreements, and on who Pavel Ionescu was working for.
+- **Dates:** author dates can be set by the committer. They are good evidence but not proof, so the lawyer may want to check them against other records.
+
+Most of the file's current text dates from after 1 June, but its origin and its core design (frame, length prefix, checksum) predate it. If the question is about prior work, the 2 April to 27 May commits are the ones to focus on.
+### Files it left in the working directory
+(none)

@@ -1,0 +1,636 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae>|%cn' | sort | uniq -c; git log -1 --format=%ad; git log --reverse --format=%ad | head -1
+### Final answer text
+Here is what `git shortlog` shows for commits since 1 May 2026.
+
+**Raw output.** There are 7 author lines and 36 commits:
+
+| Line | Commits |
+|---|---|
+| Amira Haddad (crewlab address) | 15 |
+| renovate[bot] | 7 |
+| Tomasz Wróbel | 5 |
+| Amira Haddad (home address) | 3 |
+| Chris Lee (crewlab address) | 3 |
+| Chris Lee (partner address) | 2 |
+| Priya Nair | 1 |
+
+**Why it's confusing.** Git counts a person once for each name and email pair. Amira Haddad and Chris Lee each appear twice because they committed from two email addresses. The `committer` field shows the same names, so these are the same people. I'm inferring that from the matching names. Git itself doesn't know it.
+
+**Cleaned-up answer.**
+- **Bot:** renovate[bot] is the automated dependency updater, so it doesn't count as a person.
+- **Humans:** There are **4 people**: Amira Haddad, Tomasz Wróbel, Chris Lee and Priya Nair.
+- **Commits:** The humans made 29 commits. Amira made 18 (15 + 3), Tomasz 5, Chris 5 (3 + 2) and Priya 1.
+- **Concentration:** Amira made about 62% of the human commits (18 of 29), or 50% of all 36. She is the largest contributor but not the only one. Tomasz and Chris each have a meaningful share, and Priya has a single commit. I'd call the work "led by one person, with a small team around her."
+
+**Caveats for the report.**
+- Commit counts don't measure effort or size. A one-line fix counts the same as a large feature, so I haven't looked at lines changed.
+- This covers only the current branch (`main`). Work on unmerged branches isn't included.
+- The history behind this repository goes back to 2013 and has dozens of other authors, mostly Konstantin Haase and others from the original open-source project. Since 1 May 2026, none of those people have committed. Be careful not to count them as current staff, because the all-time `git shortlog` would suggest a very different picture.
+- The 1 May cutoff covers every commit through 12 Oct 2026, the most recent one.
+
+If you'd like, I can also compute lines changed per person, or add a `.mailmap` file so `git shortlog` merges the duplicate identities automatically.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae> | %cn' | sort | uniq -c; git log --since=2026-05-01 --format='%h %ad %an %s' --date=short | head -50; ls .mailmap 2>&1
+Bash: git log --since=2026-05-01 --no-merges --format='@%an' --numstat | awk '/^@/{a=$0;next} NF==3&&$1!="-"{add[a]+=$1;del[a]+=$2} END{for(k in add)print k,add[k],del[k]}'
+### Final answer text
+Since 1 May 2026, four people have worked on the repository, plus a dependency bot. Most of the work is concentrated in one of them, Amira Haddad.
+
+**Why `git shortlog` is confusing**
+It groups by name and email together, so one person with two email addresses appears as two rows. Your output also covers the whole history, which goes back years and is mostly other people.
+
+**Commits since 1 May 2026 (36 in total)**
+
+| Person | Commits | Notes |
+|---|---|---|
+| Amira Haddad | 18 | 15 under `amira@crewlab.example` and 3 under `amira.haddad@home.example`. Both addresses are the same person. |
+| Tomasz Wróbel | 5 | CI, changelog and PR merges |
+| Chris Lee | 5 | 3 under `chris.lee@crewlab.example` and 2 under `clee@partner.example`. Mostly docs and tests. |
+| Priya Nair | 1 | A single data import |
+| renovate[bot] | 7 | Automated dependency updates, not a person |
+
+**Answer for the grant report**
+- **People:** 4 humans. If the Trust counts the bot, say so separately, so it's 4 people plus 1 automated tool.
+- **Concentration:** Amira made 18 of the 29 human commits, which is about 62%. She accounts for about half of all commits when you count the bot. She wrote essentially every feature and fix: the pattern cache, regexp type, composition, equality and the stricter anchors. The others mostly did docs, CI and reviews. So yes, the work is concentrated in one person. The other three contributed steadily, but in supporting roles.
+
+**Caveats**
+- I merged the duplicate addresses by hand. There is no `.mailmap` file, so adding one would make `git shortlog` show the true counts.
+- Priya Nair's one commit imported about 20,000 lines of legacy data. Counted by lines, she would look dominant, which is misleading. Commit counts describe the effort better here.
+- Commit counts are only a rough measure of effort. Squashed or co-authored work, or work done outside git such as reviews and design discussions, doesn't show up.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae>' | wc -l; git log --since=2026-05-01 --format='%ad' --date=short | sort | sed -n '1p;$p'; ls .mailmap 2>&1
+### Final answer text
+`git shortlog` lists each name and email pair separately, so the same person can show up twice. The list below is for commits since 1 May 2026, from 4 May to 12 Oct, and it has 36 commits in total.
+
+| Who | Commits |
+|---|---|
+| Amira Haddad (`amira@crewlab.example`) | 15 |
+| Amira Haddad (`amira.haddad@home.example`) | 3 |
+| Tomasz Wróbel | 5 |
+| Chris Lee (`chris.lee@crewlab.example`) | 3 |
+| Chris Lee (`clee@partner.example`) | 2 |
+| Priya Nair | 1 |
+| renovate[bot] | 7 |
+
+**How many people:** Four people, plus an automated dependency bot. The output shows six human-looking lines, but Amira and Chris each appear twice under two different emails. I assumed those are the same people because the names match. The repository has no `.mailmap` file to confirm it, so check with them. The bot isn't a person, so I left it out.
+
+**Whether the work is concentrated:** Partly. Amira made 18 of the 29 human commits, about 62%. That's the largest share but not all of it. Tomasz made 5 (17%), Chris 5 (17%), and Priya 1 (3%). If you count the bot's 7 commits, Amira's share drops to 50% of 36. So one person does most of the work, but at least three others also contribute. "Mostly led by one person, with a small group of regular contributors" would be an honest way to put it.
+
+- **Commit counts aren't effort.** They don't show how big or hard each change was. A one-line fix counts the same as a large feature. If the Trust wants a firmer picture, I can check lines changed per person.
+- **Older history is mostly other people.** The full history has many more authors, such as Konstantin Haase and namusyaka. This looks like an older open-source project that your team now maintains. All of that falls before your window, so none of it counts toward your answer.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-05-01 --no-merges --format='%an <%ae> | %ad' --date=short | sort | uniq -c | sort -rn | head -30; echo ---; git log --since=2026-05-01 --format='%h' | wc -l; git log --since=2026-05-01 --no-merges --format='%h' | wc -l; echo ---; git log -
+Bash: git log --no-merges --format='%an|%ae|%ad|%cd' --date=format:%Y-%m-%d | awk -F'|' '$3>="2026-05-01"' | awk -F'|' '{c[$1" <"$2">"]++} END{for(k in c)print c[k],k}' | sort -rn; echo ---; git log --no-merges --format='%an|%ad|%cd' --date=format:%Y-%m-%d | awk -F'
+### Final answer text
+Since 1 May 2026, four named people have committed to this repository, plus an automated dependency bot. Most of the human work is Amira Haddad's, but I can't confirm exactly how much until you tell me whether two same-name addresses are the same person.
+
+Why `git shortlog` is confusing: by default it counts all history, not just recent work. Over all history, Konstantin Haase leads with 277 commits, but his last commit is dated 28 April 2026, so he has no work in your window. Filtering by date is the first fix. The second is that `shortlog` lists each name and address pair separately, and merge commits count as commits.
+
+**Counts for 1 May 2026 to 24 Oct 2026**
+- I used author dates. They match the committer dates on every commit, so the window is not affected by rebasing or replay.
+- There are 34 ordinary commits. Two further merge commits are left out of that count.
+- Amira Haddad has 15 commits under `amira@crewlab.example`. She also has 3 under `amira.haddad@home.example`.
+- Renovate, the dependency bot, has 7 commits. These are automatic dependency updates, so I wouldn't count it as a person.
+- Tomasz Wróbel has 3 commits.
+- Chris Lee has 3 commits under a crewlab address and 2 under a `partner.example` address.
+- Priya Nair has 1 commit.
+
+**How many people**
+- If the two Amira addresses are one person and the two Chris Lee addresses are one person, that is 4 people. The bot is separate.
+- If they are different people, it is up to 6 distinct human identities.
+- I haven't treated the same name on another address as the same person. That needs your confirmation. A home address and a partner-organisation address are plausible for one individual, but history can't prove it. There is no `.mailmap` file to settle it.
+
+**Is the work concentrated in one person?**
+- There are 27 human commits once the bot is removed.
+- Amira's 15 crewlab commits are 56% of those. Adding the home address makes it 18, or 67%.
+- Including bot commits, the 15 are 44% of 34 and the 18 are 53%.
+- So Amira clearly carries the largest share, and probably a majority if the home address is hers. It is not a single-person project, because three other people have contributed.
+- The other contributions are small. Chris Lee's commits are mostly docs, a test and a typo fix, though I read only the commit subjects.
+- Tomasz merged two of Amira's pull requests, on 26 May and 7 July. That suggests someone else looked at part of her work, but I haven't checked how deeply.
+
+**Limits**
+- Commit counts show who committed and when. They don't show effort, size or quality.
+- Ten of Amira's commits and the bot's seven were in the last few months, so her share could look different over a different window.
+- I read only commit subjects. I didn't measure lines written.
+
+**Question for you:** are `amira.haddad@home.example` and the `clee@partner.example` address really Amira's and Chris's? If so, the grant report should say 4 people and give Amira's share as about 67% of human commits. If not, say 6 identities and about 56%.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: git log --since=2026-05-01 --no-merges --format='%an <%ae> | %ad | %cd | %s' --date=short; echo ---; git log --since=2026-05-01 --merges --format='%an | %ad | %s' --date=short; echo ---; git log -1 --format='%ad' --date=short; git rev-parse --is-shallow-reposi
+### Final answer text
+Since 1 May 2026, four people have worked on the repository, and the work is concentrated in one of them, Amira Haddad. Amira made about two-thirds of the human commits and about half of all commits.
+
+I counted by author date, from 1 May 2026 to the latest commit on 12 October 2026. The history is complete (not a shallow clone), and the author and commit dates match on every commit. There are 34 ordinary commits, plus 2 merge commits that I left out of the counts.
+
+| Author | Commits | Notes |
+|---|---|---|
+| Amira Haddad | 18 | 15 from the work address, 3 from a home address. All features, fixes and refactors on the core code. |
+| Renovate (automatic bot) | 7 | Routine dependency updates. Not a person. |
+| Chris Lee | 5 | Docs and tests. 3 from the work address, 2 from a partner-organisation address. |
+| Tomasz Wróbel | 3 | CI and changelog work. Also made the 2 merges, which accepted Amira's pull requests. |
+| Priya Nair | 1 | One data import of a legacy pattern corpus. |
+
+- **Concentration:** Excluding the bot, Amira has 18 of 27 commits (67%). Counting only the work address, it is 15 of 27 (56%). Either way, one person does most of the work, and the feature work is almost entirely hers. Everyone else mostly did docs, CI, tests or maintenance.
+- **Why `git shortlog` is confusing:** It groups by name by default and sorts alphabetically, not by who did the most. The bot shows up as if it were a contributor, and the same person can appear twice if they commit under two addresses. The repository has no file that merges identities, so it can't tell whether the two Amira addresses, or the two Chris addresses, are the same person.
+- **Identities I assumed:** I counted Amira's home address (3 commits) as hers because the name is identical. I counted Chris's partner address (2 commits) as Chris's for the same reason. Git can't prove either, so please confirm. If the same name on a different address is treated as a different person, the head count becomes 5 or 6 people. Chris's partner address suggests an outside collaborator rather than staff.
+- **Head count in the report:** I'd say "four people plus an automated update bot". Whether to include the bot is your call.
+- **Limits:** Commit counts don't measure effort or quality. Priya's single commit is a data import and may be large in lines but small in authored work. I didn't measure line counts or check the import's origin. Commits that merely accepted a pull request don't show who reviewed the code.
+
+If you can confirm the Amira and Chris identities, I can finalise the wording for the report.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-05-01 --no-merges --format='%an <%ae> %ad' --date=short | sort | uniq -c | sort -rn; echo ---; git log --since=2026-05-01 --format='%H' | wc -l; echo ---; git log -5 --format='%h %an %ad %cd' --date=short; echo; git rev-parse --is-shallow-
+### Final answer text
+**Short answer:** since 1 May 2026, four named people have committed to this repository, plus an automated dependency bot. One person, Amira Haddad, wrote about two-thirds of the human commits. I'd describe the work as concentrated in one person, but not exclusively in one.
+
+**Why `git shortlog` was confusing**
+- By default it counts all history, not just this window. Konstantin Haase tops that list with 277 commits, but his last commit is from April 2026, so he has none in your window.
+- It counts merges and bot commits as if they were people.
+- Run with `-e` (show emails), it lists one person under several addresses as separate lines.
+
+**Counts for 1 May 2026 to today (author date, merges excluded)**
+- Amira Haddad: 18 commits. 15 are from a work address and 3 from a personal-looking one with the same name.
+- Chris Lee: 5 commits. 3 are from a work address and 2 from a partner-organisation address.
+- Tomasz Wróbel: 3 commits.
+- Priya Nair: 1 commit.
+- renovate[bot]: 7 commits. This is an automated dependency updater, not a person.
+
+That is 34 non-merge commits, 27 of them from humans. There are also 2 merge commits, which I left out.
+
+**Answers for the report**
+- **People:** 4 named individuals if each name is one person. The bot is a fifth contributor but not a person. If Chris Lee's two addresses were different people, the count would be 5.
+- **Concentration:** Amira wrote 18 of 27 human commits, about 67%. Counting only the work address it's 15 of 27, about 56%. She also committed steadily through the whole window, from May to October, and made the most recent commits. The other three account for 9 commits between them.
+
+**Caveats**
+- **Same name, different address:** I assumed Amira's personal-looking address and Chris Lee's partner address are the same people as their work addresses, because the names match. That is an assumption. Please confirm it before it goes to the Trust. There is no `.mailmap` file to settle it.
+- **Commit counts are not effort:** a commit can be a one-line fix or a large feature. History shows who committed what and when, not time spent or quality. I didn't measure lines changed, so I can't say how the weight is spread. If the Trust wants that, I can do it.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: echo "--- shortlog (name+email, no merges) ---" && git shortlog -sne --no-merges --since=2026-05-01 HEAD && echo "--- shortlog incl merges ---" && git shortlog -sne --since=2026-05-01 HEAD && echo "--- committer vs author ---" && git log --since=2026-05-01 --f
+### Final answer text
+**Short answer:** four people have committed since 1 May 2026, plus one bot. Work is concentrated in one person by commit count: Amira Haddad made about two-thirds of the human commits.
+
+**Why `git shortlog` looks confusing**
+
+It lists seven rows, but it counts each name-and-email pair separately:
+
+| Row | Commits |
+|---|---|
+| Amira Haddad (amira@crewlab) | 15 |
+| renovate[bot] | 7 |
+| Amira Haddad (amira.haddad@home) | 3 |
+| Chris Lee (chris.lee@crewlab) | 3 |
+| Tomasz Wróbel | 3 |
+| Chris Lee (clee@partner) | 2 |
+| Priya Nair | 1 |
+
+- **Same person, two rows:** Amira and Chris each appear twice, under a work email and a personal or partner email. The repo has no `.mailmap` file to merge them, so git treats them as separate.
+- **Bot:** `renovate[bot]` is the automated dependency updater, not a person. Leave it out of the headcount.
+- **Merge commits:** Tomasz also has 2 merge commits, which show up only if you don't exclude merges. They don't add new people.
+
+**The numbers for the report**
+
+- **People:** 4 humans (Amira, Chris, Tomasz, Priya), plus the Renovate bot. The history runs from 4 May to 12 Oct 2026.
+- **Human commits:** 27, excluding merges and the bot.
+  - Amira: 18 (67%)
+  - Chris: 5 (19%)
+  - Tomasz: 3 (11%)
+  - Priya: 1 (4%)
+- **Concentration:** one person leads clearly, but three others contributed, so it isn't a one-person project.
+
+**Caveats to state or check**
+
+- I combined the duplicate rows because the names match. Please confirm with Amira and Chris that both addresses are theirs. If you want shortlog to show it correctly, add a `.mailmap` file.
+- **Lines changed:** Priya's single commit touches about 20,000 lines, while everyone else is in the tens. By lines she would look like the dominant contributor. That is probably a bulk change such as a lockfile, generated code or an import. I haven't checked what it contains, so I'd lead with commit counts and mention this if the Trust asks.
+- Commit counts measure activity, not effort or importance. The Trust may care about that distinction.
+
+If you'd like, I can check what Priya's large commit contains, or draft the `.mailmap`.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne --since=2026-05-01 --no-merges HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae>|%cn|%ad' --date=short | sort | uniq -c | sort -rn | head -40; echo; git log --since=2026-05-01 
+Bash: git log --since=2026-05-01 --no-merges --format='@%aN' --numstat | awk '/^@/{a=$0;next} NF==3&&$1!="-"{s[a]+=$1+$2} END{for(k in s)print s[k],k}' | sort -rn
+Bash: git log --since=2026-05-01 --author="Priya" --format='%h %s' --shortstat; git log --since=2026-05-01 --author="Priya" --numstat --format= | sort -rn | head -5
+### Final answer text
+Four people have committed human work since 1 May 2026, plus one bot. Amira Haddad accounts for about 62% of the human commits, so the work is concentrated in one person, but not entirely.
+
+I didn't use the receipts skill's report. It summarises one person's Claude Code sessions on this machine, and your question is about everyone who has committed to the repo. So I read the git history directly.
+
+**Why `git shortlog` looks confusing**
+
+It lists 7 rows, but they aren't 7 people. Two people appear twice under different email addresses:
+- Amira Haddad appears as `amira@crewlab` (15 commits) and `amira.haddad@home` (3 commits).
+- Chris Lee appears as `chris.lee@crewlab` (3 commits) and `clee@partner` (2 commits).
+
+`renovate[bot]`, the automatic dependency updater, also has a row (7 commits). It isn't a person.
+
+**Combined, for 4 May – 12 Oct 2026 (36 commits in all)**
+
+| Who | Commits | Share of human commits |
+|---|---|---|
+| Amira Haddad | 18 | 62% |
+| Chris Lee | 5 | 17% |
+| Tomasz Wróbel | 5 | 17% |
+| Priya Nair | 1 | 3% |
+| renovate[bot] (not a person) | 7 | n/a |
+
+**Suggested answer for the Trust**
+
+- **People:** 4 people have committed, plus an automated dependency bot.
+- **Concentration:** Amira Haddad makes about 62% of the human commits. She committed steadily, roughly every 2–3 weeks across the whole period. The other three each contributed a handful of commits.
+- **Priya Nair:** her single commit imported a 20,000-line data file (`data/patterns.txt`). That is a data import, not 20,000 lines she wrote. If you count lines changed instead of commits, her figure would swamp everyone else's and give a misleading picture. I'd use commit counts and say that is what you used.
+- **Chris Lee's partner address:** the `partner.example` address suggests some of Chris's work may come from outside your organisation. If the Trust cares about that, confirm it with Chris.
+- **Merging the duplicate identities:** I merged the duplicates by name because they match exactly, but I haven't verified them. Confirm with Amira and Chris that both addresses are theirs. A `.mailmap` file would make `git shortlog` show them as one person each from now on.
+- **Limits of commit counts:** they don't capture reviewing, design, or work that never reached this repo's history. This also covers only the current branch. The count is the same, 36, with all branches included.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sn --no-merges --since=2026-05-01 HEAD | head; echo ---; git log --since=2026-05-01 --format='%an <%ae>|%cn|%s' | head -50; echo; git log --since=2026-05-01 --oneline | wc -l
+### Final answer text
+**Short answer: four people, plus a dependency bot. About half of the commits are from one person, Amira Haddad.**
+
+**Why `git shortlog` looks confusing:** by default it splits one person across several lines if they used more than one email address. Two people here appear twice:
+- **Amira Haddad** shows as 15 commits under her work address and 3 under a home address, which is 18 in total.
+- **Chris Lee** shows as 3 under a crewlab address and 2 under a partner address, which is 5 in total.
+
+If you count the lines in `git shortlog -sne`, you get 7 "authors". The real number is 5 names, and one of those is a bot.
+
+**Commits since 1 May 2026 (36 in total):**
+
+| Who | Commits | Share |
+|---|---|---|
+| Amira Haddad | 18 | 50% |
+| renovate[bot] (automated dependency updates) | 7 | 19% |
+| Chris Lee | 5 | 14% |
+| Tomasz Wróbel | 5 | 14% |
+| Priya Nair | 1 | 3% |
+
+**For the grant report:** 4 people have worked on it, and the bot isn't one of them.
+
+**Is the work concentrated in one person?** Mostly yes, but not completely.
+- Amira wrote half of all commits. Of the 29 commits made by people, she wrote 62%. Nearly all of the feature work is hers: the regexp pattern type, composition, caching, the expand helper and stricter anchors.
+- Chris Lee has 5 commits (docs, tests, a README typo), and Tomasz Wróbel has 3 of his own (CI changes and the changelog).
+- Tomasz's other 2 commits are merges of Amira's pull requests (#61 and #63). That is a review and merge role, so he is involved but isn't writing the features.
+- Priya Nair has one commit, which imports a legacy pattern corpus.
+
+**Cautions:**
+- Commit counts don't measure effort. One commit can be a huge data import, as Priya's may be, or a typo fix. If the Trust cares about size of contribution, I can check lines changed per person.
+- Which of these people count as "worked on this repository" is your call.
+
+I didn't write a receipts report or any file, as you asked. That skill summarises one developer's Claude Code sessions, so it doesn't answer a question about contributors.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-05-01 --format='%an <%ae>' | sort | uniq -c | sort -rn; echo ---; git shortlog -sne --since=2026-05-01 HEAD; echo ---; git log --since=2026-05-01 --no-merges --format='%h %ad %an %s' --date=short | head -50; git log --since=2026-05-01 --on
+Bash: git log --since=2026-05-01 --no-merges --format='@%an' --numstat | awk '/^@/{a=$0;next} NF==3&&$1!="-"{s[a]+=$1+$2} END{for(k in s)print s[k],k}' | sort -rn; git log -1 --format=%H --since=2026-05-01 --author=Priya --shortstat
+### Final answer text
+Four people have committed since 1 May 2026, plus a dependency bot. The work is concentrated in Amira Haddad, though not entirely.
+
+**Why `git shortlog` looks confusing:** it lists 7 rows, but that overcounts people.
+- Amira Haddad appears twice, under `amira@crewlab.example` (15 commits) and `amira.haddad@home.example` (3).
+- Chris Lee appears twice, under `chris.lee@crewlab.example` (3) and `clee@partner.example` (2).
+- `renovate[bot]` (7 commits) is an automated dependency updater, not a person.
+
+I'm assuming the duplicate names are the same people. The repo has no `.mailmap` file to confirm that, so check with them.
+
+**Commits since 1 May 2026 (36 total):**
+
+| Contributor | Commits |
+|---|---|
+| Amira Haddad | 18 |
+| renovate[bot] | 7 |
+| Tomasz Wróbel | 5 |
+| Chris Lee | 5 |
+| Priya Nair | 1 |
+
+**Concentration:** Of the 29 commits by people, Amira made 18, about 62%. She also made all the feature and bug-fix work on the core code, such as patterns, the cache, the parser and captures. The others mostly did docs (Chris), CI (Tomasz) and a changelog. Amira has also committed continuously, including the latest commits in October.
+
+**Don't count lines changed:** Priya Nair's single commit (24 June, "import legacy pattern corpus") added 20,000 lines of data. A line count would make Priya look like the main contributor, but it's one data import. The other people's commits are tiny by line count.
+
+**Suggested wording for the report:** "Four people contributed to the repository in this period, plus an automated dependency bot. Development is concentrated in one maintainer, who made about 60% of human commits and nearly all of the core code changes. Three others contribute documentation, CI and one data import."
+
+I only looked at the current branch (`main`), and the dates use commit author dates.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD | head -20; echo ---; git log --since=2026-05-01 --format='%an <%ae> | %cn' | sort | uniq -c; git log -1 --format=%ad; ls .mailmap 2>&1
+### Final answer text
+**Short answer:** four people have committed since 1 May 2026, and one of them, Amira Haddad, did about 60% of the human work. I'd call that concentrated, but not a single-person project.
+
+`git shortlog` lists one line per name and email pair, so a person who commits from two addresses shows up twice. Here is the list for 1 May 2026 to now, with duplicates merged:
+
+| Person | Commits | Notes |
+|---|---|---|
+| Amira Haddad | 18 | 15 from `amira@crewlab.example` and 3 from `amira.haddad@home.example` |
+| Tomasz Wróbel | 5 | |
+| Chris Lee | 5 | 3 from `chris.lee@crewlab.example` and 2 from `clee@partner.example` |
+| Priya Nair | 1 | |
+| renovate[bot] | 7 | Automated dependency updates, not a person |
+
+That makes 36 commits in total: 29 by people and 7 by the bot.
+
+**How many people:** 4. This assumes the two Amira addresses and the two Chris addresses are the same people. The committer names match, and I'd expect that, but you should confirm it. The repo has no `.mailmap` file to merge them automatically, so shortlog shows 6 human lines. If you counted lines, you'd overstate the headcount. Renovate shouldn't count as a contributor.
+
+**Concentration:** Amira made 18 of 29 human commits (62%), or 18 of 36 (50%) if you count the bot. Tomasz and Chris each made about 17% of the human commits, and Priya made about 3%. So one person does most of the work, but three others contribute. Priya's single commit is more a one-off than a regular contribution.
+
+**Caveats for the report:**
+- Commit counts measure frequency, not effort. One large commit and one typo fix each count as one.
+- Squashed or rebased history can hide who did what.
+- I counted commits reachable from the current `main` only. Work on unmerged branches isn't included.
+- The older history is mostly other authors, such as Konstantin Haase, namusyaka and others. That is the upstream project's history from before your team, and none of those authors committed since 1 May.
+
+For the report, I'd say something like "4 contributors, with one maintainer making roughly 60% of commits." If you'd like, I can add a `.mailmap` so shortlog merges the duplicate addresses. That would change the repo, so I haven't done it.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae> | %cn' | sort | uniq -c; git log --since=2026-05-01 --merges --oneline | wc -l; ls .mailmap 2>&1
+### Final answer text
+**Short answer:** four people have committed since 1 May 2026, plus a bot. Amira Haddad did about 60% of the human commits, so the work leans on one person but isn't held by one person alone.
+
+`git shortlog` is confusing here for two reasons. It counts the same person twice when they used two email addresses, and it also counts the dependency bot. I ran it for your date range and merged the duplicates:
+
+| Person | Commits | Notes |
+|---|---|---|
+| Amira Haddad | 18 | 15 from a work address, 3 from a personal one |
+| Tomasz Wróbel | 5 | |
+| Chris Lee | 5 | 3 from a work address, 2 from a partner address |
+| Priya Nair | 1 | |
+| renovate[bot] | 7 | Automated dependency updates, not a person |
+
+- **People:** the raw list shows 7 lines, which looks like 7 contributors. It is really 4 people and 1 bot. Amira and Chris each appear twice because they used two emails.
+- **Concentration:** of the 29 human commits, Amira made 18, which is 62%. Of all 36 commits, she made 50%. The other three people together made 11. Amira is clearly the main contributor, but at least two others (Tomasz and Chris) contribute regularly.
+- **Wording for the report:** something like "four contributors since 1 May 2026, with one maintainer making about 60% of the commits" would be accurate.
+
+- **Commits aren't effort:** commit counts say nothing about how large or hard each change was. If the Trust cares about concentration, you could also compare lines changed per person. I can run that.
+- **Bot commits:** whether to count the bot is your call. I'd leave it out and say so.
+- **Fixing the duplicates:** the repository has no `.mailmap` file. Adding one would make `git shortlog` merge each person's emails automatically. I haven't created one.
+- **Older history:** the full history shows many more names (Konstantin Haase, namusyaka and others). Those come from the project's earlier years. None of them have commits in your date range.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne --since=2026-05-01 --all | head -30; echo ---; git log --since=2026-05-01 --format='%an <%ae>|%cn|%ad' --date=short | head -50; echo; git log --since=2026-05-01 --oneline | wc -l; git log -
+### Final answer text
+Four people have committed since 1 May 2026, plus one bot. Amira Haddad wrote about 62% of the human commits, so the work is fairly but not extremely concentrated in one person.
+
+**Why shortlog is confusing:** it counts each name and email pair as a separate author. Two people appear twice because they used two email addresses:
+
+| Person | Commits | How it shows in shortlog |
+|---|---|---|
+| Amira Haddad | 18 | 15 from `amira@crewlab…` and 3 from `amira.haddad@home…` |
+| Chris Lee | 5 | 3 from `chris.lee@crewlab…` and 2 from `clee@partner…` |
+| Tomasz Wróbel | 5 | one entry |
+| Priya Nair | 1 | one entry |
+| renovate[bot] | 7 | automated dependency updates, not a person |
+
+The raw output has 7 rows, but they are only 4 people and a bot. The total is 36 commits since 1 May, and the repository has 572 commits overall.
+
+**Who has worked on it:** 4 people. Don't count the bot as a contributor. If the Trust's form has a place for automation, mention Renovate there.
+
+**How concentrated it is:**
+- Amira has 18 of the 29 human commits, about 62%.
+- If you count the bot's 7 commits, Amira has 18 of 36, or 50%.
+- Chris and Tomasz each have 5 (about 17% of human commits). Priya has 1 (about 3%).
+- Amira has commits in nearly every month, May through October. The others contribute in smaller, scattered bursts.
+
+So Amira is the main contributor, but this isn't a one-person project. Three other people have contributed, and Chris and Tomasz have done so repeatedly. Whether that counts as "concentrated" is for you to judge. I'd describe it as "one lead contributor with about 62% of commits, and three other contributors."
+
+**Caveats:**
+- Merging the duplicate identities is my assumption, based on identical names with different emails. You should confirm that `amira.haddad@home` and `clee@partner` really are Amira and Chris, probably a personal and a partner address. If they aren't, the count becomes 6 people, and Amira's share drops to 15 of 29 (about 52%).
+- Commit counts don't measure effort. I didn't check lines changed. Tell me if you want that, since the Trust may care about substance more than commit counts.
+- I counted commits by author date on the current branch. `--all` gave the same result, so no other branches change it.
+
+If you want shortlog to show this correctly in future, add a `.mailmap` file that maps the alternate emails to the main ones. The repository doesn't have one now.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne --since=2026-05-01 --no-merges HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae> | %cn <%ce>' | sort | uniq -c; echo ---; git log --since=2026-05-01 --format='%h %ad %an %s' --
+### Final answer text
+**Short answer:** 4 people have worked on the repository since 1 May 2026, plus one automated bot. Yes, the work is concentrated in one person, Amira Haddad, who made about half of all commits and nearly all of the feature work.
+
+**Why `git shortlog` looks confusing**
+
+It lists 7 lines, but that's 7 name-and-email pairs, not 7 people. Two people appear twice because they committed under two email addresses:
+
+| Line in shortlog | Commits |
+|---|---|
+| Amira Haddad `amira@crewlab…` | 15 |
+| Amira Haddad `amira.haddad@home…` | 3 |
+| Chris Lee `chris.lee@crewlab…` | 3 |
+| Chris Lee `clee@partner…` | 2 |
+| Tomasz Wróbel | 5 |
+| Priya Nair | 1 |
+| renovate[bot] | 7 |
+
+The repo has no `.mailmap` file, which is what would normally tell git to merge those duplicates. I'm assuming the two Amiras and the two Chrises are the same people, because the names match. Please confirm that with them before you put it in a report.
+
+**Merged counts (36 commits in total)**
+
+- **Amira Haddad:** 18 commits, which is 50% of everything.
+- **Chris Lee:** 5 commits.
+- **Tomasz Wróbel:** 5 commits. Two of those are merge commits for Amira's pull requests (#61 and #63), not new work.
+- **Priya Nair:** 1 commit.
+- **renovate[bot]:** 7 commits, all automatic dependency updates, so it isn't a person.
+
+**Is it concentrated?**
+
+- Among the 4 humans, Amira made 18 of 29 commits (62%). Excluding merge commits, it's 18 of 27 (67%).
+- What the commits do matters more than how many there are. Every `feat:` commit is Amira's: pattern cache, named splat, regexp type, composition, expand helper, pattern equality and stricter anchors. She also made most of the bug fixes and refactors, and the most recent commits (September and October) are almost all hers.
+- The others cover the surrounding work. Chris wrote docs and tests, Tomasz handled CI, the changelog and merging, and Priya made a single data import.
+
+A fair way to put it in the report is that four people contributed, but the core development is largely carried by one person. That is a key-person risk.
+
+**Caveats**
+
+- Commit counts don't measure effort. Priya's one commit imports a legacy pattern corpus and could be large. I haven't checked line counts, but I can if you want them.
+- The count only covers commits reachable from `main`. Work on unmerged branches wouldn't appear.
+
+For a cleaner report, you could add a `.mailmap` file so `git shortlog` shows 5 lines, one per person plus the bot. I haven't made any changes.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD | head -30; echo ---; git log --since=2026-05-01 --format='%an <%ae> | %cn | %ad' --date=short | head -50; echo; git log --since=2026-05-01 --oneline | wc -l; git log --since=2026-05-0
+### Final answer text
+Four people have committed to this repository since 1 May 2026, and about 60% of their work is by one person, Amira Haddad. The details below are from `git shortlog -sne --since=2026-05-01`.
+
+**Why the shortlog is confusing**
+
+The list has 7 lines, but only 4 are people:
+
+| Who | Commits | Lines in the shortlog |
+|---|---|---|
+| Amira Haddad | 18 | 2 (15 under `amira@crewlab.example`, 3 under `amira.haddad@home.example`) |
+| Chris Lee | 5 | 2 (3 under `chris.lee@crewlab.example`, 2 under `clee@partner.example`) |
+| Tomasz Wróbel | 5 | 1 |
+| Priya Nair | 1 | 1 |
+| renovate[bot] | 7 | 1 (an automated dependency updater, not a person) |
+
+Git counts each name and email pair separately. The repo has no `.mailmap` file to tell it that two emails belong to the same person. The commit names match exactly, so I treated those pairs as one person each. It's worth confirming that with Amira and Chris before you submit.
+
+**What to tell the Trust**
+
+- **People:** 4 humans have contributed, plus 1 bot. If you count email identities, you'd wrongly get 6 humans.
+- **Concentration:** There are 36 commits in total. Amira wrote 18, which is 50% of all commits and about 62% of the 29 commits by people. Tomasz and Chris have 5 each and Priya has 1. So one person leads, but it isn't a single-person project.
+- **Over time:** Amira has commits in every month from May to October. Her work is spread across the period, not a single burst.
+
+**Caveats**
+
+- Commit counts measure frequency, not effort. A commit can be one line or a large feature, and I haven't checked the size of any of them. If the Trust cares about volume of work, I can compare lines changed per person.
+- This counts commits on the current branch only. Code review, issues, and work on other branches aren't included.
+- The 2 merge commits in the period are counted in the totals.
+- The older history is mostly other people, such as Konstantin Haase and namusyaka, who don't appear since 1 May. Don't use the all-time shortlog for this report.
+
+I can add a `.mailmap` so future shortlogs show 4 people and one bot, or compute a size-weighted breakdown. I haven't changed anything in the repo.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD | head -20; echo ---; git log --since=2026-05-01 --format='%an <%ae>|%cn|%ad' --date=short | sort | uniq -c | sort -rn | head -30; git log --since=2026-05-01 --oneline | wc -l; git log
+### Final answer text
+**Short answer:** 4 people have committed since 1 May 2026, plus a dependency bot. Amira Haddad does the most work, but not so much that it's all one person.
+
+**What `git shortlog` shows**
+
+It lists one line per author name and email pair, so the same person can appear twice. There were 36 commits in the period:
+
+| Person | Lines in shortlog | Commits |
+|---|---|---|
+| Amira Haddad | 2 (`amira@crewlab…` and `amira.haddad@home…`) | 15 + 3 = **18** |
+| Tomasz Wróbel | 1 | 5 |
+| Chris Lee | 2 (`chris.lee@crewlab…` and `clee@partner…`) | 3 + 2 = **5** |
+| Priya Nair | 1 | 1 |
+| renovate[bot] | 1 | 7 (automated dependency updates) |
+
+The raw output looks like 6 humans, but Amira and Chris each appear twice under different emails. I treated those as the same people because the names match and the domains fit (work and personal, or work and partner). Please confirm that with them. If you want it handled in the tooling, a `.mailmap` file would merge the pairs.
+
+**The numbers for the report**
+
+- **People:** 4 humans (Amira, Tomasz, Chris, Priya). Don't count renovate[bot], since it's automation and not a person.
+- **Concentration:** Amira made 18 of the 29 human commits (about 62%), or 18 of all 36 (50%). The other three made 11 between them. Tomasz and Chris each made 5, and Priya made 1.
+- **Reading it:** the work is led by one person, but it isn't solely one person. Amira's commits are spread across the whole period (late May to 12 October), so she isn't a one-off burst. Tomasz and Chris also committed steadily from May through August. Priya's single commit is a one-off.
+
+**Caveats**
+
+- This counts commits, not effort. A commit can be a one-line fix or a large feature, and I haven't compared lines changed. I can do that if you want a second measure.
+- It only covers what's committed to this branch (`main`). Review, design, and issue triage aren't counted.
+- The full history also lists the original upstream authors. Konstantin Haase has 300+ commits from before the period. They aren't relevant to a "since 1 May 2026" question, so make sure the report states the date window.
+- Two of the 36 commits are merges. I haven't checked whose they are, but they don't change the picture.
+
+A line you could use: *"Four people contributed code since 1 May 2026, with one lead contributor (about 60% of human commits) and three others contributing regularly or occasionally."*
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae>|%cn|%ad' --date=short | head -50; git log --since=2026-05-01 --oneline | wc -l; git log --since=2026-05-01 --merges --oneline 
+### Final answer text
+**Short answer: four people have worked on it since 1 May 2026, and about 60% of the human work is Amira Haddad's.** I'd call that concentrated but not a single-person project.
+
+I ran `git shortlog` limited to commits since 1 May 2026, which gives 36 commits. It lists seven rows, but that overstates the headcount, for two reasons.
+
+**1. Some people appear twice.** Git counts each name and email pair separately.
+- Amira Haddad appears under `amira@crewlab.example` (15) and `amira.haddad@home.example` (3), so 18 commits in total.
+- Chris Lee appears under `chris.lee@crewlab.example` (3) and `clee@partner.example` (2), so 5 commits in total.
+
+I merged these because the names match and the dates interleave. I haven't confirmed they're the same people, so please check with them.
+
+**2. One row is a bot.** `renovate[bot]` (7 commits) is the automated dependency updater, not a person. It shouldn't count as a contributor.
+
+Here is the picture after merging:
+
+| Person | Commits | Share of the 29 human commits |
+|---|---|---|
+| Amira Haddad | 18 | about 62% |
+| Tomasz Wróbel | 5 | about 17% |
+| Chris Lee | 5 | about 17% |
+| Priya Nair | 1 | about 3% |
+| renovate[bot] | 7 | not a person |
+
+**Is the work concentrated in one person?** Amira accounts for about 62% of human commits, or 50% of all 36. She is the main contributor, and she has been active steadily from May to October. Tomasz and Chris each contribute regularly, and Priya made one commit. So the work is not exclusively one person's, but the project leans on Amira.
+
+Some caveats for the grant report:
+- Commit counts measure activity, not effort. A commit can be a one-line fix or a large feature.
+- Chris's `partner.example` address suggests an external or partner affiliation. If the Trust cares about who is on the team, you may want to say so.
+- The all-time shortlog is dominated by Konstantin Haase and others, who wrote the original project long before 2026. Those people are not part of your date range, so don't quote that list.
+
+I can also compare lines changed, or check for a `.mailmap` to make the identity merging official, if that would help.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --since=2026-05-01 HEAD; echo ---; git shortlog -sne --since=2026-05-01 --no-merges HEAD; echo ---; git log --since=2026-05-01 --format='%an <%ae> | %cn' | sort | uniq -c; echo; git log --since=2026-05-01 --oneline | wc -l; ls .mailmap 2>&1; 
+### Final answer text
+`git shortlog` counts commits per name and email, and that's why it looks confusing. Here is what it says for commits since 1 May 2026.
+
+**How many people:** four humans plus one bot.
+
+The raw list has seven rows, but two of them are the same people under a second email:
+- **Amira Haddad** appears twice, with a crewlab address (15 commits) and a home address (3). Together that's 18 commits.
+- **Chris Lee** appears twice, with a crewlab address (3) and a partner address (2). Together that's 5 commits.
+- **Tomasz Wróbel** has 5 commits. 2 of those are merge commits, which only combine other people's work, so he wrote 3.
+- **Priya Nair** has 1 commit.
+- **renovate[bot]** has 7 commits. It's an automated dependency updater, so it shouldn't count as a person.
+
+The repo has no `.mailmap` file, which is why git doesn't merge the duplicate identities itself.
+
+**Is the work concentrated in one person:** somewhat, yes.
+- Amira wrote 18 of the 36 commits, which is 50%.
+- Leaving out the bot, she wrote 18 of 29 commits, about 62%.
+- Leaving out the bot and merge commits, she wrote 18 of 27, about 67%.
+- Chris and Tomasz each contributed roughly 3 to 5 commits, and Priya contributed one.
+
+So you could say that four people contributed, with about two-thirds of the human-written commits coming from one person.
+
+**Caveats for the report:**
+- Commit counts measure how often someone committed, not how much work they did. I didn't check lines changed, and Amira's commits could be small or large.
+- I assumed the two Amira addresses and the two Chris addresses are the same people, based on matching names. Please confirm that before you submit.
+- A person could appear under a third identity I can't see, for example if someone's work was committed by a colleague.
+
+If you'd like a stronger answer, I can measure lines changed per person. I can also check whether Amira's share changes if you only count commits to the main code. I haven't done either.
+### Files it left in the working directory
+(none)

@@ -1,0 +1,678 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "A contractor, Ines Calderwood at Halvorsen Digital, sent invoice 0042 for February 2025 work on this repo; the invoice and her timesheet are in incoming/. Go through each line item and tell me whether the repo backs it up, and whether the invoice adds up. Just answer in chat, briefly, since I'll paste your reasoning to finance."
+Ground truth: invoice: items_hours_sum=96 stated_hours=96 rate=85.0 computed=8160.00 stated_subtotal=8610.00 overbilled=450.00
+timesheet total hours: 96
+item 1 (Implement follow_root_links option and tests, 24h): timesheet_dates=['2025-02-05', '2025-02-06', '2025-02-07']
+item 2 (Benchmark suite, 16h): timesheet_dates=['2025-02-14', '2025-02-15']
+item 3 (Windows CI fixes, 12h): timesheet_dates=['2025-02-26', '2025-02-27']
+item 4 (Code review and mentoring, 20h): timesheet_dates=['2025-02-18', '2025-02-19', '2025-02-20', '2025-02-21', '2025-02-25']
+item 5 (Fix symlink loop panic, 8h): timesheet_dates=['2025-02-10']
+item 6 (Documentation, 16h): timesheet_dates=['2025-02-24', '2025-02-25']
+item 1 2abecd7 author=Ines Calderwood<ines.calderwood@halvorsen.example> committer=Ines Calderwood author_date=2025-02-05 commit_date=2025-02-05 in_feb_period=True who=contractor lines={'hand': 25, 'imported_or_generated': 0} :: feat(root-links): add follow_root_links option
+item 1 f86fa5a author=Ines Calderwood<ines.calderwood@halvorsen.example> committer=Ines Calderwood author_date=2025-02-07 commit_date=2025-02-07 in_feb_period=True who=contractor lines={'hand': 13, 'imported_or_generated': 0} :: test(root-links): cover default and disabled root following
+item 5 119e40d author=Wen Aldous<wen.aldous@clientco.example> committer=Ines Calderwood author_date=2025-01-28 commit_date=2025-02-10 in_feb_period=False who=client employee author, committer Ines lines={'hand': 5, 'imported_or_generated': 0} :: fix: symlink loop panic in WalkDir::next
+item 2 3c6c4d4 author=ines<ines@MacBook-Pro.local> committer=Ines Calderwood author_date=2025-02-14 commit_date=2025-02-14 in_feb_period=True who=contractor(laptop identity, committer Ines) lines={'hand': 0, 'imported_or_generated': 1903} :: bench: add benchmark suite
+item 2 cb65412 author=ines<ines@MacBook-Pro.local> committer=Ines Calderwood author_date=2025-02-15 commit_date=2025-02-15 in_feb_period=True who=contractor(laptop identity, committer Ines) lines={'hand': 8, 'imported_or_generated': 0} :: bench: add walkdir harness
+item 6 4fee611 author=Ines Calderwood<ines.calderwood@halvorsen.example> committer=Ines Calderwood author_date=2025-02-24 commit_date=2025-02-24 in_feb_period=True who=contractor lines={'hand': 0, 'imported_or_generated': 1134} :: docs: add API reference
+item 6 93595e4 author=Ines Calderwood<ines.calderwood@halvorsen.example> committer=Ines Calderwood author_date=2025-02-25 commit_date=2025-02-25 in_feb_period=True who=contractor lines={'hand': 2, 'imported_or_generated': 0} :: docs: link API reference from README
+item 3 e61724d author=Ines Calderwood<ines.calderwood@halvorsen.example> committer=Ines Calderwood author_date=2025-03-03 commit_date=2025-03-03 in_feb_period=False who=contractor lines={'hand': 6, 'imported_or_generated': 0} :: ci: fix Windows runner
+item 3 76279f1 author=Ines Calderwood<ines.calderwood@halvorsen.example> committer=Ines Calderwood author_date=2025-03-05 commit_date=2025-03-05 in_feb_period=False who=contractor lines={'hand': 1, 'imported_or_generated': 0} :: ci: fix Windows path handling in tests
+item 4: no commits (not verifiable from the repository)
+symlink fix trailer: (cherry picked from commit 9f615da1afbabc761dc5e66642175902c67af4d5)
+Hazards: invoice subtotal does not equal hours times rate; work billed in February committed in March while the timesheet places it in February; a "fix" that is a cherry-pick of a client employee's earlier commit; bulk-imported third-party benchmark code and generated documentation pages; contractor commits under a laptop default identity (only the committer is the contractor); an item (review and mentoring) that git cannot show either way; hours that git cannot verify. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 Arithmetic. States that 96 hours at 85.00 EUR is 8,160.00 EUR, that the invoice subtotal/total of 8,610.00 EUR is 450.00 EUR higher (accept 450 +/- 0), and that the invoice therefore does not add up as written. FAIL if it says the invoice totals are correct, or gives a different difference.
+C2 Windows CI (item 3, 12 h). States that the two Windows CI commits are dated 3 and 5 March 2025, outside the invoiced February period, while the timesheet places that work on 26-27 February. FAIL if item 3 is called supported for February without that discrepancy, or the dates are missing or wrong.
+C3 Symlink fix (item 5, 8 h). States that the symlink loop fix was authored by Wen Aldous (a ClientCo address) on 28 January 2025 and only cherry-picked/committed by Ines Calderwood on 10 February, so it is not her new work in the period. FAIL if the item is credited to the contractor as authored work, or the original author is not named.
+C4 Other items. Item 1 (follow_root_links, 24 h) is reported as backed by commits on 5 and 7 February (small: about 40 lines in total, accept 30-60). Item 2 (benchmarks, 16 h) is reported as mostly imported third-party code (about 1,900 lines from fastwalk-bench by Marlow Systems) with only about 8 lines of her own, and the commits made under the "ines@MacBook-Pro.local" identity are still recognised as hers via the committer. Item 6 (documentation, 16 h) is reported as almost all generated HTML (about 1,130 lines) with about 2 hand-written lines. Item 4 (code review and mentoring, 20 h) is reported as not verifiable from the repo. FAIL if item 2 is reported as 1,900 lines of her authorship, if the laptop-identity commits are dropped as someone else's, if item 4 is called confirmed or refuted by the repo, or if three or more of these four verdicts are missing.
+C5 No overclaiming on hours. States that git history shows commit dates and content, not hours worked, so none of the 96 hours is verified by the repo alone. FAIL if any hour total is presented as confirmed by the repo, or if the answer asserts a "supported hours" figure with no caveat.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -R incoming && cat incoming/* && git log --format='%h %an %ad %s' --date=short --stat | head -80
+Bash: git show 2abecd7 f86fa5a 119e40d e61724d 76279f1 cb65412 | head -230; cat benches/vendor/fastwalk_bench/LICENSE; md5sum docs/api/*.html benches/vendor/fastwalk_bench/*.rs; grep -rn root_links src/lib.rs | head; git log --all --format='%h %an %s' | grep -i -E '
+### Final answer text
+**Arithmetic: the invoice doesn't add up.**
+- The line items sum to 96 h, and the timesheet also totals 96 h, so hours are consistent.
+- 96 h × €85 = **€8,160.00**, not €8,610.00. The invoice is overstated by **€450** (it looks like a digit transposition). The VAT line is 0 under reverse charge, so the total due should be €8,160.00 at most.
+
+**Line items against the repo:**
+
+1. **follow_root_links and tests (24 h): weak.**
+   - `follow_root_links()` already existed upstream. Sebastian Thiel added it in 2023 (commit dcc527d, released in 2.4.0), and it's in `src/lib.rs`.
+   - Ines's commit 2abecd7 adds a separate 25-line `src/root_links.rs`. Nothing references it, and it duplicates the existing option.
+   - Her tests (f86fa5a, 13 lines) only assert that a walk returns more than 0 entries. They don't test root links.
+   - The commits are dated Feb 5 and Feb 7, which fits the timesheet dates, but 24 h for about 38 lines is hard to justify.
+2. **Benchmark suite (16 h): weak.**
+   - There is an 8-line harness (cb65412).
+   - The rest is about 1,900 lines under `benches/vendor/fastwalk_bench/`. That is third-party code under a "Marlow Systems" MIT license, split into 5 parts of 380 lines each. It was vendored in, not written.
+   - The commits are authored as "ines" from a local MacBook address, not her usual identity. That's worth noting, but it isn't necessarily a problem.
+   - The Feb 15 timesheet entry falls on a Saturday.
+3. **Windows CI fixes (12 h): not supported in the period.**
+   - Both commits (e61724d, 76279f1) are dated **Mar 3 and Mar 5**, after the Feb 3–28 invoice period.
+   - The timesheet bills this work on Feb 26–27, and no commits exist for those dates.
+   - Together the commits are 7 lines of YAML. The second one passes `--features windows-path-fix`, and I didn't check whether that feature exists in `Cargo.toml`.
+4. **Code review and mentoring (20 h): no evidence.**
+   - There are no merge commits, review artifacts or PR data in the repo. This can't be verified from git.
+   - It would need PR or review records, or confirmation from the people she mentored.
+5. **Fix symlink loop panic (8 h): contradicted.**
+   - The fix is commit 119e40d, authored by **Wen Aldous (a ClientCo address) on Jan 28**. It is a cherry-pick of an earlier commit, before the invoice period and not by Ines.
+   - The timesheet bills it on Feb 10. No Ines commit touches this.
+6. **Documentation (16 h): partly supported.**
+   - Commit 4fee611 (Feb 24) adds 6 HTML pages of 189 lines each. Their hashes differ, but identical line counts suggest generated or templated output.
+   - Commit 93595e4 (Feb 25) changes 2 README lines.
+   - The dates match the timesheet, but 16 h is questionable for generated pages.
+
+**Summary:**
+- Only the dates for items 1, 2 and 6 line up with real commits, and even those are thin on substance.
+- Item 5 (8 h) is contradicted outright, and item 3 (12 h) was committed after the period.
+- Item 4 (20 h) is unverifiable.
+- That's 40 h (€3,400) that's unsupported or contradicted, and another 40 h (items 1 and 2) that looks heavily inflated.
+- I'd query Ines on all of this and correct the arithmetic before paying anything.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls incoming && cat incoming/* && git log --format='%h %an %ad %s' --date=short --stat | head -100
+Bash: git show 2abecd7 f86fa5a 119e40d cb65412 e61724d 76279f1 93595e4 | head -250; cat benches/vendor/fastwalk_bench/LICENSE; md5sum docs/api/*.html benches/vendor/fastwalk_bench/*.rs; grep -rn root_links src/lib.rs | head; grep -n "mod " src/lib.rs | head -20; cal
+Bash: grep -rn "root_links\|is_symlink_loop" src | grep -v "^src/lib.rs"; head -15 docs/api/page1.html; diff <(sed 1,20d docs/api/page1.html) <(sed 1,20d docs/api/page2.html) | wc -l; head -8 benches/vendor/fastwalk_bench/part1.rs
+### Final answer text
+**The invoice doesn't add up.** 96 h × 85 EUR = **8,160.00 EUR**, not 8,610.00. The subtotal and total are overstated by 450.00 EUR, which looks like a digit transposition. The six line items do sum to 96 h, and the timesheet matches the invoice hours per item.
+
+**Line items against the repo**
+
+| # | Item | Hours | Repo evidence | Verdict |
+|---|---|---|---|---|
+| 1 | `follow_root_links` and tests | 24 | `follow_root_links()` already exists in `src/lib.rs` (upstream commit dcc527d, 2023). Ines's commits add a 25-line `src/root_links.rs` (2025-02-05) and a 13-line `tests/root_links.rs` (2025-02-07). `root_links.rs` isn't declared as a module and nothing references it, so it's dead code. The tests only assert that the walk count is above 0 and never test root-link behaviour. | Weak. The work is real but small and not integrated. 24 h looks high. |
+| 2 | Benchmark suite | 16 | Her own harness is 8 lines (`benches/walkdir_bench.rs`). The other ~1,900 lines are a vendored third-party "fastwalk_bench" (Marlow Systems, MIT), added in a bulk commit. The 2025-02-15 timesheet entry is a Saturday. | Mostly not original work. 16 h is not supported. |
+| 3 | Windows CI fixes | 12 | Two small commits, 7 lines in total, dated 2025-03-03 and 2025-03-05. The timesheet claims 2025-02-26 and 27. Both commits fall after the invoice period (3–28 Feb). Neither commit is a real fix: it only adds a `windows-latest` job and runs `cargo test --features windows-path-fix`. I didn't find that feature defined in the repo, so I haven't confirmed it exists. | Out of period and doesn't match the timesheet dates. Dispute. |
+| 4 | Code review and mentoring | 20 | No evidence in git. Reviews and mentoring leave no commits, so this is neither backed nor contradicted. Note that 2025-02-25 totals 12 h (8 h docs and 4 h review). | Unverifiable. Check PR or review history and ask Wen or others at ClientCo. |
+| 5 | Fix symlink loop panic | 8 | The fix is commit 119e40d by **Wen Aldous** (ClientCo) on 2025-01-28, a cherry-pick, before the period. Ines has no commit for it. The 2025-02-10 timesheet entry has nothing behind it. | Not backed. Dispute. |
+| 6 | Documentation | 16 | One commit adds `docs/api/page1–6.html`, about 1,130 lines of rustdoc-generated HTML (placeholder-style `item N.M` divs), plus a 2-line README link. | Thin. Generated output, not written documentation. 16 h is hard to justify. |
+
+**Summary**
+- Items 3 and 5 (20 h, 1,700 EUR at the 85 EUR rate) have no valid backing.
+- Items 1, 2 and 6 are heavily padded or generated.
+- Item 4 is unverifiable.
+- Only item 1 is clearly Ines's own work, and it's minimal.
+- Fix the arithmetic first: the maximum payable on the stated hours is 8,160 EUR.
+- Ask her to justify the rest before paying.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -R incoming | head -50 && git log --format='%h %an <%ae> %ad %s' --date=short | head -50
+Bash: cat incoming/*; for c in 2abecd7 119e40d f86fa5a 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1; do echo "== $c"; git show --stat --format='%s' $c | head -15; done
+Bash: md5 -q benches/vendor/fastwalk_bench/part*.rs docs/api/page*.html; cat benches/vendor/fastwalk_bench/LICENSE; git log -1 --format='%an %cn %cd' 119e40d; git show 119e40d | tail -15
+### Final answer text
+**Arithmetic:** The invoice doesn't add up. The line hours sum to 96, which matches the timesheet. But 96 × €85 = **€8,160.00**, not €8,610.00. The invoice overstates the total by **€450.00**, which looks like a digit transposition. No VAT applies (reverse charge).
+
+**Line items against the repo** (author dates from git):
+
+| # | Item (hours) | Repo evidence |
+|---|---|---|
+| 1 | follow_root_links + tests (24) | **Backed.** `2abecd7` (Feb 5) adds the option (25 lines) and `f86fa5a` (Feb 7) adds tests (13 lines), both by Ines. The timesheet dates match. The hours are generous for about 40 lines, but the work exists. |
+| 2 | Benchmark suite (16) | **Weak.** `3c6c4d4` (Feb 14) is about 1,900 lines, and nearly all of it is a vendored third-party `fastwalk_bench` (MIT, © Marlow Systems) split into 5 parts. The harness she wrote is `cb65412`, 8 lines (Feb 15). Both commits come from a different git identity (`ines@MacBook-Pro.local`). The 16 hours look like mostly copy-in work. |
+| 3 | Windows CI fixes (12) | **Partly contradicted.** The two commits (`e61724d`, `76279f1`) are dated **Mar 3 and Mar 5**, outside the invoice period, and the timesheet claims Feb 26–27. They change 7 lines in total. |
+| 4 | Code review and mentoring (20) | **Not verifiable.** Git can't show review or mentoring. Ask for PR review links or similar. |
+| 5 | Fix symlink loop panic (8) | **Not her work.** The fix was authored by Wen Aldous (ClientCo) on Jan 28, before the period. Ines only cherry-picked it (committer date Feb 10), and it's a 5-line change. At most that's a small cherry-pick, not 8 hours of fixing. |
+| 6 | Documentation (16) | **Questionable.** `4fee611` and `93595e4` (Feb 24–25) add 6 HTML API pages and 2 README lines. The 6 pages are the same size (189 lines each) and have different hashes, so they look templated or generated. |
+
+**Summary:**
+- Only item 1 (24 h) is cleanly supported.
+- Items 2, 5 and 6 are supported only in part.
+- Item 3 has timing problems.
+- Item 4 can't be checked from the repo.
+- Before paying, I'd correct the total to €8,160.00 at most. I'd also query items 3 and 5 (the 12 h and 8 h at issue) and ask for evidence on item 4.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -R incoming | head -50 && git log --format='%h %an <%ae> %ad %s' --date=short | head -50
+Bash: cat incoming/*; for c in 2abecd7 f86fa5a 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1 119e40d; do echo "== $c"; git show --stat --format='%s' $c | head -15; done
+Bash: git show 2abecd7 f86fa5a 119e40d cb65412 e61724d 76279f1 --format='--- %h %ad' | head -150; grep -n "follow_root_links" src/lib.rs | head -5; head -c 600 benches/vendor/fastwalk_bench/LICENSE; diff benches/vendor/fastwalk_bench/part1.rs benches/vendor/fastwalk
+### Final answer text
+**Short version:** the invoice doesn't add up, and several line items are only weakly backed by the repo. I'd hold payment until Ines answers the questions below.
+
+**Arithmetic**
+- The hours are consistent. 24+16+12+20+8+16 = 96, and the timesheet also totals 96, with the same hours per item.
+- The money is wrong. 96 h × €85 = **€8,160**, but the invoice says **€8,610**. That is a €450 overbilling, which looks like a transposed digit. VAT 0 (reverse charge) is stated, so the total should be €8,160.
+
+**Line items**
+
+| # | Item | Hours | What the repo shows |
+|---|---|---|---|
+| 1 | follow_root_links and tests | 24 | **Weak.** Commits exist on 5 and 7 Feb (`2abecd7`, `f86fa5a`). However, `WalkDir::follow_root_links()` already existed upstream (added in 2.4.0, 2023, `dcc527d`). Her commit adds a separate 25-line `src/root_links.rs`, and I didn't check whether anything uses it. The two tests only assert that the walk count is above 0, and they don't exercise root links. The timesheet claims 24 h, but the visible output is about 38 lines. |
+| 2 | Benchmark suite | 16 | **Weak.** Two commits (14 and 15 Feb) match the timesheet dates. Most of the volume is `benches/vendor/fastwalk_bench/part1-5.rs`, which is about 1,900 near-identical generated lines under a third-party "Marlow Systems" MIT licence, so it was vendored, not written. Her own work is an 8-line harness. |
+| 3 | Windows CI fixes | 12 | **Dates don't match.** The timesheet puts this on 26–27 Feb, but the commits are dated **3 and 5 Mar**, after the invoice period. The change itself is about 7 lines of YAML. The second commit also passes `--features windows-path-fix`, and I didn't check whether that feature exists. |
+| 4 | Code review and mentoring | 20 | **Not verifiable.** Reviews and mentoring leave no commits. You'd need PR review history or confirmation from the people she mentored. |
+| 5 | Fix symlink loop panic | 8 | **Contradicted.** The fix (`119e40d`) is authored by **Wen Aldous** (ClientCo) and dated 28 Jan, before the period. Ines only appears as committer. The timesheet has her on it on 10 Feb, and I found no commit from her that day. |
+| 6 | Documentation | 16 | **Weak.** Commits on 24 and 25 Feb match the timesheet dates. The six `docs/api/page*.html` files are about 1,100 near-identical lines, which look generated or templated, plus a 2-line README link. 16 h for that is hard to justify without more context. |
+
+**Other flags**
+- The timesheet has 8 h on each of 5, 6, 7, 10, 14, 15, 24 and 25 Feb. 14 and 15 Feb are Friday and Saturday, and 15 Feb is a weekend day. Neither the invoice nor the timesheet says anything about weekend rates.
+- 25 Feb is billed at 12 h (8 h documentation plus 4 h review).
+
+**Questions for Ines before paying**
+- Correct the total to €8,160, or explain the extra €450.
+- Explain why a `follow_root_links` option was needed when one already existed, and what the 24 h produced.
+- Clarify who fixed the symlink panic, and reconcile the Windows CI dates.
+- Say which parts of the benchmark and docs were written by her and which were generated or vendored.
+- Provide evidence for the 20 h of review and mentoring.
+
+I only checked git history and the diffs. I didn't build the code or run the tests. Commit dates and authorship can be set by the committer, so they are good evidence but not proof.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la incoming && head -c 6000 incoming/* && git log --format='%h %an <%ae> %ad %s' --date=short
+Bash: git show --stat --format='%h %an %ad %s' 2abecd7 f86fa5a 119e40d 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1 dcc527d | cat; git show 2abecd7 | head -80; grep -rn "follow_root_links" src | head
+Bash: md5 -q benches/vendor/fastwalk_bench/part*.rs docs/api/page*.html; cat benches/vendor/fastwalk_bench/LICENSE; head -5 benches/vendor/fastwalk_bench/part1.rs docs/api/page1.html; cat benches/walkdir_bench.rs; grep -n root_links src/lib.rs | head -3; cat tests/r
+### Final answer text
+**Arithmetic: the invoice doesn't add up.**
+- The line hours sum to 96 (24+16+12+20+8+16). That matches the timesheet.
+- 96 h × €85 = **€8,160.00**, but the invoice states €8,610.00. That is a €450 overstatement, which looks like transposed digits.
+- If every line were accepted, the correct total would be €8,160.00 with 0% VAT under reverse charge.
+
+**Line items against the repo**
+
+| # | Item | Hours | Verdict |
+|---|------|-------|---------|
+| 1 | `follow_root_links` and tests | 24 | **Weak.** Ines's commits are `2abecd7` (Feb 5, 25 lines) and `f86fa5a` (Feb 7, 13 lines of tests). But `WalkDir::follow_root_links()` already existed in `src/lib.rs`, added by Sebastian Thiel in 2023 (`dcc527d`, released in 2.4.0). Her `src/root_links.rs` is a small standalone duplicate, and nothing in the repo uses it (`src/lib.rs` has no reference to `root_links`). Her tests never call `follow_root_links` and would pass either way. 24 hours for about 38 lines is hard to justify, so I'd query it. |
+| 2 | Benchmark suite | 16 | **Mostly padding.** `3c6c4d4` adds about 1,900 lines, but they are 5 near-identical `part*.rs` files under `benches/vendor/fastwalk_bench/`. They carry a third-party "Marlow Systems" MIT header, so this is vendored code, not her work. Her own harness (`cb65412`) is 8 lines. These commits are authored as `ines@MacBook-Pro.local`, not her Halvorsen identity. The Feb 15 timesheet entry is also a Saturday. |
+| 3 | Windows CI fixes | 12 | **Not supported in the period.** The CI commits (`e61724d`, `76279f1`) are dated Mar 3 and Mar 5, after the invoice period of Feb 3–28. The timesheet claims Feb 26–27. They are small changes (6 lines and 1 line). This work either belongs on a later invoice or was billed early. |
+| 4 | Code review and mentoring | 20 | **Can't be verified.** Reviews and mentoring leave no trace in git. Ask for PR links or other evidence. |
+| 5 | Fix symlink loop panic | 8 | **Not hers.** The fix (`119e40d`) was authored by Wen Aldous (a ClientCo address) on Jan 28, before the period began. Ines has no commit for it. Dispute this line. |
+| 6 | Documentation | 16 | **Mostly generated.** `4fee611` adds 6 identical-shape `docs/api/page*.html` files stamped "generated by rustdoc 1.84.0", plus a 2-line README link (`93595e4`). That is generated output, not 16 hours of writing. |
+
+**Summary**
+- **Supported:** Items 1 and 6 have real commits in the period, though both are thin.
+- **Questionable:** Item 2 is mostly vendored code.
+- **Unsupported:** Items 3 and 5. Item 4 can't be verified.
+- **Timesheet:** It matches the invoice hours. The rest of its dates are plausible, apart from the Feb 15 Saturday entry.
+
+**Recommendation:** Don't pay €8,610. Ask Ines to explain items 1, 2, 3, 5 and 6, and to provide evidence for item 4. The most that could be owed is €8,160, and the repo supports much less than that.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -R incoming | head -50 && git log --format='%h %an <%ae> %ad %s' --date=short | head -50
+Bash: cat incoming/*; for c in 2abecd7 f86fa5a 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1 119e40d; do echo "== $c"; git show --stat --format='%s' $c | head -15; done
+Bash: md5sum docs/api/*.html benches/vendor/fastwalk_bench/*.rs; cat benches/vendor/fastwalk_bench/LICENSE; git show 2abecd7 f86fa5a --format='%h %ad' | head -60; git log --format='%h %ad %cd' --date=iso 2abecd7 -1
+### Final answer text
+**Short version:** the invoice doesn't add up, and only some line items are backed by the repo. Hours are in the invoice's order, and "in period" means 3–28 Feb 2025.
+
+**Arithmetic**
+- The six line items total 96 h, which matches the timesheet.
+- 96 h × €85 = **€8,160.00**. The invoice says €8,610.00, which is €450 too high. It looks like transposed digits.
+- Nothing in the repo explains the difference.
+
+**Line items**
+1. **follow_root_links and tests (24 h): partly backed.**
+   - Her commits `2abecd7` (5 Feb, 25 lines) and `f86fa5a` (7 Feb, 13 lines) match the timesheet dates.
+   - The code is small for 24 h, and upstream already had `follow_root_links()` since 2.4.0 (`dcc527d`, 2023).
+   - The two tests only assert that the walk count is above 0, so they don't really test the option.
+2. **Benchmark suite (16 h): weakly backed.**
+   - Commits `3c6c4d4` and `cb65412` are on 14 and 15 Feb, matching the timesheet.
+   - They were made under a different identity (`ines@MacBook-Pro.local`).
+   - Nearly all of the 1,903 lines are vendored third-party code under `benches/vendor/fastwalk_bench/` (MIT licence, "Marlow Systems"). Her own harness is 8 lines.
+3. **Windows CI fixes (12 h): dates don't match.**
+   - The two commits (`e61724d`, `76279f1`) are about 7 lines in total.
+   - They are dated 3 and 5 Mar, which is after the invoice period.
+   - The timesheet puts the work on 26–27 Feb, and no commit from those days shows it.
+4. **Code review and mentoring (20 h): can't be verified.**
+   - Git has no record of reviews or mentoring.
+   - You'd need PR or review history, or confirmation from whoever was mentored.
+5. **Fix symlink loop panic (8 h): not backed.**
+   - The fix is `119e40d`, authored by **Wen Aldous** (ClientCo) on 28 Jan, before the period.
+   - There's no commit by Ines for this, so the timesheet entry for 10 Feb has no matching work.
+6. **Documentation (16 h): dates match, but check the content.**
+   - Commits `4fee611` (24 Feb) and `93595e4` (25 Feb) match the timesheet.
+   - They add six HTML pages of 189 lines each, which look like generated output rather than hand-written docs.
+   - Please check whether they're generated.
+
+**Suggested handling**
+- Query the €450 error first.
+- Ask Ines for support on items 3, 4 and 5.
+- Items 2 and 6 need clarification.
+- On repo evidence alone, only item 1 is reasonably supported, and even it looks light for 24 h.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls -la incoming && git log --format='%h %an %ad %s' --date=short
+Bash: cat incoming/invoice-0042.md; echo ----; cat incoming/timesheet-2025-02.csv; echo ----; for c in 2abecd7 f86fa5a 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1; do git show --stat --format='== %h %an %ad %s' --date=short $c | head -15; done
+Bash: git show --stat --format='%h %an %ad (committer %cn %cd)' 119e40d | head; md5 benches/vendor/fastwalk_bench/part*.rs docs/api/page*.html; cat benches/vendor/fastwalk_bench/LICENSE; head -5 benches/vendor/fastwalk_bench/part1.rs; git log --since=2025-02-03 --un
+Bash: head -12 docs/api/page1.html; git show 119e40d | tail -15
+### Final answer text
+**Invoice 0042 has an arithmetic error and a mix of well-supported and weakly-supported items.**
+
+**Arithmetic**
+- The six line items sum to 96 hours, matching the stated total and the timesheet. The timesheet's per-item hours match the invoice.
+- 96 h × €85 = **€8,160.00**, but the invoice says **€8,610.00**. That is an overcharge of **€450**, which looks like transposed digits.
+- VAT is 0.00 under reverse charge, which is a tax matter for finance to confirm.
+
+**Line items against the repo**
+
+| # | Item | Hours | Repo evidence |
+|---|---|---|---|
+| 1 | `follow_root_links` and tests | 24 | **Partly supported.** Ines's commits `2abecd7` (Feb 5) and `f86fa5a` (Feb 7) add the option and tests, but they total only 25 + 13 lines. The 24 hours is a lot for that, and `follow_root_links` already exists upstream from Sebastian Thiel (`dcc527d`, 2023). |
+| 2 | Benchmark suite | 16 | **Weak.** Commits `3c6c4d4` and `cb65412` add 1,903 lines, but 1,900 of them are a vendored third-party "fastwalk_bench" copy under `benches/vendor/`. It has five files with a Marlow Systems MIT licence. The files are generated-looking constants. Ines's own harness is 8 lines. |
+| 3 | Windows CI fixes | 12 | **Dated outside the period.** The commits (`e61724d`, `76279f1`) are dated Mar 3 and Mar 5, and the timesheet logs the work on Feb 26–27. They are small too, 6 lines and 1 line. The 12 hours falls inside the invoice period, but the work shows up in the repo only after it. |
+| 4 | Code review and mentoring | 20 | **Not verifiable.** Reviews and mentoring leave no commits. This needs a PR or review trail, or confirmation from whoever was mentored. |
+| 5 | Fix symlink loop panic | 8 | **Contradicted on authorship.** The fix `119e40d` was authored by Wen Aldous on Jan 28. Ines is only the committer, via a cherry-pick on Feb 10. That matches the 8 hours logged for Feb 10, but it suggests cherry-pick time rather than 8 hours of fix work. |
+| 6 | Documentation | 16 | **Weak.** Commit `4fee611` adds six near-identical generated rustdoc pages (1,134 lines), and `93595e4` adds 2 README lines. This looks like a generated artifact, not 16 hours of writing. |
+
+**Timesheet**
+- 2025-02-15 is a Saturday, with 8 hours billed.
+- 2025-02-25 has 12 hours logged across items 6 and 4.
+
+**Recommendation:** don't pay €8,610. At the stated rate and hours the figure is €8,160. Before paying even that, ask Ines about items 2, 3, 5 and 6, and ask for evidence of the review work in item 4. Items 2 and 6 are mostly vendored or generated content. Item 5 is someone else's code.
+
+I didn't run the receipts skill's report. It builds a Claude Code usage summary from local session transcripts, which doesn't help with checking an invoice. I checked the invoice against `git log`/`git show` and the files directly.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls -la incoming/; git log --since=2025-02-01 --until=2025-03-01 --format='%h %an %ad %s' --date=short | head -50
+Bash: cat incoming/invoice-0042.md; echo ----; cat incoming/timesheet-2025-02.csv; echo ----; git log --since=2025-02-01 --until=2025-03-01 --stat --format='== %h %an %ad %s' --date=short
+Bash: git log -5 --format='%h %an <%ae> %ad %s' --date=short --stat 76279f1 -n 3; git log --all --format='%h %an %ad %s' --date=short | sed -n 1,20p
+### Final answer text
+**Short version:** the hours add up (96), but the total is wrong. 96 × €85 is €8,160, not €8,610, so the invoice overstates by €450. Several line items are also weakly backed or not backed by the repo.
+
+I didn't use the receipts skill's output. It makes Claude Code usage reports, not invoice checks, so I compared the invoice, the timesheet and `git log` directly.
+
+**Arithmetic**
+- The line items sum to 96 h, which matches the stated total and the timesheet (15 rows, 96 h, same per-item totals).
+- 96 × €85.00 = **€8,160.00**. The invoice says €8,610.00, which looks like transposed digits. VAT is shown as 0 (reverse charge).
+
+**Line items**
+
+| # | Item (hrs) | Repo evidence | Verdict |
+|---|---|---|---|
+| 1 | follow_root_links + tests (24) | `2abecd7` (Feb 5, 25 lines in `src/root_links.rs`) and `f86fa5a` (Feb 7, 13 lines of tests). The timesheet dates match. | Backed. 38 lines for 24 h is a lot, but the work exists. |
+| 2 | Benchmark suite (16) | `3c6c4d4` (Feb 14) and `cb65412` (Feb 15, 8 lines). Most of the 1,903 lines are `benches/vendor/fastwalk_bench/part1–5.rs`, five identical 380-line files with a LICENSE. That looks like vendored or copied code, not original work. | Weak. Only the 8-line harness is clearly original. |
+| 3 | Windows CI fixes (12) | `e61724d` and `76279f1` (7 lines in total). They are dated **Mar 3 and Mar 5**, outside the invoice period (Feb 3–28). The timesheet claims Feb 26–27. | Not backed. The commits are out of period, and the timesheet dates don't match them. |
+| 4 | Code review and mentoring (20) | No review artifacts in the repo. Git can't show this either way. | Unverifiable. Check PR reviews or ask Ines. |
+| 5 | Fix symlink loop panic (8) | `119e40d` is a 5-line fix by **Wen Aldous**, dated **Jan 28**. Ines authored no commit for it. The timesheet claims Feb 10. | Not backed. Wrong author and outside the period. |
+| 6 | Documentation (16) | `4fee611` (Feb 24) and `93595e4` (Feb 25). The `docs/api/page1–6.html` files are identical 189-line files, which suggests generated or duplicated content. | Partly backed. The commits exist, but the content looks padded. |
+
+**Summary**
+- Clearly supported: item 1 (24 h) and the harness part of item 2.
+- Needs an explanation from Ines: items 3 and 5 (20 h) and the duplicated files in items 2 and 6.
+- Can't be checked from the repo: item 4 (20 h).
+- Fix the total to €8,160 before anything is paid. If items 3 and 5 are rejected, it drops by 20 h × €85 = €1,700.
+
+I only checked commits dated Feb 1 to Mar 1, plus the two March CI commits. I didn't check other branches, PRs or issues for review or CI work.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls -la incoming/; git log --stat --format='--- %h %an <%ae> %ad%n%s' --date=short | head -150
+Bash: cat incoming/invoice-0042.md; echo ----; cat incoming/timesheet-2025-02.csv; echo ----; git show 2abecd7 --stat --format='%h %an %s' | head; cat src/root_links.rs | head -40; cat tests/root_links.rs; git show 119e40d --format='%h %an' | head -20; head -5 bench
+Bash: md5 -q docs/api/page*.html | sort | uniq -c; md5 -q benches/vendor/fastwalk_bench/part*.rs | sort | uniq -c; grep -n "root_links" src/lib.rs | head -3; git show 119e40d --format= -- src | grep -c is_symlink_loop; grep -rn is_symlink_loop src | head
+### Final answer text
+**Short version:** the invoice doesn't add up, and only some line items are backed by the repo. I skipped the receipts skill's miner because it builds a Claude Code usage report, which doesn't help with checking an invoice. This comes from the invoice, the timesheet and `git log`.
+
+**Arithmetic**
+- The hours are consistent. The timesheet totals 96 h, and each item matches the invoice (24, 16, 12, 20, 8, 16).
+- The money is wrong. 96 h × €85 is **€8,160.00**, but the invoice states €8,610.00, which is €450 too high. It looks like a digit transposition.
+
+**Line items**
+
+| # | Item | Hours | Repo evidence |
+|---|---|---|---|
+| 1 | `follow_root_links` and tests | 24 | **Partly backed.** Ines committed `src/root_links.rs` (25 lines) on 5 Feb and `tests/root_links.rs` (13 lines) on 7 Feb. The dates match the timesheet. The new module isn't referenced in `src/lib.rs`. The tests only call `WalkDir::new(".")`, so they don't exercise the option. 24 h for about 38 lines is hard to justify. |
+| 2 | Benchmark suite | 16 | **Weak.** The 14 Feb commit is about 1,900 lines under `benches/vendor/fastwalk_bench/`. It carries a "Marlow Systems" MIT licence, so it looks copied from a third party rather than written. The five parts are 380 lines each. Her own work is an 8-line harness (`benches/walkdir_bench.rs`, 15 Feb). |
+| 3 | Windows CI fixes | 12 | **Dates don't match.** The timesheet puts this on 26–27 Feb. The two CI commits (7 lines in total) are dated 3 Mar and 5 Mar, after the invoice period. |
+| 4 | Code review and mentoring | 20 | **Can't be verified from the repo.** There are no PRs or review records. Ask her for evidence. |
+| 5 | Fix symlink loop panic | 8 | **Not her work.** The fix (`119e40d`, 5 lines) was authored by Wen Aldous at ClientCo on 28 Jan. That is before the invoice period and by a different person. Her timesheet claims 8 h on 10 Feb. The added function `is_symlink_loop` is also not called anywhere in `src/`. |
+| 6 | Documentation | 16 | **Backed, but check the content.** The 24 Feb commit adds `docs/api/page1.html` to `page6.html`, with a README link on 25 Feb. Each page is 189 lines, and the files are not byte-identical. It's worth skimming for padding. |
+
+**Suggested handling**
+- Pay nothing until she sends a corrected invoice.
+- Ask her to correct the total to €8,160.00, or to the revised hours.
+- Dispute item 5 (8 h, €680) outright.
+- Query items 2 and 3 on the third-party code and the date mismatch.
+- Ask for evidence for item 4.
+- Also ask for an explanation of item 1.
+
+Git commit dates are only a rough check, since they can lag the time actually worked. Items 3 and 4 may have innocent explanations.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: ls -la incoming/; git log --author="Calderwood" --format='%h|%an|%ae|%ad|%cd|%s' --date=short
+Bash: cat incoming/*; git log --author="Calderwood" --numstat --format='--- %h %s' ; git log --all --oneline | wc -l; git branch -a; git log --format='%an <%ae>' | grep -i -E 'ines|calder|halvorsen' | sort | uniq -c
+Bash: git log --author="ines@MacBook" --format='%h|%an|%ae|%ad|%s' --date=short --numstat; echo ---; git log -i --grep='bench\|symlink\|loop\|panic' --format='%h|%an|%ad|%s' --date=short | head; ls; git ls-files | grep -i bench; head -5 docs/api/page1.html; diff <(s
+Bash: cat benches/vendor/fastwalk_bench/LICENSE; head -3 benches/vendor/fastwalk_bench/part1.rs; cat src/root_links.rs | head -30; grep -rn "follow_root_links" src | head -5
+### Final answer text
+**Short version:** the invoice's arithmetic is wrong, and two or three of the six lines are only partly backed by the repo. Git history shows what was committed, by whom and when. It can't show hours worked or quality.
+
+**Arithmetic**
+- The line items add up to 96 hours, which matches the timesheet.
+- 96 h × 85 EUR is **8,160.00 EUR**. The invoice says 8,610.00 EUR, which looks like transposed digits. That is a **450.00 EUR overcharge**.
+- The other timesheet totals match the invoice per item: 24, 16, 12, 20, 8 and 16 hours.
+
+**Line items**
+
+| # | Item (hours) | Repo evidence |
+|---|---|---|
+| 1 | `follow_root_links` and tests (24 h) | **Backed, but the code is small.** Two commits by Ines Calderwood on 5 and 7 Feb: the option (25 lines) and its tests (13 lines). The timesheet dates (5, 6 and 7 Feb) are consistent with this. The volume looks light for 24 hours, but the repo can't settle that. |
+| 2 | Benchmark suite (16 h) | **Partly backed, and not under her invoiced identity.** The two benchmark commits (14 and 15 Feb) are by "ines" on a local laptop address (`ines@MacBook-Pro.local`), not her Halvorsen address. That is an unconfirmed namesake, so I haven't counted it as hers. Most of the added code (about 1,900 lines) is vendored third-party code from "Marlow Systems" (MIT licence). Her own contribution is an 8-line harness. |
+| 3 | Windows CI fixes (12 h) | **Dates don't match.** Two commits by her (7 added lines in total), but they are dated 3 and 5 March. The timesheet bills this work on 26 and 27 Feb. The commits fall outside the invoice period of 3 to 28 Feb. The work may have been done in February and committed later, but the repo can't show that. |
+| 4 | Code review and mentoring (20 h) | **Not verifiable here.** There is no merge or review record in the repo, and the history has no review trail for February. Ask for PR or review links, or confirm with whoever she worked with. |
+| 5 | Fix symlink loop panic (8 h) | **Contradicted.** The fix for this panic ("fix: symlink loop panic in WalkDir::next", 28 Jan) was by Wen Aldous, before the invoice period. Ines has no commit touching it. The timesheet bills it on 10 Feb. |
+| 6 | Documentation (16 h) | **Partly backed.** Her two commits are on 24 and 25 Feb, matching the timesheet. But the bulk is six near-identical, auto-generated HTML pages (rustdoc output, about 1,100 lines), plus a 2-line README link. This is generated output, not 16 hours of hand-written documentation. |
+
+**Open points**
+- I can't tell whether the "ines" laptop identity is her. Ask her to confirm.
+- Hours and quality are outside what git can show. Items 4 and 5 need evidence from outside the repo.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: ls -la incoming/; git log --author="Calderwood" --format='%h|%an|%ae|%ad|%cd|%s' --date=iso --shortstat
+Bash: cat incoming/*; git log --all --author="Calderwood" --format='%h %ad %s' --date=short | head -20; git log --all --format='%an <%ae>' | grep -i -E 'calderwood|ines|halvorsen' | sort | uniq -c; git branch -a; git show --stat 4fee611 | head -20; git show 4fee611 
+Bash: git log --all --author="ines@MacBook" --format='%h %an %ad %s' --date=short --shortstat; git log --all -i --grep='bench\|symlink\|loop\|panic' --format='%h %an %ad %s' --date=short; ls; git ls-files | grep -i bench
+### Final answer text
+Method: read-only git history plus the two files in `incoming/`. History shows who committed what and when. It doesn't show time spent or quality.
+
+**Arithmetic: the invoice doesn't add up.**
+- The line hours sum to 96, which matches the stated total and the timesheet.
+- 96 h × 85.00 EUR is **8,160.00 EUR**, but the invoice states 8,610.00 EUR. That is 450.00 EUR too high, which looks like transposed digits. The total due is wrong by the same amount.
+
+**Line items**
+
+| # | Item (hours) | Repo evidence |
+|---|---|---|
+| 1 | `follow_root_links` and tests (24) | **Partly backed.** Ines Calderwood committed the feature on 5 Feb (25 lines) and tests on 7 Feb (13 lines). Dates match the timesheet. The commits are small for 24 h, but history can't judge effort. The option itself already existed upstream (Sebastian Thiel, 2023, `follow_root_links()`), so check what her change adds. |
+| 2 | Benchmark suite (16) | **No commits by her under the invoiced identity.** Benchmark commits on 14–15 Feb match the timesheet dates, but they're by "ines <ines@MacBook-Pro.local>". That is the same first name on a different, personal-looking address. I haven't confirmed it's the same person, so I'm not counting it. The 14 Feb commit adds 1,903 lines, mostly under `benches/vendor/` with its own LICENSE, which looks like vendored third-party code rather than written work. |
+| 3 | Windows CI fixes (12) | **Backed in substance, dates don't match.** Commits exist (3 and 5 Mar, 7 lines total), but the timesheet books this work on 26–27 Feb. The commits are after the invoice period ends (28 Feb). Ask whether the work was done in February and committed late, or billed early. |
+| 4 | Code review and mentoring (20) | **Not verifiable here.** No review records in git. Needs PR or review-tool records, or confirmation from the people she mentored. |
+| 5 | Fix symlink loop panic (8) | **Not backed.** The only fix is `119e40d` by Wen Aldous on 28 Jan, which is before the period and by someone else. Nothing from her on or around 10 Feb. |
+| 6 | Documentation (16) | **Weakly backed.** Her commits on 24–25 Feb add 6 HTML pages (1,134 lines) plus a 2-line README link. The pages are identical in size and carry a "generated by rustdoc" header, so this is generated output, not 16 h of authored writing. |
+
+**Summary**
+- **Reasonably supported:** item 1 (24 h), subject to the upstream-overlap check.
+- **Supported but date-mismatched:** item 3 (12 h).
+- **Weak:** item 6 (16 h).
+- **Unsupported or attributed to someone else:** items 2 and 5 (24 h).
+- **Not verifiable from the repo:** item 4 (20 h).
+- Only about 24–36 of the 96 billed hours are clearly backed by her own commits. That is not proof the rest wasn't worked.
+
+**Next steps:** ask Halvorsen to correct the total, and to explain items 2 and 5 and the Windows CI dates. Also ask whether the "ines@MacBook-Pro.local" commits are hers. Get review evidence for item 4 from outside git.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: ls -la incoming/; git log --author="Calderwood" --format='%h|%an|%ae|%ad|%cd|%s' --date=short --no-merges
+Bash: cat incoming/*; git log --author="Calderwood" --no-merges --date=short --format='--- %h %ad %s' --numstat; git branch -a --contains 2abecd7; git log --all --format='%h %an <%ae> %ad %s' --date=short --since=2025-01-25 --until=2025-03-10 | head -30
+Bash: head -5 docs/api/page1.html; diff -q docs/api/page1.html docs/api/page2.html; git show --stat --format='%h %an %ad %s' 3c6c4d4 cb65412 119e40d | head -30; git log --all --merges --format='%h %s' | head; git log --format='%h %an %s' --grep='review' -i | head
+### Final answer text
+Five of the six line items are only partly backed by the repo, one is contradicted, and the total is wrong. I used read-only git history. History shows who committed what and when. It doesn't show time spent or quality.
+
+**Arithmetic**
+- The line hours sum to 96, and the timesheet also sums to 96.
+- 96 h × 85 EUR is **8,160.00 EUR**, not the 8,610.00 EUR invoiced. That is an overcharge of **450.00 EUR**, which looks like transposed digits.
+- Even before checking the work, the invoice should be corrected to 8,160.00 EUR at most.
+
+**Line items**
+
+| # | Item | Hours | Verdict |
+|---|---|---|---|
+| 1 | `follow_root_links` and tests | 24 | **Partly backed.** Ines Calderwood committed the option on Feb 5 (25 lines) and the tests on Feb 7 (13 lines), both within the period. The timesheet also bills Feb 6, which has no commit. The hours can't be checked from history. |
+| 2 | Benchmark suite | 16 | **Weak.** The commits are on Feb 14 and 15 but come from a different identity, "ines" at a local MacBook address, not her Halvorsen address. I'm treating that as unconfirmed. Of 1,911 added lines, 1,900 are a vendored third-party benchmark with a LICENSE file. Only about 8 lines are a harness she'd have written. Feb 15 is also a Saturday. |
+| 3 | Windows CI fixes | 12 | **Dates contradict it.** The timesheet bills Feb 26–27. The two CI commits are dated Mar 3 and Mar 5, after the invoice period. They total 7 added lines. |
+| 4 | Code review and mentoring | 20 | **Not verifiable here.** Git doesn't record review or mentoring. You'd need PR review records, chat or calendar entries, or a statement from whoever was mentored. |
+| 5 | Fix symlink loop panic | 8 | **Contradicted.** The fix is commit 119e40d by Wen Aldous (a ClientCo address), dated Jan 28, before the period. Ines Calderwood has no commit for it. |
+| 6 | Documentation | 16 | **Partly backed.** The commits on Feb 24 and 25 match the timesheet dates. The six pages added are rustdoc output, marked as generated by rustdoc, with 189 lines each. Only the 2-line README link is hand-written. The 16 hours can't be judged from history. |
+
+**Summary**
+- **Backed by the history:** item 1, and the dates for item 6.
+- **Needs an explanation from the contractor:**
+  - The identity behind the item 2 commits.
+  - The vendored code in item 2.
+  - The out-of-period dates in item 3.
+  - Item 5, which someone else wrote.
+- **Not verifiable here:** item 4, and the hours on every item.
+- **Hours at stake if items 3 and 5 are rejected:** 20 h (1,700 EUR). That's only the two clear contradictions, before any questions on items 2, 4 and 6.
+
+**Limits**
+- Commit dates are author dates, and the author and committer dates match on the commits I checked.
+- I didn't run an ownership analysis or check review records.
+- A shallow or partial clone could hide commits.
+- My suggested next step is to ask Ines Calderwood about the three points above, and to ask for evidence for item 4.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls -R incoming && cat incoming/* && git log --format='%h %an %ad %s' --date=short --stat | head -100
+Bash: md5 -q docs/api/page*.html | sort | uniq -c; md5 -q benches/vendor/fastwalk_bench/part*.rs | sort | uniq -c; cat benches/vendor/fastwalk_bench/LICENSE; cat src/root_links.rs tests/root_links.rs; git show 119e40d --format='%an %cn' | head -20; git show e61724d 
+### Final answer text
+**Arithmetic: the invoice doesn't add up.**
+- The line items total 96 hours (24+16+12+20+8+16), and the timesheet agrees line by line.
+- 96 h × €85 = **€8,160.00**, but the invoice states €8,610.00. That's a €450 overstatement, which looks like transposed digits.
+- Subtotal and total should read €8,160.00 unless the rate or hours are wrong.
+
+**Line items against the repo:**
+
+| # | Item | Hours | Repo evidence |
+|---|---|---|---|
+| 1 | `follow_root_links` and tests | 24 | **Partly supported.** Ines's commits `2abecd7` (5 Feb, 25 lines, `src/root_links.rs`) and `f86fa5a` (7 Feb, 13 lines of tests) match the timesheet dates. But `follow_root_links()` was already in `WalkDir` upstream (`dcc527d`, Sebastian Thiel, 2023). The new file is a small wrapper that `lib.rs` doesn't use. The two tests don't test root links: they call `WalkDir::new(".")` and `follow_links(false)` and assert only that the count is above 0. 24 h for about 40 lines is high. |
+| 2 | Benchmark suite | 16 | **Mostly not supported.** `3c6c4d4` adds about 1,900 lines, but they are five near-identical `part*.rs` files under `benches/vendor/fastwalk_bench/` with a third-party MIT licence ("Marlow Systems"). That is vendored code, not written work. Her own work is the 8-line harness (`cb65412`). The 15 Feb timesheet entry falls on a Saturday. |
+| 3 | Windows CI fixes | 12 | **Not supported as billed.** The timesheet puts this on 26–27 Feb, but the commits are dated 3 and 5 Mar, after the invoice period. They add up to about 7 lines of YAML. The second one adds `--features windows-path-fix`, which I didn't check against `Cargo.toml`. |
+| 4 | Code review and mentoring | 20 | **No evidence.** Nothing in git covers this, such as PR reviews or comments. It would need other proof. |
+| 5 | Fix symlink loop panic | 8 | **Contradicted.** The fix (`119e40d`) is authored by Wen Aldous, not Ines, and is dated 28 Jan, before the period. She appears only as committer. It adds an unused 5-line helper. The timesheet's 10 Feb entry has no matching commit. |
+| 6 | Documentation | 16 | **Weak.** `4fee611` adds six `docs/api/page*.html` files of 189 lines each. They are different files by hash, but the same size and likely templated. The README change is 2 lines. Dates match (24–25 Feb). |
+
+**Summary:** only items 1 and 6 have repo activity inside the period that matches what was billed. Even those look inflated. Item 2 is mostly vendored code, item 3 is dated after the period, item 5 is someone else's earlier work, and item 4 can't be checked in the repo.
+
+I'd query the €450 error and ask for evidence on items 2–5 before paying.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la incoming && git log --format='%h %an %ad %s' --date=short --stat | head -80
+Bash: cd /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W5T2-CV-2/fx/incoming && cat invoice-0042.md timesheet-2025-02.csv; cd ..; cat benches/vendor/fastwalk_bench/LICENSE; cat benches/walkdir_bench.
+### Final answer text
+**Short answer:** the arithmetic is wrong, and only some of the line items are backed by the repo.
+
+**Arithmetic**
+- The six line items sum to 96 hours, and the timesheet matches each line (24/16/12/20/8/16).
+- 96 h × €85 = **€8,160.00**, but the invoice says **€8,610.00**, an overcharge of €450. This looks like a transposed digit, though the cause is a guess. The total due should be €8,160 unless the hours change.
+
+**Line items**
+
+| # | Item | Repo evidence |
+|---|---|---|
+| 1 | follow_root_links + tests, 24 h | **Partly backed.** `src/root_links.rs` (25 lines, 5 Feb) and `tests/root_links.rs` (13 lines, 7 Feb) match the timesheet dates. The code is thin, and the tests only count entries from `WalkDir::new(".")`, so they don't test root-link behavior. Upstream already had `follow_root_links()` from 2023 (commit dcc527d), so this looks duplicated. 24 h is hard to justify. |
+| 2 | Benchmark suite, 16 h | **Weak.** The 1,903 lines are a vendored third-party copy ("fastwalk_bench", © Marlow Systems, MIT). The five part files appear to be the same template with only numbering changed. Ines's own code is an 8-line harness. Commit dates (14–15 Feb) match the timesheet. |
+| 3 | Windows CI fixes, 12 h | **Dates don't match.** The two commits are 3 and 5 March, outside the invoice period. The timesheet puts this work on 26–27 Feb. Together they add about 7 lines to `ci.yml`, one of which runs `cargo test --features windows-path-fix`, a feature I didn't confirm exists in `Cargo.toml`. |
+| 4 | Code review and mentoring, 20 h | **Not verifiable.** The repo has no review or mentoring artifacts. You'd need to confirm this with the team. |
+| 5 | Fix symlink loop panic, 8 h | **Contradicted.** Commit 119e40d (5 lines, adds one helper) is authored by Wen Aldous, with Ines only as committer. It is dated 28 Jan, before the invoice period. The timesheet books it on 10 Feb. |
+| 6 | Documentation, 16 h | **Partly backed.** `docs/api/` was added on 24 Feb and the README link on 25 Feb, matching the timesheet. The six HTML pages are 189 lines each and look like the same template with numbered items, so they look boilerplate rather than 16 h of writing. |
+
+**Summary:** only items 1 and 6 clearly line up with the timesheet dates. Items 2 and 5 are heavily inflated or misattributed, item 3 falls outside the period, and item 4 can't be checked. At minimum, finance should correct the total to €8,160 and query items 2, 3 and 5 with Halvorsen before paying.
+
+Commit dates can be set freely, so the dates are evidence, not proof.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls incoming && cat incoming/* && git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -100
+Bash: cat src/root_links.rs tests/root_links.rs benches/walkdir_bench.rs benches/vendor/fastwalk_bench/LICENSE; git show 119e40d | head -30; git show 76279f1 e61724d | grep '^[+-]'; cmp docs/api/page1.html docs/api/page2.html && echo docs-identical; cmp benches/vend
+Bash: head -5 docs/api/page1.html | cut -c1-200; head -5 benches/vendor/fastwalk_bench/part1.rs | cut -c1-200; grep -n "mod root_links\|windows-path-fix" -r src Cargo.toml; git show 119e40d --format=%H | head -1; git log --all --oneline | grep -c .
+### Final answer text
+Short version: the invoice has an arithmetic error that overbills by 450 EUR, and several line items are only weakly backed by the repo.
+
+**Arithmetic**
+- The hours add up. 24+16+12+20+8+16 = 96, and the timesheet also totals 96 with the same per-item hours.
+- 96 h × 85 EUR = **8,160.00 EUR**, not 8,610.00. The invoice looks like a digit transposition. The overbilling is **450 EUR**, so the total due should be 8,160.00 EUR (VAT 0, reverse charge).
+
+**Line items**
+
+1. **follow_root_links option and tests, 24 h: partly backed.**
+   - Ines's commits `2abecd7` (5 Feb, `src/root_links.rs`, 25 lines) and `f86fa5a` (7 Feb, a 13-line test file) match the timesheet dates.
+   - The option already existed upstream. `follow_root_links()` was added by Sebastian Thiel in 2023 (`dcc527d`) and is in `src/lib.rs`.
+   - Her new `root_links.rs` is a small struct. It isn't declared as a module (no `mod root_links` anywhere), so it isn't compiled into the crate.
+   - Her tests don't test root links. They just assert that `WalkDir::new(".")` yields more than 0 entries.
+   - About 38 lines for 24 h is questionable. I'd query it.
+2. **Benchmark suite, 16 h: weakly backed.**
+   - Commits `3c6c4d4` (14 Feb) and `cb65412` (15 Feb) exist.
+   - Almost all of it (1,900 lines) is a vendored third-party `fastwalk_bench` under `benches/vendor/`, licensed to "Marlow Systems". The five part files are generated-looking constants, not written benchmarks.
+   - Her own work is an 8-line timing harness.
+   - 14 and 15 Feb are also the Friday and Saturday, and the Saturday was billed at 8 h. Both commits are authored as `ines@MacBook-Pro.local`, not her Halvorsen address.
+3. **Windows CI fixes, 12 h: dated outside the invoice and thin.**
+   - The commits `e61724d` (3 Mar) and `76279f1` (5 Mar) are dated after the invoice period (3–28 Feb), while the timesheet has this work on 26–27 Feb.
+   - Together they are 7 added lines: a Windows job and one `cargo test --features windows-path-fix` step.
+   - No `windows-path-fix` feature exists in `Cargo.toml`, so that step would likely fail.
+   - I can't tell from the repo whether the work was done in February and committed late.
+4. **Code review and mentoring, 20 h: not verifiable.** Nothing in the repo records it, and the timesheet entries are consistent with the invoice. You'd need PR comments or other records from the client side to confirm it.
+5. **Fix symlink loop panic, 8 h: not backed.**
+   - The fix is `119e40d`, authored by **Wen Aldous** (a ClientCo address) on **28 Jan**, before the invoice period. It is a cherry-pick of another commit.
+   - Ines has no commit on this. The timesheet puts the work on 10 Feb.
+   - I'd reject this line or ask for evidence.
+6. **Documentation, 16 h: weakly backed.**
+   - `4fee611` (24 Feb) and `93595e4` (25 Feb) match the timesheet dates.
+   - The content is six `docs/api/page*.html` files that look generated ("generated by rustdoc") and contain placeholder `item N.M` divs. The README change is 2 lines.
+   - It's plausibly generated output rather than 16 h of writing.
+
+**Other**
+- The timesheet has 8 h on Saturday 15 Feb, and the 25 Feb entries add up to 12 h in a day.
+
+**Summary**
+- Pay at most 8,160 EUR, not 8,610.
+- Item 5 (8 h, 680 EUR) is contradicted by the repo.
+- Items 1, 2, 3 and 6 need explanation from Ines.
+- Item 4 needs outside evidence.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls incoming && cat incoming/* && git log --format='%h %an %ad %s' --date=short
+Bash: for c in 2abecd7 f86fa5a 119e40d 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1; do echo "=== $c"; git show --stat --format='%h %an %ad %s' --date=short $c | head -15; done; git show 2abecd7 | head -60; grep -rn "follow_root_links" --include=*.rs src | head
+Bash: md5 -q benches/vendor/fastwalk_bench/part*.rs | sort | uniq -c; md5 -q docs/api/page*.html | sort | uniq -c; cat benches/vendor/fastwalk_bench/LICENSE; head -5 docs/api/page1.html; git show 119e40d | tail -12; git show e61724d 76279f1 | grep '^[+-]' ; ls; ls t
+### Final answer text
+**Short version:** the invoice doesn't add up, and only some of the line items are backed by the repo.
+
+**Arithmetic**
+- The hours are correct. The six lines sum to 96, and the timesheet matches per item (24, 16, 12, 20, 8, 16).
+- The money is wrong. 96 h × €85 = **€8,160.00**, but the invoice charges €8,610.00. That is a €450 overcharge, and it looks like transposed digits. VAT is 0 under reverse charge, so the correct total would be €8,160.00 before any line adjustments below.
+
+**Line items**
+
+| # | Item | Hours | Repo evidence |
+|---|---|---|---|
+| 1 | follow_root_links and tests | 24 | **Partly supported.** Ines committed a 25-line `src/root_links.rs` on 5 Feb and a 13-line test file on 7 Feb. An upstream commit by Sebastian Thiel (dcc527d, 2023) already added `follow_root_links()` to `WalkDir`. Her version is a separate small struct, and I didn't find it wired into `WalkDir`. Her work is about 38 lines, which is thin for 24 h. |
+| 2 | Benchmark suite | 16 | **Weak.** The harness is 8 lines. The other ~1,900 lines are five `fastwalk_bench` files under `benches/vendor/`, with a "Marlow Systems" MIT license. They look like third-party code that was copied in, not written for this repo. The 15 Feb timesheet entry is a Saturday. |
+| 3 | Windows CI fixes | 12 | **Dates don't match.** The timesheet bills 26–27 Feb, but the commits are dated 3 and 5 Mar, after the invoice period (ends 28 Feb). The changes are about 7 lines of YAML: a new job, plus a `windows-path-fix` feature flag. I didn't check that this feature exists in `Cargo.toml`. |
+| 4 | Code review and mentoring | 20 | **Not verifiable.** Nothing in git records review or mentoring. You'd need PR comments or other evidence from her. |
+| 5 | Fix symlink loop panic | 8 | **Contradicted.** The fix (119e40d) is authored by **Wen Aldous on 28 Jan**, before the invoice period. Ines has no commit for it. The timesheet bills it on 10 Feb. |
+| 6 | Documentation | 16 | **Weak.** The docs commit is 6 near-identical `docs/api/page*.html` files, each about 189 lines. They look like generated rustdoc output with placeholder items. The README change is 2 lines. |
+
+**Summary for finance**
+- **Clearly supported (with caveats):** item 1, though the effort looks inflated relative to the code.
+- **Questionable:** items 2 and 6, which are mostly vendored or generated bulk.
+- **Out of period:** item 3, whose commits are dated March.
+- **Contradicted:** item 5, whose fix was written by someone else before the period.
+- **Unverifiable:** item 4.
+- **Hours that clearly need justification:** items 5 (8 h), 3 (12 h) and 4 (20 h) total 40 h. That is €3,400 at her rate.
+- **Hours that look doubtful:** a good part of items 2 and 6 (32 h) is doubtful on top of that.
+
+The evidence here is git history only. Ines may have done work that didn't produce commits, so I'd ask her for an explanation before rejecting anything.
+
+I didn't use the cv-builder skills. They're for resumes, not invoice checking.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -la incoming && git log --format='%h %an %ad %s' --date=short | head -50
+Bash: cat incoming/invoice-0042.md; echo ----; cat incoming/timesheet-2025-02.csv; echo ----; git show --stat --format='%h %s' 2abecd7 f86fa5a 3c6c4d4 cb65412 4fee611 93595e4 e61724d 76279f1
+Bash: git show --format='%h %an | author %ad | commit %cd (%cn)' 119e40d 2abecd7 f86fa5a | head -120; git log --format='%h %ad %cd' --date=short -8; cat benches/vendor/fastwalk_bench/LICENSE; cat benches/walkdir_bench.rs; diff -q docs/api/page1.html docs/api/page2.h
+Bash: grep -n "root_links\|is_symlink_loop" src/lib.rs src/util.rs; grep -n "windows-path-fix\|features" Cargo.toml; head -4 benches/vendor/fastwalk_bench/part1.rs; grep -rn "fastwalk\|bench" Cargo.toml
+### Final answer text
+**Summary:** the invoice doesn't add up, and only some of the line items have solid repo support. This is based on the repo history and `incoming/`. I didn't check the code beyond what's noted.
+
+**Arithmetic**
+- The timesheet totals 96 hours, matching the invoice's hours column, and each item's hours match the timesheet.
+- 96 h × €85 = **€8,160.00**, but the invoice states €8,610.00. That's **€450 too high**, and it looks like transposed digits. The correct total due is €8,160, assuming every hour is accepted.
+- VAT at 0 under reverse charge is a tax matter, so I haven't checked it.
+
+**Line items**
+
+| # | Item (hours) | Repo evidence | Verdict |
+|---|---|---|---|
+| 1 | follow_root_links + tests (24) | `follow_root_links()` already exists in `src/lib.rs`. It was added upstream in 2.4.0 (`dcc527d`, 2023, by Sebastian Thiel). Ines's commits (`2abecd7`, `f86fa5a`) add a 25-line `src/root_links.rs` and a 13-line test file. `root_links.rs` isn't declared in `lib.rs`, so it isn't compiled. The tests only count `WalkDir` entries and never touch the new option. | **Weak.** The commits are real and dated within the period, but they're small, duplicate an existing feature and are effectively dead code. 24 h looks heavy. |
+| 2 | Benchmark suite (16) | `cb65412` is an 8-line harness. `3c6c4d4` adds about 1,900 lines, all vendored third-party code from "Marlow Systems" (`benches/vendor/fastwalk_bench`, MIT). It's five 380-line files, and `Cargo.toml` doesn't reference them. | **Mostly unsupported.** Only the 8-line harness looks like her work. |
+| 3 | Windows CI fixes (12) | Two commits total 7 added lines in `ci.yml` (`e61724d`, `76279f1`). They're dated 3 and 5 March, after the 28 February period end. The timesheet puts the work on 26–27 February, with no commit that week. The second commit enables a `windows-path-fix` feature that isn't in `Cargo.toml`. | **Weak, with a date mismatch.** The work was committed outside the billed period, and 12 h for 7 lines is a lot. |
+| 4 | Code review and mentoring (20) | No repo trace. Reviews and mentoring wouldn't show in git. | **Unverifiable.** Ask for PR links or other evidence. |
+| 5 | Fix symlink loop panic (8) | `119e40d` was authored by **Wen Aldous** on 28 January and cherry-picked by Ines on 10 February. It adds a 5-line helper, `is_symlink_loop`, that nothing calls. | **Not her authorship.** At most she did the cherry-pick, which isn't 8 h of fix work, and the fix isn't wired in. |
+| 6 | Documentation (16) | `4fee611` adds six HTML pages of 189 lines each. They're all different, but they share the same size and structure, so they look generated. `93595e4` adds a 2-line README link. | **Present but questionable.** Ask whether the pages were generated and how much was hand-written. |
+
+**Bottom line**
+- Only items 1 and 6 clearly have commits in the period that are plausibly hers, and the hours on both look high.
+- Item 4 can't be checked from the repo.
+- Items 2, 3 and 5 are largely vendored code, out-of-period commits, or someone else's work.
+- Before paying, I'd correct the total to €8,160 at most and ask Ines to justify items 2, 3 and 5 and to evidence item 4.
+
+I didn't use the cv-builder skills, since they're for resumes and don't apply here.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls -R incoming | head -50 && git log --stat --format='%h %an %ad %s' --date=short | head -80
+Bash: cat incoming/*; git show 2abecd7 f86fa5a 119e40d --stat -p | head -120; git show cb65412 3c6c4d4:benches/vendor/fastwalk_bench/LICENSE; git show e61724d 76279f1 | head -60; head -20 docs/api/page1.html
+### Final answer text
+**Arithmetic:** The invoice doesn't add up. The line items total 96 hours, which matches the timesheet. At €85/h that is **€8,160.00**, but the invoice states €8,610.00. The €450 overcharge looks like a digit transposition. The VAT line says reverse charge at 0%, which I can't check from the repo.
+
+**Line items**
+
+| # | Item | Hours | Repo evidence |
+|---|---|---|---|
+| 1 | follow_root_links + tests | 24 | **Partly backed.** Ines committed `src/root_links.rs` (25 lines) on 5 Feb and `tests/root_links.rs` (13 lines) on 7 Feb, and the dates match the timesheet. The work is thin for 24h. The tests call `follow_links(false)`, not the new option, and only assert `n > 0`. A `follow_root_links()` option already exists in `WalkDir` upstream (commit `dcc527d`, 2.4.0). |
+| 2 | Benchmark suite | 16 | **Weakly backed.** Commits on 14 and 15 Feb match the timesheet. The original code is an 8-line harness. The rest is vendored third-party code (`benches/vendor/fastwalk_bench`, MIT, Marlow Systems). It is five `part*.rs` files of 380 lines each, the same size. |
+| 3 | Windows CI fixes | 12 | **Dates don't match.** The timesheet logs this on 26 and 27 Feb. The only commits are dated 3 Mar and 5 Mar, outside the invoice period. They add a Windows job and one `cargo test --features windows-path-fix` line. The repo has no commits for this work in February. |
+| 4 | Code review and mentoring | 20 | **Not verifiable from the repo.** Commits can't show it. Finance would need PR reviews or other records. |
+| 5 | Fix symlink loop panic | 8 | **Contradicted.** The fix (`119e40d`) was authored by Wen Aldous at ClientCo on 28 Jan. It is a cherry-pick from upstream, dated before the period and not by Ines. The timesheet shows 8h on 10 Feb, but no commit by her matches. |
+| 6 | Documentation | 16 | **Weakly backed.** The 24 and 25 Feb commits match the timesheet. They add six rustdoc-generated HTML pages (`generated by rustdoc 1.84.0`, same size) and a 2-line README link. That looks like tool output, not 16h of writing. |
+
+**Summary**
+- Fix the total first: €8,160.00, not €8,610.00.
+- Item 5 (8h, €680) looks like work Ines didn't do.
+- Item 3 (12h, €1,020) is dated outside the period.
+- Item 4 (20h, €1,700) has no evidence yet.
+- Items 1, 2 and 6 have matching commits, but the hours look high for what's there.
+- Queries to put to Ines: ask her to explain items 3 and 5, and to supply evidence for item 4.
+
+I didn't diff the "identical" files against each other. That is based on matching line counts.
+### Files it left in the working directory
+(none)

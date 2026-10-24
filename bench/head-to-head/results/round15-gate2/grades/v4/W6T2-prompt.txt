@@ -1,0 +1,523 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Our funder, the Harbourline Foundation, wants a plain-words account of how active engineering was on this repo in the third quarter of 2026: roughly how many changes, how they split by month, and how many people worked on it. Please answer here in chat, no file needed; the reader is not technical."
+Ground truth: A author-date UTC (primary): human=8 bot=3 humans_active=['Ingrid Solberg', 'Kofi Mensah', 'Rosa Delgado']
+  monthly human (A): {'2026-07': 3, '2026-08': 3, '2026-09': 2}
+  monthly bot (A): {'2026-07': 1, '2026-08': 1, '2026-09': 1}
+B author-date local offset: human=10 bot=3 humans_active=['Ingrid Solberg', 'Kofi Mensah', 'Rosa Delgado']
+C committer-date UTC: human=9 bot=3 humans_active=['Ingrid Solberg', 'Kofi Mensah', 'Rosa Delgado']
+merge commits since 2026-05-01: 1
+flags: future-dated commit author dates: ['2027-01-15T10:00:00+00:00']
+flags: author date != committer date (>1 day): [('fix: backport completion escaping', '2026-05-14T16:45:00+00:00', '2026-08-03T09:00:00+00:00')]
+flags: boundary commits whose quarter differs UTC vs local: [('fix: exit code on usage error', '2026-09-30T23:40:00-08:00'), ('feat: shell completion for fish', '2026-07-01T00:20:00+13:00')]
+Hazards: dependabot-style bot commits; one merge commit; commits near the quarter boundary with +13:00 and -08:00 offsets (UTC date differs from local date); a cherry-picked commit authored 2026-05-14 but committed 2026-08-03; a future-dated commit (2027-01-15); one commit after quarter end (8 Oct 2026); upstream history before the quarter. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 It states which date basis and time zone it used for "third quarter" (author date or commit/landing date; UTC or recorded local time). FAIL if no basis is stated.
+C2 The number of human changes in the quarter is one of the values that follows from the stated basis: 8 (author date, UTC), 10 (author date, local offsets) or 9 (committer date). FAIL if the number does not match its stated basis, if bot commits or the merge commit are included in the human count without being labelled, or if the count is hundreds (whole upstream history).
+C3 The monthly split sums to its total and matches the basis (for the primary basis: July 3, August 3, September 2; other bases differ only by the boundary or cherry-pick commits). FAIL if the months do not add up to the stated total or the split is missing.
+C4 People: three active humans (Ingrid Solberg, Kofi Mensah, Rosa Delgado); the bot is not counted as a person (mentioned as automated, 3 changes, is fine). FAIL if it says four people or more because of the bot, or fewer than three.
+C5 It flags at least two of: the future-dated 2027 commit, the cherry-picked/old-dated commit, the boundary commits that move quarter by time zone; and says in plain words what commit counts cannot show (size, difficulty, non-code work). FAIL if it reports the 2027 date as real activity, or states no limit.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: npx workproof figures --since 2026-07-01 --until 2026-09-30 2>&1 | head -40; echo ---; git log --no-merges --since=2026-07-01 --until=2026-10-01 --format='%ad|%an|%ae' --date=format:%Y-%m | sort | uniq -c | head -50; git log --merges --since=2026-07-01 --until
+Bash: git log --no-merges --after=2026-06-30 --format='%h|%ad|%cd|%an|%s' --date=format:%Y-%m-%d | sort -t'|' -k2; echo; git log --merges --format='%h|%ad|%s' --date=short --after=2026-06-30
+### Final answer text
+Engineering was steady but modest in July to September 2026: 13 changes, made by 3 people plus an automated update service.
+
+| Month | Changes by people | Automatic routine updates | Total |
+|---|---|---|---|
+| July | 4 | 1 | 5 |
+| August | 3 | 1 | 4 |
+| September | 3 | 1 | 4 |
+| **Quarter** | **10** | **3** | **13** |
+
+- **People:** 3 people made changes. The automated service handled routine upkeep, such as keeping outside components current. It isn't a person, so I left it out of the headcount.
+- **Kind of work:** The 10 changes by people were a mix of new features, bug fixes, documentation and tests.
+- **Pace:** The count is small and even, with no month standing out. I'd describe it as a small team making regular progress.
+
+**How I counted**
+- I counted each change by the date it was written, not the date it was merged. A "change" here means a distinct piece of work.
+- I left out one routine merge step from early August. It combines work already counted, so including it would double-count.
+- I left out three changes dated outside the quarter:
+  - One was written in May and only added to the project in early August.
+  - One is dated 8 October.
+  - One carries a date in January 2027, which is in the future. It is probably a clock error on someone's computer.
+- The figures cover the whole project. I haven't tried to measure the size or difficulty of the changes, and the history doesn't show hours worked.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: npx workproof figures --since 2026-07-01 --until 2026-09-30 2>&1 | head -60
+Bash: git log --no-merges --since=2026-07-01T00:00:00 --until=2026-10-01T00:00:00 --date=format:%Y-%m-%d --format='%ad|%an|%ae|%s' ; echo ---; git log --no-merges --format='%ad' --date=short | awk '$0>="2026-06-25"' | sort | tail -30; echo; git log --merges --since=
+Bash: git log --no-merges --format='%ad|%cd|%an|%ae|%s' --date=short | awk -F'|' '$1>="2026-06-01"'; git log --merges --format='%ad|%cd|%an|%s' --date=short | awk -F'|' '$1>="2026-06-01"'
+### Final answer text
+Engineering was steady but modest in the third quarter of 2026 (1 July to 30 September). There were **13 changes**, made by **4 contributors**, and three of those contributors are people.
+
+**Changes by month** (by the date each change was written):
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 4 |
+| September | 4 |
+
+There was no quiet month, and the pace was roughly one change every week or two.
+
+**Who worked on it:**
+- Three people each made at least one change.
+- The fourth contributor is an automated tool that keeps software dependencies up to date. It made 3 of the 13 changes, so people made 10. Its changes are routine upkeep rather than new work. The tool I used to count reported 0 automated changes, but the three from that dependency tool are plainly automated, so I've counted them as such.
+
+**What was left out of the count:**
+- One "merge" entry in August only combines work already counted, so it is not a separate change.
+- One change was written in May and only recorded in the repository during the quarter, so it belongs to an earlier period.
+- One change made on 8 October falls after the quarter ended.
+- One change carries a date of January 2027, which is in the future and is almost certainly a clock error. I left it out rather than guess.
+
+**Limits:** these counts show how many changes were made and when. They don't show how large or difficult each one was, or how much time people spent. The repository's counting tool gave the total of 13 and the contributor count of 4. I worked out the monthly split and the person-versus-tool split from the same change list using read-only git, because the tool needs a named person to produce those.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: npx workproof figures --since 2026-07-01 --until 2026-09-30 2>&1 | head -60; git log --since=2026-07-01 --until=2026-10-01 --format='%h %ad %an %s' --date=short | head -50
+Bash: git log --no-merges --format='%h|%ad|%cd|%an|%ae|%s' --date=short | head -30
+### Final answer text
+Here is the account for July to September 2026 (Q3). I counted each change by the date it was originally written.
+
+**Overall activity:** The project recorded 13 changes in the quarter. Ten were made by people. Three were automatic updates from a tool that keeps outside components current, and no person wrote those. Work was steady but modest.
+
+**By month:**
+- **July:** 5 changes (4 by people, 1 automatic)
+- **August:** 4 changes (3 by people, 1 automatic)
+- **September:** 4 changes (3 by people, 1 automatic)
+
+**People:** Three people worked on it: Kofi Mensah, Rosa Delgado and Ingrid Solberg. The automatic update tool is a fourth contributor in the records, but it isn't a person.
+
+**What the work covered:**
+- **New features:** clearer grouping of help output, shell support for one more type of terminal, and suggesting the closest matching command when someone mistypes.
+- **Bug fixes:** a crash, an error in reading options, and a wrong signal on incorrect use.
+- **Documentation:** a usage guide and a troubleshooting section.
+- **Testing:** automated checks for the command-completion feature.
+
+**Not counted:**
+- One administrative "merge" record in August is left out. It only combined work already counted.
+- One fix was originally written in May and only added to the project in August. I left it out because the work predates the quarter. Counting it would make August 5 and the total 14.
+- Two later records fall outside the quarter. One is dated 8 October 2026. The other carries a date of January 2027, which is in the future relative to today (24 October 2026). That date is probably a clock error.
+
+These figures come from the repository's recorded history only. They show how many changes there were and who made them. They don't show how much effort or how much value each change carried.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01T00:00:00 --until=2026-10-01T00:00:00 --no-merges --format='%ad|%an|%ae' --date=format:%Y-%m | sort | awk -F'|' '{m[$1]++} END{for(k in m)print k,m[k]}' | sort; echo ---; git log --since=2026-07-01T00:00:00 --until=2026-10-01T00:00:00
+Bash: git log --format='%h|%ad|%cd|%an|%p|%s' --date=short -25
+Bash: git log --format='%h %cI %aI %an %s' 2ac1111^..28ebe61
+### Final answer text
+**In short:** engineering was steady and modest in Q3 2026 (1 July to 30 September). There were about 14 changes, spread evenly across the three months, by 3 people plus an automated update tool.
+
+**Changes by month**
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+| **Quarter total** | **14** |
+
+- **Automated changes:** 3 of the 14 were routine software-update changes made automatically by a tool called Dependabot. The other 11 were written by people.
+- **Types of work:** the people's changes were new features (such as fish-shell completion, grouped help output and "suggest the closest command"), bug fixes, tests and documentation.
+- **Merge record:** I left out one extra entry on 5 August. It only records that a finished piece of work was merged in, so counting it would double-count that work.
+
+**People:** 3 people worked on it: Rosa Delgado (4 changes), Kofi Mensah (3) and Ingrid Solberg (2, plus one more noted below). Dependabot is a tool, not a person, so I didn't count it.
+
+**Caveats**
+- **Dates at the quarter's edges:** two changes sit right on the boundary. One was recorded at 00:20 on 1 July in New Zealand time, and one at 23:40 on 30 September in US Pacific time. In universal time the first falls on 30 June and the second on 1 October. I counted both as the people who made them recorded them, in Q3. If you count by universal time, the total would be 12.
+- **Ingrid's extra change:** one of Ingrid's changes was originally written in May but only added to the project on 3 August. I counted it in Q3 (August) because that's when it landed.
+- **Changes after the quarter:** I didn't count the two later changes, on 8 October 2026 and 15 January 2027. The January date is in the future relative to today (24 October 2026), so that entry's date may be wrong.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%ad|%an|%ae|%s' --date=format:%Y-%m | sort | head -500; echo ---; git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad' --date=format:%Y-%m | sort | uniq -c; echo ---merges; git log --s
+Bash: git log --format='%h|%ad|%cd|%an|%s' --date=short | head -30; git log --all --oneline | wc -l; git branch -a
+Bash: git log -1 --format='%ai %ci' 2ac1111; git log -1 --format='%ai %ci' 28ebe61
+### Final answer text
+**Short version:** engineering was steady but modest in Q3 2026 (July to September). There were about 14 changes, spread almost evenly across the three months, from 3 people plus one automated helper.
+
+**Changes by month** (a "change" is one saved update to the code or documentation):
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+| **Total** | **about 14** |
+
+- **Pace:** it was roughly one change a week, with no spike or lull. The mix was new features, bug fixes, documentation and routine upkeep.
+- **People:** 3 people made changes (Kofi Mensah, Rosa Delgado and Ingrid Solberg). Each contributed in every month or nearly so. A fourth contributor, "dependabot", is an automated tool that proposes software-update bumps. It made 3 of the 14 changes, so I'd count it as upkeep rather than a person.
+
+**How I counted:**
+- I left out one entry that only records the combining of two pieces of work (a "merge"). It isn't a change in itself.
+- One August fix was originally written in May and added to the project in August. I counted it in August, when it landed.
+- Two changes sit right on the quarter's edges, on 1 July and 30 September. I counted them in Q3 using the dates recorded in the project. Measured in a single universal time zone, they would fall just outside the quarter, which would make it 12 changes. That wouldn't change the overall picture.
+- Changes dated after September (October and later) are not included.
+
+This measures how much recorded activity there was, not how much effort or value each change represented. Some changes are small tweaks and others are larger features.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01T00:00:00 --until=2026-10-01T00:00:00 --format='%ad|%an|%ae|%s' --date=format:%Y-%m | awk -F'|' '{m[$1]++} END{for(k in m)print k,m[k]}' | sort; echo ---; git log --since=2026-07-01T00:00:00 --until=2026-10-01T00:00:00 --format='%an|%
+Bash: git log --format='%h|%ad|%cd|%an|%s' --date=short | head -30; echo; git log --all --oneline | wc -l
+Bash: git log --format='%h %cI %aI %an' 2ac1111^..885d396 | head -20
+### Final answer text
+**Short answer:** In July to September 2026, about 15 changes were recorded on this repo, made by 3 people. A fourth contributor was an automated update tool, not a person.
+
+**Changes by month**
+- July: 5
+- August: 6
+- September: 4
+
+That is a steady pace of roughly one change every one to two weeks. Nothing spiked or stalled.
+
+**How many people**
+- Three people made changes: Ingrid Solberg, Kofi Mensah and Rosa Delgado. Kofi made 5 of them (one a routine merge of someone else's work), Rosa 4 and Ingrid 3.
+- Dependabot, an automated tool that keeps outside software components up to date, made 3 more of the 15. If you count only people, the total is 12.
+
+**What the work was**
+- New features, such as fish-shell completion, grouped help output and suggesting the closest command when a user mistypes.
+- Bug fixes.
+- Documentation, including a usage guide and a troubleshooting section.
+- Automated tests.
+- Routine upkeep of dependencies.
+
+**How I counted**
+- I counted a change in the month it landed in the repo. One of Ingrid's fixes was first written in May but only added on 3 August, so I counted it in August.
+- Two changes fall right on the quarter's edges and were made at the author's local time. One was at 00:20 on 1 July in New Zealand time. The other was at 23:40 on 30 September in US Pacific time. I counted both in Q3. If you counted by UTC, they would move to June and October, giving 13 changes.
+- I left out two later changes, one on 8 October and one dated 15 January 2027. That second date is in the future, which looks like a clock error on the author's machine. It's worth checking if anyone relies on that date.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --format='%ad|%aN|%aE' --date=format:%Y-%m | sort | awk -F'|' '{m[$1]++} END{for(k in m)print k,m[k]}' | sort; echo ---; git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --for
+Bash: git log --no-merges --since=2026-04-01 --format='%h|A:%ad|C:%cd|%aN|%cN|%s' --date=iso-strict | head -20
+### Final answer text
+**Third-quarter 2026 engineering activity (1 July to 30 September)**
+
+Engineering was steady but small. About **14 changes** were recorded over the quarter, and **3 people** worked on the repo.
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+
+- **People:** Ingrid Solberg, Kofi Mensah and Rosa Delgado each contributed in every month or close to it. Three of the 14 changes came from Dependabot, an automated tool that keeps software dependencies up to date. I didn't count it as a person.
+- **What the changes were:** a mix of new features (shell completion for fish, grouped help output, suggesting the closest command), bug fixes, documentation, and routine updates.
+
+**How I counted**
+- I counted each recorded change once, by the date it was added to the project.
+- One change was written in May but only added in August, so it counts under August.
+- I left out one "merge" entry from 5 August. It only joins work already counted.
+- The history also has a change dated 8 October and one dated January 2027. Both fall outside the quarter, so they aren't included. The 2027 date is in the future and looks like a clock or data error, which you may want to check.
+- The 14 is exact for what is recorded. "Changes" vary a lot in size, so the count shows how steady the work was, not how much was built.
+
+I didn't run the receipts skill's report. It measures one person's Claude Code usage and saves files, which isn't what you asked for. I read the repo's own history instead, and I wrote no files.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%aN|%aE' --date=format:%Y-%m | sort | uniq -c; echo ---; git log --since=2026-07-01 --until=2026-10-01 --merges --oneline | wc -l; git log --format=%ad --date=short | sed -n '1p;$p'
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%h|%ad|%cd|%aN|%p|%s' --date=short; echo; git log --all --format='%h|%ad|%cd|%aN|%s' --date=short | head -30
+Bash: git log -1 --format='%ad | %cd | %aN' --date=iso 2ac1111; git log -1 --format='%ad | %cd' --date=iso 28ebe61
+### Final answer text
+Over July to September 2026, the repo had about 14 changes and 3 people working on it. Activity was steady, with no spike or lull. I got these from the repo's change history, not the receipts report. That report only covers one person's Claude Code sessions, so it can't count a whole team's changes or contributors.
+
+**Changes by month**
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+| **Quarter total** | **14** |
+
+- **Automatic updates:** 3 of the 14 were routine version bumps made by an automated tool (one each month). The other 11 were written by people.
+- **What the changes were:** new features, bug fixes, tests and documentation, for example a "suggest the closest command" feature, fixes for crashes and incorrect exit codes, and a usage guide.
+- **Merge record:** I left out one extra entry in August. It only records that a colleague's work was merged in, so counting it would double-count that work.
+
+**People:** 3 (Kofi Mensah, Rosa Delgado and Ingrid Solberg), plus the automated update tool, which I don't count as a person. Kofi and Rosa made changes in all three months. Ingrid made changes in July and August.
+
+**Caveats**
+- **Dates and time zones:** I went by the date recorded on each change. Two changes sit on the quarter's edges, one on July 1 and one on September 30. They were logged in different time zones, so a strict clock-based count would shift them across the boundary.
+- **One older fix:** One of Ingrid's August changes is a fix first written in May and added to the repo in August. I counted it in August, when it landed.
+- **Counts, not effort:** The counts show how often work was added to the repo. They don't show how big or how hard each change was.
+
+I didn't write any files and ran only read-only commands.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%an|%ae' --date=format:%Y-%m | sort | awk -F'|' '{m[$1]++; a[$2"|"$3]=1} END{for(k in m)print k,m[k]; print "authors",length(a)}'; echo; git log --since=2026-07-01 --until=2026-10-01 --mer
+### Final answer text
+**Q3 2026 (1 July – 30 September): engineering was steady but small.**
+
+- **Changes:** 13 in total. A "change" here is one recorded edit to the code. I left out one routine merge entry.
+- **By month:** July 4, August 4, September 4. That's an even pace with no spikes or quiet months. The 13th change was originally written in May and only added to the repo during the quarter, so I've left it out of the monthly split.
+- **People:** 3 people made changes: Rosa Delgado (4), Kofi Mensah (4) and Ingrid Solberg (2). The other 3 changes came from Dependabot, an automated tool that routinely updates software components. It isn't a person, so I didn't count it.
+
+**Caveats:**
+- These counts come from the repo's history. They show how much was recorded, not how much effort went in, because one change can be large and another tiny.
+- Work done on other repos, or never saved into this one, isn't included.
+
+I didn't run the receipts skill itself. It measures one person's Claude Code usage and writes report files. It doesn't give team-wide counts, so I counted from the repo history instead.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%ad|%aN|%aE|%s' --date=format:%Y-%m | awk -F'|' '{m[$1]++; a[$3]=$2} END{for(k in m)print k,m[k]; print length(a), "authors"; for(e in a)print a[e]}'; echo; git log --since=2026-07-01 --until=2026-10-01 -
+Bash: git log --all --format='%h|%ad|%cd|%aN|%s' --date=short | head -40; git log --all --oneline | wc -l
+### Final answer text
+Engineering on this repo was steady but modest in Q3 2026 (July to September). About 11 changes were made, by 3 people.
+
+| Month | Changes by people |
+|---|---|
+| July | 4 |
+| August | 4 |
+| September | 3 |
+
+- **Changes:** I counted the changes people actually made and left out merge steps, which just combine finished work. The project also received 3 automatic updates to its software libraries from a bot, one in each month. With those included, the total is 14.
+- **People:** Ingrid Solberg, Rosa Delgado and Kofi Mensah each contributed. The dependency bot isn't a person, so I didn't count it.
+- **What the work was:** It was a mix of new features, bug fixes, tests and documentation. Examples are shell completion for fish, grouped help output, a fix for a crash on an empty command, a command-suggestion feature, and a usage guide and troubleshooting section.
+
+Two caveats:
+- **Backported fix:** One fix was written in May but only added to the project in early August. I counted it in August, when it landed.
+- **Pace:** These are small numbers, so the picture is a small team making a few changes a week at most, not a large or fast-moving effort. Three people is also the whole team over the quarter.
+
+I counted by each change's recorded date. One later change carries a date of January 2027, which looks like a clock error. It falls outside the quarter, so it doesn't affect these figures.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%aN|%aE' --date=format:%Y-%m | sort | uniq -c | sort -k2; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%ad' --date=format:%Y-%m | sort | uniq -c; git log --oneline | wc -l
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%h|%ad|%cd|%aN|%s' --date=short
+### Final answer text
+Engineering was active but modest in Q3 2026 (July to September). About 13 changes were made, and three people worked on the repo.
+
+**Changes by month** (counted by the date each change was added to the project):
+
+| Month | Changes |
+|---|---|
+| July | 4 |
+| August | 5 |
+| September | 4 |
+| **Quarter total** | **13** |
+
+- **Pace:** Work was steady at roughly one change a week, with no bursts or gaps.
+- **Kind of work:** The changes were mostly small improvements and fixes to the command-line tool's help text, error handling and documentation. Examples are grouped help output, suggesting the closest command when someone mistypes, a man-page generator tweak, and a troubleshooting guide.
+- **People:** Three people wrote changes: Kofi Mensah, Rosa Delgado and Ingrid Solberg. Rosa and Kofi were active in all three months, while Ingrid contributed in August only. An automated dependency-update tool (Dependabot) also made 3 of the 13 changes, one a month. Those are routine upkeep, not human effort. Without them, the human count is 10 changes.
+
+**Not counted in the 13:**
+- One change in August was a merge, which only combines work already counted.
+- One of Ingrid's August changes was a fix originally written in May and brought into the project on 3 August. I counted it in August, when it landed. If you count by the date the work was written, July has 4, August 4 and September 4 (12 changes), with the May fix sitting outside the quarter.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%ad|%aN|%aE|%s' --date=format:%Y-%m | awk -F'|' '{m[$1]++; a[$3]=1} END{for(k in m)print k,m[k]; print "authors",length(a)}'; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%aN|%aE' | sort 
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%h %ad | %cd | %aN | %s' --date=short
+### Final answer text
+Engineering was steady but modest in July–September 2026. There were about 14 recorded changes, spread fairly evenly across the quarter, and three people did the work.
+
+| Month | Changes |
+|---|---|
+| July | 4 |
+| August | 6 |
+| September | 4 |
+
+- **Volume:** 14 changes were recorded in total. Two of those weren't hand-written work. One is an administrative step that merges a colleague's finished work in, and the other is a backport, meaning an older fix brought into this version. If you leave out the merge, about 13 changes involved real work.
+- **People:** Three engineers contributed: Kofi Mensah (5 changes), Rosa Delgado (4) and Ingrid Solberg (2). An automated dependency-update tool also made 3 routine changes, keeping third-party components current. It isn't a person, so I haven't counted it as one.
+- **Kind of work:** The mix was new features, bug fixes, tests and documentation. Examples are grouped help output, suggesting the closest command when a user mistypes, fixing a crash on an empty command, and a usage guide and troubleshooting section.
+
+I counted by the date each change entered the repository. One of Ingrid's fixes was originally written in May but was added in August, so it counts toward August.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%an|%ae' --date=format:%Y-%m | sort | uniq -c | sort -k2; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%an|%ae' | sort | uniq -c; echo; git log --since=2026-07-01 --until=
+Bash: git log --format='%h|%ad|%cd|%an|%p|%s' --date=short --since=2026-06-15 --until=2026-10-15
+### Final answer text
+In the third quarter of 2026 (July to September), the project saw steady but modest engineering activity. There were **14 changes**, and **3 people** worked on it, plus an automated helper tool.
+
+**Changes by month**
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+
+- **People:** The three people are Ingrid Solberg, Kofi Mensah and Rosa Delgado. Kofi and Rosa each made about four to five of the changes, and Ingrid made about three.
+- **Automated helper:** Dependabot is a tool that automatically proposes updates to third-party software the project relies on. It made 3 of the 14 changes, one a month. It is not a person.
+- **What the work was:** Mostly small improvements to the command-line tool's help and shell-completion features, a few bug fixes, and some documentation.
+
+**Notes on the counts**
+- I counted a "change" as a recorded edit to the code. I left out one administrative entry in August that only combined two other changes into one.
+- One of Ingrid's August changes was a fix originally written in May. It was added to the project in August, so I counted it in Q3.
+- Activity continued into October with one more change on 8 October. That falls outside the quarter and isn't counted.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%aE|%aN' --date=format:%Y-%m | sort | uniq -c | head -50; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%H' | wc -l; git log --since=2026-07-01 --until=2026-10-01 --merges 
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%h|%ad|%cd|%an|%s|%p' --date=short
+### Final answer text
+In Q3 2026 (July to September), the repo had about 13 changes, made by 3 people. A fourth contributor was an automated tool, not a person.
+
+**Changes by month**
+- July: 4
+- August: 5
+- September: 4
+
+That is steady work, with no spikes or quiet stretches.
+
+**People**
+- Three engineers contributed: Kofi Mensah, Rosa Delgado and Ingrid Solberg. Between them they made 10 of the 13 changes.
+- The other 3 changes came from Dependabot, an automated tool that keeps software dependencies up to date. I didn't count it as a person.
+
+**What the work was**
+- Roughly half of it was fixes and new features, such as clearer help output, suggesting the closest command when a command is mistyped, and fixes for crashes and incorrect exit codes.
+- The rest was documentation, tests and routine dependency updates.
+
+**How I counted**
+- I left out one change that only combined two other changes into one. Counting it would have made the total 14.
+- I counted one fix that was originally written in May but added to the repo in August, since it landed in Q3.
+- I didn't measure how big each change was, so "13 changes" says how often work landed, not how much effort went into it.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%ad|%aN|%aE|%s' --date=format:%Y-%m 2>&1 | awk -F'|' '{m[$1]++; a[$3]=$2} END{for(k in m)print k,m[k]; print length(a), "authors"; for(e in a)print a[e],e}'; echo; git log --format='%ad' --date=short | so
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='%h|A:%ad|C:%cd|%aN|%p|%s' --date=short; echo; git log --all --oneline | wc -l; git log --format='%h %ad %s' --date=short | sort -k2 | sed -n '1,3p;$p'
+### Final answer text
+In Q3 2026 (July to September) the repo saw steady, modest engineering activity: about 13 changes made by three people, plus automated updates from a software bot.
+
+**Total:** 14 entries in the project's history for the quarter. One of them is a "merge" entry, which only joins two pieces of work that were already counted. That leaves 13 real changes.
+
+**By month:**
+
+| Month | Changes |
+|---|---|
+| July | 4 |
+| August | 5 (6 counting the merge entry) |
+| September | 4 |
+
+The pace was even across the quarter, at roughly one change a week.
+
+**People:** Three people made changes: Kofi Mensah, Rosa Delgado and Ingrid Solberg. Dependabot, an automated tool that keeps third-party software components up to date, made 3 of the 13 changes. So about 10 changes came from people.
+
+**Caveats:**
+- **One backported change:** One August change was originally written in May and carried over to this version of the code in August. I counted it in August, when it landed. If you count by when it was first written, July stays at 4, August drops to 4, and May gains 1.
+- **Changes after Q3:** The latest two changes in the history (a clean-up of imports and an addition to the help text) carry dates in early 2027, after the quarter ended. I excluded them. Those dates may be wrong, since today is October 2026.
+- **What the count measures:** The counts are individual saved changes, which vary in size. They show how often work happened, not how much work it was.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%an|%ae' --date=format:%Y-%m | sort | uniq -c | sort -k2; echo ---; git log --since=2026-07-01 --until=2026-10-01 --format='%ad' --date=format:%Y-%m | sort | uniq -c; echo ---; git log --s
+Bash: git log --since=2026-06-01 --format='%h|%ad|%cd|%an|%s' --date=short | sort -t'|' -k2; echo; git log --all --oneline | wc -l; git branch -a
+### Final answer text
+In the third quarter of 2026 (July to September), engineering on this project was steady, with about 14 recorded changes and 3 people working on it.
+
+**Changes by month**
+- July: 5
+- August: 5
+- September: 4
+
+Three of the 14 were automatic updates to third-party software the project relies on, one per month. One more was a bookkeeping entry that merged a teammate's finished work in. That leaves about 10 changes that people made by hand. They cover new features such as help-screen improvements and command suggestions, bug fixes, documentation and tests.
+
+**People:** 3 engineers (Ingrid Solberg, Kofi Mensah and Rosa Delgado) each contributed in the quarter. Kofi made the most changes, followed by Rosa. The automated update tool is not a person, so I didn't count it.
+
+**How I counted**
+- I used the date each change was originally written, not the date it was recorded.
+- One fix was written in May and only recorded in August. I left it out, because counting it would make the quarter look busier than it was.
+- Two changes fall outside the quarter and are not included: one dated 8 October 2026, and one dated 15 January 2027. The January date is in the future, which is probably a clock error on someone's machine.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%aN|%aE' --date=format:%Y-%m | sort | uniq -c | sort -k2; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%aE' | sort -u | wc -l; git log --since=2026-07-01 --until=2026-10-0
+Bash: git log --format='%h|%ad|%cd|%aN|%s' --date=short --since=2026-06-15 --until=2026-10-05
+### Final answer text
+Engineering was steady and active in the third quarter of 2026 (July to September). The team made about 14 changes, and three people worked on the repo.
+
+**Changes by month** (each is a saved update to the code)
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+| **Total** | **14** |
+
+- **People:** Three people (Kofi Mensah, Rosa Delgado and Ingrid Solberg) made changes. Their work included new features, bug fixes, tests and documentation. A fourth contributor, an automated tool called Dependabot, made 3 of the 14 changes. These were routine updates to outside software the project relies on. Counting only the humans, that is 11 changes.
+- **Pace:** The pace was even, with no sharp bursts or quiet stretches. September was slightly lighter, and the last change of the quarter landed on 30 September.
+- **What I left out:** I didn't count one "merge" entry from early August. It only records that two pieces of work were combined, not new work.
+- **One timing detail:** One of August's changes was originally written in May and was added to the project in August. I counted it in August, when it actually landed.
+
+The counts come from the repository's history, using the date each change was added to the project.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%ad|%aN|%aE' --date=format:%Y-%m | sort | uniq -c | sort -k2; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%H' | wc -l; git log --since=2026-07-01 --until=2026-10-01 --merges 
+Bash: git log --format='%h|A:%ad|C:%cd|%aN|%p|%s' --date=short -25
+Bash: git log --format='%h|%ad|%cd|%aN|%s' --date=iso 2ac1111^..28ebe61 | head -30
+### Final answer text
+**Summary for the Harbourline Foundation: Q3 2026 (July–September)**
+
+Engineering on the project was steady through the quarter. The team made **14 recorded changes**, spread fairly evenly across the three months, and **3 people** worked on it.
+
+| Month | Changes |
+|---|---|
+| July | 5 |
+| August | 5 |
+| September | 4 |
+
+- **People:** Three engineers (Kofi Mensah, Rosa Delgado and Ingrid Solberg) each contributed in the quarter. Kofi and Rosa were active in all three months. Ingrid contributed in July and August, and her only September-dated change was an October one, which falls outside the quarter.
+- **Automation:** An automated tool (Dependabot) made 3 more of the 14 changes. These were routine updates to outside software the project relies on. It is not a person, so I left it out of the headcount.
+- **Kind of work:** The work was mostly new features (for example, command suggestions and fish shell support), bug fixes and documentation.
+
+Two judgment calls affect the exact numbers:
+- I left out one entry that only records the joining of two pieces of work (a merge). Counting it would make the total 15, with August at 6.
+- One change in August was a fix originally written in May and added to the project on 3 August. I counted it in August, when it was added.
+
+Two changes sit right at the edges of the quarter, so a different time zone could move them out of Q3. One is from 1 July and one is from 30 September. I used the dates as recorded. Counting strictly in universal time would give 12 changes: 4 in July, 5 in August and 3 in September.
+
+Anything dated after September (October 2026 and January 2027) is excluded.
+### Files it left in the working directory
+(none)

@@ -6,6 +6,7 @@ set -uo pipefail
 W=$(cd "$1" && pwd); export H2H_TASKS=$2; SP=$3; export H2H_GRADER_MODEL=${4:-sonnet}; VOTES=${5:-"1 2 3 4 5"}
 FX=${6:-$W/fixtures}; RUNS=${7:-$W/runs}; OUTROOT=${8:-$W/grades}
 HERE=$(cd "$(dirname "$0")" && pwd); H2H=$(cd "$HERE/.." && pwd)
+cd "$W" || exit 1   # the grader must not run below /Users/efe (the wrapper refuses it)
 export PATH="/Users/efe/claude-kredi-runs/sub-shim:$(echo "$PATH" | tr ':' '\n' | grep -v 'sdk-shim' | paste -sd: -)"
 unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN
 export HOME_REAL=${HOME_REAL:-$HOME}

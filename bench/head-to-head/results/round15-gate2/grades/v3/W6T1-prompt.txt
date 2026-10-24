@@ -1,0 +1,908 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I'm Dana Okoro and this folder is a clone of my work repository. An immigration officer will read a short note about my contribution, and she isn't technical. Please write it to CONTRIBUTION.md in this folder: how many commits I made, over what period, and roughly how much code I wrote, in plain words."
+Ground truth: identities used: ['dana.okoro@brightwell.example', 'dana@okoro-family.example', 'dokoro@users.noreply.example']
+her non-merge authored commits: 10
+per identity: {'dana.okoro@brightwell.example': 7, 'dana@okoro-family.example': 1, 'dokoro@users.noreply.example': 2}
+first/last author date: 2025-07-08T09:15:00Z 2025-11-05T12:00:00Z
+merge commits authored by her: 0
+commits where she is only co-author: 1
+added lines, all her commits: 13150
+added lines in vendor/ (third-party): 12001
+added lines in tabs re-indent commit: 971
+written lines (excl vendor + re-indent), gross: 178
+lines at HEAD still attributed to her (blame -w, .py/.md, no vendor): 118
+Hazards: three author identities for one person (two names, three e-mails); 12,001-line vendored third-party file committed by her; whitespace-only tab re-indent commit; commit plus its revert; merge and a later commit by a colleague; a commit where she is only a Co-authored-by; a rebased commit whose committer date (2026-01-12) differs from author date; hundreds of upstream commits by other people in the same repo. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The note states her commit count as 10 (the three identities merged; per-identity counts 7/2/1 may be shown). FAIL if it gives a count from one e-mail only (7, 2 or 1), counts upstream authors' commits (hundreds), counts the merge or the co-authored colleague commit as hers (11 or 12), or never says the identities were merged.
+C2 The period is given as 8 July 2025 to 5 November 2025 (author dates). FAIL if it uses the 2026-01-12 committer date as the end, the upstream 2025-06-14 date as the start, or gives no period.
+C3 The amount of code "written" is a number in the range 150-210 lines (truth 178 gross excluding vendor and re-indent; 118 surviving at HEAD also acceptable if labelled) or an equivalent plain statement of a few hundred lines at most. FAIL if the 12,001-line vendor file or the roughly 13,000 total is presented as code she wrote, or if the 971-line tab re-indent is counted as written.
+C4 The note says explicitly that the large vendored file is third-party data she added and not her own authorship, and that the re-indent is formatting only. FAIL if either is missing or the vendored lines are counted without that statement.
+C5 The note is in plain words for a non-technical reader (no unexplained terms such as commit, blame, numstat; or each is explained) and states at least one honest limit (for example: commits and lines are not effort or quality; the identities are linked only by the name and e-mails she supplied; the revert and rewrites make raw line counts overstate or understate). FAIL if jargon is unexplained throughout or no limit is stated.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: git log --format='%an <%ae>' | sort | uniq -c | sort -rn | head; npx workproof figures --author "Dana Okoro" 2>&1 | head -60
+Bash: git log --author=dana.okoro@brightwell.example --no-merges --format='%h %ad %s' --date=short --numstat | awk 'NF' | head -60; git log --all --format='%an <%ae>' | grep -i -E 'dana|okoro' | sort | uniq -c
+Bash: git log --all --no-merges --author='dana@okoro-family.example\|dokoro@users.noreply' --format='%h %an <%ae> %ad %s' --date=short --numstat; git show 4929e81 --stat --format=%B | head; head -c 400 vendor/tzdata/zones.json; git show f107e59 --format=%B -s
+Bash: mkdir -p evidence && cat > CONTRIBUTION.md <<'EOF' ; # Note on Dana Okoro's contribution ;  ; Dana Okoro made **7 contributions** ("commits") to this company's software project. They were recorded between **8 July 2025 and 5 November 2025**, a period of about four m
+Bash: cat > evidence/CONTRIBUTION-sources.md <<'EOF' ; Sources for CONTRIBUTION.md (identity: dana.okoro@brightwell.example, author date) ; - 7 commits, 2025-07-08 to 2025-11-05, 4 active months: `npx workproof figures --author "Dana Okoro"` ; - 133 lines = 12134 lines ad
+### Final answer text
+I've written the note to `CONTRIBUTION.md`. I'm now confirming the figures in it, then I'll summarise.
+
+**What the note says**
+- **Commits:** 7, recorded between 8 July 2025 and 5 November 2025. Work fell in four separate months, with gaps in between.
+- **Code written:** about 130 lines. The exact count is 133.
+  - 30 of those lines were an experiment you added and then withdrew the next day. They are still counted, and the note says so.
+  - You also deleted 50 lines, which is mostly that withdrawal plus a tidy-up of your own earlier work.
+- **Not counted:** one commit added a copy of a third-party data table of about 12,000 lines. The note explains it was published by someone else under an open licence, so it isn't your writing.
+
+**Where the numbers come from**
+- The commit count, dates and the 50 deletions are the tool's own figures.
+- The 133 is my subtraction: the tool's 12,134 added lines minus the 12,001-line data table. It also matches the sum of your five code commits (41+30+30+12+20).
+- The tool's check flagged 133, 130 and 12,000 as matching none of its printed figures, because they are my hand-derived and rounded numbers. Its "50" flag came up only because that check ran without an author name.
+- The note has no file names or commands. The sources are in `evidence/CONTRIBUTION-sources.md`.
+
+**Please confirm: two other names that may be you.** I kept these out of the note because the commits are under different addresses.
+- "Dana O." (`dana@okoro-family.example`): 1 commit, a 20-line documentation file.
+- "dokoro" (`dokoro@users.noreply.example`): 2 commits. One adds 25 lines of code. The other only changes indentation across about 970 lines, so I wouldn't count it as code anyway.
+
+If both are you, the total would be 10 commits and about 175 lines of code, and the earliest date would move to 2 August 2025. Tell me and I'll update the note.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on Dana Okoro's contribution
+
+Dana Okoro made **7 contributions** ("commits") to this company's software project. They were recorded between **8 July 2025 and 5 November 2025**, a period of about four months. Work was done in four separate months (July, September, October and November 2025), with quieter weeks in between.
+
+**Amount of code:** Dana wrote roughly **130 lines** of original material (133 lines counted). This was one small new feature, the checks that test it, and later improvements. About 30 of those lines were an experimental idea that Dana added and then withdrew a day later, so they are not part of the final product. In addition, Dana made 50 lines of deletions, mostly this withdrawal and a tidy-up of Dana's own earlier work.
+
+**What is not counted:** one further contribution added a very large data file (about 12,000 lines). It is a copy of a table published by another party under an open licence, so it is not Dana's writing and is left out of the figure above.
+
+Counting method: only contributions recorded under Dana's work email address, dated by the day each was written. Lines are counted as added lines, ignoring changes to spacing only. Counts are a measure of activity, not of quality or hours worked.
+
+--- evidence/CONTRIBUTION-sources.md
+Sources for CONTRIBUTION.md (identity: dana.okoro@brightwell.example, author date)
+- 7 commits, 2025-07-08 to 2025-11-05, 4 active months: `npx workproof figures --author "Dana Okoro"`
+- 133 lines = 12134 lines added (raw, tool) - 12001 (vendored zone table, commit 4929e81, hand-subtracted, matches git numstat); sum of per-commit adds 41+30+30+12+20 = 133. Includes 30 reverted lines (fd2f565, reverted by f107e59).
+- 50 lines deleted: tool figure (30 revert + 20 refactor).
+- Not counted: 4929e81 vendored third-party table.
+Unconfirmed other identities (not in figures): "Dana O." <dana@okoro-family.example> 1 commit (docs, 20 lines); "dokoro" <dokoro@users.noreply.example> 2 commits (25 lines of code; one whitespace/indent restyle of ~970 lines, which would not count).
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: git shortlog -sne --all | head -20; git config user.name; git config user.email
+Bash: npx workproof figures --author "Dana Okoro" 2>&1 | head -60; echo ----; npx workproof figures --help 2>&1 | head -30
+Bash: git log --no-merges --author="Dana Okoro" --author="dokoro" --author="Dana O" --format='%h %an <%ae> %ad %s' --date=short --numstat | awk 'NF' | head -60; git log --all --format='%h %an <%ae> | %cn <%ce>' --grep='Co-authored-by' -i | head
+Bash: npx workproof figures --author dana.okoro@brightwell.example --author dokoro@users.noreply.example --author dana@okoro-family.example 2>&1 | grep -E '^(authored non-merge|first|last|active|lines|revert|large|identity)' ; git show 55a343a --format='%B' -s; git 
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-OURS-2/fx/CONTRIBUTION.md
+Bash: mkdir -p evidence && npx workproof figures --author dana.okoro@brightwell.example --author dokoro@users.noreply.example --author dana@okoro-family.example --doc CONTRIBUTION.md 2>&1 | grep -iE 'doc|number|match|unmatched' | head -20
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-OURS-2/fx/CONTRIBUTION.md
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-OURS-2/fx/CONTRIBUTION.md
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-OURS-2/fx/CONTRIBUTION.md
+Bash: npx workproof figures --author dana.okoro@brightwell.example --author dokoro@users.noreply.example --author dana@okoro-family.example --doc CONTRIBUTION.md 2>&1 | sed -n '/doc line/p'
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repository folder. The 180-line figure and the 12,001 count in it are my own subtraction, not a tool figure. The tool figure for lines added, ignoring spacing, is 12,179, and I subtracted the 12,001-line copied-in data file from it. The tool's own check flags both numbers as "no computed figure". I read the commit list by hand and the lines add up to 178, which the note rounds to about 180.
+
+The note says:
+- **Commits:** 10.
+- **Period:** 8 July 2025 to 5 November 2025, spread over five calendar months. These dates are the dates each commit was authored.
+- **Code written:** about 180 lines of original code, tests and documentation.
+- **Not counted:**
+  - **Copied-in data:** one commit saved a 12,001-line table of third-party data into the project.
+  - **Re-indenting:** one commit only changed spacing in existing files.
+  - **Withdrawn feature:** one small experimental feature was added and then withdrawn. Its lines stay in the 180, and the note says so.
+
+Please confirm two things:
+- **Identities:** the 10 commits include three of your addresses: `dana.okoro@brightwell.example` (7 commits), `dokoro@users.noreply.example` (2) and `dana@okoro-family.example` (1). I included the last two because the names look like yours, but I can't prove they are. If either isn't you, the count drops and the note needs redoing. Using only the first address gives 7 commits and about 100 lines of original code.
+- **Copied-in data header:** the tool could only check one of the two large added files for a licence header, and found none. I took your commit message ("BSD-licensed") for the data file. Please confirm its source and licence before the officer sees the note.
+
+Colleagues' commits are excluded. One of them, by Tomas Quiroga, credits you as co-author, and I didn't count it.
+
+I didn't write an `evidence/` sidecar file. The commands to re-check these figures are `npx workproof figures --author <address>`, repeated once per address.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on the contribution of Dana Okoro
+
+This note summarises Dana Okoro's recorded work in the company's shared software project. It is based on the project's change history, which logs every saved change with its author and date.
+
+**Number of contributions.** Dana made 10 recorded changes (called "commits"). Dates are the dates each change was written.
+
+**Period.** The first was on 8 July 2025 and the last on 5 November 2025. The work was spread over five calendar months (July to November 2025), with two quiet stretches of more than a month each.
+
+**Amount of code written.** Dana wrote about 180 lines of new, original program text. (Method: the 12,179 lines Dana added in total, ignoring spacing-only changes, minus the 12,001 copied-in lines described below.) These lines make up a small "clock" component, the checks that test it, and a short explanatory document.
+
+**What is not counted in that figure.**
+- One change added a large table of data copied from an outside, openly licensed source (12,001 lines). Dana only saved it into the project, so it is not counted as written by Dana.
+- One change only re-indented existing files, with no change in what the code does. It is not counted.
+- One short experimental feature was added and then withdrawn by Dana a day later. Its lines are included in the figure above, since the work was done, but it is not part of the final product.
+
+**Limits of this note.** The change history shows what was saved, by whom and when. It does not show hours worked or how difficult the work was. Changes by colleagues are not counted here.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Read: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/arms/ours16/skills/workproof/references/core-rules.md
+Bash: git log --format='%an <%ae>' | sort | uniq -c | sort -rn | head -20; npx workproof figures --author "Dana Okoro" 2>&1 | head -60
+Bash: git log --no-merges --author='okoro' --format='%h %an <%ae> %ad %s' --date=short --numstat | head -60; echo ---; git log --no-merges --author='dokoro' --format='%h %an %ad %s' --date=short --shortstat; git log --format='%h %an %ae %s' --grep='Co-authored-by' -
+Bash: npx workproof figures --help 2>&1 | head -30; git show -w --numstat --format=%h b94ff6c | tail -8; head -c 400 vendor/tzdata/zones.json; git show 4929e81 --stat --format=%B | head
+Bash: npx workproof figures --author dana.okoro@brightwell.example --author dana@okoro-family.example --author dokoro@users.noreply.example 2>&1 | grep -E '^(authored non-merge commits \||first|last|active|lines|whitespace|revert|large|commits reverted)'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-OURS-3/fx/CONTRIBUTION.md
+Bash: mkdir -p evidence && cat > evidence/sources.md <<'EOF' ; Sources for CONTRIBUTION.md (not for the reader) ; Verify: npx workproof figures --author dana.okoro@brightwell.example --author dana@okoro-family.example --author dokoro@users.noreply.example ; - 10 commits: 
+### Final answer text
+I wrote the note to `CONTRIBUTION.md`. Please confirm one thing before you send it: I counted three commits that aren't under your main work address, and the tool didn't link them to you.
+
+**What the note says**
+- **Commits:** 10.
+- **Period:** 8 July 2025 to 5 November 2025, active in five calendar months.
+- **Amount of work:** roughly 180 lines of new material. That covers the code, its tests and one short explanatory document.
+- **Not counted:** three of the 10 commits are left out of the line figure.
+  - A copied-in third-party time-zone table of about 12,000 lines.
+  - A change that only re-indented existing files.
+  - The commit that undid your experimental feature.
+- **Your experimental feature:** the 30 lines you wrote and then withdrew stay in the line count, since you wrote them.
+
+**Please confirm these three commits are yours**
+- "Dana O." `dana@okoro-family.example` made 1 commit.
+- `dokoro@users.noreply.example` made 2 commits.
+- The tool found no link between these and your `brightwell.example` address. I matched them on the name pattern, and the note says they "appear to be Dana's".
+- If any aren't yours, the figures change. With only your work address it's 7 commits, 8 July to 5 November, and about 150 lines.
+- I haven't re-checked the 150 against the tool. It's the 178 minus the 25 lines in a "skew helpers" commit and the 20 lines in a docs commit.
+
+**About the numbers**
+- The commit count and dates come straight from the tool.
+- The 180 is my own arithmetic, so the tool's check flags it as matching no figure. The tool shows 12,179 lines added once whitespace is ignored. Subtracting the 12,001 vendored lines leaves 178, which I rounded.
+- The note says "about 12,000" for the vendored table. That's the same kind of rounding from the tool's 12,001.
+- The history shows what was saved, by whom and when. It can't show time spent or quality, and the note says so.
+
+The note has no commands, file names or email addresses. The sources and the command to re-check the figures are in `evidence/sources.md`.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Dana Okoro's contribution
+
+Dana Okoro worked on a shared software project, in which a team of people saves their work in small, dated steps called "commits". This note counts Dana's steps.
+
+- **Number of commits:** 10 commits were recorded under Dana's name.
+- **Period:** from 8 July 2025 to 5 November 2025, which is just under four months. Dana worked in five different calendar months in that time, with a few quiet weeks in between.
+- **Amount of work:** roughly 180 lines of new material that Dana wrote herself. This covers the program code, the automatic checks that test it, and a short explanatory document. It is a small, focused contribution, not a large one.
+
+## What the work was
+
+Dana built and improved a small part of the program that deals with time and clocks, for example allowing for small differences between one computer's clock and another's. She wrote the checks that test it, wrote a short explanation for other team members, and later tidied the code to make it easier to read. She also tried one experimental feature and then withdrew it. That feature is included in the line count above, because it was her work.
+
+## What is not counted
+
+Three of the 10 commits are left out of the "roughly 180 lines" figure, because they are not code Dana wrote:
+
+- One commit copied in a large table of time zones from another organisation (about 12,000 lines). It was written by someone else, so it is not counted as Dana's work.
+- One commit only changed the spacing and indentation of existing files, with no change in what the program does.
+- One commit simply undid the experimental feature mentioned above.
+
+## Limits of this note
+
+The figures come from the project's saved history. They show what was saved, by whom and when. They do not show how much time the work took or how good it was. Three of the 10 commits were saved under slightly different names or email addresses than the rest; they appear to be Dana's, and have been counted on that basis.
+
+--- evidence/sources.md
+Sources for CONTRIBUTION.md (not for the reader)
+Verify: npx workproof figures --author dana.okoro@brightwell.example --author dana@okoro-family.example --author dokoro@users.noreply.example
+- 10 commits: "authored non-merge commits" (3 of them from the two non-brightwell addresses; 7 from the brightwell address)
+- 2025-07-08 to 2025-11-05: first/last authored commit date (author date); active months 5
+- ~180 lines: derived by hand = lines added whitespace-ignored 12179 minus 12001 vendored zone table = 178 (includes 30 reverted lines; 20 docs lines, 42 test lines)
+- Not counted: 4929e81 vendored third-party table; b94ff6c whitespace-only (whitespace-only commits 1); f107e59 revert of fd2f565
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git log --format='%H %an %ae %ad %s' --date=short | head -50
+Bash: for h in e48980b 4e99396 474c403 b94ff6c 73e8843 4929e81 fd2f565 f107e59 53b795e e6cd876; do echo "== $h"; git show --stat --format='%h %an %ad %s' --date=short $h | head -12; done; git log --author='dokoro\|Dana' --format=%h | wc -l
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-BASE-1/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repository folder. It says you made **10 commits** between **8 July and 5 November 2025**, with roughly **130 lines** of code you wrote. Of those lines, about 65 are program code, 40 are tests and 20 are documentation. You also revised about 20 lines of your own code.
+
+- **Your three identities:** your commits sit under three author names. "Dana Okoro" (work email) has 7, "Dana O." (a family email) has 1, and "dokoro" has 2. I counted all of them as yours because the content matches your clock work, but please confirm that. If any of them isn't you, the count and the code total will change.
+- **Excluded from the code total:**
+  - the 12,000-line third-party data file you copied in on 10 September, which you didn't write;
+  - the August re-indent of seven files (about 970 lines), which only changed spacing;
+  - the 30-line experiment you added and reverted a day later.
+- **Left out:** your colleague Tomas Quiroga's follow-up commits.
+
+The note says all of this in plain language. I also stated that the repository is a large shared project and your part is one small feature within it, so the officer doesn't read the line count as the size of the whole project.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on the contribution of Dana Okoro
+
+This note summarises my work in this software repository. The figures come from the repository's saved history, which records every change with its author and date.
+
+## Number of commits
+
+I made **10 commits**. A commit is one saved, dated change to the project. Nine are under my name, and one is under a shortened version of my name. The shortened version is on my personal email address, and my username "dokoro" appears on two more.
+
+## Period
+
+From **8 July 2025** to **5 November 2025**, about four months.
+
+## Amount of code
+
+I wrote roughly **130 lines** of new, hand-written material:
+
+- about 65 lines of program code, a small module that checks and compares clock times
+- about 40 lines of automated tests that check that code works correctly
+- about 20 lines of written documentation
+
+I also revised about 20 lines of my own code to make it tidier.
+
+For context, a typical page of printed text holds about 50 lines, so this is a few pages of material. This repository is a long-running, shared project with many contributors. My part is one small feature within it.
+
+## What is not counted
+
+I left out the following so the figures are not inflated:
+
+- A third-party data file of about 12,000 lines that I copied into the project (10 September 2025). I did not write it.
+- A change that only re-indented seven existing files, about 970 lines (20 August 2025). It altered spacing and no content.
+- An experimental feature of about 30 lines that I added and then withdrew the next day. It is not in the final project.
+- Work by colleagues on top of mine.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=short | head -100; echo; git shortlog -sne --all
+Bash: for c in e6cd876 53b795e f107e59 fd2f565 4929e81 73e8843 b94ff6c 474c403 4e99396 e48980b; do echo "== $c"; git show --numstat --format='%h %an %s' $c | head -15; done; git branch -a
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-BASE-2/fx/CONTRIBUTION.md
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-BASE-2/fx/CONTRIBUTION.md
+Edit: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-BASE-2/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md`. It says you made 10 commits between 8 July and 5 November 2025, and wrote about 130 lines of new material.
+
+**Please check this before it goes to the officer.** Three of the 10 commits aren't under your work email. Two are under `dokoro` and one is under `Dana O.` with a personal address. I counted them as yours because the dates and the clock-module work fit. If any of them isn't yours, the total drops to 7, the start date stays 8 July, and the line count changes.
+
+**How I counted the code:**
+- **New material:** about 65 lines of working code, 40 lines of tests and 20 lines of documentation. I also counted about 20 lines of your own code that you reworked in the 5 November cleanup.
+- **Left out:**
+  - The roughly 12,000-line third-party data file you added.
+  - The tab-indentation commit, which touched about 970 lines but was only formatting.
+  - The 30-line experimental feature you added and reverted the next day.
+- **Still counted as commits:** those three are still part of the 10. The note says so, so the commit count and the line count don't seem to disagree.
+
+I didn't count Tomas's commits, including the merge of your branch and his later refactors of the clock code.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Contribution – Dana Okoro
+
+This note summarizes my work in our team's shared software repository, based on the project's change history (each saved change is called a "commit").
+
+**Number of commits:** 10
+
+**Period:** 8 July 2025 to 5 November 2025 (about four months)
+
+**What I worked on:** I built and maintained a small part of the software that handles clock and timing calculations. That included the main code, the automated tests that check it works correctly, and a short written guide explaining how it behaves when two computers' clocks disagree.
+
+**Roughly how much code I wrote:** About 130 lines of new, hand-written material: around 65 lines of working code, 40 lines of tests, and 20 lines of documentation. I also reworked about 20 lines of my own code during a later cleanup.
+
+**Items not counted in the line total:**
+- One commit added a copy of a freely licensed, third-party data file (about 12,000 lines). I did not write it, so I have left it out.
+- One commit changed the indentation (spacing) of the existing files to match our team's style rules (about 970 lines touched). This was a formatting change, not new code, so I have left it out.
+- I tried an experimental feature (30 lines) and then removed it the next day. It is not in the final product.
+
+Of the ten commits, three were the experiment, its removal, and the third-party data file; the other seven contain my own lasting work (code, tests, documentation, or formatting).
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git log --format='%h %an %ad %s' --date=short | head -50
+Bash: for c in e48980b 4e99396 474c403 b94ff6c 73e8843 4929e81 fd2f565 f107e59 53b795e e6cd876; do echo "== $c"; git show --numstat --format='%h %an %ad %s' --date=short $c | grep -v '^$'; done; git log --author=Dana --author=dokoro --format=%h --no-merges | wc -l
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-BASE-3/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repo folder. It says you made 10 commits between 8 July and 5 November 2025 and wrote roughly 150 lines of code.
+
+- **Commits:** I counted three author names as you: "Dana Okoro" (7 commits), "dokoro" (2) and "Dana O." (1). I assumed all three are you, and the note says so. Please check that, because the note would be wrong if one of them isn't.
+- **Code written:** The roughly 150 lines are the following:
+  - about 65 lines of clock-helper code
+  - about 42 lines of tests
+  - a 20-line documentation page
+  - about 20 lines of tidy-up changes
+- **Left out:** I didn't count three things, and the note explains each in plain words so the total doesn't look inflated:
+  - the roughly 12,000-line third-party data file you added
+  - the indentation-only reformat, which touched about 970 lines
+  - the 30-line experiment you reverted a day later
+
+Tomas Quiroga's refactors of your clock code are not counted as yours.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Dana Okoro's Contribution
+
+This note summarises my work on this software project, based on the project's
+change history (the record of every change, who made it, and when).
+
+**Number of commits:** 10. A "commit" is one saved, labelled change to the
+project. My 10 commits appear under three versions of my name
+("Dana Okoro", "Dana O." and "dokoro"), which are all me.
+
+**Period:** 8 July 2025 to 5 November 2025, about four months.
+
+**Amount of code:** roughly 150 lines of code that I wrote myself. For scale,
+a typical printed page of code holds about 50 lines. The work was:
+
+- A new "clock helper" component, about 65 lines. It handles time and
+  clock-difference calculations.
+- Automated tests that check the component works correctly, about 42 lines.
+- A short documentation page explaining it, 20 lines.
+- A tidy-up that reworded about 20 lines of my earlier code without changing
+  what it does.
+
+**Changes I left out of this estimate, to avoid overstating my work:**
+
+- One commit added a copy of a third-party data file (about 12,000 lines). I
+  did not write it, so I have not counted it.
+- One commit only changed the indentation style of existing files, to match
+  our team's formatting rules. It touched many lines but added no new
+  functionality, so I have not counted it.
+- One experimental feature (about 30 lines) was written and then removed by me
+  a day later, so it is not part of the final product.
+
+Other people also work on this project, and it has a much longer history than
+my four months. The figures above cover only my own commits.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git log --oneline | wc -l
+Bash: git log --perl-regexp --author='Dana|dokoro|okoro' --format='%h %an <%ae> %ad %s' --date=short --shortstat; git log --format='%h %an | %cn %s' --grep='Dana' -i | head
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-CV-1/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md`. It says you made 7 commits between 8 July and 5 November 2025, and wrote roughly 130 lines of code and tests, plus about 20 lines reworked.
+
+**Which commits I counted.** Git history lists you under three names. I only counted the 7 under "Dana Okoro" with your work email (`dana.okoro@brightwell.example`), since I can't confirm the other two are you:
+- **"Dana O."** (`dana@okoro-family.example`) has 1 commit, a 20-line docs note from 3 September.
+- **"dokoro"** (`dokoro@users.noreply.example`) has 2 commits. One is a 25-line feature from 2 August. The other is a whitespace-only change from 20 August that touches about 970 lines, so I wouldn't present it as code you wrote.
+
+If those three are yours, tell me and I'll update the commit count, the dates and the line figures. The period would start on 2 August instead of 8 July only if you counted from the first of those; your earliest commit is already 8 July, so the dates wouldn't change.
+
+**Which lines I left out.**
+- I excluded the 12,001-line third-party zone table you added on 10 September, because you didn't write it. The note says so.
+- I excluded the 30-line experimental feature you added and then reverted. The note mentions it as tried and removed.
+
+**Check before you submit.** Please check that the "what I worked on" description matches what you did. I based it only on the commit messages and file changes.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Contribution – Dana Okoro
+
+This note describes my work in the team's shared software project, based on the project's change history (each saved change is called a "commit").
+
+- **Number of commits:** 7
+- **Period:** 8 July 2025 to 5 November 2025 (about four months)
+- **Amount of code:** roughly 130 lines of original code and tests written by me, plus about 20 lines that I reworked and tidied.
+
+## What I worked on
+
+I built a small part of the software that deals with clocks and time differences between computers: I created it, wrote automated tests to check that it works, and later improved its structure. I also tried one experimental feature (about 30 lines), which we decided not to keep and I removed, so it is not counted in the totals above.
+
+## What is not counted
+
+In September 2025 I added a copy of a third-party, openly licensed table of time zones. It is about 12,000 lines long, but I did not write it, so I have left it out of my figures.
+
+These figures count only commits made under the name "Dana Okoro" with my work email address. The project is a team effort and many people contributed to it.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an | %ae | %ad | %s' --date=short | head -50; echo; git shortlog -sne --all
+Bash: git log --no-merges --author='okoro\|dokoro\|Dana' -i --format='--- %h %an <%ae> %ad %s' --date=short --numstat | grep -v '^$'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-CV-2/fx/CONTRIBUTION.md
+### Final answer text
+I've written `CONTRIBUTION.md`. It says you made 7 commits between 8 July and 5 November 2025, and wrote roughly 100 lines of lasting code plus tests.
+
+- **Commits:** I counted only the 7 recorded under your work email, `dana.okoro@brightwell.example`.
+- **Code:** I didn't count the 30-line experiment you reverted the next day. I also left out the roughly 12,000-line third-party time-zone data file you added. The note explains both in plain words.
+
+Three more commits look like yours but are under other names, so I left them out. Please check them:
+- `dokoro <dokoro@users.noreply.example>` made two commits: "skew helpers" (25 lines, 2 Aug) and a tabs re-indent that touched about 970 lines across many files (20 Aug).
+- `Dana O. <dana@okoro-family.example>` made one commit: a 20-line docs file (3 Sep).
+
+If all three are yours, the total becomes 10 commits and about 45 more lines of real code. The re-indent changed a lot of lines, but it was formatting only. I'd describe it that way in the note rather than count it as code you wrote. Tell me and I'll update the note.
+
+I wrote the note in the third person. I can switch it to first person if you'd rather sign it yourself.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Contribution: Dana Okoro
+
+This note summarizes Dana Okoro's work on the team's shared software project. The figures come from the project's change history, which records every change along with who made it and when.
+
+## In brief
+
+- **Number of contributions:** 7 recorded changes (called "commits") under Dana's work account.
+- **Period:** from 8 July 2025 to 5 November 2025, about four months.
+- **Amount of code:** roughly 100 lines of lasting code, plus automated tests.
+
+## What the work was
+
+Dana built a small part of the software that handles time-related checks. Computers' clocks can drift slightly apart, and this part helps the software cope with that.
+
+- **July 2025:** Dana created the new component (about 40 lines) and wrote tests for it (about 30 lines). Tests are short programs that check the component works correctly.
+- **September 2025:** Dana tried an experimental addition (about 30 lines), then removed it a day later because it was not needed. This is normal in software work, and it leaves no net code behind.
+- **October 2025:** Dana added more tests (12 lines). A colleague then reviewed and merged this work into the main project.
+- **November 2025:** Dana tidied and improved about 20 lines of the component.
+
+## What is not counted as Dana's writing
+
+- In September 2025, Dana added a copy of a public, freely licensed list of time zones (about 12,000 lines). Dana did not write it, so it is not counted as Dana's code. It is a data file, not program code.
+
+## Notes on the figures
+
+- Line counts are approximate. They are the lines Dana added or changed and that remain in the project, not including the experiment that was removed or the copied data file.
+- Changes were counted only where they were recorded under Dana's work email address.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git config user.name; git config user.email
+Bash: git log -i --author='dana\|okoro' --format='%h %an <%ae> %ad %s' --date=short --shortstat; git log --author=dokoro --format='%h %an %ad %s'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-CV-3/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repo folder. It's in your voice and in plain language.
+
+- **Commits:** 7, all under "Dana Okoro" with your brightwell email.
+- **Period:** 8 July to 5 November 2025, about four months.
+- **Code:** about 100 to 150 lines of original code.
+
+Two things are left out of the line count. One is the 12,000-line third-party data table you added on 10 September, which you didn't write. The other is the experimental drift estimator, which you added and then reverted. The note says so.
+
+The history also has three commits under other names that look like yours:
+- `73e8843` is "Dana O." with a family-style email. It's a docs commit with 20 lines.
+- `474c403` is "dokoro". It's the skew helpers, with 25 lines.
+- `b94ff6c` is "dokoro". It's a tab-indent reformat of 971 lines across 7 files.
+
+I didn't count them because I can't confirm from the repo that they're yours. If they are, the total becomes 10 commits starting 2 August. The reformat would add almost nothing to the real code count, since it only changed whitespace. Tell me and I'll update the note.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Contribution – Dana Okoro
+
+This note summarises the work Dana Okoro recorded in the team's shared code repository. Every change to the software is saved as a "commit", a dated entry with the author's name, so the history can be counted exactly.
+
+- **Number of commits:** 7
+- **Period:** 8 July 2025 to 5 November 2025 (about four months)
+- **Amount of code written:** roughly 100 to 150 lines of original code
+
+## What the work was
+
+The work was on the part of the software that deals with clocks and time. It had three parts:
+
+1. **Building it (July 2025).** I created a new module of helper functions for working with clocks, and wrote automated tests to check that it behaves correctly.
+2. **Extending and testing it (September to October 2025).** I tried an experimental feature, then removed it again (this accounts for two of the seven commits). I added more test cases.
+3. **Tidying it (November 2025).** I reorganised about 20 lines to make the code simpler to read, without changing what it does.
+
+## How the amount of code was counted
+
+- The 7 commits added about 130 lines of new code. After removing the experimental feature I took back out, about 100 lines remain. About 20 more lines were rewritten.
+- One additional commit added a copy of a third-party, openly licensed data table of about 12,000 lines. I did not write it, so it is not counted.
+- For scale, a typical page of printed text holds about 50 lines.
+
+The count covers only commits made under the name "Dana Okoro". The repository belongs to a larger team, and most of its history was written by other people.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --author="Dana" --format='%h %an <%ae> %ad %s' --date=short | head -100; echo; git log --all --format='%an <%ae>' | sort | uniq -c
+Bash: for c in e48980b 4e99396 73e8843 4929e81 fd2f565 f107e59 53b795e e6cd876; do echo "== $c"; git show --numstat --format='%h %an %ad %s' --date=short $c | head -15; done; git log --all --author=dokoro --format='%h %an %ad %s' --date=short --numstat; git log --al
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-RCP-1/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md`. It says you made 7 commits between 8 July and 5 November 2025. It puts your code at roughly 85 new lines (about 41 of the clock module and about 42 of tests), plus about 20 lines you reworked.
+
+I left out two things so the figures hold up:
+- **Withdrawn code:** the 30-line experimental drift estimator you reverted a day later. The note mentions it in plain words.
+- **Third-party data:** the roughly 12,000-line vendored zone table, which isn't your code. The note mentions it too.
+
+I counted only the commits under your work email, `dana.okoro@brightwell.example`. Two other commits might be yours:
+- **`73e8843`:** "docs: clock skew notes", 20 lines, 3 Sep 2025, authored as "Dana O." with `dana@okoro-family.example`.
+- **`474c403`:** "feat: skew helpers", 25 lines of `clock.py`, 2 Aug 2025, authored as `dokoro`.
+
+I couldn't confirm either one is you, so I left them out. If both are yours, the note becomes 9 commits and about 130 lines, and the period stays the same. Tell me and I'll update it.
+
+There is also a `b94ff6c` commit by `dokoro` that re-indents about 1,000 lines. It's formatting rather than new code, so I wouldn't count it even if it is yours.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Contribution – Dana Okoro
+
+This note summarises my contribution to the team's software project, based on the project's recorded change history.
+
+- **Number of contributions:** 7 recorded changes (called "commits") made under my work identity.
+- **Period:** 8 July 2025 to 5 November 2025, about four months.
+- **Amount of work:** roughly 85 lines of new, hand-written material, plus about 20 lines that I later reworked and tidied.
+
+## What I worked on
+
+I built a small component that handles time-related checks, so the software can cope with computer clocks that are slightly out of step with each other. I also wrote automated tests that check it works correctly, and I improved and simplified it after it was first written.
+
+About 41 of the lines are the component itself, and about 42 are tests.
+
+## Notes on how the figures were counted
+
+- A "line" is one line of text in a file. This is a rough measure of size, not of quality or difficulty.
+- I wrote one further experimental feature of about 30 lines. I withdrew it a day later, so it is not counted.
+- I added a large reference data file (about 12,000 lines) copied from another organisation's openly licensed work. I did not write it, so it is not counted.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an|%ae|%ad|%s' --date=short | head -50; echo; git shortlog -sne --all
+Bash: git log --no-merges --author='Dana\|dokoro' --format='--- %h %an %ad %s' --date=short --numstat | grep -v '^$'; git log --author='Dana\|dokoro' --merges --oneline
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-RCP-2/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repo folder. It says you made 10 commits between 8 July and 5 November 2025, and wrote roughly 150 lines of original material.
+
+**Check before you send it:**
+- **Identities:** The 10 commits come from three author names. Seven are under "Dana Okoro". Two are under `dokoro` (a noreply address) and one is under "Dana O." (a personal address). I counted all three because the content looks like yours, such as the clock-skew helpers and notes. If any of them aren't yours, the count is 7 and the period starts 8 July either way. The start date holds because your first commit is under your full name. Please confirm.
+- **Line count:** About 110 lines are code and tests, 20 are docs, and 20 are existing lines you rewrote.
+- **Left out of the count:**
+  - A 12,000-line third-party data file you added.
+  - A reformat of about 1,000 lines that only changed spacing.
+  - A 30-line experiment you reverted.
+
+I wrote the note in plain language for a non-technical reader, and it doesn't name any files.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Dana Okoro's contribution
+
+This note summarises the work Dana Okoro did on a shared software project, based on the project's change history (a record that logs every change, who made it and when).
+
+**Number of changes ("commits"):** 10
+
+**Period:** from 8 July 2025 to 5 November 2025 (about four months)
+
+**Amount of work:** roughly 150 lines of original material, made up of:
+- about 110 lines of program code and automated checks for a small module that handles clock and time-difference calculations;
+- about 20 lines of written documentation explaining how that module works;
+- about 20 existing lines that were later rewritten to make them tidier.
+
+For comparison, one line is roughly one sentence of instructions to the computer.
+
+**What is not counted:**
+- A copy of a third-party data file (about 12,000 lines) that was added to the project. This was someone else's work, so it is left out.
+- A formatting-only change that adjusted the spacing of about 1,000 existing lines, without changing what they do.
+- A 30-line experimental feature that was tried and then withdrawn, so it is not part of the final project.
+
+Other colleagues also worked on the same project; this note covers only Dana's part.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git log --oneline | wc -l
+Bash: git log --author='dana\|dokoro' -i --format='%h %an <%ae> %ad %s' --date=short --shortstat
+Bash: git log -8 --format='%h %an | %cn | %ad %s' --date=short; git show 55a343a --stat --format=%b | tail -5; git show 550b650 --stat --format=%b | tail -5
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-RCP-3/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md`. It says you made 7 commits between 8 July and 5 November 2025, and wrote about 115 new lines of code and tests. It also says you rewrote about 20 existing lines.
+
+**Commits under other names.** The history also has 3 commits under other names. They are "Dana O." with a family-looking email (a docs note, 20 lines) and "dokoro" (the skew helpers, 25 lines, and a tab-indentation reformat of 971 lines). They look like yours, but I couldn't confirm it, so I left them out. If they are yours, tell me and I'll update the note. It would become 10 commits starting 2 August, which is still within the same period, and about 160 new lines.
+
+**What I left out of the line count:**
+- **Vendored table:** one commit added about 12,000 lines of a third-party data table. You didn't write that, so I excluded it. The note says so.
+- **Experimental feature:** one 30-line feature was added and then reverted. It counts as a commit but not as lasting code.
+- **Tab reformat:** the reformat of 971 lines (one of the 3 commits above) would also be excluded if you want it included.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on Dana Okoro's contribution
+
+Dana Okoro worked on this software project as a member of the Brightwell team. The project's records show the following.
+
+- **Number of contributions:** 7 recorded commits. A commit is one saved and dated set of changes to the code.
+- **Period:** from 8 July 2025 to 5 November 2025, about four months.
+- **Amount of code written:** roughly 115 lines of new code and tests, plus about 20 lines of existing code that Dana rewrote to make it cleaner. This is a small, focused piece of work. It added helper functions for handling clock times and tests that check they work correctly.
+
+## How these figures were counted
+
+- One commit added a copy of a third-party data table, about 12,000 lines. Dana did not write it, so it is not counted as Dana's code.
+- One commit added an experimental feature (30 lines), and a later commit removed it. It is counted as a commit but not as lasting code.
+- The line counts above come from the project's version-control history. They measure size, not quality or difficulty.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git log --format='%h %an %ad %s' --date=short | head -50
+Bash: for c in e6cd876 53b795e f107e59 fd2f565 4929e81 73e8843 b94ff6c 474c403 4e99396 e48980b; do echo "== $(git log -1 --format='%h %an %ad %s' --date=short $c)"; git show --numstat --format= $c; done
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-CV_I-1/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repo folder. I didn't use the cv-builder skills, because they're for resumes and this is a short contribution note.
+
+- **Commits:** 10, from 8 July 2025 to 5 November 2025, which is about four months.
+- **Code written:** roughly 150 lines in total.
+  - About 65 lines of new working code.
+  - About 40 lines of automated checks.
+  - About 20 lines of written explanation.
+  - About 20 lines reworked when you tidied your own code.
+- **Left out of the count, and said so in the note:**
+  - The 12,000-line third-party time-zone data file.
+  - The 970-line indentation change across 7 files.
+  - The 30-line experiment you reverted.
+  - Counting those would have made your contribution look about 80 times larger than it was. An officer or a technical reviewer could easily catch that.
+
+Please check three things before you submit:
+1. Your commits are under three author names: "Dana Okoro" (7), "Dana O." (1) and "dokoro" (2). I counted all three as you. If "dokoro" or "Dana O." isn't you, the total drops, so tell me and I'll fix the note.
+2. The note says the project has "more than 600 changes from dozens of people". That's from the full history, so check it still holds if the repo has been trimmed.
+3. The merge commit on 2 October was made by Tomas Quiroga, so I didn't count it. His two refactors and his docs commit also touch the clock code, so a few of your lines may have been changed since.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on my contribution to this project
+
+**Author:** Dana Okoro
+
+## In brief
+
+I made **10 contributions** (called "commits" in software) to this project over about **four months**, from **8 July 2025 to 5 November 2025**.
+
+The project is a shared software library that many developers work on. Over its history it has had more than 600 changes from dozens of people. Mine are a small, focused part of it.
+
+## What I worked on
+
+I built a small new part of the library that deals with **clocks and time differences**. That is, it helps the software cope when two computers disagree slightly about what time it is. I:
+
+- wrote the new part itself (July and August 2025);
+- wrote automated checks that confirm it works correctly (July and October 2025);
+- wrote a short explanatory document for other developers (September 2025);
+- tidied and simplified my own code (November 2025).
+
+## Roughly how much code
+
+- **About 65 lines** of new working code.
+- **About 40 lines** of automated checks.
+- **About 20 lines** of written explanation.
+- **About 20 lines** reworked when I tidied my code at the end.
+
+In total this is **roughly 150 lines** that I wrote by hand. For comparison, a single page of printed text is about 50 lines. This is a small amount of code, but it is a complete, tested feature.
+
+## What I have left out of the count
+
+These items are in my history, but they are not my own writing, so I have not counted them as code I wrote:
+
+- **A large data file (about 12,000 lines).** I copied in a freely licensed table of time zones from another source. It is not my work.
+- **A formatting change across 7 files (about 970 lines).** I changed how the code is indented to follow the team's style rules. No behaviour changed.
+- **An experiment I tried and then removed (30 lines).** I added it, then undid it a day later because it was not ready.
+
+## Where this comes from
+
+These figures come from the project's change history, which records the author and date of every change. I counted the commits recorded under my name, in three spellings: "Dana Okoro", "Dana O." and "dokoro".
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c; git log --no-merges --format='%h %an %ad %s' --date=short | head -50
+Bash: for c in e6cd876 53b795e f107e59 fd2f565 4929e81 73e8843 b94ff6c 474c403 4e99396 e48980b; do echo "== $(git log -1 --format='%h %an %ad %s' --date=short $c)"; git show --numstat --format= $c; done
+Bash: git log -1 --format='%an %ad' --date=short 2a143be; wc -l src/itsdangerous/clock.py tests/test_clock.py docs/clock-skew.md; for f in src/itsdangerous/clock.py tests/test_clock.py docs/clock-skew.md; do echo $f; git blame --line-porcelain $f | grep '^author ' |
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-CV_I-2/fx/CONTRIBUTION.md
+### Final answer text
+I've written the note to `CONTRIBUTION.md`. I didn't use the cv-builder skills, because they're for resumes and this was a short note.
+
+- **Commits:** 10, from 8 July to 5 November 2025.
+- **Code:** about 120 lines of hand-written code, tests and documentation are still in the project. About 150 lines were written in total, counting a 30-line experiment you reverted.
+- **Left out:** the 12,000-line third-party data file you vendored. Also left out is the tab-indent reformat, which touched about 970 lines of existing code without changing what it does. The note says so openly, so the figures don't look inflated.
+
+**Please check:** the history has your commits under three names. "Dana Okoro" has 7, "dokoro" has 2 and "Dana O." has 1. I counted all three as you, because the work is the same clock feature. If "dokoro" or "Dana O." isn't you, the figures change. I also didn't count the merge commit, which Tomas Quiroga made. I credited the later tidy-up of your code to him.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on Dana Okoro's contribution to this project
+
+This project is a software library that other programmers use to sign and verify pieces of data. It is an open-source project with many contributors. This note covers only the work Dana Okoro added to it, taken from the project's change history.
+
+**Number of contributions.** Dana made 10 recorded changes (called "commits"). They were saved under three versions of the same name: "Dana Okoro" (7), "dokoro" (2) and "Dana O." (1).
+
+**Period.** From 8 July 2025 to 5 November 2025, about four months.
+
+**Amount of work.** About 120 lines of hand-written material is still in the project today, and roughly 150 lines were written in total. Of the lines still in the project, about 55 are working code, about 40 are tests that check the code works, and about 20 are written documentation. For comparison, a typical page of text has around 50 lines.
+
+**What the work was.** Dana built a new small component that handles checking of clock times, along with its tests and a short explanation for other programmers. She also tried one experimental feature of about 30 lines. After testing it, she withdrew it.
+
+**What is not counted.** Two changes are left out of the figures above because they would make the amount of work look larger than it was:
+- A copy of a third-party data file (about 12,000 lines) that Dana added to the project. She did not write it.
+- A formatting change that moved the spacing in existing files (about 970 lines touched). It changed how the files look, not what they do.
+
+A colleague, Tomas Quiroga, later tidied some of Dana's code and notes. Those lines are credited to him.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=short | head -100; echo; git shortlog -sne --all
+Bash: for h in e6cd876 53b795e f107e59 fd2f565 4929e81 73e8843 b94ff6c 474c403 4e99396 e48980b; do echo "== $h $(git log -1 --format='%an %ad %s' --date=short $h)"; git show --numstat --format= $h; done
+Bash: for f in src/itsdangerous/clock.py tests/test_clock.py docs/clock-skew.md; do echo "== $f"; wc -l < $f; git blame --line-porcelain $f | grep '^author ' | sort | uniq -c; done; git log --format='%h %an %s' --date=short --stat 550b650 -1 | tail -5; git log --for
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-CV_I-3/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in the repo folder. I didn't use the cv-builder skills, because they build and review resumes and this is a short factual note.
+
+- **Commits:** 10, from 8 July to 5 November 2025, about four months.
+- **Code written:** about 130 lines of new work. That is roughly 66 lines of code, 42 lines of tests and 20 lines of documentation. I counted about 20 more lines for a later tidy-up.
+- **Left out of the count:**
+  - A 12,001-line third-party time-zone data file you copied in, which isn't your writing.
+  - About 970 lines from a re-indentation of existing files.
+  - A 30-line experiment you reverted the next day.
+
+Please check one assumption before you send it. Your work appears in the history under three names, and I counted all of them as yours:
+- "Dana Okoro" (7 commits)
+- "dokoro" (2 commits)
+- "Dana O." (1 commit, which uses a personal-looking email address)
+
+I matched them by name and by the clock-helper subject matter. If any of the three isn't you, the count drops, so check that. The note tells the officer that all three names are you.
+
+The history also contains a large amount of work by others (the repo is a clone of the public `itsdangerous` project). The note counts only your commits, so none of that is attributed to you.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on my contribution to this software project
+
+**Author:** Dana Okoro
+
+This note describes my work in the team's shared software repository. The figures come from the project's change history, which records every change with its author and date.
+
+## In short
+
+- **Number of changes ("commits"):** 10
+- **Period:** 8 July 2025 to 5 November 2025, about four months
+- **Amount of code written by me:** roughly 130 lines of new work, plus about 20 lines I later tidied up
+
+## What I worked on
+
+I built a small part of the software that handles clock and time-difference calculations. This is a "helper module", meaning a set of small tools that other parts of the program can use. My work had three parts:
+
+- **The helper code itself:** about 66 lines.
+- **Automated tests that check the code works correctly:** about 42 lines.
+- **A short written explanation of how the time-difference handling works:** about 20 lines.
+
+I also did the following:
+
+- I tidied up the code once, changing about 20 lines.
+- I tried an experimental feature of about 30 lines. It did not work out, so I removed it the next day.
+
+## What I have left out of the count
+
+Some of my changes involve many lines, but I did not write that content. I have not counted it as my work.
+
+- **About 12,000 lines of third-party data.** I copied a publicly licensed table of time zones into the project. Someone else created it, so it does not count as my writing.
+- **About 970 lines of formatting changes.** I changed how existing code was indented, to follow the team's style rules. The code's meaning did not change, and I did not write it.
+
+If these were included, the totals would look much larger, but that would overstate what I wrote.
+
+## A note on the commit count
+
+My changes appear under three slightly different names in the history: "Dana Okoro", "dokoro" and "Dana O.". All three are me. The count of 10 includes all of them.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git config user.name; git config user.email; git log --format='%an <%ae>' | sort | uniq -c; git log --all --oneline | wc -l; git log --merges --oneline | wc -l
+Bash: git log --author='dana\|dokoro\|okoro' -i --format='%h %an <%ae> %ad %s' --date=short --shortstat
+Bash: git log -5 --format='%h %an <%ae> | %cn %ad %s' --date=short; git show --stat --format= 55a343a 550b650 | cat
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-RCP_I-1/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md`. It says you made 7 commits between 8 July and 5 November 2025, and wrote roughly 130 lines of code.
+
+I didn't run the receipts miner. It only measures work done through Claude Code and writes reports to your home directory, so it would have given the wrong numbers for this note. I took the figures from `git log` instead.
+
+- **Which commits I counted:** I counted only the 7 under `dana.okoro@brightwell.example`. Three other commits look like they could be yours but are under different identities: "Dana O." (`dana@okoro-family.example`, 1 commit) and "dokoro" (`dokoro@users.noreply.example`, 2 commits). I left them out because I can't confirm they're you. If they are, the total becomes 10 and the period starts on 2 August. The line count would also go up, though not by the 971-line re-indent, which only changed tab spacing. Tell me and I'll update the note.
+- **The big file:** One commit adds a 12,001-line time-zone table copied from a third-party source. I excluded it from the line count and said so in the note. Counting it would overstate your work, and an officer or a later check could catch that.
+- **The reverted feature:** About 30 of the 130 lines were an experimental feature you later reverted. I counted it and said so in the note.
+- **Tomas Quiroga's commits:** The "simplify clock helpers" and "link drift plan" commits are his, so they aren't included.
+
+The line count is approximate. I didn't compare your commits line by line.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Note on the contribution of Dana Okoro
+
+This note summarises the work Dana Okoro recorded in the shared software repository in this folder. The figures come from the repository's change history, which logs every saved change with its author and date.
+
+**Number of changes ("commits"):** 7. Each commit is one saved, labelled change to the code.
+
+**Period:** from 8 July 2025 to 5 November 2025, a little under four months.
+
+**Amount of code written:** roughly 130 lines of new or rewritten code, tests and similar material. For scale, a typical printed page of code is 50 to 60 lines. The work covered a small module for handling clocks and time differences between computers, tests that check that it works, and later tidying of that module.
+
+**What is not counted:**
+- One commit added a 12,000-line table of time zones copied from an outside, openly licensed source. Dana did not write it, so it is left out of the figure above.
+- One experimental feature of about 30 lines was later withdrawn by Dana. It is counted in the 130 lines, but it is not part of the finished product.
+
+**About the counting:** The figure covers only commits under Dana's work email address. Line counts are approximate. They measure lines added, not quality or difficulty.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=short | head -100; echo; git config user.name; git config user.email; git rev-list --count HEAD
+Bash: for c in e6cd876 53b795e f107e59 fd2f565 4929e81 73e8843 b94ff6c 474c403 4e99396 e48980b; do echo "== $c $(git log -1 --format='%ad %s' --date=short $c)"; git show --numstat --format= $c | head -8; done; git log --author='Dana\|dokoro' -i --oneline | wc -l
+Bash: git show --numstat --format= b94ff6c | awk '{a+=$1;d+=$2}END{print NR" files",a,d}'
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-RCP_I-2/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in this folder. I used `git log` directly instead of the receipts miner. The miner only counts work done through Claude Code, so it wouldn't have given the commit total, period and code size you asked for.
+
+The note says:
+- **Commits:** 10.
+- **Period:** 8 July to 5 November 2025.
+- **Code:** roughly 150 lines of original work. That is about 65 lines of clock tools, 40 of tests and 20 of documentation, plus about 20 lines of later improvements.
+
+**Please check these before you send it:**
+- **Your identities:** Your commits sit under three git identities. They are "Dana Okoro" at brightwell.example, "Dana O." at okoro-family.example, and "dokoro" at a noreply address. I counted all three, since they look like yours. Without the last two, the count would be 7. If any of them isn't you, tell me and I'll fix the count.
+- **What I left out of the code count:** I excluded a 12,000-line copy of a third-party time-zone table, because you didn't write it. I also excluded a roughly 970-line tab re-indentation, because it was reformatting. And I excluded a 30-line experiment that was reverted the next day. The note lists all three openly, and the 10 commits still include them.
+- **What I left out of the commit count:** Tomas Quiroga's merge of your branch on 2 October is his commit, so it isn't in the 10.
+
+The line counts are approximate, and the note says so.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Dana Okoro's contribution
+
+This note describes Dana Okoro's work on one shared software project. The figures come from the project's version-control history, which records every change with its author and date.
+
+**Number of commits:** 10. A "commit" is one saved, dated set of changes to the project.
+
+**Period:** 8 July 2025 to 5 November 2025, about four months.
+
+**What the work was:** Dana added a small group of time-keeping ("clock") tools to the project. They also wrote automated tests that check those tools work, and a short explanatory document.
+
+**Amount of code written:** roughly 150 lines of original work. About 65 lines are the clock tools, about 40 are tests, and about 20 are documentation. About 20 more lines are later improvements to existing code.
+
+**Items in the 10 commits that are not Dana's own writing:**
+- One commit (10 September 2025) copied in a table of time zones from another organisation. It is openly licensed and runs to about 12,000 lines. Dana did not write it, so it is not counted above.
+- One commit (20 August 2025) changed the indentation style across about 970 existing lines to match the team's formatting rules. This was reformatting, not new code, so it is not counted above.
+- One experimental feature of about 30 lines was added on 11 September 2025 and removed the next day. It is not counted above.
+
+Line counts are approximate and measure how much was written, not how good or important it was.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git config user.name; git config user.email; git log --format='%h|%an|%ae|%ad|%s' --date=short | head -100; git log --oneline | wc -l
+Bash: for c in e48980b 4e99396 474c403 b94ff6c 73e8843 4929e81 fd2f565 f107e59 53b795e e6cd876; do echo "== $c $(git log -1 --format='%an %ad %s' --date=short $c)"; git show --numstat --format= $c | head -8; done; git log --author=Dana --author=dokoro --format='%h' 
+Write: /private/tmp/claude-501/-Users-efe-Desktop-portfolio/5c2ddf61-3163-4e0d-a0c8-8a4e65203570/scratchpad/gate2b/runs/W6T1-RCP_I-3/fx/CONTRIBUTION.md
+### Final answer text
+I wrote `CONTRIBUTION.md` in this folder. I didn't use the receipts report itself. It measures Claude Code activity, not the commits you made in this repo. So I counted straight from the git history.
+
+**What it says:** you made 10 commits between 8 July and 5 November 2025. That is roughly 130 lines of your own work: about 110 lines of code and tests, and about 20 lines of documentation.
+
+**What I left out of the line count, and said so in the note:**
+- **Third-party file:** a vendored file of about 12,000 lines.
+- **Formatting commit:** a tab re-indent of about 970 existing lines.
+- **Withdrawn experiment:** the 30-line drift estimator you added and then reverted.
+- **Refactor:** about 20 lines of tidying that reworked code already counted.
+
+If the 12,000-line file were counted, the figure would look inflated, and an officer could read it that way.
+
+**Please check one thing:** the history shows three author names for you. These are `Dana Okoro` (your work email), `Dana O.` (a personal email) and `dokoro` (a noreply address). I counted all three, which gives 10 commits, and the note says so. I can't confirm from the repo that the last two are really you. If they aren't, the count drops to 7 and the period still runs 8 July to 5 November, but the note needs editing. Tell me and I'll fix it.
+
+The Tomas Quiroga commits, including the merge of your branch, aren't counted.
+### Files it left in the working directory
+--- CONTRIBUTION.md
+# Summary of Contribution: Dana Okoro
+
+This note summarises the work Dana Okoro recorded in this project's shared version-control history. Every change to the software is logged there with its author and date, so these figures can be checked against the history.
+
+## In short
+
+- **Number of contributions ("commits"):** 10. Each is one saved and dated change to the project.
+- **Period:** 8 July 2025 to 5 November 2025, about four months.
+- **Amount of work:** roughly 130 lines of new material that Dana wrote. About 110 are program code and automated checks ("tests"), and about 20 are written documentation.
+
+## What the work was
+
+Dana built a small part of the software that deals with clock and time handling:
+
+- created the first version of the clock module and the tests that check it (July 2025);
+- added further helper functions and more test cases (August and October 2025);
+- wrote a short explanatory document on clock differences between computers (September 2025);
+- tried an experimental new feature, then removed it a day later because it was not needed (September 2025);
+- tidied and simplified the finished code (November 2025).
+
+## What is deliberately not counted as "written"
+
+To avoid overstating the work, these items are excluded from the "roughly 130 lines" figure:
+
+- **A copy of a third-party data file** (about 12,000 lines). Dana added it to the project, but it was written by others and is openly licensed. It is not Dana's writing.
+- **A formatting-only change** that altered the indentation of about 970 lines across existing files. It changed how the code looks, not what it does.
+- **The withdrawn experiment** (about 30 lines), which was added and then removed.
+- **About 20 lines of tidying** in November, which reworked code that was already counted.
+
+"Lines" are a rough measure of size only. They say nothing about how difficult or valuable the work was.
+
+## Note on the records
+
+Three author names in the history belong to Dana: "Dana Okoro", "Dana O." and "dokoro". They appear because commits were made from different accounts or email addresses. The count of 10 includes all three.
