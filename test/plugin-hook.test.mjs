@@ -261,7 +261,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   const npxLines = script.split("\n").filter((l) => l.includes("npx"));
   assert.ok(npxLines.length >= 1, "output text must mention npx");
   for (const line of npxLines) {
-    assert.ok(/This request matches|verifiable figures|If the user names a folder|Counts, dates and claims come from the brief/.test(line), `npx outside the output text: ${line}`);
+    assert.ok(/This request matches|verifiable figures|If the user names a folder|Counts, dates and claims come from the brief|For evidence that changes were reviewed|To check a claim that someone wrote or owns/.test(line), `npx outside the output text: ${line}`);
   }
 
   // Redirections: the only allowed targets are /dev/null and >&2.
