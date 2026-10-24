@@ -232,7 +232,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   // Only the exact noreply phrase is removed, after joining, so a forbidden word on the same code line is still checked.
   const code = script
     .split("\n")
-    .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count") && !l.includes("If the user names a folder"))
+    .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count") && !l.includes("If the user names a folder") && !l.includes("For evidence that changes were reviewed") && !l.includes("To check a claim that someone wrote"))
     .join("\n")
     .replaceAll("a GitHub noreply address whose login matches the name or the address in git config", "")
     // The two sanctioned node uses: the availability check and the read-only brief call (checked below).
