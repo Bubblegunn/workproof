@@ -1,3 +1,4 @@
+import { availableParallelism } from "node:os";
 import { isAbsolute, join } from "node:path";
 import { git } from "../git.js";
 import type { Figure, Identity } from "./types.js";
@@ -84,7 +85,9 @@ export async function survivingLines(cwd: string, id: Identity, opts: SurvivingO
     return excludeRe.some((re, i) => re.test(path) || (excludeBare[i] && re.test(base)));
   };
   const all = (await listTextFiles(cwd)).filter((f) => !dropped(f.path));
-  const sampled = all.filter((f) => inSample(f.path, opts.sample, opts.seed) as boolean);
+  // Largest files first so the slow blames start early and the last worker is not left with one;
+  // the counts are sums, so the order does not change any figure.
+  const sampled = all.filter((f) => inSample(f.path, opts.sample, opts.seed) as boolean).sort((a, b) => b.lines - a.lines);
   const ignoreRevs = opts.ignoreRevsFile === null ? null : isAbsolute(opts.ignoreRevsFile) ? opts.ignoreRevsFile : join(cwd, opts.ignoreRevsFile);
   const args = ["blame", "--line-porcelain", "-w", "-M", ...(opts.copies ? ["-C"] : []), ...(ignoreRevs ? ["--ignore-revs-file", ignoreRevs] : []), "HEAD", "--"];
   let attributed = 0;
@@ -103,7 +106,7 @@ export async function survivingLines(cwd: string, id: Identity, opts: SurvivingO
       }
     }
   };
-  await Promise.all(Array.from({ length: Math.min(opts.jobs ?? 4, sampled.length || 1) }, worker));
+  await Promise.all(Array.from({ length: Math.min(opts.jobs ?? Math.min(availableParallelism(), 8), sampled.length || 1) }, worker));
   const value = {
     lines: mine,
     linesAttributed: attributed,

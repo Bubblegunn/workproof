@@ -1,4 +1,5 @@
 import { execFile } from "node:child_process";
+import { availableParallelism } from "node:os";
 
 /**
  * Settings that change what diff and blame attribute, pinned so two machines with different
@@ -63,18 +64,42 @@ function splitTrailers(field: string | undefined): string[] {
   return (field ?? "").split(GS).map((s) => s.trim()).filter(Boolean);
 }
 
-/** All commits reachable from HEAD, newest first, with per-file numstat and trailers. One git call. */
-export async function listCommits(cwd: string, opts: { since?: string; until?: string; max?: number }): Promise<Commit[]> {
-  const args = [
-    "log",
-    "--numstat",
-    "--format=%x1e%H%x1f%aE%x1f%aN%x1f%aI%x1f%P%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%(trailers:key=Assisted-by,valueonly,separator=%x1d)",
-    "-M",
-  ];
-  if (opts.since) args.push(`--since=${opts.since}`);
-  if (opts.until) args.push(`--until=${opts.until}`);
-  if (opts.max) args.push(`--max-count=${opts.max}`);
-  const out = await git(args, cwd);
+/** Below this many commits one `git log` is cheaper than splitting the work. */
+const LOG_SPLIT_MIN = 3000;
+
+/**
+ * All commits reachable from HEAD, newest first, with per-file numstat and trailers. The commit
+ * order is fixed by one `git rev-list`; a large history is then read by several `git log
+ * --no-walk=unsorted --stdin` processes over consecutive slices of that order, so the
+ * concatenated output is the same sequence of commits a single `git log` prints, each rendered
+ * by the same diff code. A small history, or a repository where rev-list fails, uses one `git log`.
+ */
+export async function listCommits(cwd: string, opts: { since?: string; until?: string; max?: number; splitMin?: number }): Promise<Commit[]> {
+  const format = "--format=%x1e%H%x1f%aE%x1f%aN%x1f%aI%x1f%P%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%(trailers:key=Assisted-by,valueonly,separator=%x1d)";
+  const window: string[] = [];
+  if (opts.since) window.push(`--since=${opts.since}`);
+  if (opts.until) window.push(`--until=${opts.until}`);
+  if (opts.max) window.push(`--max-count=${opts.max}`);
+  let shas: string[] | undefined;
+  try {
+    const listed = (await git(["rev-list", ...window, "HEAD"], cwd)).split("\n").filter(Boolean);
+    if (listed.length >= (opts.splitMin ?? LOG_SPLIT_MIN)) shas = listed;
+  } catch {
+    shas = undefined;
+  }
+  let out: string;
+  if (shas) {
+    const slices = Math.min(availableParallelism(), 8);
+    const size = Math.ceil(shas.length / slices);
+    const parts = await Promise.all(
+      Array.from({ length: slices }, (_, i) => shas!.slice(i * size, (i + 1) * size)).filter((s) => s.length).map((s) =>
+        git(["log", "--stdin", "--no-walk=unsorted", "--numstat", format, "-M"], cwd, s.join("\n") + "\n"),
+      ),
+    );
+    out = parts.join("");
+  } else {
+    out = await git(["log", "--numstat", format, "-M", ...window], cwd);
+  }
   const commits: Commit[] = [];
   for (const block of out.split(RS)) {
     if (!block.trim()) continue;
