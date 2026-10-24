@@ -80,12 +80,12 @@ function reasonOf(err: unknown): string {
 
 const notComputed = (label: string, filter: string, reason: string): FigureRow => ({ label, value: `not computed (${reason})`, filter, computed: false });
 
-interface Bound { at?: Date; /** A date-only bound: compared with the author's local calendar date. */ day?: string }
+export interface Bound { at?: Date; /** A date-only bound: compared with the author's local calendar date. */ day?: string }
 
 const RELATIVE = /^(?:now|today|yesterday|\d{1,4}\s+(?:second|minute|hour|day|week|month|year)s?\s+ago)$/i;
 
 /** Date-only values are calendar days in the author's own offset; a full ISO time is an instant; "N days ago" is read by git. Anything else is an error, never a zero. */
-async function windowBound(value: string | undefined, kind: "since" | "until", cwd: string): Promise<Bound | undefined> {
+export async function windowBound(value: string | undefined, kind: "since" | "until", cwd: string): Promise<Bound | undefined> {
   if (!value) return undefined;
   const bad = () => new Error(`git could not read the date "${data(value, 40)}"`);
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {

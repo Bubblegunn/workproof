@@ -13,6 +13,7 @@ import { buildBullets, DEFAULT_MAX_WORDS } from "./bullets.js";
 import { stopCheckAsync } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
 import { runFigures } from "./figures.js";
+import { runReviews } from "./reviews.js";
 
 const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof check <report.json> [--countersign <file.dsse.json>]... [--allowed-signers <file>]
@@ -39,6 +40,12 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
                  --doc <file> reads a finished document and lists, for each number next to commit, line, file and similar
                  words, the figures that equal it (a relative <file> is resolved against the current directory, not --repo), plus the emails, shell commands, code blocks and branch names it shows.
                  It states no verdict and exits 0 whenever it ran; read-only
+       workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]
+                 for each commit in the window (author date, local date in the commit's own offset), whether a second person's
+                 review is recorded in its message: independent review, self-review, reviewed via merge (weaker), a quoted
+                 "Reviewed-by:" that is not a trailer, other approval only, or no review trailer; a summary and the commits out of scope.
+                 Default trailer key Reviewed-by (case-insensitive); --path limits to commits touching the pathspec.
+                 Read-only; a git failure prints "not computed (<reason>)" and exits 0; exits 1 for a usage error
        workproof attest <report.json> [--local <ssh-key>]
        workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
        workproof sessions --dir <folder> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
@@ -114,7 +121,7 @@ export function starHintDecision(o: { stdoutIsTTY: boolean; stderrIsTTY: boolean
 
 /** Classifies the arguments: only a plain run that writes a report may show the hint. Pure. */
 export function starHintCommandFor(argv: string[]): "report" | "other" {
-  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures"].includes(argv[0] ?? "")) return "other";
+  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures", "reviews"].includes(argv[0] ?? "")) return "other";
   if (argv.some((a) => a === "--help" || a === "-h" || a === "--version" || a === "--json")) return "other";
   const f = argv.indexOf("--format");
   if (f >= 0 && argv[f + 1] === "json") return "other";
@@ -446,6 +453,10 @@ async function main() {
   }
   if (process.argv[2] === "figures") {
     process.exitCode = await runFigures(process.argv.slice(3));
+    return;
+  }
+  if (process.argv[2] === "reviews") {
+    process.exitCode = await runReviews(process.argv.slice(3));
     return;
   }
   if (process.argv[2] === "mine") {

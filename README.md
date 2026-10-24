@@ -334,6 +334,7 @@ workproof verdict <report.json> [--repo <dir>]... [--author <name|email>]... [--
 workproof bullets --jd <file> (--report <report.json> | --facts <file.md>) [--resume] [--max-words N] [--out <file>]
 workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
 workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]
+workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]
 workproof attest <report.json> [--local <ssh-key>]
 workproof sessions [--days N | --since YYYY-MM-DD] [--repo <substr>]
 workproof sessions --dir <folder> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
