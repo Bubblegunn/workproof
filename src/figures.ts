@@ -1,7 +1,8 @@
 import { open, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { join, resolve } from "node:path";
-import { git, configuredEmail, configuredName, wallClock, instantOf } from "./git.js";
+import { execFile } from "node:child_process";
+import { git, configuredEmail, configuredName, wallClock, instantOf, PINNED_CONFIG } from "./git.js";
 import { foldIdentity, possibleSplits, SPLIT_CATEGORY } from "./figures/identity.js";
 import { isBotIdentity } from "./figures/bot.js";
 
@@ -181,6 +182,57 @@ export function headerKinds(text: string): string[] {
   return HEADER_PATTERNS.filter(([, re]) => head.some((l) => re.test(l))).map(([kind]) => kind);
 }
 
+/**
+ * Contents of up to a few hundred blobs through `git cat-file --batch-check` (sizes) and `--batch` (contents, in chunks of at most
+ * 16 MB). null for a blob that is missing, over MAX_BLOB_BYTES or unreadable. Same result as one `cat-file -s` and one `cat-file blob`
+ * per file, with a handful of git processes instead of hundreds.
+ */
+async function readHeads(specs: string[], cwd: string): Promise<(string | null)[]> {
+  const out: (string | null)[] = specs.map(() => null);
+  if (!specs.length) return out;
+  const run = (args: string[], input: string): Promise<Buffer> =>
+    new Promise((resolveRun, reject) => {
+      const child = execFile("git", [...PINNED_CONFIG, ...args], { cwd, encoding: "buffer", maxBuffer: 64 * 1024 * 1024 }, (err, stdout) => (err ? reject(err) : resolveRun(stdout as Buffer)));
+      child.stdin?.end(input);
+    });
+  let sizes: string[];
+  try {
+    sizes = (await run(["cat-file", "--batch-check=%(objectsize)"], specs.join("\n") + "\n")).toString("utf8").split("\n");
+  } catch {
+    return out;
+  }
+  const todo: number[] = [];
+  specs.forEach((_, i) => {
+    const n = Number(sizes[i]);
+    if (Number.isFinite(n) && sizes[i] !== undefined && /^\d+$/.test(sizes[i]!) && n <= MAX_BLOB_BYTES) todo.push(i);
+  });
+  for (let at = 0; at < todo.length; ) {
+    let total = 0;
+    const chunk: number[] = [];
+    while (at < todo.length && (chunk.length === 0 || total + Number(sizes[todo[at]!]) <= 16 * 1024 * 1024)) {
+      total += Number(sizes[todo[at]!]);
+      chunk.push(todo[at++]!);
+    }
+    let buf: Buffer;
+    try {
+      buf = await run(["cat-file", "--batch"], chunk.map((i) => specs[i]).join("\n") + "\n");
+    } catch {
+      continue;
+    }
+    let pos = 0;
+    for (const i of chunk) {
+      const eol = buf.indexOf(0x0a, pos);
+      if (eol < 0) break;
+      const header = buf.toString("utf8", pos, eol).split(" ");
+      const size = Number(header[2]);
+      if (header[1] !== "blob" || !Number.isFinite(size)) { pos = eol + 1; continue; }
+      out[i] = buf.toString("utf8", eol + 1, eol + 1 + size);
+      pos = eol + 1 + size + 1;
+    }
+  }
+  return out;
+}
+
 const sha7 = (sha: string) => sha.slice(0, 7);
 const day = (d: Date) => (Number.isNaN(d.getTime()) ? "invalid date" : d.toISOString().slice(0, 10));
 
@@ -329,17 +381,16 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
       const large = [...added.values()].flatMap((s) => s.files.filter((f) => (f.added ?? 0) >= LARGE_FILE_LINES && !f.path.startsWith('"')).map((f) => ({ sha: s.sha, ...f })));
       const withHeader: { sha: string; path: string; added: number | null; kinds: string[] }[] = [];
       let inspected = 0;
-      for (const f of large.slice(0, MAX_FILES_READ)) {
-        try {
-          const size = Number((await git(["cat-file", "-s", `${f.sha}:${f.path}`], cwd)).trim());
-          if (!(size <= MAX_BLOB_BYTES)) continue;
-          const kinds = headerKinds(await git(["cat-file", "blob", `${f.sha}:${f.path}`], cwd));
-          inspected++;
-          if (kinds.length) withHeader.push({ ...f, kinds });
-        } catch {
-          // a blob that cannot be read is counted as not inspected below
-        }
-      }
+      // One batch call for the sizes and a few for the contents (at most 16 MB per call) instead of two git processes per file.
+      const wanted = large.slice(0, MAX_FILES_READ);
+      const heads = await readHeads(wanted.map((f) => `${f.sha}:${f.path}`), cwd);
+      wanted.forEach((f, i) => {
+        const text = heads[i];
+        if (text === null || text === undefined) return;
+        inspected++;
+        const kinds = headerKinds(text);
+        if (kinds.length) withHeader.push({ ...f, kinds });
+      });
       rows.push({ label: "large added files", value: large.length, filter: `${who}; ${LARGE_FILE_LINES} or more lines added in one commit; ${filter}${large.length > MAX_FILES_READ ? `; only the first ${MAX_FILES_READ} read` : ""}`, computed: true });
       rows.push({ label: "large added files with a licence, copyright or source-URL header", value: withHeader.length, filter: `first 12 lines of each large added file; ${inspected} of ${large.length} large files inspected (blobs over ${MAX_BLOB_BYTES} bytes, unreadable blobs and files past the first ${MAX_FILES_READ} are not); possible third-party file, a reader decides`, computed: true, detail: withHeader.slice(0, 5).map((f) => `${sha7(f.sha)} "${data(f.path, 70)}" ${f.added} lines added; header: ${f.kinds.join(", ")}`) });
     } catch (err) {
