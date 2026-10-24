@@ -234,7 +234,10 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
     .split("\n")
     .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count") && !l.includes("If the user names a folder"))
     .join("\n")
-    .replaceAll("a GitHub noreply address whose login matches the name or the address in git config", "");
+    .replaceAll("a GitHub noreply address whose login matches the name or the address in git config", "")
+    // The two sanctioned node uses: the availability check and the read-only brief call (checked below).
+    .replaceAll("command -v node >/dev/null 2>&1", "")
+    .replaceAll('node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500', "");
 
   const forbidden = [
     /\bcurl\b/, /\bwget\b/, /\bnc\b/, /\bnode\b/, /\bnpm\b/, /\bpython\d?\b/,
@@ -258,7 +261,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   const npxLines = script.split("\n").filter((l) => l.includes("npx"));
   assert.ok(npxLines.length >= 1, "output text must mention npx");
   for (const line of npxLines) {
-    assert.ok(/This request matches|verifiable figures|If the user names a folder/.test(line), `npx outside the output text: ${line}`);
+    assert.ok(/This request matches|verifiable figures|If the user names a folder|Counts, dates and claims come from the brief/.test(line), `npx outside the output text: ${line}`);
   }
 
   // Redirections: the only allowed targets are /dev/null and >&2.
@@ -390,7 +393,8 @@ test("(1) the count prompt states the merged total and group counts, names no ad
   assertHint(r.stdout);
   const ctx = contextOf(r.stdout);
   assert.ok(ctx.endsWith(" " + COUNT_SENTENCE + basisFor(1, [NOREPLY_PHRASE])), ctx);
-  for (const leak of ["@", "Jonathan", "Jon Other", "jonathanong", "Ong", "Someone", "example"]) {
+  // The brief prints names (data, not addresses), so the leaks checked are the address marks only.
+  for (const leak of ["@", "example"]) {
     assert.ok(!ctx.includes(leak), `leaked: ${leak}`);
   }
 });
@@ -424,22 +428,32 @@ test("(3) not a repository, no cwd, a missing cwd, or no git identity: exactly t
   const cases = [
     run(JSON.stringify({ prompt: ASK }), { cwd: nonRepo }),
     run(hookInputIn(ASK, join(nonRepo, "does-not-exist"))),
-    run(hookInputIn(ASK, noIdentity)),
   ];
   for (const r of cases) {
     assert.equal(r.status, 0);
     assert.equal(r.stderr, "");
     assert.equal(r.stdout, expected);
   }
+  // A repository with commits but no configured identity: the brief names the top author (the computed count needs an identity and stays absent).
+  const noId = run(hookInputIn(ASK, noIdentity));
+  assert.equal(noId.status, 0);
+  assert.equal(noId.stderr, "");
+  assertHint(noId.stdout);
+  const noIdCtx = contextOf(noId.stdout);
+  assert.ok(noIdCtx.startsWith(contextOf(expected)), noIdCtx);
+  assert.ok(noIdCtx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (top author), all history"), noIdCtx);
+  assert.ok(!noIdCtx.includes("Plain git count"), noIdCtx);
 });
 
-test("(4) a prompt for another rule with a repository cwd gives exactly the generic line", () => {
+test("(4) a prompt for another rule with a repository cwd gives the generic context, then the prepared brief, and no computed count", () => {
   const dir = personRepo();
   const cv = "Write CV bullets for my work in this repository.";
   const r = run(hookInputIn(cv, dir));
-  assert.equal(r.stdout, genericFor(cv));
   assertHint(r.stdout);
-  assert.ok(!r.stdout.includes("non-merge"));
+  const ctx = contextOf(r.stdout);
+  assert.ok(ctx.startsWith(contextOf(genericFor(cv))), ctx);
+  assert.ok(ctx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (configured)"), ctx);
+  assert.ok(!ctx.includes("Plain git count"), ctx);
 });
 
 test("(5) the frozen negatives add nothing even with a repository cwd", () => {
@@ -462,7 +476,7 @@ test("(6) the T6 task prompt with a repository cwd computes the count", () => {
   assert.match(contextOf(r.stdout), /Plain git count .* 10 non-merge commits across 4 address\(es\)/);
 });
 
-test("(7) a 10,001-commit repository: the hook computes in under 300 ms (median of five; 1000 ms on a busy machine)", () => {
+test("(7) a 10,001-commit repository: the hook answers within the brief budget plus the old 300 ms (1000 ms on a busy machine; median of five)", () => {
   const dir = makeRepo(CONFIGURED);
   fastImport(dir, 10001);
   const input = hookInputIn(COUNT, dir);
@@ -477,7 +491,8 @@ test("(7) a 10,001-commit repository: the hook computes in under 300 ms (median 
   }
   times.sort((a, b) => a - b);
   const busy = os.loadavg()[0] > os.cpus().length * 0.5;
-  const limit = busy ? 1000 : 300;
+  // The brief runs first with a 2500 ms budget and prints nothing when it cannot finish; the bound is that budget plus the old limit.
+  const limit = busy ? 1000 + 2500 : 300 + 2500;
   console.log(`10,001-commit repository median runtime: ${times[2].toFixed(1)} ms (busy machine: ${busy})`);
   assert.ok(times[2] < limit, `median ${times[2].toFixed(1)} ms (limit ${limit} ms)`);
 });
@@ -599,4 +614,36 @@ test("(13) a second address with the same local part on another domain gives the
   assert.match(ctx, /4 non-merge commits across 2 address\(es\): the configured one, 1 whose address name matches\. These are rules, not proof/);
   assert.ok(!ctx.includes("To record the basis"), ctx);
   assert.ok(!ctx.includes("Counted as the same person"), ctx);
+});
+
+// ---- Prepared brief: a matching prompt in a work tree carries it; nothing else does ----
+
+test("(14) a matching prompt in a git work tree carries the prepared brief and the steering sentence, and stays valid JSON", () => {
+  const dir = personRepo();
+  const r = run(hookInputIn(COUNT, dir));
+  assert.equal(r.status, 0);
+  assert.equal(r.stderr, "");
+  assertHint(r.stdout);
+  const ctx = contextOf(r.stdout);
+  assert.ok(ctx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (configured), all history, author date, local dates: repository commits: "), ctx);
+  assert.ok(ctx.includes("Counts, dates and claims come from the brief above or from `npx workproof figures|reviews|owner` (add --author, --since, --until for another person or window); do not recount by hand; a number you write that you did not take from a tool output is a guess."), ctx);
+});
+
+test("(15) a non-git cwd carries neither the brief nor the steering sentence", () => {
+  const ctx = contextOf(run(hookInputIn(COUNT, nonRepo)).stdout);
+  assert.ok(!ctx.includes("Prepared brief"), ctx);
+  assert.ok(!ctx.includes("Counts, dates and claims come from the brief"), ctx);
+});
+
+test("(16) a negative prompt with a repository cwd stays silent", () => {
+  const dir = personRepo();
+  const r = run(hookInputIn("Refactor the settings page CSS so the buttons use a grid layout.", dir));
+  assert.equal(r.status, 0);
+  assert.equal(r.stdout, "");
+});
+
+test("the brief is the only node call in the hint, and it is read-only with a budget", () => {
+  const calls = script.split("\n").filter((l) => /\bnode\b/.test(l) && !/^\s*#/.test(l));
+  assert.equal(calls.length, 2, calls.join("\n"));
+  assert.match(calls[1], /node "\$root\/dist\/src\/cli\.js" figures --brief --repo "\$cwd" --budget-ms 2500/);
 });

@@ -460,6 +460,12 @@ async function main() {
   }
   if (process.argv[2] === "figures") {
     process.exitCode = await runFigures(process.argv.slice(3));
+    // A brief that ran out of time may leave a git child running: exit now, the caller has its 0.
+    if (process.argv.includes("--brief")) {
+      // An empty write completes after everything written before it, so the brief is flushed before the exit.
+      await new Promise<void>((done) => process.stdout.write("", () => done()));
+      process.exit(process.exitCode ?? 0);
+    }
     return;
   }
   if (process.argv[2] === "reviews") {

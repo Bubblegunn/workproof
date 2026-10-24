@@ -90,7 +90,7 @@ test("prompts in a language other than English are a known limit: no match is re
 
 test("the UserPromptSubmit hook has a timeout", () => {
   const h = JSON.parse(readFileSync(join(root, "hooks", "hooks.json"), "utf8")).hooks.UserPromptSubmit[0].hooks[0];
-  assert.equal(h.timeout, 5);
+  assert.equal(h.timeout, 8);
 });
 
 test("the rules live in core-rules.md only: the hint carries the eight keywords and SKILL.md rule 9 is a pointer", () => {

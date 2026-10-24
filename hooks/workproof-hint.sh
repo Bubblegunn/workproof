@@ -172,6 +172,20 @@ addr_extra() {
   printf '%s' "$extra"
 }
 
+# brief_extra prints the prepared brief from `workproof figures --brief`, escaped as the rules block is, or nothing:
+# not a git work tree, the build or node missing, the command over its 2500 ms budget, or no output. Read-only.
+brief_extra() {
+  cwd=$(printf '%s' "$flat" | sed -E -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"([^"\\]*)".*/\1/p')
+  case $cwd in ''|*[\\]*) return 0 ;; esac
+  export GIT_OPTIONAL_LOCKS=0
+  [ "$(git -C "$cwd" rev-parse --is-inside-work-tree 2>/dev/null)" = true ] || return 0
+  [ -f "$root/dist/src/cli.js" ] || return 0
+  command -v node >/dev/null 2>&1 || return 0
+  b=$(node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500 2>/dev/null) || return 0
+  [ -n "$b" ] || return 0
+  printf '%s' "$b" | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}'
+}
+
 if [ -n "$lc" ] && [ "$match" = 1 ]; then
   extra=""
   if [ "$addr" = 1 ]; then extra=$(addr_extra); fi
@@ -187,6 +201,9 @@ if [ -n "$lc" ] && [ "$match" = 1 ]; then
   ctx="$ctx Intent class: $cls. The rules block below (also in $root/skills/workproof/references/core-rules.md) applies to any document about someone's work from the commit history or sessions, whether or not you run the tool; run \`workproof figures\` before counting; use the workproof report only for figures about the user's own work."
   rules=$(head -c 3000 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
   if [ -n "$rules" ]; then ctx="$ctx $rules"; fi
+  # The brief goes before the plain-git sentence, so the sentence still ends the context as before.
+  brief=$(brief_extra)
+  if [ -n "$brief" ]; then ctx="$ctx Prepared brief (from workproof figures, do not recount by hand): $brief Counts, dates and claims come from the brief above or from \`npx workproof figures|reviews|owner\` (add --author, --since, --until for another person or window); do not recount by hand; a number you write that you did not take from a tool output is a guess."; fi
   if [ -n "$extra" ]; then ctx="$ctx $extra"; fi
   printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$ctx"
 fi

@@ -1,7 +1,8 @@
 import { open, stat } from "node:fs/promises";
-import { resolve } from "node:path";
-import { git, configuredEmail, wallClock, instantOf } from "./git.js";
-import { foldIdentity, possibleSplits } from "./figures/identity.js";
+import { existsSync } from "node:fs";
+import { join, resolve } from "node:path";
+import { git, configuredEmail, configuredName, wallClock, instantOf } from "./git.js";
+import { foldIdentity, possibleSplits, SPLIT_CATEGORY } from "./figures/identity.js";
 import { isBotIdentity } from "./figures/bot.js";
 
 /**
@@ -17,6 +18,10 @@ export interface FiguresOptions {
   until?: string;
   doc?: string;
   json: boolean;
+  /** `--brief`: the short prepared summary of the whole history (see runBrief). */
+  brief?: boolean;
+  /** `--budget-ms` with `--brief`: the time after which nothing is printed. */
+  budgetMs?: number;
 }
 
 export interface FigureRow {
@@ -551,6 +556,12 @@ export function parseFiguresArgs(args: string[]): FiguresOptions {
     else if (a === "--until") opts.until = value();
     else if (a === "--doc") opts.doc = value();
     else if (a === "--json") opts.json = true;
+    else if (a === "--brief") opts.brief = true;
+    else if (a === "--budget-ms") {
+      const v = value();
+      if (!/^\d{1,9}$/.test(v)) throw new Error("--budget-ms needs a whole number of milliseconds");
+      opts.budgetMs = Number(v);
+    }
     else throw new Error(`unknown option ${a}`);
   }
   return opts;
@@ -558,7 +569,7 @@ export function parseFiguresArgs(args: string[]): FiguresOptions {
 
 /** `workproof figures`: returns the exit code, 0 whenever it ran and 1 for a usage error. */
 export async function runFigures(args: string[], out: { write(s: string): unknown } = process.stdout): Promise<number> {
-  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]";
+  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]\n       workproof figures --brief [--repo <dir>] [--budget-ms <n>]";
   let opts: FiguresOptions;
   try {
     opts = parseFiguresArgs(args);
@@ -566,8 +577,141 @@ export async function runFigures(args: string[], out: { write(s: string): unknow
     console.error(`${err instanceof Error ? err.message : String(err)}\n${usage}`);
     return 1;
   }
+  if (opts.brief) {
+    if (opts.json || opts.doc || opts.authors.length || opts.since || opts.until) {
+      console.error(`--brief takes only --repo and --budget-ms\n${usage}`);
+      return 1;
+    }
+    return runBrief(opts.repo, opts.budgetMs ?? 3000, out);
+  }
+  if (opts.budgetMs !== undefined) {
+    console.error(`--budget-ms needs --brief\n${usage}`);
+    return 1;
+  }
   const result = await computeFigures(opts);
   if (opts.doc) result.doc = await readBack(opts.doc, result.rows);
   out.write(opts.json ? `${JSON.stringify(result, null, 2)}\n` : renderFigures(result, result.rows.some((r) => r.computed && typeof r.value === "number")));
+  return 0;
+}
+
+// ---- `workproof figures --brief`: a short prepared summary of the whole history, for the prompt hint. ----
+
+export const BRIEF_MAX_COMMITS = 20000;
+const BRIEF_TOP_AUTHORS = 5;
+const WEBMAIL_DOMAIN = /^(?:gmail|googlemail|outlook|hotmail|live|msn|yahoo|icloud|me|mac|proton|protonmail|pm|gmx|qq|163|126|yandex)\.[a-z]{2,}(?:\.[a-z]{2})?$/;
+
+export type AddressKind = "organisational" | "personal webmail" | "noreply" | "bot" | "unknown";
+
+/** The kind of an address, never the address itself. Bots first, then noreply, then webmail; a domain with no dot, or a local-only one, is unknown. */
+export function addressKind(email: string): AddressKind {
+  const e = email.trim().toLowerCase();
+  if (isBotIdentity(e)) return "bot";
+  const at = e.lastIndexOf("@");
+  if (at < 1 || at === e.length - 1) return "unknown";
+  const local = e.slice(0, at);
+  const domain = e.slice(at + 1);
+  if (domain === "users.noreply.github.com" || /^(?:noreply|no-reply|donotreply)(?:[+.-]|$)/.test(local) || /(?:^|\.)noreply\./.test(domain)) return "noreply";
+  if (WEBMAIL_DOMAIN.test(domain)) return "personal webmail";
+  if (!domain.includes(".") || /\.(?:local|localdomain|internal|lan)$/.test(domain)) return "unknown";
+  return "organisational";
+}
+
+/** The no-address guarantee: every line the brief prints passes through here, so anything that looks like an address becomes a placeholder. */
+export const withoutAddresses = (s: string): string => s.replace(/\S*@\S*/g, "[address removed]");
+
+/** A display name as printed: control characters out, 40 characters at most. The address guarantee is applied once, to the whole output. */
+const briefName = (s: string): string => data(s, 40);
+
+const mostCommon = (counts: Map<string, number> | undefined): string | undefined => {
+  if (!counts?.size) return undefined;
+  return [...counts].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))[0]![0];
+};
+
+/** The brief lines, or undefined when nothing should be printed: not a git work tree, no HEAD, more than BRIEF_MAX_COMMITS commits, no identity at all. */
+export async function briefLines(repo: string): Promise<string[] | undefined> {
+  const cwd = resolve(repo);
+  if (!(await git(["rev-parse", "--is-inside-work-tree"], cwd).then((s) => s.trim() === "true", () => false))) return undefined;
+  const counted = await git(["rev-list", "--count", `--max-count=${BRIEF_MAX_COMMITS + 1}`, "HEAD"], cwd).then((s) => Number(s.trim()), () => Number.NaN);
+  if (!Number.isInteger(counted) || counted < 1 || counted > BRIEF_MAX_COMMITS) return undefined;
+  const { commits: log } = await readLog(cwd);
+  const nonMerge = log.filter((c) => c.parents <= 1);
+
+  // Names per address over every commit; the top authors are ranked by non-merge commits per address.
+  const namesOf = new Map<string, Map<string, number>>();
+  for (const c of log) {
+    const counts = namesOf.get(c.email) ?? new Map<string, number>();
+    counts.set(c.name, (counts.get(c.name) ?? 0) + 1);
+    namesOf.set(c.email, counts);
+  }
+  const commitsOf = new Map<string, number>();
+  for (const c of nonMerge) commitsOf.set(c.email, (commitsOf.get(c.email) ?? 0) + 1);
+  const ranked = [...commitsOf].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0));
+
+  const configured = await configuredEmail(cwd);
+  let identity = configured;
+  let source = "configured";
+  if (!identity) {
+    if (!ranked.length) return undefined;
+    identity = ranked[0]![0];
+    source = "top author";
+  }
+  const configuredNameText = configured ? await configuredName(cwd) : "";
+  const displayName = briefName(configuredNameText || mostCommon(namesOf.get(identity)) || "(no name)");
+
+  const figures = await computeFigures({ repo: cwd, authors: [identity], json: false });
+  const row = (label: string): string => String(figures.rows.find((r) => r.label === label)?.value ?? "not computed (no such figure)");
+
+  // Identity candidates by kind. The same rules as the report's split warning; only the counts leave this function.
+  const splits = possibleSplits(nonMerge.map((c) => ({ name: c.name, email: c.email })), { emails: [identity], names: [...(namesOf.get(identity)?.keys() ?? [])] });
+  const sameName = splits.filter((s) => s.category === SPLIT_CATEGORY.sameName).length;
+  const sameLocal = splits.length - sameName;
+  const viaTrailer = nonMerge.filter((c) => c.email !== identity && c.coAuthors.includes(identity)).length;
+
+  let shallow = false;
+  try {
+    shallow = (await git(["rev-parse", "--is-shallow-repository"], cwd)).trim() === "true";
+  } catch {
+    // an old git without the flag: the clone is reported as not shallow
+  }
+  let mailmap = false;
+  try {
+    const top = (await git(["rev-parse", "--show-toplevel"], cwd)).trim();
+    mailmap = existsSync(join(top, ".mailmap"));
+  } catch {
+    // no top-level directory: no mailmap to report
+  }
+
+  const lines = [
+    `Brief for ${displayName} (${source}), all history, author date, local dates:`,
+    `repository commits: ${counted}`,
+    `shallow clone: ${shallow ? "yes" : "no"}`,
+    `.mailmap: ${mailmap ? "present" : "absent"}`,
+    `authored non-merge commits: ${row("authored non-merge commits")}`,
+    `first authored commit date: ${row("first authored commit date")}`,
+    `last authored commit date: ${row("last authored commit date")}`,
+    `active months: ${row("active months")}`,
+    `gaps over 30 days: ${row("gaps over 30 days")}`,
+    `merge commits by the identity: ${row("merge commits by the identities")}`,
+    `revert commits: ${row("revert commits")}`,
+    `whitespace-only commits: ${row("whitespace-only commits")}`,
+    `large added files with a licence, copyright or source header: ${row("large added files with a licence, copyright or source-URL header")}`,
+    `identity candidates: ${sameName} other address(es) with the same name`,
+    `identity candidates: ${sameLocal} with the same local part`,
+    `identity candidates: ${viaTrailer} via Co-authored-by trailers`,
+  ];
+  ranked.slice(0, BRIEF_TOP_AUTHORS).forEach(([email, n], i) => {
+    lines.push(`top author ${i + 1}: ${briefName(mostCommon(namesOf.get(email)) ?? "(no name)")}: ${n} ${n === 1 ? "commit" : "commits"}, ${addressKind(email)}`);
+  });
+  return lines;
+}
+
+/** `workproof figures --brief`: prints the brief, or nothing when it cannot finish within budgetMs. Always returns 0. Read-only. */
+export async function runBrief(repo: string, budgetMs: number, out: { write(s: string): unknown }): Promise<number> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<undefined>((resolveLate) => {
+    timer = setTimeout(() => resolveLate(undefined), budgetMs);
+  });
+  const lines = await Promise.race([briefLines(repo).catch(() => undefined), late]).finally(() => clearTimeout(timer));
+  if (lines) out.write(`${lines.map(withoutAddresses).join("\n")}\n`);
   return 0;
 }
