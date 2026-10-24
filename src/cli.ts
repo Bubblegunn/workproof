@@ -10,7 +10,7 @@ import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, na
 import type { Params, Report, RepoReport, CountersignatureReading, MergeNotice } from "./index.js";
 import { buildVerdict, parseReportText } from "./verdict.js";
 import { buildBullets, DEFAULT_MAX_WORDS } from "./bullets.js";
-import { stopCheck } from "./stopcheck.js";
+import { stopCheckAsync } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
 import { runFigures } from "./figures.js";
 
@@ -422,19 +422,21 @@ export async function runMine(args: string[]): Promise<number> {
 }
 
 /** `workproof stop-check`: the Stop hook. Reads the hook JSON on stdin, prints a block decision or nothing, and always exits 0. */
-function runStopCheck(): void {
+async function runStopCheck(): Promise<void> {
   let line = "";
   try {
-    line = stopCheck(readFileSync(0, "utf8"));
+    line = await stopCheckAsync(readFileSync(0, "utf8"));
   } catch {
     line = "";
   }
-  if (line) process.stdout.write(`${line}\n`);
+  // Exit at once: a figures run that outlived its budget must not keep the hook waiting.
+  if (line) process.stdout.write(`${line}\n`, () => process.exit(0));
+  else process.exit(0);
 }
 
 async function main() {
   if (process.argv[2] === "stop-check") {
-    runStopCheck();
+    await runStopCheck();
     return;
   }
   if (process.argv[2] === "sessions") runSessions(process.argv.slice(3));

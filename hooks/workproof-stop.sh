@@ -1,7 +1,8 @@
 #!/bin/sh
 # workproof Stop hook. Pipes the hook input JSON to `workproof stop-check`, which prints one
-# {"decision":"block",...} line only when the final answer shows an email address or leaves out the Gaps.
-# Read-only, no network, exit 0 always; any failure prints nothing; the hook timeout in hooks.json bounds the run.
+# {"decision":"block",...} line only when the final answer shows an email address, leaves out the Gaps, or states a
+# commit count or first/last date that differs slightly from `workproof figures` (the answer check, bounded to 6 seconds).
+# Read-only, no network, exit 0 always; any failure prints nothing; the hook timeout in hooks.json (12 s) bounds the run.
 dir=$(dirname "$0")
 cli="$dir/../dist/src/cli.js"
 input=$(cat)

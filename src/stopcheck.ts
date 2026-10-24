@@ -2,6 +2,7 @@ import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs"
 import { execFileSync } from "node:child_process";
 import { isAbsolute, resolve } from "node:path";
 import { countWords, DEFAULT_MAX_WORDS } from "./bullets.js";
+import { answerReason } from "./answercheck.js";
 
 /** What the Stop hook receives on stdin. */
 export interface StopInput {
@@ -23,6 +24,10 @@ export interface Turn {
   finalText: string;
   /** The text of the user message that started the turn; empty when the transcript has none. */
   prompt?: string;
+  /** The files the turn wrote with the Write tool, in order: the path and the content. */
+  writes?: { file: string; content: string }[];
+  /** The text of every tool result of the turn, whatever the tool. */
+  outputs?: string[];
 }
 
 const MAX_TAIL = 5 * 1024 * 1024;
@@ -104,26 +109,31 @@ export function parseTurn(jsonl: string): Turn {
   });
   const commands = new Map<string, string>();
   const runs: Run[] = [];
+  const writes: { file: string; content: string }[] = [];
+  const outputs: string[] = [];
   let finalText = "";
   for (const l of lines.slice(start)) {
     if (l.type === "assistant") {
       const texts: string[] = [];
       for (const b of blocksOf(l)) {
         if (b.type === "tool_use" && typeof b.id === "string") {
-          const cmd = (b.input as { command?: unknown } | undefined)?.command;
+          const input = b.input as { command?: unknown; file_path?: unknown; content?: unknown } | undefined;
+          const cmd = input?.command;
           if (b.name === "Bash" && typeof cmd === "string" && invocations(cmd).length > 0) commands.set(b.id, cmd);
+          if (b.name === "Write" && typeof input?.file_path === "string" && typeof input.content === "string") writes.push({ file: input.file_path, content: input.content });
         } else if (b.type === "text" && typeof b.text === "string") texts.push(b.text);
       }
       if (texts.length) finalText = texts.join("\n");
     } else if (l.type === "user") {
       for (const b of blocksOf(l)) {
         if (b.type !== "tool_result" || typeof b.tool_use_id !== "string") continue;
+        outputs.push(resultText(b));
         const command = commands.get(b.tool_use_id);
         if (command !== undefined) runs.push({ command, output: resultText(b) });
       }
     }
   }
-  return { runs, finalText, prompt };
+  return { runs, finalText, prompt, writes, outputs };
 }
 
 /** Lowercase, NFKC-normalised text, so a fullwidth or compatibility form of an address still matches. */
@@ -252,6 +262,26 @@ export function stopCheck(stdin: string): string {
     const turn = parseTurn(tail);
     if (!turn.runs.length) return "";
     const reason = evaluate(turn, cwd, repoEmails(cwd));
+    return reason === null ? "" : JSON.stringify({ decision: "block", reason });
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * The hook line with the answer check added: the synchronous checks run first and a block from them wins; when they
+ * allow, the answer check (src/answercheck.ts) runs. Same contract as stopCheck: empty string to allow, else one JSON
+ * line. Never throws.
+ */
+export async function stopCheckAsync(stdin: string): Promise<string> {
+  try {
+    const sync = stopCheck(stdin);
+    if (sync) return sync;
+    const input = JSON.parse(stdin) as StopInput;
+    if (input.stop_hook_active === true || typeof input.transcript_path !== "string") return "";
+    const cwd = typeof input.cwd === "string" && input.cwd ? input.cwd : process.cwd();
+    const turn = parseTurn(readTail(input.transcript_path));
+    const reason = await answerReason(turn, cwd);
     return reason === null ? "" : JSON.stringify({ decision: "block", reason });
   } catch {
     return "";
