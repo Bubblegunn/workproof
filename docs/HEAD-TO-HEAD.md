@@ -1462,3 +1462,27 @@ Tasks. Three fresh Sonnet writers (W10, W11, W12), each given one plain paragrap
 Arms and cells: OURS (commit `02af6c0`, `git archive`, `npm ci`, build, `bench/` removed), BASE, RCP, RCP_I, CV, CV_I on all 15 tasks, 3 runs each (270 cells), same pins and wrapper as gate 3, working folder under `/private/tmp`, `guard.sh` around every run, `H2H_HOOK_EVENTS=1`. Grading: five blind reason-first votes (`r14/grade-r14.sh`, `r14/assemble-r14.py`; a vote that does not parse is asked again with the same prompt, never replaced by a different shuffle), `r15/score-r15.py --labels`, outcome criteria only, seed prefix `r15-gate4`.
 
 Clear lead = all of: (1) the lower bound of the 95 percent bootstrap interval (10,000 resamples of the runs inside each task and arm, seed `r15-gate4`) of OURS minus the best other arm over all 15 tasks is above zero; (2) on each of W10, W11 and W12 alone OURS total is at least the best other arm's total; (3) mean list-price cost per OURS cell is at most 1.6 times the mean cost per BASE cell; (4) every cell's working directory is under `/private/tmp` and no owner instruction file is loaded. If (1) to (4) hold, the next step is a sealed final on a further fresh writer's set with a frozen protocol; if not, the result is recorded as it is, diagnosis is limited to the failed conditions, and no condition is changed afterwards. Scripts: `r15/make-gate4.py`, `r15/run-gate4.sh`.
+
+## Round 15, gate 4 result (2026-10-25): OURS is behind; no lead
+
+Run as frozen in `bbaebfa`: 270 cells (15 tasks W10 to W12, 6 arms, 3 runs), 0 failed, five blind reason-first votes (four unreadable votes were asked again with the same prompt; attempt files are not votes). Data and the writers' task sources: `bench/head-to-head/results/round15-gate4/`.
+
+Totals (outcome criteria, maximum 75): BASE 65.33, CV_I 64.33, CV 64.00, RCP 62.00, RCP_I 61.33, OURS 60.00. OURS minus best other arm = -5.33; 95 percent bootstrap interval (seed `r15-gate4`) [-9.00, -2.33].
+
+| Condition | Result |
+|---|---|
+| (1) interval lower bound above zero | FAIL (-9.00) |
+| (2) OURS at least the best other arm on each writer | FAIL: W10 16.33 vs BASE 23.33; W11 21.00 vs 21.00 (pass); W12 22.66 vs 22.00 (pass) |
+| (3) cost per OURS cell at most 1.6 times BASE | FAIL: 0.2038 vs 0.1144 USD, ratio 1.78 |
+| (4) folders under /private/tmp | pass |
+
+Result: not a clear lead; it is a loss on W10 and no gain elsewhere beyond noise. The sealed final is not started. The conditions are not changed.
+
+Diagnosis of the failed conditions (W10 is now read material; capabilities, not fixtures):
+1. Future author date with an in-window committer date (a clock error): OURS dropped the commit from the count in all 3 runs (W10T5: 1.00 against 5.00 for BASE). Rules 2 and 8 say author date and "omit future dates from dated lists", which was applied to counts. A count of contributors should include the person, flagged, by the committer date.
+2. Reverted work in a headline figure: a request for a figure "I can defend" was answered with the reverted lines inside the headline table in 2 of 3 runs (W10T2). Rule 6 (written for the user's own work) keeps reverted work in lines written. For a person's lasting contribution the headline should exclude the reverted pair and show it beside.
+3. One person split across roles or addresses in a thank-you list (W10T3): the same person appeared as two rows (author and co-author, or two reports of one reporter) and the window was applied on author date in the local offset instead of the UTC instant the user asked for.
+4. Cost: mean cost per OURS cell rose to 1.78 times BASE (0.204 against 0.114 USD), outside the limit; cells for the long tasks spend extra turns on rules and tool calls that do not change the answer.
+5. Across both gates the lead is concentrated on tasks with a hazard the rules name (identity, reverts, vendored code). On a writer whose job (funder reports) puts the hazards elsewhere, the plain model matched or beat the product. This is the generalisation gap the brief describes; two iterations of rule edits on read sets (gates 2 and 3) did not close it.
+
+Not changed in the product after this gate (decision): the three rule edits above need space in `core-rules.md`, which is at its 4,300-character limit, and each edit was derived from one read task. A fourth gate on rule edits alone is unlikely to show an interval above zero, because the fresh-writer result moved from +3.67 (gate 3, read-derived fixes not yet applied) to -5.33 (gate 4) with the fixes applied. Options for the owner: (a) stop the Sonnet first-place claim for workproof and publish the measured scope (tasks about identity, reverts and vendored code, where OURS leads); (b) a redesign that removes cost and rule volume (a lighter hint, the deterministic CLI doing the identity and window decisions instead of prose rules) before a further gate on two fresh writers; (c) continue per the brief with the three rule edits and a gate on W13 to W15. No release, merge or publication was made.

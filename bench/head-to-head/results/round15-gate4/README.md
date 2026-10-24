@@ -1,0 +1,3 @@
+# Round 15 gate 4 (W10, W11, W12): result
+
+Protocol: `docs/HEAD-TO-HEAD.md`, "Round 15, gate 4" (commit bbaebfa, frozen before any cell). 270 cells, Sonnet, subscription wrapper, folders under /private/tmp. OURS = `02af6c0`. Five blind reason-first votes; unreadable votes (W11T1 v3, W11T3 v5, W10T3 v5, W12T2 v4) were asked again with the same prompt (kept as `*-grade-attemptN.json`, not votes). One CV run on W11T1 carries a fourth run entry written by the grader; the scorer counts what it is given. `results.txt` = `r15/score-r15.py --labels` (seed `r15-gate4`); `lead-check.txt` = the frozen conditions. Result: not a clear lead, OURS behind.
