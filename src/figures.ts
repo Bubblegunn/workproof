@@ -233,6 +233,157 @@ async function readHeads(specs: string[], cwd: string): Promise<(string | null)[
   return out;
 }
 
+// ---- Net lines: the added lines that are the identity's own writing, each exclusion counted once. ----
+
+/** Added files whose blobs are read for a header or a generated marker. Files past this in commit order are not read. */
+const MAX_HEADER_FILES = 400;
+/** Path segments that mark vendored or build output: a path with any of these segments is excluded whatever it holds. */
+const VENDOR_SEGMENTS = new Set(["vendor", "node_modules", "third_party", "third-party", "dist", "build", ".yarn", "site-packages"]);
+const LOCK_FILES = new Set(["package-lock.json", "yarn.lock", "pnpm-lock.yaml", "Cargo.lock", "go.sum", "poetry.lock", "Gemfile.lock"]);
+const GENERATED_RE = /@generated|DO NOT EDIT|auto-?generated/i;
+const COMMENT_LINE_RE = /^\s*(?:\/\/|#|\/\*|\*|--|<!--)/;
+
+/** Vendored, minified, lock and build-output paths, by a segment or by the file name. */
+export function isVendoredPath(path: string): boolean {
+  const segments = path.split("/");
+  const base = segments[segments.length - 1] ?? "";
+  return segments.some((s) => VENDOR_SEGMENTS.has(s)) || LOCK_FILES.has(base) || base.endsWith(".min.js") || base.endsWith(".min.css") || base.endsWith(".lock");
+}
+
+/** A comment line within the first 5 lines that names the file as generated. */
+export function generatedMarker(text: string): boolean {
+  return text.split("\n").slice(0, 5).some((l) => {
+    const t = l.slice(0, 300);
+    return COMMENT_LINE_RE.test(t) && GENERATED_RE.test(t);
+  });
+}
+
+const EXCLUSION_REASONS = ["third-party header", "vendored or generated path", "whitespace-only commits", "exact copies"] as const;
+type ExclusionReason = (typeof EXCLUSION_REASONS)[number];
+
+interface Exclusion { sha: string; path: string; lines: number; reason: ExclusionReason; note: string }
+
+interface AddedScan {
+  /** sha -> path -> blob id, for the files each commit added (renames off, so a moved file is a delete and an add). */
+  added: Map<string, Map<string, string>>;
+  /** blob id -> the first commit that added or modified a file to that content, once per path, in history order. */
+  origin: Map<string, { path: string; sha: string; pos: number }[]>;
+  /** sha -> position in history order (parents first). */
+  pos: Map<string, number>;
+}
+
+/**
+ * One `git log` over every commit reachable from HEAD, parents before children. Records each added file's blob id, and the first
+ * blob each path held (added or modified). Merges are skipped: their content is already in the parents' records.
+ */
+async function addedScan(cwd: string): Promise<AddedScan> {
+  const out = await git(["-c", "core.quotepath=false", "log", "--reverse", "--topo-order", "--root", "--no-merges", "--no-renames", "--diff-filter=AM", "--raw", "--no-abbrev", "--format=%x1e%H", "HEAD"], cwd);
+  const scan: AddedScan = { added: new Map(), origin: new Map(), pos: new Map() };
+  out.split("\x1e").forEach((block, pos) => {
+    const [head, ...rest] = block.split("\n");
+    const sha = head?.trim() ?? "";
+    if (!/^[0-9a-f]{40,64}$/.test(sha)) return;
+    scan.pos.set(sha, pos);
+    for (const line of rest) {
+      const m = line.match(/^:\d{6} \d{6} [0-9a-f]+ ([0-9a-f]{40,64}) (A|M)\t(.*)$/);
+      if (!m) continue;
+      const blob = m[1]!;
+      const path = m[3]!;
+      if (m[2] === "A") {
+        const files = scan.added.get(sha) ?? new Map<string, string>();
+        files.set(path, blob);
+        scan.added.set(sha, files);
+      }
+      const list = scan.origin.get(blob) ?? [];
+      if (!list.some((e) => e.path === path)) list.push({ path, sha, pos });
+      scan.origin.set(blob, list);
+    }
+  });
+  return scan;
+}
+
+interface NetLines {
+  /** Raw added lines of the identity's non-merge commits, binary files not counted. */
+  total: number;
+  net: number;
+  counts: Record<ExclusionReason, number>;
+  exclusions: Exclusion[];
+  /** Added text files whose blob was read, of all added text files. */
+  inspected: number;
+  addedText: number;
+  /** The commit with most raw added lines, when the identity added any. */
+  top?: { sha: string; added: number };
+}
+
+/**
+ * The net figure. A line is excluded under the first of (a) to (d) that matches: (a) an added file whose first 12 lines carry a header,
+ * (b) a vendored, minified, lock or generated path, (c) a whitespace-only commit, (d) an exact copy of a blob that another path held earlier.
+ */
+async function netLines(cwd: string, shas: string[], raw: Map<string, Numstat>, wsOnly: Set<string>): Promise<NetLines> {
+  const scan = await addedScan(cwd);
+  const addedByKey = new Map<string, { sha: string; path: string; blob: string }>();
+  for (const sha of shas) {
+    for (const f of raw.get(sha)?.files ?? []) {
+      const blob = scan.added.get(sha)?.get(f.path);
+      if (blob && f.added !== null) addedByKey.set(`${sha} ${f.path}`, { sha, path: f.path, blob });
+    }
+  }
+  // Header and generated-marker reads: the first MAX_HEADER_FILES added text files, in commit order, one read per distinct blob.
+  const readKeys = new Set([...addedByKey.keys()].slice(0, MAX_HEADER_FILES));
+  const blobs = [...new Set([...addedByKey].filter(([k]) => readKeys.has(k)).map(([, v]) => v.blob))];
+  const heads = await readHeads(blobs, cwd);
+  const textOf = new Map(blobs.map((b, i) => [b, heads[i] ?? null] as const));
+  const bodyOf = (key: string): string | null => (readKeys.has(key) ? textOf.get(addedByKey.get(key)!.blob) ?? null : null);
+  const inspected = [...addedByKey.keys()].filter((k) => bodyOf(k) !== null).length;
+
+  const copyOf = (sha: string, path: string, blob: string): { path: string; sha: string } | undefined => {
+    const here = scan.pos.get(sha);
+    if (here === undefined) return undefined;
+    const earlier = (scan.origin.get(blob) ?? []).find((e) => e.path !== path && e.pos < here);
+    return earlier ? { path: earlier.path, sha: earlier.sha } : undefined;
+  };
+
+  const counts = Object.fromEntries(EXCLUSION_REASONS.map((r) => [r, 0])) as Record<ExclusionReason, number>;
+  const exclusions: Exclusion[] = [];
+  const perCommit = new Map<string, number>();
+  let total = 0;
+  for (const sha of shas) {
+    for (const f of raw.get(sha)?.files ?? []) {
+      if (f.added === null || f.added === 0) continue;
+      total += f.added;
+      perCommit.set(sha, (perCommit.get(sha) ?? 0) + f.added);
+      const key = `${sha} ${f.path}`;
+      const add = addedByKey.get(key);
+      const body = add ? bodyOf(key) : null;
+      const kinds = body !== null ? headerKinds(body) : [];
+      let hit: { reason: ExclusionReason; note: string } | undefined;
+      if (kinds.length) hit = { reason: "third-party header", note: kinds.join(", ") };
+      else if (isVendoredPath(f.path)) hit = { reason: "vendored or generated path", note: "path rule" };
+      else if (body !== null && generatedMarker(body)) hit = { reason: "vendored or generated path", note: "generated marker" };
+      else if (wsOnly.has(sha)) hit = { reason: "whitespace-only commits", note: "every change is whitespace under git -w" };
+      else if (add) {
+        const copy = copyOf(sha, f.path, add.blob);
+        if (copy) hit = { reason: "exact copies", note: `copy of "${data(copy.path, 70)}" from ${sha7(copy.sha)}` };
+      }
+      if (hit) {
+        counts[hit.reason] += f.added;
+        exclusions.push({ sha, path: f.path, lines: f.added, reason: hit.reason, note: hit.note });
+      }
+    }
+  }
+  const excluded = Object.values(counts).reduce((t, n) => t + n, 0);
+  const best = [...perCommit].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))[0];
+  return {
+    total,
+    net: total - excluded,
+    counts,
+    exclusions,
+    inspected,
+    addedText: addedByKey.size,
+    ...(best ? { top: { sha: best[0], added: best[1] } } : {}),
+  };
+}
+
 const sha7 = (sha: string) => sha.slice(0, 7);
 const day = (d: Date) => (Number.isNaN(d.getTime()) ? "invalid date" : d.toISOString().slice(0, 10));
 
@@ -265,7 +416,7 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
     head = sha7((await git(["rev-parse", "HEAD"], cwd)).trim());
   } catch (err) {
     const reason = windowError || reasonOf(err);
-    for (const label of ["authored non-merge commits", "first authored commit date", "last authored commit date", "active months", "gaps over 30 days", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future"]) rows.push(notComputed(label, filter, reason));
+    for (const label of ["authored non-merge commits", "first authored commit date", "last authored commit date", "active months", "gaps over 30 days", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future", "lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, reason));
     return result();
   }
   if (windowError) {
@@ -356,8 +507,9 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
 
   // Numstat figures: raw, with whitespace ignored, and the added files that are large.
   const shas = mine.map((c) => c.sha);
+  const byHash = new Map(log.map((c) => [c.sha, c] as const));
   if (!identity.emails.length) {
-    for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header"]) rows.push(notComputed(label, filter, noIdentity));
+    for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header", "lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, noIdentity));
   } else {
     try {
       const raw = await numstatOf(shas, cwd, {});
@@ -377,6 +529,45 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
       rows.push({ label: "lines deleted, raw", value: sum(raw, "deleted"), filter: lineFilter, computed: true });
       rows.push({ label: "lines added, whitespace ignored", value: sum(wsFree, "added"), filter: `${lineFilter}; git -w`, computed: true });
       rows.push({ label: "lines deleted, whitespace ignored", value: sum(wsFree, "deleted"), filter: `${lineFilter}; git -w`, computed: true });
+      // Net lines and their reasons: its own try, so a failure here leaves the rows above in place.
+      const pct = (part: number, whole: number) => `${((part / whole) * 100).toFixed(1)}%`;
+      const rawAdded = sum(raw, "added");
+      try {
+        const net = await netLines(cwd, shas, raw, new Set(wsOnly));
+        const c = net.counts;
+        const sorted = [...net.exclusions].sort((a, b) => b.lines - a.lines || (a.sha < b.sha ? -1 : a.sha > b.sha ? 1 : 0) || (a.path < b.path ? -1 : a.path > b.path ? 1 : 0));
+        const ruleFilter = `(a) third-party header: added files whose first 12 lines carry a licence, copyright or source-URL header; ${net.inspected} of ${net.addedText} added files inspected (binary files not counted; the first ${MAX_HEADER_FILES} in commit order are read, blobs over ${MAX_BLOB_BYTES} bytes are not); (b) vendored or generated: a path with a vendor, node_modules, third_party, third-party, dist, build, .yarn or site-packages segment, a .min.js, .min.css or .lock file, or a listed lock file, or an inspected added file with a generated marker in its first 5 comment lines; (c) whitespace-only commits; (d) exact copies: an added file whose blob an earlier commit added or modified at another path; each line counted once under the first matching reason; reverted work is not subtracted`;
+        rows.push({ label: "lines written, net of exclusions", value: net.net, filter: `${who}; non-merge commits; ${filter}; raw added lines (numstat, binary files not counted) of those commits minus the lines excluded by ${ruleFilter}`, computed: true });
+        rows.push({
+          label: "lines excluded, by reason",
+          value: `third-party header ${c["third-party header"]}, vendored or generated path ${c["vendored or generated path"]}, whitespace-only commits ${c["whitespace-only commits"]}, exact copies ${c["exact copies"]}`,
+          filter: `${who}; the lines of the net figure above, counted once under the first reason that matches in the order (a), (b), (c), (d); ${filter}`,
+          computed: true,
+          detail: sorted.slice(0, 5).map((e) => `${sha7(e.sha)} "${data(e.path, 70)}" ${e.lines} lines, ${e.reason}${e.note ? `: ${e.note}` : ""}`),
+        });
+        const top = net.top;
+        const topCommit = top ? byHash.get(top.sha) : undefined;
+        rows.push({
+          label: "largest commit by lines added",
+          value: top ? `${sha7(top.sha)}, ${top.added} lines, ${pct(top.added, net.total)} of the identity's lines added` : "no lines added by the identity in the window",
+          filter: `${who}; the one non-merge commit with the most raw added lines (binary files not counted); the percentage is of the raw total above; ${filter}`,
+          computed: true,
+          detail: topCommit ? [`subject "${data(topCommit.body.split("\n")[0] ?? "", 70)}"`] : [],
+        });
+      } catch (err) {
+        const reason = reasonOf(err);
+        for (const label of ["lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added"]) rows.push(notComputed(label, filter, reason));
+      }
+      const commitsFilter = `${who}; authored non-merge commits in the window divided by every author's non-merge commits in the window; ${filter}`;
+      rows.push(windowed.length ? { label: "share of non-merge commits by the identity", value: pct(mine.length, windowed.length), filter: `${commitsFilter} (denominator ${windowed.length}, bots included)`, computed: true } : notComputed("share of non-merge commits by the identity", commitsFilter, "no non-merge commit by any author in the window"));
+      try {
+        const every = await numstatOf(windowed.map((c) => c.sha), cwd, {});
+        const everyAdded = sum(every, "added");
+        const linesFilter = `${who}; raw added lines (numstat, binary files not counted) of the identity's non-merge commits divided by those of every author's non-merge commits in the window (denominator ${everyAdded}, bots included); ${filter}`;
+        rows.push(everyAdded > 0 ? { label: "share of lines added by the identity", value: pct(rawAdded, everyAdded), filter: linesFilter, computed: true } : notComputed("share of lines added by the identity", linesFilter, "no lines added by any author in the window"));
+      } catch (err) {
+        rows.push(notComputed("share of lines added by the identity", `${who}; ${filter}`, reasonOf(err)));
+      }
       const added = await numstatOf(shas, cwd, { addedOnly: true });
       const large = [...added.values()].flatMap((s) => s.files.filter((f) => (f.added ?? 0) >= LARGE_FILE_LINES && !f.path.startsWith('"')).map((f) => ({ sha: s.sha, ...f })));
       const withHeader: { sha: string; path: string; added: number | null; kinds: string[] }[] = [];
@@ -395,7 +586,7 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
       rows.push({ label: "large added files with a licence, copyright or source-URL header", value: withHeader.length, filter: `first 12 lines of each large added file; ${inspected} of ${large.length} large files inspected (blobs over ${MAX_BLOB_BYTES} bytes, unreadable blobs and files past the first ${MAX_FILES_READ} are not); possible third-party file, a reader decides`, computed: true, detail: withHeader.slice(0, 5).map((f) => `${sha7(f.sha)} "${data(f.path, 70)}" ${f.added} lines added; header: ${f.kinds.join(", ")}`) });
     } catch (err) {
       const reason = reasonOf(err);
-      for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header"]) rows.push(notComputed(label, filter, reason));
+      for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header", "lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, reason));
     }
   }
 
@@ -678,6 +869,12 @@ const mostCommon = (counts: Map<string, number> | undefined): string | undefined
   return [...counts].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))[0]![0];
 };
 
+/** The share of the largest commit, from its figure text; the text itself when no share is there (not computed, or no lines). */
+const largestShare = (text: string): string => {
+  const m = text.match(/, (\d+(?:\.\d+)?)% of the identity/);
+  return m ? `${m[1]}% of lines added` : text;
+};
+
 /** The brief lines, or undefined when nothing should be printed: not a git work tree, no HEAD, more than BRIEF_MAX_COMMITS commits, no identity at all. */
 export async function briefLines(repo: string): Promise<string[] | undefined> {
   const cwd = resolve(repo);
@@ -745,6 +942,8 @@ export async function briefLines(repo: string): Promise<string[] | undefined> {
     `merge commits by the identity: ${row("merge commits by the identities")}`,
     `revert commits: ${row("revert commits")}`,
     `whitespace-only commits: ${row("whitespace-only commits")}`,
+    `lines written (net of exclusions): ${row("lines written, net of exclusions")} (raw ${row("lines added, raw")})`,
+    `largest commit: ${largestShare(row("largest commit by lines added"))}`,
     `large added files with a licence, copyright or source header: ${row("large added files with a licence, copyright or source-URL header")}`,
     `identity candidates: ${sameName} other address(es) with the same name`,
     `identity candidates: ${sameLocal} with the same local part`,

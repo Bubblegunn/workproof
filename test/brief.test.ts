@@ -125,6 +125,8 @@ test("the brief for the configured identity has exactly these lines", async () =
       "merge commits by the identity: 1",
       "revert commits: 1",
       "whitespace-only commits: 1",
+      "lines written (net of exclusions): 6 (raw 54)",
+      "largest commit: 85.2% of lines added",
       "large added files with a licence, copyright or source header: 1",
       "identity candidates: 2 other address(es) with the same name",
       "identity candidates: 1 with the same local part",
@@ -139,10 +141,10 @@ test("the brief for the configured identity has exactly these lines", async () =
   );
 });
 
-test("the brief has at most 22 lines and no address anywhere", async () => {
+test("the brief has at most 24 lines and no address anywhere", async () => {
   const text = await briefText(history);
   const count = text.trimEnd().split("\n").length;
-  assert.ok(count <= 22, `${count} lines`);
+  assert.ok(count <= 24, `${count} lines`);
   assert.ok(!text.includes("@"), text);
   assert.ok(!/[\u0000-\u0008\u000b-\u001f\u007f]/.test(text), "control characters in the output");
 });
