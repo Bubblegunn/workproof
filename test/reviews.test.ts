@@ -1,11 +1,11 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile, mkdir, readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { execFileSync } from "node:child_process";
-import { runReviews, csvCell, CONVENTION_FIXED } from "../src/reviews.js";
+import { runReviews, csvCell, clean, CONVENTION_FIXED } from "../src/reviews.js";
 
 // Invented people on .example domains; every date is fixed so the fixture is the same on every run.
 interface Person { name: string; email: string }
@@ -16,8 +16,8 @@ const DEE: Person = { name: "Dee Park", email: "dee@south.example" };
 const SAM: Person = { name: "Sam Ortega", email: "sam@alpha.example" };
 const BOT: Person = { name: "releasebot", email: "bot@ci.example" };
 
-const MAILMAP = "Sam Ortega <sam@alpha.example> <old@epsilon.example>\n";
 const WINDOW = ["--since", "2026-03-01", "--until", "2026-03-31"];
+const MAILMAP = "Sam Ortega <sam@alpha.example> <old@epsilon.example>\n";
 
 const SUBJECT = {
   independent: "feat(lib): add a",
@@ -39,14 +39,23 @@ const SUBJECT = {
   control: "feat(lib): tidy\u001b[2K output\u0007",
   recorded: "feat(lib): recorded name",
   spelling: "docs: mailmap for a second spelling",
+  addressRaw: "feat(lib): contact dana@y.example about tidy",
+  localPart: "feat(lib): local part only",
+  emptyTrailer: "feat(lib): empty reviewer",
+  signedOther: "feat(lib): signed off by another",
+  longName: "feat(lib): long name",
+  soloAda: "feat(lib): solo by ada",
+  soloCy: "feat(lib): solo by cy",
+  octA: "feat(lib): oct a",
+  octB: "feat(lib): oct b",
 };
 
 let dir = "";
 const shas: Record<string, string> = {};
 const baseEnv = { PATH: process.env.PATH ?? "", GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" };
 
-const git = (args: string[], env: Record<string, string> = {}, input?: string): string =>
-  execFileSync("git", args, { cwd: dir, encoding: "utf8", env: { ...baseEnv, ...env }, input }).trim();
+const git = (args: string[], env: Record<string, string> = {}, input?: string, cwd = dir): string =>
+  execFileSync("git", args, { cwd, encoding: "utf8", env: { ...baseEnv, ...env }, input }).trim();
 
 const as = (who: Person, author: string, committer = author): Record<string, string> => ({
   GIT_AUTHOR_NAME: who.name,
@@ -100,14 +109,7 @@ async function build(): Promise<void> {
 
   // A revert of the first commit, with its own Reviewed-by from Cy.
   git(["revert", "--no-commit", shas.independent!], as(ADA, "2026-03-13T10:00:00+00:00"));
-  await commitAs(
-    "revert",
-    ADA,
-    "2026-03-13T10:00:00+00:00",
-    SUBJECT.revert,
-    `This reverts commit ${shas.independent}.\n\nReviewed-by: ${CY.name} <${CY.email}>`,
-    {},
-  );
+  await commitAs("revert", ADA, "2026-03-13T10:00:00+00:00", SUBJECT.revert, `This reverts commit ${shas.independent}.\n\nReviewed-by: ${CY.name} <${CY.email}>`, {});
 
   // Authored in February, committed in March: outside the window by author date.
   await commitAs("late", BEN, "2026-02-27T12:00:00+00:00", SUBJECT.late, "", { "lib/late.ts": "export const late = 1;\n" }, "2026-03-14T09:00:00+00:00");
@@ -124,6 +126,37 @@ async function build(): Promise<void> {
   // A second recorded spelling of Ada's name, mapped to the canonical name by .mailmap.
   await commitAs("spelling", ADA, "2026-03-25T10:00:00+00:00", SUBJECT.spelling, "", { ".mailmap": MAILMAP + "Ada Lind <ada@north.example> A. Lind <ada@north.example>\n" });
   await commitAs("recorded", { name: "A. Lind", email: ADA.email }, "2026-03-26T10:00:00+00:00", SUBJECT.recorded, `Reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/rec.ts": "export const rec = 1;\n" });
+  // An address in the author's name and in the subject.
+  await commitAs("addressRaw", { name: "john@x.example", email: "john@a.example" }, "2026-03-27T10:00:00+00:00", SUBJECT.addressRaw, `Reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/addr.ts": "export const addr = 1;\n" });
+  // Same local part, different domain: a different person, not a self-review.
+  await commitAs("localPart", { name: "John Doe", email: "john@a.example" }, "2026-03-27T11:00:00+00:00", SUBJECT.localPart, "Reviewed-by: Jo Ward <john@b.example>", { "lib/john.ts": "export const john = 1;\n" });
+  // Trailers that name nobody are not reviewers.
+  await commitAs("emptyTrailer", DEE, "2026-03-27T12:00:00+00:00", SUBJECT.emptyTrailer, "Reviewed-by:\nReviewed-by: <>", { "lib/empty.ts": "export const empty = 1;\n" });
+  // A Signed-off-by from someone else is not an approval.
+  await commitAs("signedOther", CY, "2026-03-27T13:00:00+00:00", SUBJECT.signedOther, `Signed-off-by: ${ADA.name} <${ADA.email}>`, { "lib/so.ts": "export const so = 1;\n" });
+  // A subject longer than 200 characters and a name longer than 80.
+  await commitAs("longSubject", ADA, "2026-03-27T14:00:00+00:00", `feat(lib): ${"z".repeat(230)}`, `Reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/long.ts": "export const long = 1;\n" });
+  await commitAs("longName", { name: "n".repeat(90), email: "long@north.example" }, "2026-03-27T15:00:00+00:00", SUBJECT.longName, `Reviewed-by: ${BEN.name} <${BEN.email}>`, { "lib/ln.ts": "export const ln = 1;\n" });
+
+  // A merge by Ben whose Reviewed-by names Ada: Ada's own commit on that branch is not reviewed by it.
+  git(["checkout", "-q", "-b", "solo"]);
+  await commitAs("soloAda", ADA, "2026-03-28T10:00:00+00:00", SUBJECT.soloAda, "", { "lib/solo.ts": "export const solo = 1;\n" });
+  await commitAs("soloCy", CY, "2026-03-28T11:00:00+00:00", SUBJECT.soloCy, "", { "lib/solo2.ts": "export const solo2 = 1;\n" });
+  git(["checkout", "-q", "main"]);
+  git(["merge", "-q", "--no-ff", "-m", `Merge solo\n\nReviewed-by: ${ADA.name} <${ADA.email}>`, "solo"], as(BEN, "2026-03-28T12:00:00+00:00"));
+  shas.solo = git(["rev-parse", "HEAD"]);
+
+  // An octopus merge: three parents, the two branch commits are both covered.
+  git(["checkout", "-q", "-b", "oct-a"]);
+  await commitAs("octA", BEN, "2026-03-28T13:00:00+00:00", SUBJECT.octA, "", { "lib/oa.ts": "export const oa = 1;\n" });
+  git(["checkout", "-q", "main"]);
+  git(["checkout", "-q", "-b", "oct-b"]);
+  await commitAs("octB", CY, "2026-03-28T14:00:00+00:00", SUBJECT.octB, "", { "lib/ob.ts": "export const ob = 1;\n" });
+  git(["checkout", "-q", "main"]);
+  git(["merge", "-q", "--no-ff", "-m", `Merge oct\n\nReviewed-by: ${DEE.name} <${DEE.email}>`, "oct-a", "oct-b"], as(ADA, "2026-03-28T15:00:00+00:00"));
+  shas.octopus = git(["rev-parse", "HEAD"]);
+  const parents = git(["rev-list", "--parents", "-n", "1", "HEAD"]).split(" ").length - 1;
+  assert.equal(parents, 3, "the octopus merge has three parents");
 }
 
 /** Runs the command and returns its output and exit code. */
@@ -145,6 +178,12 @@ async function json(extra: string[] = []): Promise<JsonReport> {
 const rowFor = (report: JsonReport, subject: string): JsonRow => {
   const row = report.rows.find((r) => r.subject === subject);
   assert.ok(row, `no in-scope row for ${subject}`);
+  return row;
+};
+
+const rowBySha = (report: JsonReport, sha: string): JsonRow => {
+  const row = report.rows.find((r) => r.sha === sha);
+  assert.ok(row, `no in-scope row for ${sha.slice(0, 7)}`);
   return row;
 };
 
@@ -180,13 +219,13 @@ test("a commit whose reviewer is the author by address is self-review with that 
   const row = rowFor(await json(), SUBJECT.selfAddress);
   assert.equal(row.status, "self-review");
   assert.equal(row.satisfies, "no");
-  assert.match(row.basis, /same address/);
+  assert.match(row.basis, /same person: same address/);
 });
 
 test("a reviewer whose address is a .mailmap alias of the author is self-review by mailmap", async () => {
   const row = rowFor(await json(), SUBJECT.selfAlias);
   assert.equal(row.status, "self-review");
-  assert.match(row.basis, /mailmap alias/);
+  assert.match(row.basis, /same person: mailmap alias/);
   assert.equal(row.author, "Sam Ortega");
   assert.equal(row.reviewer, "Sam Ortega");
 });
@@ -203,12 +242,13 @@ test("a Reviewed-by: inside a prose paragraph is quoted, not a trailer", async (
   assert.equal(row.reviewer, "");
 });
 
-test("an Acked-by alone is other approval, and the author's own sign-off is not an approval", async () => {
+test("an Acked-by is other approval; a Signed-off-by is not an approval, whoever signs", async () => {
   const report = await json();
   assert.equal(rowFor(report, SUBJECT.acked).status, "other approval only");
   const own = rowFor(report, SUBJECT.noTrailer);
   assert.equal(own.status, "no review trailer");
-  assert.match(own.basis, /own sign-off/);
+  assert.equal(own.basis, "no review trailer");
+  assert.equal(rowFor(report, SUBJECT.signedOther).status, "no review trailer");
 });
 
 test("a merge's Reviewed-by covers both branch commits, labelled weaker, and nothing beyond the second parent", async () => {
@@ -223,6 +263,26 @@ test("a merge's Reviewed-by covers both branch commits, labelled weaker, and not
   assert.equal(rowFor(report, SUBJECT.mainTwo).status, "no review trailer");
   // The commit before the fork is an ancestor of both parents, so the range must not reach it.
   assert.equal(rowFor(report, SUBJECT.noTrailer).status, "no review trailer");
+});
+
+test("a 3-parent merge covers the commits of every non-first parent", async () => {
+  const report = await json();
+  for (const subject of [SUBJECT.octA, SUBJECT.octB]) {
+    const row = rowFor(report, subject);
+    assert.equal(row.status, "reviewed via merge (weaker)", subject);
+    assert.match(row.basis, new RegExp(`merge ${shas.octopus!.slice(0, 7)}`));
+  }
+});
+
+test("a merge's reviewer who is the author of a covered commit does not review that commit", async () => {
+  const report = await json();
+  const own = rowFor(report, SUBJECT.soloAda);
+  assert.equal(own.status, "self-review");
+  assert.equal(own.basis, `only the author is named on the merge (merge ${shas.solo!.slice(0, 7)})`);
+  assert.equal(own.reviewer, "Ada Lind");
+  const other = rowFor(report, SUBJECT.soloCy);
+  assert.equal(other.status, "reviewed via merge (weaker)");
+  assert.equal(other.reviewer, "Ada Lind");
 });
 
 test("a revert is in scope like any commit and says what it reverts", async () => {
@@ -271,11 +331,17 @@ test("a csv cell starting with = gets a leading single quote", async () => {
 });
 
 test("control characters are stripped from subjects in every format", async () => {
-  const report = await json();
-  const row = rowFor(report, "feat(lib): tidy[2K output");
+  const row = rowFor(await json(), "feat(lib): tidy[2K output");
   assert.equal(row.status, "independent review");
   const { out } = await run(["--repo", dir, ...WINDOW]);
   assert.equal(/\u001b|\u0007/.test(out), false);
+});
+
+test("clean removes format and line-separator characters and caps lengths", () => {
+  assert.equal(clean("a‮b​c\u2028d\u2029e\u0007f"), "abcdef");
+  assert.equal(clean("x".repeat(300), 200).length, 200);
+  assert.equal(clean("john@x.example"), "(address)");
+  assert.equal(clean("see dana@y.example now"), "see (address) now");
 });
 
 test("the csv header and a row carry the documented columns", async () => {
@@ -286,8 +352,7 @@ test("the csv header and a row carry the documented columns", async () => {
 test("the summary line counts in scope and the groups that do not satisfy", async () => {
   const report = await json();
   assert.match(report.summary, /^\d+ in scope: \d+ independent, \d+ via merge \(weaker\), \d+ do not satisfy \(self-review \d+, no trailer \d+, quoted \d+, other approval \d+\)$/);
-  const counted = report.rows.length;
-  assert.ok(report.summary.startsWith(`${counted} in scope:`));
+  assert.ok(report.summary.startsWith(`${report.rows.length} in scope:`));
 });
 
 test("--out writes the file once, prints wrote and the summary, and refuses to overwrite", async () => {
@@ -302,7 +367,7 @@ test("--out writes the file once, prints wrote and the summary, and refuses to o
   await rm(file, { force: true });
 });
 
-test("exit codes: 0 when it ran, 1 for usage errors, 0 with not computed for a git failure", async () => {
+test("exit codes: 0 when it ran, 1 for usage errors, 2 when nothing could be computed", async () => {
   assert.equal((await run(["--repo", dir, ...WINDOW])).code, 0);
   assert.equal((await run(["--repo", dir, "--since", "2026-13-40"])).code, 1);
   assert.equal((await run(["--repo", dir, "--since", "2026-03-01T00:00"])).code, 1, "an instant without an offset is refused");
@@ -312,14 +377,22 @@ test("exit codes: 0 when it ran, 1 for usage errors, 0 with not computed for a g
   const plain = await mkdtemp(join(tmpdir(), "workproof-reviews-plain-"));
   try {
     const failed = await run(["--repo", plain]);
-    assert.equal(failed.code, 0);
+    assert.equal(failed.code, 2);
     assert.match(failed.out, /^not computed \(/);
     const failedJson = await run(["--repo", plain, "--format", "json"]);
-    assert.equal(failedJson.code, 0);
+    assert.equal(failedJson.code, 2);
     assert.equal((JSON.parse(failedJson.out) as { computed: boolean }).computed, false);
   } finally {
     await rm(plain, { recursive: true, force: true });
   }
+});
+
+test("repeated single-value options and option-looking values are usage errors", async () => {
+  assert.equal((await run(["--repo", dir, "--since", "2026-03-01", "--since", "2026-03-02"])).code, 1);
+  assert.equal((await run(["--repo", dir, "--until", "2026-03-31", "--until", "2026-03-30"])).code, 1);
+  assert.equal((await run(["--repo", dir, "--repo", dir])).code, 1);
+  assert.equal((await run(["--repo", dir, "--path", "--since", "--until", "2026-03-31"])).code, 1);
+  assert.equal((await run(["--repo", dir, "--trailer", "--format", "json"])).code, 1);
 });
 
 test("the out-of-scope block lists merges as a count only", async () => {
@@ -342,13 +415,97 @@ test("no email address is printed in text, csv or json output, with or without a
       assert.equal(out.includes("@"), false, `${format} ${extra.join(" ")} printed an @`);
     }
   }
-  const json2 = await json(["--path", "lib/"]);
-  assert.equal(json2.rows.every((r) => !Object.keys(r).some((k) => k.includes("email"))), true);
+  const report = await json(["--path", "lib/"]);
+  assert.equal(report.rows.every((r) => !Object.keys(r).some((k) => k.includes("email"))), true);
+});
+
+test("an address in an author name or a subject is shown as (address)", async () => {
+  const report = await json();
+  const row = rowBySha(report, shas.addressRaw!);
+  assert.equal(row.author, "(address)");
+  assert.equal(row.subject, "feat(lib): contact (address) about tidy");
+  const { out } = await run(["--repo", dir, "--format", "csv", ...WINDOW]);
+  assert.equal(out.includes("john@x.example") || out.includes("dana@y.example"), false);
+});
+
+test("a trailer with an empty name and email names no reviewer", async () => {
+  const row = rowBySha(await json(), shas.emptyTrailer!);
+  assert.equal(row.status, "no review trailer");
+  assert.equal(row.reviewer, "");
+});
+
+test("the same local part at a different domain is a different person", async () => {
+  const row = rowFor(await json(), SUBJECT.localPart);
+  assert.equal(row.status, "independent review");
+  assert.equal(row.reviewer, "Jo Ward");
+});
+
+test("a subject longer than 200 characters and a name longer than 80 are capped in json and csv", async () => {
+  const report = await json();
+  assert.equal(rowBySha(report, shas.longSubject!).subject.length, 200);
+  assert.equal(rowFor(report, SUBJECT.longName).author.length, 80);
+  const { out } = await run(["--repo", dir, "--format", "csv", ...WINDOW]);
+  // "feat(lib): " is 11 characters, so a 200-character subject keeps 189 of the z characters.
+  assert.match(out, /feat\(lib\): z{189}(\n|$)/m);
+  assert.equal(out.includes("z".repeat(190)), false);
+  assert.equal(out.includes("n".repeat(81)), false);
 });
 
 test("a second reading gives the same rows (deterministic)", async () => {
   const a = await json();
   const b = await json();
   assert.deepEqual(a.rows, b.rows);
+});
+
+// Counts the git processes a run starts by putting a logging `git` first on PATH.
+async function countGit<T>(fn: () => Promise<T>): Promise<{ result: T; calls: number }> {
+  const shimDir = await mkdtemp(join(tmpdir(), "workproof-git-shim-"));
+  const log = join(shimDir, "calls.log");
+  const real = execFileSync("sh", ["-c", "command -v git"], { encoding: "utf8" }).trim();
+  await writeFile(join(shimDir, "git"), `#!/bin/sh\necho call >> "${log}"\nexec "${real}" "$@"\n`, { mode: 0o755 });
+  const oldPath = process.env.PATH;
+  process.env.PATH = `${shimDir}:${oldPath}`;
+  try {
+    const result = await fn();
+    const calls = existsSync(log) ? readFileSync(log, "utf8").split("\n").filter(Boolean).length : 0;
+    return { result, calls };
+  } finally {
+    process.env.PATH = oldPath;
+    await rm(shimDir, { recursive: true, force: true });
+  }
+}
+
+test("40 reviewed merges are read with a bounded number of git processes, all commits covered", async () => {
+  const repo = await mkdtemp(join(tmpdir(), "workproof-reviews-merges-"));
+  try {
+    const g = (args: string[], env: Record<string, string> = {}) => execFileSync("git", args, { cwd: repo, encoding: "utf8", env: { ...baseEnv, ...env } }).trim();
+    g(["init", "-q", "-b", "main"]);
+    await mkdir(join(repo, "lib"), { recursive: true });
+    await writeFile(join(repo, "README.md"), "readme\n");
+    g(["add", "--", "README.md"]);
+    g(["commit", "-q", "-m", "docs: start"], as(ADA, "2026-03-01T09:00:00+00:00"));
+    for (let i = 0; i < 40; i++) {
+      const when = `2026-03-02T10:${String(i).padStart(2, "0")}:00+00:00`;
+      g(["checkout", "-q", "-b", `b${i}`, "main"]);
+      await writeFile(join(repo, `lib/f${i}.ts`), `export const f${i} = ${i};\n`);
+      g(["add", "--", `lib/f${i}.ts`]);
+      g(["commit", "-q", "-m", `feat(lib): branch ${i}`], as(ADA, when));
+      g(["checkout", "-q", "main"]);
+      g(["merge", "-q", "--no-ff", "-m", `Merge b${i}\n\nReviewed-by: ${BEN.name} <${BEN.email}>`, `b${i}`], as(CY, when));
+    }
+    const { result, calls } = await countGit(async () => {
+      const out: string[] = [];
+      const code = await runReviews(["--repo", repo, "--format", "json", ...WINDOW], { write: (s: string) => (out.push(s), true) });
+      return { code, out: out.join("") };
+    });
+    assert.equal(result.code, 0);
+    const report = JSON.parse(result.out) as JsonReport;
+    const branches = report.rows.filter((r) => r.subject.startsWith("feat(lib): branch "));
+    assert.equal(branches.length, 40);
+    assert.equal(branches.every((r) => r.status === "reviewed via merge (weaker)"), true);
+    assert.ok(calls >= 1 && calls <= 6, `git processes: ${calls}`);
+  } finally {
+    await rm(repo, { recursive: true, force: true });
+  }
 });
 

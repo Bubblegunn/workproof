@@ -46,7 +46,7 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
                  review is recorded in its message: independent review, self-review, reviewed via merge (weaker), a quoted
                  "Reviewed-by:" that is not a trailer, other approval only, or no review trailer; a summary and the commits out of scope.
                  Default trailer key Reviewed-by (case-insensitive); --path limits to commits touching the pathspec.
-                 Read-only; a git failure prints "not computed (<reason>)" and exits 0; exits 1 for a usage error
+                 Read-only; when nothing can be computed (not a repository, a git failure) it prints "not computed (<reason>)" and exits 2; exits 0 when it ran, 1 for a usage error
        workproof owner --path <file-or-dir> [--repo <dir>] [--claim <name-or-email>] [--json]
                  checks a claim that one person wrote or owns a file or directory, from its history at HEAD: surviving lines
                  by author with whitespace and moves ignored and with plain blame side by side, the commit that created it,

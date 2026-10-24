@@ -8,14 +8,19 @@ import type { Bound } from "./figures.js";
 /**
  * `workproof reviews`: for each in-scope commit, whether a second person's review is recorded in
  * its message. Read-only. Everything printed from a commit (names, addresses, subjects, paths) is
- * data: control characters are removed before it reaches the output.
+ * data: control and format characters are removed and any address is replaced by "(address)"
+ * before it reaches the output.
  */
 
 const US = "\x1f";
 const GS = "\x1d";
-const CONTROL = /[\u0000-\u001f\u007f-\u009f]/g;
+const CONTROL = /[\u0000-\u001f\u007f-\u009f\u2028\u2029]|\p{Cf}/gu;
+const ADDRESS = /[^\s<>]+@[^\s<>]+/g;
+const NAME_MAX = 80;
+const SUBJECT_MAX = 200;
 const DEFAULT_REVIEW_TRAILERS = ["Reviewed-by"];
-const OTHER_APPROVAL = ["Acked-by", "Approved-by", "Tested-by", "Signed-off-by"];
+const OTHER_APPROVAL = ["Acked-by", "Approved-by", "Tested-by"];
+const SINGLE_VALUE_OPTIONS = new Set(["--repo", "--since", "--until", "--format", "--out"]);
 
 export const CONVENTION_WINDOW_TEXT = "Convention: author date, local date in the commit's own offset";
 export const CONVENTION_FIXED = [
@@ -36,18 +41,27 @@ export interface ReviewsOptions {
   out?: string;
 }
 
-/** Clears control characters, then keeps at most `max` characters (code points). */
+/**
+ * Removes control and format characters, replaces each address with "(address)", then keeps at
+ * most `max` characters (code points). Every printed field goes through this.
+ */
 export function clean(s: string, max = Infinity): string {
-  return Array.from(s.replace(CONTROL, "")).slice(0, max).join("");
+  return Array.from(s.replace(CONTROL, "").replace(ADDRESS, "(address)")).slice(0, max).join("");
 }
 
 export function parseReviewsArgs(args: string[]): ReviewsOptions {
   const opts: ReviewsOptions = { repo: process.cwd(), paths: [], trailers: [], format: "text" };
+  const seen = new Set<string>();
   for (let i = 0; i < args.length; i++) {
     const a = args[i]!;
+    if (SINGLE_VALUE_OPTIONS.has(a)) {
+      if (seen.has(a)) throw new Error(`${a} was given more than once; give it once`);
+      seen.add(a);
+    }
     const value = (): string => {
       const v = args[++i];
       if (v === undefined || v === "") throw new Error(`${a} needs a value`);
+      if (v.startsWith("-")) throw new Error(`${a} needs a value, and "${clean(v, 40)}" looks like another option`);
       return v;
     };
     if (a === "--repo") opts.repo = resolve(value());
@@ -82,6 +96,8 @@ interface Rec {
   committerLocal: Date;
   subject: string;
   body: string;
+  /** Review-key trailers git parsed, including empty ones that are then dropped. */
+  reviewParsed: number;
   trailers: Trailer[];
 }
 
@@ -121,8 +137,8 @@ function parsePerson(value: string): Person {
   return bare.includes("@") ? { name: "", email: lower(bare) } : { name: bare, email: "" };
 }
 
-/** Output shows names only: an address is never printed. */
-const displayPerson = (p: Person): string => clean(p.name) || "(no name recorded)";
+/** Output shows names only, capped; an address never appears. */
+const displayPerson = (p: Person): string => clean(p.name, NAME_MAX) || "(no name recorded)";
 
 /** Folds a display name for comparison: no accents, no case, single spaces. */
 const foldName = (s: string): string => s.normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
@@ -139,8 +155,9 @@ function inBound(instant: Date, local: Date, since: Bound | undefined, until: Bo
 
 /**
  * Why a reviewer is the author, or undefined when they are a different person. Rules in order:
- * the same address, a .mailmap alias (the reviewer address resolves to the author's address),
- * the same folded name, the same local part of the address.
+ * the same address, a .mailmap alias (the reviewer address resolves to the author's address), the
+ * same folded name. A shared local part alone is not a match: john@a.example and john@b.example
+ * are different addresses.
  */
 function selfRule(author: Ids, reviewer: Person, canonicalEmail: string): string | undefined {
   const re = reviewer.email;
@@ -148,10 +165,6 @@ function selfRule(author: Ids, reviewer: Person, canonicalEmail: string): string
   if (re && canonicalEmail && (canonicalEmail === author.email || canonicalEmail === author.rawEmail)) return "mailmap alias";
   const fn = foldName(reviewer.name);
   if (fn && (fn === foldName(author.rawName) || fn === foldName(author.name))) return "same name";
-  if (re.includes("@")) {
-    const local = re.split("@")[0]!;
-    if (local && (local === author.rawEmail.split("@")[0] || local === author.email.split("@")[0])) return "same local part";
-  }
   return undefined;
 }
 
@@ -169,13 +182,19 @@ function parseRecords(out: string, keys: string[], reviewKeys: Set<string>): Rec
     const [sha, mName, mEmail, rName, rEmail, aIso, cIso, parents, subject] = f;
     if (!sha || !/^[0-9a-f]{40,64}$/.test(sha.trim()) || aIso === undefined || cIso === undefined) throw new Error("git log returned a record this command cannot read");
     const trailers: Trailer[] = [];
+    let reviewParsed = 0;
     keys.forEach((queried, j) => {
       for (const item of (f[9 + j] ?? "").split(GS)) {
         const idx = item.indexOf(":");
         if (idx < 0) continue;
         const key = item.slice(0, idx).trim();
         if (lower(key) !== lower(queried)) continue;
-        trailers.push({ key, review: reviewKeys.has(lower(queried)), ...parsePerson(item.slice(idx + 1)) });
+        const review = reviewKeys.has(lower(queried));
+        if (review) reviewParsed++;
+        const person = parsePerson(item.slice(idx + 1));
+        // A trailer that names nobody ("Reviewed-by:", "Reviewed-by: <>") is not a reviewer.
+        if (!person.name && !person.email) continue;
+        trailers.push({ key, review, ...person });
       }
     });
     recs.push({
@@ -188,6 +207,7 @@ function parseRecords(out: string, keys: string[], reviewKeys: Set<string>): Rec
       committerLocal: wallClock(cIso),
       subject: subject ?? "",
       body: f.slice(9 + keys.length).join(US),
+      reviewParsed,
       trailers,
     });
   }
@@ -206,9 +226,41 @@ async function canonicalMap(cwd: string, emails: string[]): Promise<Map<string, 
   return map;
 }
 
-interface Cover { merge: string; reviewers: string }
+/** Every commit reachable from HEAD with its parents, in one git call. */
+async function parentGraph(cwd: string): Promise<Map<string, string[]>> {
+  const graph = new Map<string, string[]>();
+  for (const line of (await git(["rev-list", "--parents", "HEAD"], cwd)).split("\n")) {
+    const [sha, ...parents] = line.trim().split(" ").filter(Boolean);
+    if (sha) graph.set(sha, parents);
+  }
+  return graph;
+}
 
-function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => string): ReviewRow {
+/** Commits reachable from start, not entering a commit in stop (stop is closed under ancestry, so this is exact). */
+function reach(start: string, graph: Map<string, string[]>, stop: Set<string> = new Set()): Set<string> {
+  const seen = new Set<string>();
+  const stack = [start];
+  while (stack.length) {
+    const c = stack.pop()!;
+    if (seen.has(c) || stop.has(c)) continue;
+    seen.add(c);
+    for (const p of graph.get(c) ?? []) stack.push(p);
+  }
+  return seen;
+}
+
+/** The union of `M^1..M^k` for every parent k after the first: reachable from each such parent, not from the first. */
+function secondParentRanges(parents: string[], graph: Map<string, string[]>): Set<string> {
+  const [first, ...rest] = parents;
+  const fromFirst = reach(first!, graph);
+  const covered = new Set<string>();
+  for (const p of rest) for (const sha of reach(p, graph, fromFirst)) covered.add(sha);
+  return covered;
+}
+
+interface Cover { merge: string; reviewers: Trailer[] }
+
+function classify(r: Rec, cover: Map<string, Cover[]>, canonOf: (e: string) => string): ReviewRow {
   const rule = (t: Trailer) => selfRule(r.author, t, canonOf(t.email));
   const reviews = r.trailers.filter((t) => t.review);
   const others = r.trailers.filter((t) => !t.review);
@@ -231,7 +283,7 @@ function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => str
   let satisfies: ReviewRow["satisfies"] = "no";
   const independent = reviews.filter((t) => !rule(t));
   const self = reviews.filter((t) => rule(t));
-  const covered = cover.get(r.sha);
+  const covers = cover.get(r.sha) ?? [];
   if (independent.length) {
     status = "independent review";
     reviewer = names(reviews);
@@ -241,12 +293,20 @@ function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => str
     status = "self-review";
     reviewer = names(reviews);
     basis = [...new Set(self.map((t) => `same person: ${rule(t)}`))].join("; ");
-  } else if (covered) {
-    status = "reviewed via merge (weaker)";
-    reviewer = covered.reviewers;
-    basis = `in the second-parent range of merge ${covered.merge}`;
-    satisfies = "yes (weaker)";
-  } else if (/reviewed-by:/i.test(r.body)) {
+  } else if (covers.length) {
+    // A merge's reviewer who is this commit's author does not review it.
+    const coverage = covers.map((c) => ({ merge: c.merge, reviewers: c.reviewers.filter((t) => !rule(t)) })).filter((c) => c.reviewers.length > 0);
+    if (coverage.length) {
+      status = "reviewed via merge (weaker)";
+      reviewer = names(coverage[0]!.reviewers);
+      basis = `in the second-parent range of merge ${coverage[0]!.merge}`;
+      satisfies = "yes (weaker)";
+    } else {
+      status = "self-review";
+      reviewer = displayPerson({ name: r.author.name, email: "" });
+      basis = `only the author is named on the merge (merge ${covers[0]!.merge})`;
+    }
+  } else if (/reviewed-by:/i.test(r.body) && r.reviewParsed === 0) {
     status = "quoted in message, not a trailer";
     basis = "the text Reviewed-by: is in the message, but git did not parse it as a trailer";
   } else {
@@ -257,25 +317,25 @@ function classify(r: Rec, cover: Map<string, Cover>, canonOf: (e: string) => str
       basis = approvals.map((t) => `${t.key} trailer`).join("; ");
     } else {
       status = "no review trailer";
-      basis = others.length ? "no Reviewed-by trailer; only the author's own sign-off, which is not an approval" : "no review trailer";
+      basis = "no review trailer";
     }
   }
   const revertTarget = /This reverts commit ([0-9a-f]{7,40})/i.exec(r.body)?.[1];
   const isRevert = /^Revert\b/.test(r.subject) || revertTarget !== undefined;
   const note = isRevert ? (revertTarget ? `revert of ${revertTarget.slice(0, 7)}` : "revert (target not named in the message)") : "";
   const raw = r.author;
-  const recorded = clean(raw.rawName) !== clean(raw.name);
+  const recorded = clean(raw.rawName, NAME_MAX) !== clean(raw.name, NAME_MAX);
   return {
     sha: r.sha,
     localDate: dayOf(r.authorLocal),
-    author: displayPerson({ name: clean(raw.name), email: "" }) + (recorded ? ` (as recorded: ${displayPerson({ name: clean(raw.rawName), email: "" })})` : ""),
+    author: displayPerson({ name: raw.name, email: "" }) + (recorded ? ` (as recorded: ${displayPerson({ name: raw.rawName, email: "" })})` : ""),
     reviewer: clean(reviewer),
     status,
     satisfies,
     basis: clean([basis, note].filter(Boolean).join("; ")),
-    subject: clean(r.subject),
-    authorName: clean(raw.name),
-    rawAuthorName: clean(raw.rawName),
+    subject: clean(r.subject, SUBJECT_MAX),
+    authorName: clean(raw.name, NAME_MAX),
+    rawAuthorName: clean(raw.rawName, NAME_MAX),
     committerDate: r.committerDate.toISOString(),
   };
 }
@@ -307,13 +367,19 @@ export async function computeReviews(opts: ReviewsOptions, since?: Bound, until?
     const canon = await canonicalMap(cwd, [...path, ...merges].flatMap((r) => r.trailers.map((t) => t.email)));
     const canonOf = (e: string) => canon.get(e) ?? e;
 
-    // A merge's Reviewed-by from someone other than the merge's author covers the commits it merged.
-    const cover = new Map<string, Cover>();
+    // A merge's Reviewed-by from someone other than the merge's author covers every commit on the
+    // merge's non-first parents' side (M^1..M^k for each k), except for the author's own commits.
+    const cover = new Map<string, Cover[]>();
+    let graph: Map<string, string[]> | undefined;
     for (const m of merges) {
-      const independent = m.trailers.filter((t) => t.review && !selfRule(m.author, t, canonOf(t.email)));
-      if (!independent.length || m.parents.length < 2) continue;
-      const covered = (await git(["rev-list", `${m.parents[0]}..${m.parents[1]}`], cwd)).split("\n").map((s) => s.trim()).filter(Boolean);
-      for (const sha of covered) if (!cover.has(sha)) cover.set(sha, { merge: m.sha.slice(0, 7), reviewers: independent.map(displayPerson).join("; ") });
+      const reviewers = m.trailers.filter((t) => t.review && !selfRule(m.author, t, canonOf(t.email)));
+      if (!reviewers.length || m.parents.length < 2) continue;
+      graph ??= await parentGraph(cwd);
+      for (const sha of secondParentRanges(m.parents, graph)) {
+        const list = cover.get(sha) ?? [];
+        list.push({ merge: m.sha.slice(0, 7), reviewers });
+        cover.set(sha, list);
+      }
     }
 
     const inScope = path.filter((r) => inBound(r.authorDate, r.authorLocal, since, until));
@@ -411,7 +477,10 @@ export function renderReviews(outcome: ReviewsOutcome, format: ReviewsOptions["f
   return `${out.join("\n")}\n`;
 }
 
-/** `workproof reviews`: returns the exit code, 0 whenever it ran and 1 for a usage error. */
+/**
+ * `workproof reviews`: 0 when it ran, 1 for a usage error, 2 when nothing could be computed
+ * (not a repository, a git failure). A not-computed run never prints a zero.
+ */
 export async function runReviews(args: string[], out: { write(s: string): unknown } = process.stdout): Promise<number> {
   const usage = "usage: workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]";
   let opts: ReviewsOptions;
@@ -427,10 +496,11 @@ export async function runReviews(args: string[], out: { write(s: string): unknow
     return 1;
   }
   const outcome = await computeReviews(opts, since, until);
+  const code = outcome.computed ? 0 : 2;
   const text = renderReviews(outcome, opts.format);
   if (!opts.out) {
     out.write(text);
-    return 0;
+    return code;
   }
   try {
     await writeFile(opts.out, text, { flag: "wx" });
@@ -440,5 +510,5 @@ export async function runReviews(args: string[], out: { write(s: string): unknow
   }
   const summary = outcome.computed ? outcome.report.summary : `not computed (${outcome.reason})`;
   out.write(`wrote ${clean(opts.out, 200)}\n${summary}\n`);
-  return 0;
+  return code;
 }

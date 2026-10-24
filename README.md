@@ -362,6 +362,8 @@ workproof sessions --dir <folder> [--since YYYY-MM-DD] [--until YYYY-MM-DD]
 --format <mode>         write markdown, json, or both (default: both); json prints to stdout
 --json                  same as --format json
 ```
+`workproof reviews` exits 0 when it ran, 1 for a usage error, and 2 when nothing could be computed (not a repository, a git failure); it then prints `not computed (<reason>)` rather than a zero.
+
 
 A `.mailmap` in the repository merges an author's several addresses. Progress lines go to
 stderr while history is read and files are blamed. Every git call runs with
