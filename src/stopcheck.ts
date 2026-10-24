@@ -1,8 +1,8 @@
 import { closeSync, fstatSync, openSync, readFileSync, readSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { isAbsolute, resolve } from "node:path";
+import { basename, isAbsolute, resolve } from "node:path";
 import { countWords, DEFAULT_MAX_WORDS } from "./bullets.js";
-import { answerReason } from "./answercheck.js";
+import { answerReason, PROMPT_TRIGGER } from "./answercheck.js";
 
 /** What the Stop hook receives on stdin. */
 export interface StopInput {
@@ -35,9 +35,13 @@ const MAX_TAIL = 5 * 1024 * 1024;
 const INVOKE = /^(?:(?:npx|pnpx|bunx)\s+(?:-\S+\s+)*workproof(?:@\S+)?|workproof|node\s+\S*cli\.js)(?:\s+(\S+))?/;
 const SUBCOMMANDS_ON_REPO = new Set(["bullets", "verdict", "mine", "sessions", "report"]);
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
+/** A Write tool call in the transcript tail, as the JSON writes it. */
+const WRITE_TOOL = /"name"\s*:\s*"Write"/;
 
 export const PRIVACY_REASON =
   "The final answer shows an email address. Describe people and addresses by rule (for example 'two addresses were merged'), not by address, and send the answer again.";
+export const FILE_REASON = (file: string): string =>
+  `The file ${file} contains an email address. Describe people by name in documents; keep addresses in the chat answer only if the user asked for them. Rewrite the file without the address.`;
 export const SIZE_REASON = (file: string, words: number, max: number): string =>
   `The resume written by \`workproof bullets\` (${file}) has ${words} words and the limit is ${max}, tags and tables included. Edit that file down to the limit: drop the lowest-ranked bullets and coverage rows, do not rebuild it from the source. Then answer again.`;
 export const GAPS_REASON =
@@ -167,6 +171,26 @@ export function leaksEmail(finalText: string, runs: Run[], repo: string[]): bool
   return [...new Set([...known, ...printed])].some((e) => e.length > 0 && !e.includes("noreply") && final.includes(e));
 }
 
+/**
+ * The reason to block when a file the turn wrote with the Write tool holds a repository address (noreply never counts),
+ * or null. An address that the user's prompt itself contains does not count. Without a workproof run, the check runs only
+ * when the prompt matches the answer check's trigger. The reason names the file by base name, never by address.
+ */
+export function writtenFileLeak(turn: Turn, repo: string[]): string | null {
+  const writes = turn.writes ?? [];
+  if (!writes.length) return null;
+  const prompt = turn.prompt ?? "";
+  if (!turn.runs.length && !PROMPT_TRIGGER.test(prompt)) return null;
+  if (asksForAddresses(prompt)) return null;
+  const known = new Set(repo.map((e) => norm(e)).filter((e) => e.length > 0 && !e.includes("noreply")));
+  const promptText = norm(prompt);
+  for (const w of writes) {
+    const leaks = (norm(w.content).match(EMAIL) ?? []).some((e) => known.has(e) && !promptText.includes(e));
+    if (leaks) return FILE_REASON(basename(w.file).replace(EMAIL, "(address)"));
+  }
+  return null;
+}
+
 /** True when the user's own message asks for email addresses or for the identities that were counted. */
 export function asksForAddresses(prompt: string): boolean {
   return /\b(e-?mail addresses?|addresses|identit(?:y|ies)|which e-?mails?)\b/i.test(prompt.normalize("NFKC"));
@@ -245,6 +269,8 @@ export function statesGaps(finalText: string, gaps: string[]): boolean {
 
 /** The reason to block, or null to allow. Pure apart from the optional file read of --out and the git read. */
 export function evaluate(turn: Turn, cwd: string, repo: string[]): string | null {
+  const written = writtenFileLeak(turn, repo);
+  if (written) return written;
   if (!turn.runs.length || !turn.finalText.trim()) return null;
   if (!asksForAddresses(turn.prompt ?? "") && leaksEmail(turn.finalText, turn.runs, repo)) return PRIVACY_REASON;
   const big = resumeOverCap(turn.runs, cwd);
@@ -261,10 +287,10 @@ export function stopCheck(stdin: string): string {
     if (input.stop_hook_active === true || typeof input.transcript_path !== "string") return "";
     const cwd = typeof input.cwd === "string" && input.cwd ? input.cwd : process.cwd();
     const tail = readTail(input.transcript_path);
-    if (!tail.includes("workproof") && !tail.includes("cli.js")) return "";
+    if (!tail.includes("workproof") && !tail.includes("cli.js") && !WRITE_TOOL.test(tail)) return "";
     const turn = parseTurn(tail);
-    if (!turn.runs.length) return "";
-    const reason = evaluate(turn, cwd, repoEmails(cwd));
+    const repo = turn.runs.length || turn.writes?.length ? repoEmails(cwd) : [];
+    const reason = evaluate(turn, cwd, repo);
     return reason === null ? "" : JSON.stringify({ decision: "block", reason });
   } catch {
     return "";

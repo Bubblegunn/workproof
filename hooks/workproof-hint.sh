@@ -172,7 +172,8 @@ addr_extra() {
   printf '%s' "$extra"
 }
 
-# brief_extra prints the prepared brief from `workproof figures --brief`, escaped as the rules block is, or nothing:
+# brief_extra prints the prepared brief from `workproof figures --brief`, windowed by the prompt when it states one
+# (the prompt goes on stdin, first 4000 bytes), escaped as the rules block is, or nothing:
 # not a git work tree, the build or node missing, the command over its 2500 ms budget, or no output. Read-only.
 brief_extra() {
   cwd=$(printf '%s' "$flat" | sed -E -n 's/.*"cwd"[[:space:]]*:[[:space:]]*"([^"\\]*)".*/\1/p')
@@ -181,7 +182,7 @@ brief_extra() {
   [ "$(git -C "$cwd" rev-parse --is-inside-work-tree 2>/dev/null)" = true ] || return 0
   [ -f "$root/dist/src/cli.js" ] || return 0
   command -v node >/dev/null 2>&1 || return 0
-  b=$(node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500 2>/dev/null) || return 0
+  b=$( (printf '%s' "$prompt" 2>/dev/null) | node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500 --window-from-stdin 2>/dev/null) || return 0
   [ -n "$b" ] || return 0
   printf '%s' "$b" | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}'
 }

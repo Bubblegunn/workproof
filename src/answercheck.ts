@@ -23,7 +23,7 @@ const MAX_FINDINGS = 3;
 /** The configured address plus the top two authors. */
 const MAX_IDENTITIES = 3;
 const DAY_MS = 86400000;
-const PROMPT_TRIGGER = /\b(commits?|contributions?|promotion|visa|invoice|timesheet|candidate|performance review|self-review|git history)\b/i;
+export const PROMPT_TRIGGER = /\b(commits?|contributions?|promotion|visa|invoice|timesheet|candidate|performance review|self-review|git history)\b/i;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
 const MONTH_RE = `(${MONTHS.join("|")})`;

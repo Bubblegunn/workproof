@@ -254,3 +254,52 @@ test("usage errors exit 1: --brief with --json, and --budget-ms without --brief"
   assert.equal(b.status, 1);
   assert.equal(b.stdout, "");
 });
+
+// --- --window-from-stdin: the prompt on stdin limits the brief to the window it states ---
+
+const HEADER_ALL = "Brief for Ada Lovelace (configured), all history, author date, local dates:";
+const runStdin = (dir: string, input: string, extra: string[] = ["--window-from-stdin"]) =>
+  spawnSync(process.execPath, [cli, "figures", "--brief", "--repo", dir, ...extra], { encoding: "utf8", input });
+
+test("a prompt that states a window gives the windowed header and figures with the window dates", async () => {
+  // Every commit of the history is in March 2026, so an April window holds none of them.
+  const r = runStdin(history, "How many commits are mine from April 2026 to June 2026?");
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stderr, "");
+  const out = r.stdout.split("\n");
+  assert.equal(out[0], "Brief for Ada Lovelace (configured), window 2026-04-01 to 2026-06-30, author date, local dates:");
+  assert.equal(out[1], "repository commits: 14", "the repository count stays whole-repository");
+  assert.ok(out.includes("authored non-merge commits: 0"), r.stdout);
+  assert.ok(!out.some((l) => l.startsWith("top author")), "no author in an empty window");
+});
+
+test("a window that covers the whole history gives the same figures as no window", async () => {
+  const windowed = runStdin(history, "Count my commits from January to December 2026.");
+  const plain = runStdin(history, "Count my commits.", []);
+  assert.equal(windowed.status, 0);
+  assert.equal(plain.status, 0);
+  assert.equal(windowed.stdout.split("\n")[0], "Brief for Ada Lovelace (configured), window 2026-01-01 to 2026-12-31, author date, local dates:");
+  assert.equal(plain.stdout.split("\n")[0], HEADER_ALL);
+  assert.deepEqual(windowed.stdout.split("\n").slice(1), plain.stdout.split("\n").slice(1));
+});
+
+test("a prompt with no window, an empty stdin, or no flag keeps the all-history brief", async () => {
+  const none = runStdin(history, "Count my commits in this repo.");
+  assert.equal(none.stdout.split("\n")[0], HEADER_ALL);
+  assert.equal(runStdin(history, "").stdout.split("\n")[0], HEADER_ALL);
+  const noFlag = runStdin(history, "How many commits from April 2026 to June 2026?", []);
+  assert.equal(noFlag.stdout.split("\n")[0], HEADER_ALL);
+});
+
+test("--window-from-stdin without --brief is a usage error with exit 1", () => {
+  const r = spawnSync(process.execPath, [cli, "figures", "--window-from-stdin", "--repo", history], { encoding: "utf8", input: "" });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /--window-from-stdin needs --brief/);
+  assert.equal(r.stdout, "");
+});
+
+test("briefLines takes a window and the header names it; without one the header is unchanged", async () => {
+  const lines = await briefLines(history, { since: "2026-04-01", until: "2026-04-30" });
+  assert.equal(lines?.[0], "Brief for Ada Lovelace (configured), window 2026-04-01 to 2026-04-30, author date, local dates:");
+  assert.equal((await briefLines(history))?.[0], HEADER_ALL);
+});

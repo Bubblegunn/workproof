@@ -4,7 +4,7 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
-import { stopCheck, parseTurn, gapItems, PRIVACY_REASON, GAPS_REASON } from "../src/stopcheck.js";
+import { stopCheck, parseTurn, gapItems, writtenFileLeak, PRIVACY_REASON, GAPS_REASON, FILE_REASON } from "../src/stopcheck.js";
 
 const AUTHOR = "grace.hopper@example.org";
 
@@ -203,4 +203,64 @@ test("a gap name matches whole words only, short names exactly, and an empty nam
 test("a transcript with no workproof or cli.js text allows before any JSON parse", () => {
   const cwd = repo();
   assert.equal(run([user("go"), bash("t1", "ls"), result("t1", AUTHOR), say(`Mail ${AUTHOR}`)], cwd), "");
+});
+
+// --- a file the turn wrote with the Write tool ------------------------------------
+
+const writeCall = (file: string, content: string): Line => ({ type: "assistant", message: { role: "assistant", content: [{ type: "tool_use", id: "w1", name: "Write", input: { file_path: file, content } }] } });
+const COMMIT_PROMPT = "List my commits for the review period.";
+
+test("a file written with the Write tool that holds a repository address blocks once, naming only the base name", () => {
+  const cwd = repo();
+  const dir = mkdtempSync(join(tmpdir(), "workproof-stop-w-"));
+  const file = join(dir, "review-notes.md");
+  const lines = [user(COMMIT_PROMPT), bash("t1", "npx workproof mine"), result("t1", "ok"), writeCall(file, `Reviewer contact: ${AUTHOR}`), say("Saved the notes.")];
+  const out = run(lines, cwd);
+  assert.deepEqual(JSON.parse(out), { decision: "block", reason: FILE_REASON("review-notes.md") });
+  assert.ok(!out.includes("hopper"), "the address must not appear in the reason");
+  // stop_hook_active: the block is given once, so the second stop allows
+  assert.equal(run(lines, cwd, { stop_hook_active: true }), "");
+});
+
+test("a Write-tool file with a repository address blocks with no workproof run when the prompt matches the trigger", () => {
+  const cwd = repo();
+  const lines = [user(COMMIT_PROMPT), writeCall("/tmp/notes.md", `Mail ${AUTHOR}`), say("Saved the notes.")];
+  assert.deepEqual(JSON.parse(run(lines, cwd)), { decision: "block", reason: FILE_REASON("notes.md") });
+  // the same write with no run and a prompt that is not a trigger allows
+  const plain = [user("Tidy my shopping list"), writeCall("/tmp/notes.md", `Mail ${AUTHOR}`), say("Saved the notes.")];
+  assert.equal(run(plain, cwd), "");
+});
+
+test("the same Write-tool file with a name only, and no address, does not block", () => {
+  const cwd = repo();
+  const lines = [user(COMMIT_PROMPT), bash("t1", "npx workproof mine"), result("t1", "ok"), writeCall("/tmp/review-notes.md", "Reviewed by Grace Hopper."), say("Saved the notes.")];
+  assert.equal(run(lines, cwd), "");
+});
+
+test("a prompt that asks for addresses lets the Write-tool file keep its address", () => {
+  const cwd = repo();
+  const lines = [user("List the commits and which email addresses you counted."), bash("t1", "npx workproof mine"), result("t1", "ok"), writeCall("/tmp/ids.md", `Counted ${AUTHOR}`), say("Saved the list.")];
+  assert.equal(run(lines, cwd), "");
+});
+
+test("an address the user's prompt itself contained does not block the file", () => {
+  const cwd = repo();
+  const lines = [user(`Commits by ${AUTHOR} for the review.`), bash("t1", "npx workproof mine"), result("t1", "ok"), writeCall("/tmp/review.md", `Commits by ${AUTHOR}`), say("Saved the notes.")];
+  assert.equal(run(lines, cwd), "");
+});
+
+test("a noreply address in a written file never blocks", () => {
+  const noreply = "12345+ada@users.noreply.github.com";
+  const turn = parseTurn(JSON.stringify(user(COMMIT_PROMPT)) + "\n" + JSON.stringify(writeCall("/tmp/n.md", `Co-Authored-By: ${noreply}`)) + "\n");
+  assert.equal(writtenFileLeak(turn, [noreply, "<noreply@anthropic.com>"]), null);
+  assert.equal(writtenFileLeak(turn, [noreply, AUTHOR]), null, "the repository author is not in this file");
+  const real = parseTurn(JSON.stringify(user(COMMIT_PROMPT)) + "\n" + JSON.stringify(writeCall("/tmp/n.md", `Mail ${AUTHOR}`)) + "\n");
+  assert.equal(writtenFileLeak(real, [noreply, AUTHOR]), FILE_REASON("n.md"));
+});
+
+test("a file whose own name holds the address never puts the address in the reason", () => {
+  const turn = parseTurn(JSON.stringify(user(COMMIT_PROMPT)) + "\n" + JSON.stringify(writeCall(`/tmp/${AUTHOR}.md`, `Mail ${AUTHOR}`)) + "\n");
+  const reason = writtenFileLeak(turn, [AUTHOR]);
+  assert.equal(reason, FILE_REASON("(address)"));
+  assert.ok(!reason!.includes("hopper"));
 });

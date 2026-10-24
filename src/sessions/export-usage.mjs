@@ -79,6 +79,9 @@ export function usageFromDir(dir, range = null) {
   const toolIds = new Map(); // tool-use id -> { name, session }
   const seenInEarlierFile = new Set();
   let filesRepeating = 0;
+  let filesWithRows = 0;
+  let rowCount = 0;
+  const noRowNames = []; // base names of files that held no user/assistant rows, in file order
   let lines = 0;
   let unreadable = 0;
   for (const file of files) {
@@ -87,6 +90,7 @@ export function usageFromDir(dir, range = null) {
       text = fs.readFileSync(file, 'utf8');
     } catch {
       unreadable++;
+      noRowNames.push(path.basename(file));
       continue;
     }
     const fallback = path.basename(file, '.jsonl');
@@ -103,6 +107,7 @@ export function usageFromDir(dir, range = null) {
       lines++;
       if (!row || (row.type !== 'user' && row.type !== 'assistant')) continue;
       any = true;
+      rowCount++;
       const key = typeof row.sessionId === 'string' && row.sessionId ? row.sessionId : fallback;
       fileSessions.add(key);
       let info = sessions.get(key);
@@ -141,6 +146,8 @@ export function usageFromDir(dir, range = null) {
       const owners = prior ? prior.sessions.add(key) : new Set([key]);
       if (!before || entry.output + entry.input + entry.cacheRead + entry.cacheCreation >= before.output + before.input + before.cacheRead + before.cacheCreation) messages.set(id, { entry, sessions: owners });
     }
+    if (any) filesWithRows++;
+    else noRowNames.push(path.basename(file));
     if (!any && text.trim() === '') sessions.delete(fallback);
     if ([...fileSessions].some((k) => seenInEarlierFile.has(k))) filesRepeating++;
     for (const k of fileSessions) seenInEarlierFile.add(k);
@@ -210,6 +217,7 @@ export function usageFromDir(dir, range = null) {
         `The totals above cover only the sessions in the window. sessionRows lists ${sessionRows.length} of the ${rowSessions.length} sessions in the window (at most ${MAX_SESSION_ROWS}). The number of rows the reader keeps is the session count it may state. exportedFiles and filesRepeatingASession cover the whole folder, not the window.`,
       ]
     : [];
+  const warnings = folderWarnings(files.length, filesWithRows, rowCount, noRowNames);
   const result = {
     source: 'export folder',
     files: files.length,
@@ -233,8 +241,25 @@ export function usageFromDir(dir, range = null) {
       ...windowNotes,
     ],
     sessionRows,
+    ...(warnings.length ? { warnings } : {}),
   };
   return result;
+}
+
+const LIST_NAMES = 5;
+
+/**
+ * Plain-language warnings about the folder as a whole (the whole export, not the window).
+ * `noRowNames` lists the base names of the files that held no user or assistant row.
+ */
+function folderWarnings(fileCount, filesWithRows, rowCount, noRowNames) {
+  if (fileCount === 0) return ['no .jsonl files in the folder'];
+  if (rowCount === 0) return [`${fileCount} files were read and 0 sessions were found: the files are not in the Claude Code session format (expected rows with type user/assistant and a sessionId)`];
+  const missing = fileCount - filesWithRows;
+  if (missing === 0) return [];
+  const shown = noRowNames.slice(0, LIST_NAMES).join(', ');
+  const more = noRowNames.length > LIST_NAMES ? ` and ${noRowNames.length - LIST_NAMES} more` : '';
+  return [`${missing} of ${fileCount} files held no session rows: ${shown}${more}`];
 }
 
 /**
@@ -262,5 +287,6 @@ export function runExport(dir, options = {}) {
   }
   const result = usageFromDir(path.resolve(dir), range);
   process.stdout.write(redact(JSON.stringify(result, null, 2)));
+  for (const w of result.warnings ?? []) console.error(redact(w));
   return 0;
 }

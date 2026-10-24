@@ -545,3 +545,72 @@ test("sessions --dir: the window uses the local calendar date of the first times
     }
   }
 });
+
+// --- sessions --dir: warnings for a folder whose files are not session rows --------
+
+const WARN_ZERO = (n) => `${n} files were read and 0 sessions were found: the files are not in the Claude Code session format (expected rows with type user/assistant and a sessionId)`;
+
+test("sessions --dir: .jsonl files with no session rows add the zero-session warning, and stderr repeats it, exit 0", () => {
+  const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-warn-"));
+  try {
+    fs.writeFileSync(path.join(folder, "one.jsonl"), jsonl([{ type: "summary", summary: "x" }]));
+    fs.writeFileSync(path.join(folder, "two.jsonl"), "not json at all\n");
+    const run = runDir(folder);
+    assert.equal(run.status, 0, `exit ${run.status}: ${run.stderr}`);
+    const r = JSON.parse(run.stdout);
+    assert.equal(r.sessions, 0);
+    assert.equal(r.assistantResponses, 0);
+    assert.deepEqual(r.warnings, [WARN_ZERO(2)]);
+    assert.equal(run.stderr.trim(), WARN_ZERO(2));
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir: a folder with no .jsonl files gets the no-files warning and no zero-session warning", () => {
+  const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-warn-"));
+  try {
+    fs.writeFileSync(path.join(folder, "notes.txt"), "hello\n");
+    const run = runDir(folder);
+    assert.equal(run.status, 0, `exit ${run.status}: ${run.stderr}`);
+    const r = JSON.parse(run.stdout);
+    assert.deepEqual(r.warnings, ["no .jsonl files in the folder"]);
+    assert.equal(run.stderr.trim(), "no .jsonl files in the folder");
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir: some files parsed and some not gives the M-of-N warning naming at most five base names", () => {
+  const folder = fs.mkdtempSync(path.join(tmpRoot, "workproof-warn-"));
+  try {
+    fs.writeFileSync(path.join(folder, "good.jsonl"), jsonl([userRow("MIXED000-1", local(2026, 3, 1, 9, 0), "/x/ledger-api")]));
+    for (const name of ["bad-a", "bad-b", "bad-c", "bad-d", "bad-e", "bad-f"]) fs.writeFileSync(path.join(folder, `${name}.jsonl`), jsonl([{ type: "summary" }]));
+    const run = runDir(folder);
+    assert.equal(run.status, 0, `exit ${run.status}: ${run.stderr}`);
+    const r = JSON.parse(run.stdout);
+    assert.equal(r.sessions, 1);
+    assert.equal(r.warnings.length, 1);
+    assert.ok(r.warnings[0].startsWith("6 of 7 files held no session rows: "), r.warnings[0]);
+    const listed = r.warnings[0].split(": ")[1];
+    assert.ok(listed.includes(" and 1 more"), listed);
+    assert.equal(listed.replace(/ and \d+ more$/, "").split(", ").length, 5, "five names are listed");
+    assert.ok(!listed.includes(folder), "no folder path in the warning");
+    assert.ok(run.stderr.includes("6 of 7 files held no session rows"));
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});
+
+test("sessions --dir: a clean export has no warnings key and no stderr", () => {
+  const folder = exportFixture();
+  try {
+    const run = runDir(folder);
+    assert.equal(run.status, 0, `exit ${run.status}: ${run.stderr}`);
+    const r = JSON.parse(run.stdout);
+    assert.equal("warnings" in r, false);
+    assert.equal(run.stderr, "");
+  } finally {
+    fs.rmSync(folder, { recursive: true, force: true });
+  }
+});

@@ -5,6 +5,8 @@ import { execFile } from "node:child_process";
 import { git, configuredEmail, configuredName, wallClock, instantOf, PINNED_CONFIG } from "./git.js";
 import { foldIdentity, possibleSplits, SPLIT_CATEGORY } from "./figures/identity.js";
 import { isBotIdentity } from "./figures/bot.js";
+import { windowFromPrompt } from "./answercheck.js";
+import type { Window } from "./answercheck.js";
 
 /**
  * `workproof figures`: the counts a document about one person's work needs, each on a labelled line
@@ -23,6 +25,8 @@ export interface FiguresOptions {
   brief?: boolean;
   /** `--budget-ms` with `--brief`: the time after which nothing is printed. */
   budgetMs?: number;
+  /** `--window-from-stdin` with `--brief`: the window the prompt on stdin states (first 4000 bytes) limits the brief. */
+  windowFromStdin?: boolean;
 }
 
 export interface FigureRow {
@@ -799,6 +803,7 @@ export function parseFiguresArgs(args: string[]): FiguresOptions {
     else if (a === "--doc") opts.doc = value();
     else if (a === "--json") opts.json = true;
     else if (a === "--brief") opts.brief = true;
+    else if (a === "--window-from-stdin") opts.windowFromStdin = true;
     else if (a === "--budget-ms") {
       const v = value();
       if (!/^\d{1,9}$/.test(v)) throw new Error("--budget-ms needs a whole number of milliseconds");
@@ -811,7 +816,7 @@ export function parseFiguresArgs(args: string[]): FiguresOptions {
 
 /** `workproof figures`: returns the exit code, 0 whenever it ran and 1 for a usage error. */
 export async function runFigures(args: string[], out: { write(s: string): unknown } = process.stdout): Promise<number> {
-  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]\n       workproof figures --brief [--repo <dir>] [--budget-ms <n>]";
+  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]\n       workproof figures --brief [--repo <dir>] [--budget-ms <n>] [--window-from-stdin]";
   let opts: FiguresOptions;
   try {
     opts = parseFiguresArgs(args);
@@ -819,12 +824,16 @@ export async function runFigures(args: string[], out: { write(s: string): unknow
     console.error(`${err instanceof Error ? err.message : String(err)}\n${usage}`);
     return 1;
   }
+  if (opts.windowFromStdin && !opts.brief) {
+    console.error(`--window-from-stdin needs --brief\n${usage}`);
+    return 1;
+  }
   if (opts.brief) {
     if (opts.json || opts.doc || opts.authors.length || opts.since || opts.until) {
-      console.error(`--brief takes only --repo and --budget-ms\n${usage}`);
+      console.error(`--brief takes only --repo and --budget-ms (and --window-from-stdin)\n${usage}`);
       return 1;
     }
-    return runBrief(opts.repo, opts.budgetMs ?? 3000, out);
+    return runBrief(opts.repo, opts.budgetMs ?? 3000, out, opts.windowFromStdin === true);
   }
   if (opts.budgetMs !== undefined) {
     console.error(`--budget-ms needs --brief\n${usage}`);
@@ -875,14 +884,35 @@ const largestShare = (text: string): string => {
   return m ? `${m[1]}% of lines added` : text;
 };
 
-/** The brief lines, or undefined when nothing should be printed: not a git work tree, no HEAD, more than BRIEF_MAX_COMMITS commits, no identity at all. */
-export async function briefLines(repo: string): Promise<string[] | undefined> {
+/** The first 4000 bytes of stdin as text; empty for a terminal or an empty pipe. */
+export async function readPromptFromStdin(max = 4000): Promise<string> {
+  if (process.stdin.isTTY) return "";
+  const chunks: Buffer[] = [];
+  let total = 0;
+  for await (const chunk of process.stdin) {
+    const b = Buffer.from(chunk as Buffer);
+    const part = b.subarray(0, max - total);
+    chunks.push(part);
+    total += part.length;
+    if (total >= max) break;
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+/**
+ * The brief lines, or undefined when nothing should be printed: not a git work tree, no HEAD, more than BRIEF_MAX_COMMITS
+ * commits, no identity at all. With a window, the figures and the author ranking cover only the commits whose author date
+ * (local calendar date) lies in it; the repository commit count stays whole-repository.
+ */
+export async function briefLines(repo: string, window?: Window | null): Promise<string[] | undefined> {
   const cwd = resolve(repo);
   if (!(await git(["rev-parse", "--is-inside-work-tree"], cwd).then((s) => s.trim() === "true", () => false))) return undefined;
   const counted = await git(["rev-list", "--count", `--max-count=${BRIEF_MAX_COMMITS + 1}`, "HEAD"], cwd).then((s) => Number(s.trim()), () => Number.NaN);
   if (!Number.isInteger(counted) || counted < 1 || counted > BRIEF_MAX_COMMITS) return undefined;
   const { commits: log } = await readLog(cwd);
-  const nonMerge = log.filter((c) => c.parents <= 1);
+  const dayOf = (c: LogCommit): string => day(c.authorLocal);
+  const inBrief = (c: LogCommit): boolean => !window || ((!window.since || dayOf(c) >= window.since) && (!window.until || dayOf(c) <= window.until));
+  const nonMerge = log.filter((c) => c.parents <= 1 && inBrief(c));
 
   // Names per address over every commit; the top authors are ranked by non-merge commits per address.
   const namesOf = new Map<string, Map<string, number>>();
@@ -906,7 +936,7 @@ export async function briefLines(repo: string): Promise<string[] | undefined> {
   const configuredNameText = configured ? await configuredName(cwd) : "";
   const displayName = briefName(configuredNameText || mostCommon(namesOf.get(identity)) || "(no name)");
 
-  const figures = await computeFigures({ repo: cwd, authors: [identity], json: false });
+  const figures = await computeFigures({ repo: cwd, authors: [identity], json: false, ...(window ? { since: window.since, until: window.until } : {}) });
   const row = (label: string): string => String(figures.rows.find((r) => r.label === label)?.value ?? "not computed (no such figure)");
 
   // Identity candidates by kind. The same rules as the report's split warning; only the counts leave this function.
@@ -930,7 +960,7 @@ export async function briefLines(repo: string): Promise<string[] | undefined> {
   }
 
   const lines = [
-    `Brief for ${displayName} (${source}), all history, author date, local dates:`,
+    window ? `Brief for ${displayName} (${source}), window ${window.since} to ${window.until}, author date, local dates:` : `Brief for ${displayName} (${source}), all history, author date, local dates:`,
     `repository commits: ${counted}`,
     `shallow clone: ${shallow ? "yes" : "no"}`,
     `.mailmap: ${mailmap ? "present" : "absent"}`,
@@ -956,12 +986,14 @@ export async function briefLines(repo: string): Promise<string[] | undefined> {
 }
 
 /** `workproof figures --brief`: prints the brief, or nothing when it cannot finish within budgetMs. Always returns 0. Read-only. */
-export async function runBrief(repo: string, budgetMs: number, out: { write(s: string): unknown }): Promise<number> {
+export async function runBrief(repo: string, budgetMs: number, out: { write(s: string): unknown }, windowFromStdin = false): Promise<number> {
   let timer: ReturnType<typeof setTimeout> | undefined;
   const late = new Promise<undefined>((resolveLate) => {
     timer = setTimeout(() => resolveLate(undefined), budgetMs);
   });
-  const lines = await Promise.race([briefLines(repo).catch(() => undefined), late]).finally(() => clearTimeout(timer));
+  // The window comes from the prompt on stdin; no window (or no prompt) is the whole history, as before.
+  const job = async () => briefLines(repo, windowFromStdin ? windowFromPrompt(await readPromptFromStdin()) : null);
+  const lines = await Promise.race([job().catch(() => undefined), late]).finally(() => clearTimeout(timer));
   if (lines) out.write(`${lines.map(withoutAddresses).join("\n")}\n`);
   return 0;
 }

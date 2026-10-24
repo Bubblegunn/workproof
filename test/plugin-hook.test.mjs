@@ -237,7 +237,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
     .replaceAll("a GitHub noreply address whose login matches the name or the address in git config", "")
     // The two sanctioned node uses: the availability check and the read-only brief call (checked below).
     .replaceAll("command -v node >/dev/null 2>&1", "")
-    .replaceAll('node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500', "");
+    .replaceAll('node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500 --window-from-stdin', "");
 
   const forbidden = [
     /\bcurl\b/, /\bwget\b/, /\bnc\b/, /\bnode\b/, /\bnpm\b/, /\bpython\d?\b/,
@@ -629,6 +629,16 @@ test("(14) a matching prompt in a git work tree carries the prepared brief and t
   assert.ok(ctx.includes("Counts, dates and claims come from the brief above or from `npx workproof figures|reviews|owner` (add --author, --since, --until for another person or window); do not recount by hand; a number you write that you did not take from a tool output is a guess."), ctx);
 });
 
+test("(14b) a prompt that states a window carries the windowed brief header", () => {
+  const dir = personRepo();
+  const r = run(hookInputIn("How many commits are mine in this repo from January to March 2026?", dir));
+  assert.equal(r.status, 0);
+  assert.equal(r.stderr, "");
+  assertHint(r.stdout);
+  const ctx = contextOf(r.stdout);
+  assert.ok(ctx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (configured), window 2026-01-01 to 2026-03-31, author date, local dates: repository commits: "), ctx);
+});
+
 test("(15) a non-git cwd carries neither the brief nor the steering sentence", () => {
   const ctx = contextOf(run(hookInputIn(COUNT, nonRepo)).stdout);
   assert.ok(!ctx.includes("Prepared brief"), ctx);
@@ -645,5 +655,7 @@ test("(16) a negative prompt with a repository cwd stays silent", () => {
 test("the brief is the only node call in the hint, and it is read-only with a budget", () => {
   const calls = script.split("\n").filter((l) => /\bnode\b/.test(l) && !/^\s*#/.test(l));
   assert.equal(calls.length, 2, calls.join("\n"));
-  assert.match(calls[1], /node "\$root\/dist\/src\/cli\.js" figures --brief --repo "\$cwd" --budget-ms 2500/);
+  assert.match(calls[1], /node "\$root\/dist\/src\/cli\.js" figures --brief --repo "\$cwd" --budget-ms 2500 --window-from-stdin/);
+  // The prompt reaches the brief on stdin, through a subshell whose printf error is discarded.
+  assert.match(calls[1], /\(printf '%s' "\$prompt" 2>\/dev\/null\) \| node /);
 });
