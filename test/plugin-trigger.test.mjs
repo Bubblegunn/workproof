@@ -188,6 +188,17 @@ test("core-rules.md stays under the 3000 bytes the hint reads, so no rule is cut
   assert.ok(Buffer.byteLength(text) < 3000, `${Buffer.byteLength(text)} bytes`);
 });
 
+test("the hint points review-evidence requests to `workproof reviews` and ownership claims to `workproof owner`, and only those", () => {
+  const ctx = (text) => JSON.parse(run(hook, gitDir, text).stdout).hookSpecificOutput.additionalContext;
+  const review = ctx("Our auditor wants evidence that every change in Q1 got a second person's review, recorded as Reviewed-by trailers in commit messages; write a CSV of change, author, reviewer.");
+  assert.match(review, /npx workproof reviews --path/);
+  assert.doesNotMatch(review, /npx workproof owner --path/);
+  const owner = ctx(phrasings.claim_check[0] + " The candidate says they wrote the parser module.");
+  assert.match(owner, /npx workproof owner --path/);
+  const plain = ctx(phrasings.work_delivery[0]);
+  assert.doesNotMatch(plain, /npx workproof reviews --path/);
+});
+
 test("near-miss negatives: general git help, code review, commit messages and repo health reports stay silent even inside a repository", () => {
   assert.ok(phrasings.near_miss.length >= 15, `${phrasings.near_miss.length} near-miss phrasings`);
   const fp = phrasings.near_miss.filter((p) => matches(gitDir, p));

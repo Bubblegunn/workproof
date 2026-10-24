@@ -201,6 +201,12 @@ if [ -n "$lc" ] && [ "$match" = 1 ]; then
   ctx="$ctx Intent class: $cls. The rules block below (also in $root/skills/workproof/references/core-rules.md) applies to any document about someone's work from the commit history or sessions, whether or not you run the tool; run \`workproof figures\` before counting; use the workproof report only for figures about the user's own work."
   rules=$(head -c 3000 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
   if [ -n "$rules" ]; then ctx="$ctx $rules"; fi
+  if has 'reviewed-by|second person.?s review|auditor|who reviewed|review evidence|approved by|four.eyes|change.review'; then
+    ctx="$ctx For evidence that changes were reviewed, run \`npx workproof reviews --path <area> --since <date> --until <date> --format csv --out <file>\` and build the answer from its rows and limits."
+  fi
+  if has 'candidate|claims?|contractor|wrote the|who wrote|written by|designed and wrote|owns? '; then
+    ctx="$ctx To check a claim that someone wrote or owns a file or folder, run \`npx workproof owner --path <path> --claim <name>\` and quote its rows (surviving lines with whitespace and moves ignored beside plain blame, who created it, namesakes, backdated commits)."
+  fi
   # The brief goes before the plain-git sentence, so the sentence still ends the context as before.
   brief=$(brief_extra)
   if [ -n "$brief" ]; then ctx="$ctx Prepared brief (from workproof figures, do not recount by hand): $brief Counts, dates and claims come from the brief above or from \`npx workproof figures|reviews|owner\` (add --author, --since, --until for another person or window); do not recount by hand; a number you write that you did not take from a tool output is a guess."; fi
