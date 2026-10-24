@@ -47,7 +47,7 @@ ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 CLI = os.environ.get("WORKPROOF_CLI", os.path.join(ROOT, "dist", "src", "cli.js"))
 SLOW = 30.0
 CMD_TIMEOUT = int(os.environ.get("SWEEP_TIMEOUT", "1500"))
-MAX_CLONE_MB = 300
+MAX_CLONE_MB = int(os.environ.get("SWEEP_MAX_CLONE_MB", "300"))
 ENV = dict(os.environ, GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_NOSYSTEM="1", GIT_TERMINAL_PROMPT="0", LANG="en_US.UTF-8", LC_ALL="en_US.UTF-8")
 BOT = [re.compile(p, re.I) for p in (r"^(?:\d+)?[^@]+\[bot\]@users\.noreply\.github\.com$", r"^bot@renovateapp\.com$", r"^gitlab-bot@gitlab\.com$", r"^teabot@gitea\.io$")]
 is_bot = lambda e: any(p.search(e) for p in BOT)
@@ -202,7 +202,8 @@ def reference(H, emails, since=None, until=None, now=None):
     for s in shas:
         rt = sum((a or 0) + (d or 0) for _, a, d in raw.get(s, []))
         wt = sum((a or 0) + (d or 0) for _, a, d in w.get(s, []))
-        if rt > 0 and wt == 0:
+        # a commit that changes a binary file is never counted by the tool (documented in the row's filter text)
+        if rt > 0 and wt == 0 and not any(a is None for _, a, d in raw.get(s, [])):
             wsonly += 1
     r["wsonly"] = wsonly
     big = 0
@@ -284,13 +285,14 @@ def blame_reference(clone, emails):
     files = sorted(set(files) | set(links) | set(empties))
 
     def one(f):
-        p = subprocess.run(["git", "blame", "--line-porcelain", "-w", "-M", *ign, "HEAD", "--", f], cwd=clone, env=ENV, capture_output=True, text=True, errors="replace")
+        # bytes, split on b"\n" only: text mode turns a lone "\r" inside a line into a line break (second run: requests/ext/requests-logo.ai, +39)
+        p = subprocess.run(["git", "blame", "--line-porcelain", "-w", "-M", *ign, "HEAD", "--", f], cwd=clone, env=ENV, capture_output=True)
         n = m = 0
         mail = ""
-        for line in p.stdout.split("\n"):
-            if line.startswith("author-mail "):
-                mail = line[12:].strip("<>").lower()
-            elif line.startswith("\t"):
+        for line in p.stdout.split(b"\n"):
+            if line.startswith(b"author-mail "):
+                mail = line[12:].decode("utf-8", "replace").strip("<>").lower()
+            elif line.startswith(b"\t"):
                 n += 1
                 m += mail in emails
         return n, m
