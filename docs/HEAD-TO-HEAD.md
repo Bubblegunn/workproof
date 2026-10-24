@@ -1439,3 +1439,16 @@ Totals over W7 to W9 (outcome criteria, maximum 75): OURS 62.00, BASE 58.33, RCP
 | (4) all working folders under /private/tmp, no owner instruction file | pass |
 
 Per-task: OURS trails the best other arm by more than 0.34 on W7T1 (3.00 vs 5.00), W7T2 (4.00 vs 5.00), W8T2 (4.00 vs 5.00) and W9T1 (2.67 vs 5.00); it leads on W7T4, W7T5, W8T3 (4.00 vs 2.67), W8T4, W8T5, W9T2 (4.67 vs 2.00), W9T4 is behind by 0.33. Rule A ratio 0.78 (passes); Rule B' fails. Better of plain and invoked per competitor family: RCP 62.33, so OURS minus best family = -0.33. The result is recorded as it is. By the frozen rule the sealed final is not started; diagnosis is limited to the cause of the failed conditions (W7 and the W7T1, W7T2, W9T1 losses) and the conditions are not changed.
+
+## Round 15, gate 3 loss diagnosis and iteration 18 (2026-10-24)
+
+Scope: the failed conditions only (W7 total below RCP_I; losses on W7T1, W7T2, W9T1, W8T2). W7 to W9 are now read material and become development material; no later gate uses them as evidence of a lead. Grader reasons and the final answers of the OURS cells were read; the capabilities behind the losses, not fixture details:
+
+1. Identity of a person who appears under two addresses. Rule 7 kept "same name on an unrelated address" as a separate unconfirmed person. Two sets (a ranking of contributors, a per-person review file) and a trailer question (a co-author trailer carrying a second address of the same organisation) expected one person: OURS split a contributor into two rows (W9T1: lost the second place and the one-entry criterion), held out a commit from a person's record (W7T1) and refused to count a trailer (W7T2). The earlier narrowing came from a namesake case, so the new rule separates by kind: same full name at the same organisation, or beside a personal mailbox, is merged (one row, merged and split figures, labelled "please confirm"); the same name at unrelated organisations stays a separate unconfirmed person.
+2. Trailer help read on every commit, in any key case, including other people's commits that name the person. One of three OURS cells missed the reviewed-by trailers on a colleague's commits.
+3. A reverted piece of work was listed under "shipped" while counted in lines written. It stays in lines written but is listed under "reverted".
+4. Commit counts: OURS gave only the deliverable counts (2, 3, 4), the criterion also looks for the plain non-merge commit count of each person; the answer now gives the commit count beside the counted ones.
+5. Listing files (AUTHORS) that name people with no commits: they are named, with no share (OURS named them in one cell of three).
+6. W8T2 (surviving versus added lines for a person's contribution) and the variance on W7T2 are noted, not changed: no general rule is derivable from one task.
+
+Change: `skills/workproof/references/core-rules.md` rules 3, 6, 7 (4,300 characters, the hint limit; mutation-checked test additions in `test/plugin-trigger.test.mjs`). Product commit recorded below once committed. Next: a gate on three further fresh writers with a protocol frozen before any cell.

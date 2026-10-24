@@ -163,8 +163,8 @@ test("core-rules.md carries each rule inside its numbered line", () => {
   const checks = {
     4: [/unless the user names a file/i],
     5: [/basis/i, /never a session count/i, /no number/i],
-    6: [/lines written/i, /third-party/i, /reverted/i, /ignoring whitespace/i, /for the same filter/i, /state both/i, /which is raw/i, /delivered-only figure gets its own label and does not replace lines written/i],
-    7: [/what holds or does not/i],
+    6: [/lines written/i, /third-party/i, /reverted/i, /ignoring whitespace/i, /for the same filter/i, /state both/i, /which is raw/i, /delivered-only figure gets its own label and does not replace lines written/i, /listed under "reverted", not as shipped/],
+    7: [/what holds or does not/i, /same full name at the same organisation or on a personal mailbox/i, /unrelated organisations is a separate unconfirmed person/i, /Co-authored-by, Reviewed-by, any case/, /AUTHORS names with no commits: named, no share/],
   };
   for (const [n, res] of Object.entries(checks)) {
     for (const re of res) assert.match(line(n), re, `rule ${n} lacks ${re}`);
