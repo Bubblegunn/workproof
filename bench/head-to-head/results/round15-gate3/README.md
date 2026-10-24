@@ -1,0 +1,4 @@
+# Round 15 multi-writer gate 3 (W7, W8, W9): result
+
+Protocol: `docs/HEAD-TO-HEAD.md`, "Round 15, gate 3" (commit 8f1f337, frozen before any cell ran). 270 cells (15 tasks x 6 arms x 3 runs), Sonnet, subscription wrapper, working folders under /private/tmp. OURS = product commit 09fdd2f. Five blind reason-first votes per packet; for W8T1 and W8T3 the vote v2 was unreadable twice and was asked a third time with the same prompt (the unreadable output is kept as `*-grade-attempt2.json`; attempt files are not votes). `results.txt` is `r15/score-r15.py` output (outcome criteria, `--labels`, seed `r15-gate3`); `lead-check.txt` evaluates the frozen conditions (per-writer totals, cost, working folders).
+Result: not a clear lead (conditions 1 and 2 fail). Raw transcripts stay outside the repository.

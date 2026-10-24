@@ -1424,3 +1424,18 @@ Tasks. Three further fresh Sonnet writers (W7, W8, W9), each given one plain par
 Arms and cells: OURS, BASE, RCP, RCP_I, CV, CV_I on all W7 to W9 tasks, 3 runs each, same pins and wrapper as gate 2, working folder under `/private/tmp`, `guard.sh` around every run, `H2H_HOOK_EVENTS=1` so the init and hook events are recorded. Rival cells are run on the same day as OURS. Grading: five blind reason-first votes (`r14/grade-r14.sh`, `r14/assemble-r14.py`), `r15/score-r15.py`, outcome criteria only.
 
 Clear lead = all of: (1) the lower bound of the 95 percent bootstrap interval (10,000 resamples of the runs inside each task and arm, seed `r15-gate3`) of OURS minus the best other arm over all W7 to W9 tasks is above zero; (2) on each of W7, W8 and W9 alone OURS total is at least the best other arm's total; (3) mean list-price cost per OURS cell is at most 1.6 times the mean cost per BASE cell; (4) every cell's working directory is under `/private/tmp` and no owner instruction file is loaded. If (1) to (4) hold, the next step is a sealed final on a further fresh writer's set with the frozen protocol; if not, the result is recorded as it is, diagnosis is limited to the cause of the failed condition, and no condition is changed afterwards.
+
+## Round 15, gate 3 result (2026-10-24): not a clear lead
+
+Run exactly as frozen in commit 8f1f337 (no change to protocol, tasks, arms or scorer). 270 cells, 0 failed, all working folders under `/private/tmp`. Five blind reason-first votes per packet; two packets (W8T1, W8T3) had their vote v2 unreadable and it was asked again with the same prompt (third try readable; attempt files are not votes). Data: `bench/head-to-head/results/round15-gate3/` (`results.txt`, `lead-check.txt`, grades).
+
+Totals over W7 to W9 (outcome criteria, maximum 75): OURS 62.00, BASE 58.33, RCP_I 58.00, CV 56.00, RCP 53.67, CV_I 49.00. OURS minus best other arm (BASE) = 3.67; 95 percent bootstrap interval (10,000 resamples, seed `r15-gate3`) [-1.33, 6.67].
+
+| Condition | Result |
+|---|---|
+| (1) interval lower bound above zero | FAIL (-1.33) |
+| (2) OURS total at least best other arm on each of W7, W8, W9 | FAIL: W7 21.00 vs RCP_I 23.33 (fail); W8 21.00 vs 17.67 (pass); W9 20.01 vs 19.34 (pass) |
+| (3) mean cost per OURS cell at most 1.6 times BASE | pass (0.1378 vs 0.0880 USD, ratio 1.57) |
+| (4) all working folders under /private/tmp, no owner instruction file | pass |
+
+Per-task: OURS trails the best other arm by more than 0.34 on W7T1 (3.00 vs 5.00), W7T2 (4.00 vs 5.00), W8T2 (4.00 vs 5.00) and W9T1 (2.67 vs 5.00); it leads on W7T4, W7T5, W8T3 (4.00 vs 2.67), W8T4, W8T5, W9T2 (4.67 vs 2.00), W9T4 is behind by 0.33. Rule A ratio 0.78 (passes); Rule B' fails. Better of plain and invoked per competitor family: RCP 62.33, so OURS minus best family = -0.33. The result is recorded as it is. By the frozen rule the sealed final is not started; diagnosis is limited to the cause of the failed conditions (W7 and the W7T1, W7T2, W9T1 losses) and the conditions are not changed.
