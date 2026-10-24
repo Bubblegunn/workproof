@@ -199,7 +199,7 @@ if [ -n "$lc" ] && [ "$match" = 1 ]; then
   fi
   ctx="$ctx If the user names a folder of exported Claude Code sessions, run \`npx workproof sessions --dir <folder>\` and do not answer from the default local logs. Plugin root: $root (skill, references and commands are under it; do not search the disk for them)."
   ctx="$ctx Intent class: $cls. The rules block below (also in $root/skills/workproof/references/core-rules.md) applies to any document about someone's work from the commit history or sessions, whether or not you run the tool; run \`workproof figures\` before counting; use the workproof report only for figures about the user's own work."
-  rules=$(head -c 3000 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
+  rules=$(head -c 4500 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
   if [ -n "$rules" ]; then ctx="$ctx $rules"; fi
   if has 'reviewed-by|second person.?s review|auditor|who reviewed|review evidence|approved by|four.eyes|change.review'; then
     ctx="$ctx For evidence that changes were reviewed, run \`npx workproof reviews --path <area> --since <date> --until <date> --format csv --out <file>\` and build the answer from its rows and limits."

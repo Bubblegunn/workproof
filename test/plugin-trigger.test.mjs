@@ -150,10 +150,10 @@ test("session hook: pointer inside a git work tree, nothing outside", () => {
   assert.equal(outside.stdout, "");
 });
 
-// Round 15: limit 2950 (still under the 3000 bytes the hint reads) for the rules on others' claims and on review evidence, paid for partly by shorter wording elsewhere. Round 13: limit 2100 for the one clause that points exports to `sessions --dir --since --until` and the kept rows (the hint still reads only the first 3000 bytes). Limit raised from 1700 to 2000 characters: restoring the user-named file exception (rule 4), the whitespace re-measure and raw-figure label (rule 6), and the delivered-only figure sentence keeps the always-loaded rules equal in meaning to SKILL.md.
+// Round 15: limit 4300 (still under the 4500 bytes the hint reads since round 15 phase 3; 3000 before) for the rules on others' claims and on review evidence, paid for partly by shorter wording elsewhere. Round 13: limit 2100 for the one clause that points exports to `sessions --dir --since --until` and the kept rows (the hint still reads only the first 3000 bytes). Limit raised from 1700 to 2000 characters: restoring the user-named file exception (rule 4), the whitespace re-measure and raw-figure label (rule 6), and the delivered-only figure sentence keeps the always-loaded rules equal in meaning to SKILL.md.
 test("core-rules.md is short and lists R1 to R9", () => {
   const text = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
-  assert.ok(text.length <= 2950, `${text.length} characters`);
+  assert.ok(text.length <= 4300, `${text.length} characters`);
   for (let i = 1; i <= 9; i++) assert.match(text, new RegExp(`^${i}\\. `, "m"));
 });
 
@@ -182,10 +182,10 @@ test("core-rules.md carries the figure rule, the filtered-count rule and the thr
   assert.match(core, /Out of scope: do the task, add one scope line, no refusal/);
 });
 
-test("core-rules.md stays under the 3000 bytes the hint reads, so no rule is cut mid-line", () => {
+test("core-rules.md stays under the 4500 bytes the hint reads, so no rule is cut mid-line", () => {
   const f = join(root, "skills", "workproof", "references", "core-rules.md");
   const text = readFileSync(f, "utf8");
-  assert.ok(Buffer.byteLength(text) < 3000, `${Buffer.byteLength(text)} bytes`);
+  assert.ok(Buffer.byteLength(text) < 4500, `${Buffer.byteLength(text)} bytes`);
 });
 
 test("the hint points review-evidence requests to `workproof reviews` and ownership claims to `workproof owner`, and only those", () => {
