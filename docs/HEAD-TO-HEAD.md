@@ -1500,3 +1500,29 @@ Grading: five blind reason-first votes per packet (`r14/grade-r14.sh`, `r14/asse
 **Gate pass = both of:** (I1) the lower bound of the 95 percent bootstrap interval (10,000 resamples of the runs inside each task and arm, seed `r16-gate5`) of OURS total minus the best other arm's total over all 15 tasks is above zero; (V) every cell's working directory is under `/private/tmp` and no cell loaded an owner instruction file. Reported and not gating: totals per arm and per writer set, OURS against the best other arm per writer set, mean list-price cost per cell and the OURS/BASE ratio, OURS minus BASE, OURS minus the mean of the other five arms, OURS minus the mean of the plain-model arms (BASE, RCP, CV), and the tasks where OURS trails the best other arm by more than 0.34.
 
 If the gate passes: a final on a sealed set from a further fresh writer, protocol frozen separately before its first cell. If it fails: the result is recorded as it is, diagnosis is limited to the cause, at most one more redesign iteration and one more gate on new writers follow, and then a Resume section. No condition is changed after the first cell.
+
+## Round 16, gate 5 result (2026-10-25): OURS is behind; the gate fails
+
+Run as frozen in `f430bd1`: 270 cells (15 tasks W13 to W15, 6 arms, 3 runs), 0 failed cells, all working folders under `/private/tmp`, five blind reason-first votes (two votes stayed unreadable after the script's one automatic re-ask, so W13T3, W13T4 and W15T3 count four usable votes). Data: `bench/head-to-head/results/round16-gate5/`.
+
+Totals (outcome criteria, maximum 75): BASE 68.00, CV_I 66.67, CV 66.33, RCP 66.33, RCP_I 65.67, OURS 64.00. OURS minus the best other arm = -4.00; 95 percent bootstrap interval (seed `r16-gate5`) [-7.00, -2.00].
+
+| Check | Result |
+|---|---|
+| (I1) interval lower bound above zero | FAIL (-7.00) |
+| (V) isolation | PASS |
+| GATE | FAIL |
+
+Reported, not gating: per writer set OURS minus the best other arm W13 -1.33, W14 -2.33, W15 -1.67; mean cost per cell OURS 0.0889 USD, BASE 0.0776, ratio 1.15 (gate 4: 1.78; the cost target was met); OURS minus BASE -4.00, minus the mean of the other five arms -2.60, minus the mean of the plain-model arms -2.89. Tasks where OURS trails the best other arm by more than 0.34: W13T1 (1.00 against 4.00), W14T2 (3.00 against 5.00), W15T2 (2.33 behind), W14T3 (0.67). OURS leads or ties on the other eleven, so the loss is concentrated in four tasks. The gate-4 gap (-5.33) narrowed to -4.00, and the cost halved its excess.
+
+Diagnosis (W13 to W15 are now read material; capabilities, not fixtures). Of the 32 failed OURS criteria, the causes were:
+
+1. **One person split across addresses at two organisations** (W14T2 Zoe Park listed twice and the count 9 instead of 8; W15T2 Dan Petrov in two rows; W13T2 "refuses to merge the two identities"; part of W13T1). The redesigned `groupPeople` kept the same full name at unrelated organisations apart, a rule taken from one gate-4 task. In the seven independent writers' sets that touch the question (W9T1, W10T3, W12T3, W14T2, W15T2, W13T1, W13T2) six expect one person; only W11T5 expects a namesake kept apart. A prior over independent writers, not a fixture detail.
+2. **Ownership counted for the wrong person** (W13T1, 12 failed run-criteria): `owner --claim` matched only the exact name, so the claimant's other addresses were not hers (9 percent, then "possibly 0 percent"), a mass quote reformat took over her lines (`git blame -w` ignores whitespace but not a quote change), and the squash commit that credits her as Co-authored-by was never mentioned.
+3. **Own reading of reverts** (W14T3): the model listed a backed-out change that had been put back; `figures` already ignores a revert that was itself reverted, but the model read the log by hand.
+
+Not changed: the pass rule, the arms or the tasks of gate 5. The per-run answers show no failure of the date, window or revert machinery of iteration 1 on these writers: UTC windows, the `--tz Europe/Berlin` semester split and the impossible-date listing were used correctly in W15T2.
+
+### Iteration 2 (one more redesign, allowed by the gate-5 protocol)
+
+General changes, each tested with mutation checks (no fixture, name or number from W13 to W15 appears in the code or the tests): the same full name on two addresses is joined as probable at any organisation, with a namesake caution and the proven-only count beside it; a first name shortened to an initial joins the one matching full name; any `users.noreply.*` login counts as a noreply login; `workproof owner` adds rows by person (bots left out, addresses joined as in `people`), detects formatting-only commits (added lines equal removed lines after whitespace, quote characters and trailing commas) and passes them to `git blame --ignore-rev`, and reports a claim-person row with direct surviving lines and the lines credited only by Co-authored-by. The next gate uses three further fresh writers (W16 to W18), protocol frozen before the first cell; if it passes, the final uses a sealed set from a fourth fresh writer (W19), already written and unread.

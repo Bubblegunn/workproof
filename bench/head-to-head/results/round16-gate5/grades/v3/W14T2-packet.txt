@@ -1,0 +1,669 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md; git log --oneline --all --grep='^6.3.0$' ; git log --format='%h %s' | head -30
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --since a1ebd95 2>&1 | head -50; echo ---; git log a1ebd95..HEAD --format='%h|%an <%ae>|%cn|%s%n%b' --stat | head -120; cat .mailmap
+Bash: git show f7bb8aa | tail -15; git cat-file -t 5d1f0c2a9b7e4c3d8a6f1e2b0c9d8e7f6a5b4c3d; git show 6114cf0 | tail -12; git show ff822a9 0760c27 --format='%h %an %ae %ad' -s; git log --all --oneline | head -3
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-OURS-1/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 9 people for the commits after "6.3.0", and the count is the first line of the file.
+
+- **Excluded as core team:** Mara Linden and Nils Norell, who are in `MAINTAINERS.md`. The commits under "Nils N." with a private address are also Nils's, because `.mailmap` maps that address to Nils Norell.
+- **Excluded as bots:** `dependabot[bot]` and `github-actions[bot]`.
+- **Excluded because the work was reverted:** Sam Teller. Their "Add retry recipe" commit was reverted by Mara, so it isn't in the release.
+- **Counted as one person:** "Jose Alvarez" and "José Álvarez" share an email address.
+- **Included from co-author lines:** Quinn Okafor, Wen Zhao and Zoe Park, who are credited on the `drain()` commit (Priya Nair is its author).
+- **Included, with the committer ignored:** Rafael Sousa. Nils committed the `isLimit` change, but Rafael wrote it.
+
+**Please confirm:** two commits are by "Zoe Park" under different addresses, one at example.com and one at work.example.org. I kept them as two people because the addresses belong to unrelated organisations. If they are the same person, delete the second Zoe line and change the count to 8.
+
+Tess Ibarra's only change is a one-line "Thanks to everyone who reported bugs" credits paragraph in the readme. Cut it if you think it's too small to name.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+We are thanking 9 people for this release.
+
+Thank you to everyone outside the core team whose work is in this release:
+
+- **Priya Nair**: added `drain()` to wait for the queue.
+- **Quinn Okafor**: co-authored `drain()`.
+- **Wen Zhao**: co-authored `drain()`.
+- **Zoe Park**: added the `queueSize` helper, documented `clearQueue`, and co-authored `drain()`.
+- **Zoe Park** (a second contributor with the same name, at a different organisation): added tests for `queueSize`.
+- **Rafael Sousa**: added the `isLimit` type guard.
+- **Jose Alvarez**: added the `LimitFunction` type export and the `rejectOnClear` typing.
+- **Uma Vogel**: added a benchmark for `queueSize` overhead.
+- **Tess Ibarra**: added a credits paragraph to the readme.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md && git log --oneline --grep='^6.3.0$' && git log --format='%h %an <%ae> | %cn | %s' 6.3.0..HEAD 2>/dev/null | head -50; git tag | tail -3
+Bash: git log --format='%h|%an|%ae|%cn|%ad|%s%n%b---' --date=short --no-merges a1ebd95..HEAD; echo ====; git log --merges --format='%h %an %s' a1ebd95..HEAD; git log --format='%h' a1ebd95..HEAD | wc -l
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --since 2025-03-01 2>&1 | head -60; git log --merges --format='%h %an | %s' a1ebd95..HEAD; git log --stat --format='--- %h %an %s' --no-merges a1ebd95..HEAD | grep -v '^$'
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-OURS-2/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 9 people for the commits after "6.3.0" (`a1ebd95`), and the count is the first line of the file.
+
+**Thanked:** Priya Nair, Quinn Okafor, Wen Zhao, Zoe Park (twice, see below), Jose Alvarez, Rafael Sousa, Tess Ibarra and Uma Vogel.
+
+**Left out:**
+- **Core team:** Mara Linden and Nils Norell are the maintainers. The "Nils N." commit (Export defaultConcurrency) uses a different email address, but I counted it as Nils Norell's because the name and commit style match. If that's not Nils, that person is missing.
+- **Sam Teller:** their retry recipe was reverted by Mara, so it isn't in the release.
+- **Bots:** `github-actions[bot]` and `dependabot[bot]`.
+
+**Decisions to check:**
+- **Quinn Okafor and Wen Zhao:** they only appear as `Co-authored-by` lines on Priya's `drain()` commit. I counted that as work in the release.
+- **Jose Alvarez / José Álvarez:** the two spellings share one email address, so I listed them as one person.
+- **Two Zoe Parks:** one uses an example.com address and the other a work.example.org address, so I kept them as two people. The first is credited with the `queueSize` helper and the `drain()` co-authorship, the second with the `queueSize` tests. If they're the same person, merge the two lines and the count becomes 8.
+- **`zpark`:** this contributor wrote the "mention clearQueue in readme" docs commit. Their address is a noreply one with no link to either Zoe, so I left them out. If they are one of the Zoes, add the docs to that line. If they're someone else, add them and the count becomes 10.
+- **Rafael Sousa:** his commit is a cherry-pick. I credited him as the author.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+This release includes work from 9 people outside the core team. Thank you!
+
+- **Priya Nair**: added `drain()` to wait for the queue to empty
+- **Quinn Okafor**: co-author of `drain()`
+- **Wen Zhao**: co-author of `drain()`
+- **Zoe Park**: added the `queueSize` helper and co-authored `drain()`
+- **Zoe Park** (a second contributor with the same name): wrote the `queueSize` tests
+- **Jose Alvarez**: added the `rejectOnClear` typing and exported the `LimitFunction` type
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Tess Ibarra**: added the credits paragraph to the docs
+- **Uma Vogel**: added the benchmark for `queueSize` overhead
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' --format='%h %s %ad'; git log --format='%h %an <%ae> | %cn | %s' 6.3.0^{commit}..HEAD 2>&1 | head -50
+Bash: git log --format='%h %an | %s' --all --grep='6.3.0' | head; git tag | tail -5
+Bash: git log --format='%h|%an|%ae|%cn|%ad|%s%n%b---' --date=iso a1ebd95..HEAD; git log --merges --oneline a1ebd95..HEAD
+Bash: git log --format='%h %an %s' --stat a1ebd95..HEAD | grep -v '^$'; git show f7bb8aa | tail -20; git cat-file -t 5d1f0c2a9b7e4c3d8a6f1e2b0c9d8e7f6a5b4c3d; git log --all --format='%h %an %ae %s' | grep -i -E 'zoe|zpark|nils'; git show ff822a9 cee4ef1 | head -60
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --since 2025-03-03 2>&1 | head -40
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-OURS-3/fx/THANKS-DRAFT.md
+### Final answer text
+I've written `THANKS-DRAFT.md`. It thanks 9 people for the commits after "6.3.0", and the first line says so.
+
+A few judgment calls to check before you publish:
+- **Two Zoe Parks:** I listed them as two people. One uses the `zoe@` address and wrote the `queueSize` helper, the readme note and co-authored `drain()`. The other uses a `work.example.org` address and wrote the `queueSize` test. The same name at unrelated organisations looks like two people. If they're actually one person, the count drops to 8. I also treated the `zpark` commit as the first Zoe, which is probable but not certain.
+- **José Álvarez:** two commits under spellings with and without accents share one email, so I counted them as one person.
+- **Sam Teller:** left out, because their retry recipe was reverted and isn't in the release.
+- **Nils N.:** left out. That commit uses a private address, but I assumed it's the maintainer Nils Norell. Confirm if you can.
+- **Excluded:** the two maintainers (Mara Linden and Nils Norell), and the two bots (dependabot and github-actions).
+- **Quinn Okafor and Wen Zhao:** included as co-authors of `drain()`. They have no commits of their own.
+- **Uma Vogel and Tess Ibarra:** included. Their changes are a benchmark and a docs paragraph, so they're in the repo but don't change the library code.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+We're thanking 9 people for this release.
+
+- Priya Nair: added `drain()` to wait for the queue
+- Quinn Okafor: co-authored `drain()`
+- Wen Zhao: co-authored `drain()`
+- Zoe Park (zoe@ address): added the `queueSize` helper, documented `clearQueue` in the readme, and co-authored `drain()`
+- Zoe Park (work.example.org address, a different person with the same name): added the `queueSize` test
+- Rafael Sousa: added the `isLimit` type guard
+- José Álvarez: added `rejectOnClear` typing and exported the `LimitFunction` type
+- Tess Ibarra: added the readme credits paragraph
+- Uma Vogel: added the `queueSize` overhead benchmark
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md && git log --oneline --grep='^6.3.0$' && git log --format='%h %an <%ae> | %cn | %s' | head -50
+Bash: cat .mailmap; git show f7bb8aa 54ef48e bbd56e0 --stat --format='--- %h %s%n%b'; git show f7bb8aa | tail -20; git log a1ebd95..HEAD --format='%h %an | %(trailers:key=Co-authored-by,valueonly)' ; git log a1ebd95..HEAD --format=%B | grep -i -E 'co-authored|thanks
+Bash: git show --stat --format='%h %s' 6114cf0 20d393f e3d84ec b92fe98 b67fd92 30f2f4d | cat; grep -rn "isLimit\|LimitFunction\|rejectOnClear\|drain" --include=*.ts --include=*.js . 2>/dev/null | grep -v node_modules | head
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-CV_I-1/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It opens with the count and thanks 8 people:
+
+- Zoe Park
+- José Álvarez
+- Rafael Sousa
+- Priya Nair
+- Quinn Okafor
+- Wen Zhao
+- Uma Vogel
+- Tess Ibarra
+
+I did the following to get that list:
+- **Scope:** I covered the commits after `6.3.0`.
+- **Duplicate identities:** Zoe appears under two names and José under two spellings, so each is listed once. `.mailmap` confirms Zoe is the same person as `zpark`. It also maps `Nils N.` to Nils Norell, so that commit is core-team work.
+- **Co-authors:** Quinn and Wen only appear as `Co-authored-by` trailers on the `drain()` commit, which Priya authored. I credited them for that.
+- **Sam Teller left out:** Their retry recipe was reverted in the same range, so it isn't in the release.
+- **Excluded:** I left out the two bots, `github-actions` and `dependabot`, and the core team.
+
+I didn't use the cv-builder skills because they're for resumes, not release notes.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+We're thanking 8 people for this release.
+
+Thanks to everyone outside the core team who contributed:
+
+- Zoe Park: added the `queueSize` helper, with tests and a readme note on `clearQueue`
+- José Álvarez: exported the `LimitFunction` type and added `rejectOnClear` typing
+- Rafael Sousa: added the `isLimit` type guard
+- Priya Nair: added `drain()` to wait for the queue
+- Quinn Okafor: co-authored `drain()`
+- Wen Zhao: co-authored `drain()`
+- Uma Vogel: added a benchmark for `queueSize` overhead
+- Tess Ibarra: added a credits section to the readme
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' --format='%h %s'; git log --format='%h %an <%ae> | %cn | %s' $(git log --format=%H --grep='^6.3.0$' -1)..HEAD
+Bash: git show f7bb8aa bbd56e0 --stat --format='%h %an%n%B' ; git show f7bb8aa | head -40; git show bbd56e0 | head -30; git show 54ef48e --stat --format=%h
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-CV_I-2/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts with the count and thanks 6 people:
+
+- Jose Alvarez
+- Priya Nair
+- Rafael Sousa
+- Tess Ibarra
+- Uma Vogel
+- Zoe Park
+
+I didn't use the cv-builder skills. They're for resumes and don't apply to release notes.
+
+Some judgment calls:
+- **Sam Teller left out:** their "Add retry recipe" commit was reverted by Mara Linden, so none of it is in the release.
+- **Maintainer aliases left out:** "Nils N." (`nils.norell@private.example`) looks like Nils Norell under a different name, so I treated it as a maintainer. I assumed this from the name, so check it. The `private.example` address is also in the git history if you'd rather not have it there.
+- **Bots left out:** `github-actions[bot]` and `dependabot[bot]`.
+- **Merged identities:**
+  - "Jose Alvarez" and "José Álvarez" share one email address, so I listed them once. I used the spelling without accents, so change it if they prefer the accented one.
+  - Zoe Park's commits appear under three different names and emails (`zoe@`, `zoe.park@work.`, and `zpark`). I assumed they're all the same person, so check that too.
+- **Priya Nair credited by author:** Nils Norell committed the change, but Priya wrote it.
+- **Tess Ibarra's credits paragraph:** its text is just "Thanks to everyone who reported bugs." You may want to look at that line before release.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+We are thanking 6 people in this release.
+
+## Thanks
+
+Thank you to everyone outside the core team whose work is in this release:
+
+- **Jose Alvarez**: exported the `LimitFunction` type and added `rejectOnClear` typing
+- **Priya Nair**: added `drain()` to wait for the queue (#98)
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Tess Ibarra**: added a credits paragraph to the readme
+- **Uma Vogel**: added a benchmark for `queueSize` overhead (#101)
+- **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue`
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md && git log --all --oneline --grep='6.3.0' && git log --format='%h %an <%ae> | %cn | %s' | head -60
+Bash: cat .mailmap; git log a1ebd95..HEAD --format='%h %aN <%aE> | %s' ; git show f7bb8aa b92fe98 b67fd92 54ef48e bbd56e0 --stat --format='--- %h %s' ; git show f7bb8aa | head -40; git log a1ebd95..HEAD --format='%h %(trailers:key=Co-authored-by)' | grep -i co-
+Bash: git log a1ebd95..HEAD --stat --format='--- %h %aN %s%n%b' | grep -v '^$'; git log a1ebd95..HEAD --format='%h %cN %s' | head -20; ls
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-CV_I-3/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people, and the first line gives that count. I didn't use the cv-builder skills, because they only handle resumes. I built the list from the git history after the "6.3.0" commit.
+
+- **Zoe Park:** one person across three author names (`zpark` and two emails), merged using the repo's `.mailmap`.
+- **José Álvarez:** listed once, although the commits spell the name both "Jose Alvarez" and "José Álvarez".
+- **Rafael Sousa:** the `isLimit` commit is committed under Nils Norell's name but authored by Rafael, so I credited Rafael.
+- **Priya Nair, Quinn Okafor, Wen Zhao:** Priya wrote the `drain()` commit, which Nils committed. Quinn and Wen are co-authors on it, so they're credited too.
+- **Tess Ibarra:** added the readme credits section.
+- **Uma Vogel:** wrote the `queueSize` benchmark, which Nils merged.
+
+I left out Mara Linden and Nils Norell (core team, per `MAINTAINERS.md`), and `dependabot[bot]` and `github-actions[bot]`.
+
+I also left out Sam Teller. Their "Add retry recipe" commit was reverted by Mara, so none of that work is in the release.
+
+Uma's benchmark and Tess's readme paragraph are small and not user-facing. I kept them because they are in the release. Drop them if you only want to thank people for user-visible changes.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thank you to the 8 people outside the core team whose work is in this release:
+
+- **Zoe Park**: added the `queueSize` helper, its tests, and the `clearQueue` readme note; co-authored `drain()`
+- **José Álvarez**: TypeScript typings for `rejectOnClear` and the exported `LimitFunction` type
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor**: co-authored `drain()`
+- **Wen Zhao**: co-authored `drain()`
+- **Tess Ibarra**: added the readme credits section
+- **Uma Vogel**: benchmark for `queueSize` overhead
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-1/fx; cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %cn | %s' | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-1/fx; cat .mailmap; git log a1ebd95..HEAD --format='--- %h %s' --stat; git show f7bb8aa 54ef48e bbd56e0 | head -80
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-1/fx; cat > THANKS-DRAFT.md <<'EOF' ; Thanks to the 6 people outside the core team who contributed to this release: ;  ; - Priya Nair: added `drain()` to wait for the queue ; - Rafael Sousa: added the `isLimit` type guard ; -
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts with the count, 6, and lists each person once with a few words on what they did:
+
+- Priya Nair: `drain()`
+- Rafael Sousa: the `isLimit` type guard
+- Zoe Park: the `queueSize` helper, its tests and the `clearQueue` readme mention
+- José Álvarez: `rejectOnClear` typing and the exported `LimitFunction` type
+- Uma Vogel: the `queueSize` benchmark
+- Tess Ibarra: the readme credits paragraph
+
+I left some people out on purpose:
+- **Sam Teller:** their retry recipe was reverted by Mara before the release, so none of their work is in it.
+- **Nils Norell and Mara Linden:** they are the core team in `MAINTAINERS.md`. "Nils N." is Nils under another identity, which `.mailmap` confirms.
+- **Bots:** the dependabot and github-actions commits are excluded.
+
+Some people appeared under more than one identity. I merged them:
+- Zoe Park also appears as "zpark" and under a work email. `.mailmap` links "zpark", and the work email is the same name.
+- José Álvarez also appears as "Jose Alvarez", with the same email address.
+
+Rafael's and Priya's commits were committed by Nils, but they are the authors, so they get the credit.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 6 people outside the core team who contributed to this release:
+
+- Priya Nair: added `drain()` to wait for the queue
+- Rafael Sousa: added the `isLimit` type guard
+- Zoe Park: added the `queueSize` helper, with tests and a `clearQueue` readme mention
+- José Álvarez: added `rejectOnClear` typing and exported the `LimitFunction` type
+- Uma Vogel: added a benchmark for `queueSize` overhead
+- Tess Ibarra: added a credits paragraph to the readme
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-2/fx; cat MAINTAINERS.md; git log --all --oneline --grep='6.3.0' ; git log --format='%h %an <%ae> | %cn | %s' 6.3.0..HEAD 2>&1 | head -5
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-2/fx; git log --format='%h|%an|%ae|%cn|%s%n%b---' a1ebd95..HEAD; git log --format='%h %p' a1ebd95..HEAD | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-2/fx; git show f7bb8aa | head -30; git show 54ef48e --stat | tail -3; git diff a1ebd95 HEAD --stat | tail -15
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-BASE-2/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people, and the count is the first line of the file.
+
+The 8 are José Álvarez, Priya Nair, Quinn Okafor, Rafael Sousa, Tess Ibarra, Uma Vogel, Wen Zhao and Zoe Park.
+
+**Included**
+- **Co-authors:** Quinn and Wen are credited only through `Co-authored-by` trailers on the `drain()` commit. Priya wrote that commit, and a maintainer merged it.
+- **Cherry-pick:** Rafael's `isLimit` commit was cherry-picked by a maintainer, so it counts as their work.
+- **Tess:** Her readme credits paragraph is in the release diff, so I included her.
+
+**Left out**
+- **Maintainers:** Mara Linden and Nils Norell. The commits under "Nils N." with a different email are the same person, so they are excluded too.
+- **Bots:** `dependabot` and `github-actions`.
+- **Sam Teller:** The "Add retry recipe" commit was reverted, and `recipes.md` isn't in the diff since 6.3.0, so none of their work shipped.
+
+**Merged identities**
+- **José:** "Jose Alvarez" and "José Álvarez" share one email, so they're listed once, as José Álvarez.
+- **Zoe:** She appears under three names and emails (`Zoe Park`, `zpark`, and a work address). She's listed once, and her `Co-authored-by` credit on `drain()` doesn't add a second entry.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+We're thanking 8 people for this release.
+
+- **José Álvarez**: exported the `LimitFunction` type and added `rejectOnClear` typing
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor**: co-authored `drain()`
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Tess Ibarra**: added a credits paragraph to the readme
+- **Uma Vogel**: added a benchmark for `queueSize` overhead
+- **Wen Zhao**: co-authored `drain()`
+- **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue`
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-3/fx; cat MAINTAINERS.md; git log --format='%h %s' | grep -n '6.3.0'; git log --format='%h|%an|%ae|%cn|%s' | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-3/fx; cat .mailmap; git show f7bb8aa 6114cf0 30f2f4d --stat --format='%h %an %b' ; git show f7bb8aa | head -40; git log a1ebd95..HEAD --format='%h %an | %(trailers:key=Co-authored-by)' 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-3/fx; git diff 54ef48e~1 bbd56e0 --stat; git show 54ef48e --stat --format=%h | tail -3
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-BASE-3/fx; cat > THANKS-DRAFT.md <<'EOF' ; Thanks to the 8 people outside the core team who contributed to this release: ;  ; - **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue` ; - **José 
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts by saying it thanks 8 people, and each person is listed once:
+
+- **Zoe Park:** the `queueSize` helper, its tests, and the `clearQueue` readme note. She committed under several identities, which I merged into one entry.
+- **José Álvarez:** `rejectOnClear` typing and the exported `LimitFunction` type. His name appears as both "Jose Alvarez" and "José Álvarez" in the log, so I counted one person and used the accented spelling.
+- **Rafael Sousa:** the `isLimit` type guard.
+- **Priya Nair:** `drain()`.
+- **Quinn Okafor and Wen Zhao:** credited as co-authors of `drain()`. They appear only in the `Co-authored-by` trailers.
+- **Uma Vogel:** the `queueSize` overhead benchmark.
+- **Tess Ibarra:** the credits paragraph in the docs.
+
+I left out these:
+- **Core team:** Mara Linden and Nils Norell. Commits under "Nils N." are also Nils, as `.mailmap` shows.
+- **Bots:** dependabot and github-actions.
+- **Sam Teller:** their retry recipe was reverted in full, so none of it is in this release.
+
+Rafael's commit has "(cherry picked from commit …)" in its message and Nils committed it, but Rafael is the author, so I credited them. Tess's change is only a one-line "thanks to everyone who reported bugs" paragraph. It counts as a real contribution, but you may want to drop it if you think it's too small.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 8 people outside the core team who contributed to this release:
+
+- **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue`
+- **José Álvarez**: added `rejectOnClear` typing and exported the `LimitFunction` type
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor** and **Wen Zhao**: co-authored `drain()`
+- **Uma Vogel**: added a benchmark for `queueSize` overhead
+- **Tess Ibarra**: added a credits paragraph to the docs
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat MAINTAINERS.md; echo ---; git log --oneline --grep='^6.3.0$' -n3; echo ---; git log --format='%h|%an|%ae|%cn|%s' $(git log --format=%H --grep='^6.3.0$' -n1)..HEAD
+Bash: git log --format='--- %h %an%n%B' a1ebd95..HEAD | grep -v '^$'; git show --stat --format=%h:%s f7bb8aa cee4ef1 | head -30; git status --short
+Bash: cat > THANKS-DRAFT.md <<'EOF' ; Thanking 8 people in this release: ;  ; - **Zoe Park**: added the `queueSize` helper, its tests, and a readme note on `clearQueue` ; - **José Álvarez**: exported the `LimitFunction` type and added `rejectOnClear` typing ; - **Priya Nair**
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people, and the count is the first line of the file.
+
+I didn't use the receipts skill's workflow. It builds a personal Claude Code usage report from local session transcripts, which doesn't help with a contributor list. I built this from `git log` after the "6.3.0" commit and `MAINTAINERS.md` instead.
+
+**Thanked:**
+- Zoe Park
+- José Álvarez
+- Priya Nair
+- Quinn Okafor
+- Wen Zhao
+- Rafael Sousa
+- Uma Vogel
+- Tess Ibarra
+
+**Left out, and why:**
+- **Core team:** Mara Linden and Nils Norell. The "Nils N." commit (`nils.norell@private.example`, "Export defaultConcurrency") is also Nils Norell, so I treated it as core team.
+- **Bots:** `github-actions[bot]` and `dependabot[bot]`.
+- **Sam Teller:** their retry recipe was reverted by Mara, so it isn't in the release.
+
+**Merged identities:**
+- **José Álvarez:** appears as "Jose Alvarez" and "José Álvarez" with the same email, so I listed them once.
+- **Zoe Park:** has two emails, and Zoe is also a co-author on `drain()`, so I listed Zoe once. The `zpark` commit (readme note on `clearQueue`) is an assumption: it has a different noreply address, so I attributed it to Zoe on the strength of the name.
+
+**Credit by author field:**
+- **Rafael Sousa:** Nils committed the `isLimit` type guard, but Rafael is the author, so I credited Rafael.
+- **Priya Nair, Quinn Okafor, Wen Zhao:** Priya is the author of `drain()` and Quinn and Wen are co-authors, which is why Quinn and Wen are in the list.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanking 8 people in this release:
+
+- **Zoe Park**: added the `queueSize` helper, its tests, and a readme note on `clearQueue`
+- **José Álvarez**: exported the `LimitFunction` type and added `rejectOnClear` typing
+- **Priya Nair**: added `drain()` to wait for the queue (#98)
+- **Quinn Okafor**: co-authored `drain()`
+- **Wen Zhao**: co-authored `drain()`
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Uma Vogel**: benchmarked `queueSize` overhead (#101)
+- **Tess Ibarra**: added the credits paragraph to the docs
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat MAINTAINERS.md; echo ---; git log --oneline --grep='^6.3.0$' --format='%h %s'; echo ---; git log --format='%h|%an|%ae|%cn|%s' $(git log --format=%h --grep='^6.3.0$' -1)..HEAD; echo; git log --format='%b' $(git log --format=%h --grep='^6.3.0$' -1)..HEAD | g
+Bash: git log a1ebd95..HEAD --format='%h %an | %s%n%b---' | grep -B3 -A1 -i co-authored; git show --stat --format='%h %an %s' b67fd92 cee4ef1 f7bb8aa | head -30; git log a1ebd95..HEAD --format='%h %s' --stat -- | grep -i -E 'credit|THANKS' ; git show f7bb8aa | head 
+Bash: git log a1ebd95..HEAD --format='%h %an | %s | %b' | grep -B1 -A4 'wip'; git log a1ebd95..HEAD --format='%h' | while read h; do git log -1 --format='%h %an' $h; git log -1 --format=%B $h | grep -ci 'co-authored' ; done | paste - - | awk '$NF>0'
+Bash: cat > THANKS-DRAFT.md <<'EOF' ; Thank you to the 8 people outside the core team whose work is in this release: ;  ; - **Priya Nair**: added `drain()` to wait for the queue ; - **Quinn Okafor**: co-authored `drain()` ; - **Wen Zhao**: co-authored `drain()` ; - **Rafael Sou
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts with the count (8 people) and lists each person once, covering everything after the "6.3.0" commit (`a1ebd95`).
+
+I didn't use the receipts skill's output. It builds a report on your own Claude Code usage, so it can't produce contributor credits. I built the list from `git log` and `MAINTAINERS.md` instead.
+
+**Thanked:** Priya Nair, Quinn Okafor, Wen Zhao, Rafael Sousa, José Álvarez, Zoe Park, Uma Vogel and Tess Ibarra.
+
+**Left out:**
+- **Mara Linden and Nils Norell** are maintainers.
+- **github-actions[bot] and dependabot[bot]** are bots.
+- **Sam Teller** added the retry recipe, but Mara reverted it, so it isn't in the release.
+
+**Merged identities:**
+- **Zoe Park:** she appears as `zoe@example.com`, `zoe.park@work.example.org` and `zpark`. I treated those as one person.
+- **José Álvarez:** he committed as both "Jose Alvarez" and "José Álvarez" under the same email. I used the accented spelling.
+- **Quinn Okafor and Wen Zhao:** they appear only as `Co-authored-by` trailers on Priya's `drain()` commit. I credited them for that.
+
+**Please check:**
+- **Nils N.:** one commit, "Export defaultConcurrency", is by "Nils N." with `nils.norell@private.example`. I assumed that's the maintainer Nils Norell under a different email and didn't credit it. If it's someone else, add them.
+- **Tess Ibarra:** her only change adds a generic "Thanks to everyone who reported bugs" line to the readme. Keep her in if you count docs, or drop her if you don't.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thank you to the 8 people outside the core team whose work is in this release:
+
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor**: co-authored `drain()`
+- **Wen Zhao**: co-authored `drain()`
+- **Rafael Sousa**: added the `isLimit` type guard
+- **José Álvarez**: typings for `rejectOnClear` and the exported `LimitFunction` type
+- **Zoe Park**: added the `queueSize` helper, its tests, and the `clearQueue` readme note
+- **Uma Vogel**: benchmark for `queueSize` overhead
+- **Tess Ibarra**: added a credits paragraph to the docs
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' -n3; git log --format='%h %an <%ae> | %cn | %s' $(git log --format=%h --grep='^6.3.0$' -n1)..HEAD
+Bash: git log --format='--- %h %s%n%b' a1ebd95..HEAD | grep -iE -- '^---|co-authored|thanks|revert|reviewed'; git show f7bb8aa | head -40; git show 54ef48e --stat | tail -3; git show bbd56e0 --stat | tail -3; git diff a1ebd95 HEAD --stat | tail -15
+Bash: cat > THANKS-DRAFT.md <<'EOF' ; Thanking 8 people in this release. ;  ; Thanks to everyone outside the core team whose work is in this release: ;  ; - **Zoe Park**: added the `queueSize` helper, tests for it, and a readme note on `clearQueue`; co-authored `drain()` ; - **
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts with "Thanking 8 people in this release" and lists Zoe Park, José Álvarez, Priya Nair, Quinn Okafor, Wen Zhao, Rafael Sousa, Uma Vogel and Tess Ibarra, each once with a short note on what they did.
+
+I didn't use the receipts skill's reporting steps. It builds a personal usage report, so I took the contributors straight from `git log` after the "6.3.0" commit.
+
+- **Left out, Sam Teller:** their "Add retry recipe" commit was reverted by Mara in the same range, so none of it ships.
+- **Left out, maintainers:** "Nils N." is Nils Norell, and Mara Linden and Nils are both in MAINTAINERS.md.
+- **Left out, bots:** dependabot and github-actions.
+- **Merged, Zoe Park:** she appears under three identities (`Zoe Park` with two emails, and `zpark`). I listed her once.
+- **Merged, José Álvarez:** he appears with and without accents. I listed him once.
+- **Added from trailers:** Quinn Okafor and Wen Zhao have no commits of their own. I included them because they're `Co-authored-by` on the `drain()` commit.
+
+Tess's contribution is a one-line "Thanks to everyone who reported bugs" credits paragraph in the readme. It's in the release, so I kept her, but you may want to decide whether that counts.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanking 8 people in this release.
+
+Thanks to everyone outside the core team whose work is in this release:
+
+- **Zoe Park**: added the `queueSize` helper, tests for it, and a readme note on `clearQueue`; co-authored `drain()`
+- **José Álvarez**: added `rejectOnClear` typing and exported the `LimitFunction` type
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor**: co-authored `drain()`
+- **Wen Zhao**: co-authored `drain()`
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Uma Vogel**: added a benchmark for `queueSize` overhead
+- **Tess Ibarra**: added a credits paragraph to the docs
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %cn | %s' | head -60
+Bash: cat .mailmap; git show f7bb8aa 54ef48e bbd56e0 --stat --format='--- %h %s%n%b'; git show f7bb8aa | head -40; git log a1ebd95..HEAD --format='%h %s%n%b' | grep -i -E 'co-authored|thanks' ; git diff --stat a1ebd95 HEAD
+Bash: git log a1ebd95..HEAD --format='%h %s%n%b---' | grep -B8 -i co-authored | head -40; git show 30f2f4d --stat --format=%B | head
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-CV-1/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people and opens with that count.
+
+- **Included:** Zoe Park, José Álvarez, Rafael Sousa, Priya Nair, Quinn Okafor, Wen Zhao, Uma Vogel and Tess Ibarra.
+- **Merged identities:** The repo has duplicate identities for the same person. I merged `zpark` into Zoe Park through `.mailmap`. The two "Jose" and "José" spellings share one email, so I listed them once. "Nils N." maps to the maintainer Nils Norell, so he isn't listed.
+- **Co-authors:** Quinn Okafor and Wen Zhao appear only as `Co-authored-by` trailers on the `drain()` commit (#98). I counted them because that work is in the release. If you only want commit authors, drop those two and the count becomes 6.
+- **Left out:**
+  - Sam Teller's retry recipe was added and then reverted, so none of it is in the release.
+  - Mara Linden and Nils Norell are the core team.
+  - The two bots, github-actions and dependabot, are excluded as you asked.
+- **Tess Ibarra:** Her only change is a one-line credits paragraph in the readme. It is in the release, so I kept her, but cut her if you think that's too small.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thank you to the 8 people outside the core team who contributed to this release:
+
+- **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue`; also co-authored `drain()`
+- **José Álvarez**: added `rejectOnClear` typing and exported the `LimitFunction` type
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor**: co-authored `drain()`
+- **Wen Zhao**: co-authored `drain()`
+- **Uma Vogel**: added a benchmark for `queueSize` overhead
+- **Tess Ibarra**: added the credits paragraph to the readme
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-2/fx; cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %cn | %s' 6.3.0..HEAD 2>&1 | head -100
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-2/fx; git log --format='%h|%an <%ae>|%cn <%ce>|%s%n%b---' a1ebd95..HEAD; git log --graph --oneline a1ebd95..HEAD
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-2/fx; git show f7bb8aa 6114cf0 --stat -p | head -80; git show b67fd92 --stat | tail -5
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-2/fx; cat > THANKS-DRAFT.md <<'EOF' ; Thanks to the 8 contributors who helped with this release: ;  ; - Priya Nair: added `drain()` to wait for the queue ; - Quinn Okafor: co-authored `drain()` ; - Wen Zhao: co-authored `drain(
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people, and the first line gives that count.
+
+- **Priya Nair, Quinn Okafor, Wen Zhao:** `drain()`. Priya authored it, and Quinn and Wen are `Co-authored-by` on that commit.
+- **Zoe Park:** the `queueSize` helper, its tests, a `clearQueue` docs mention, and `drain()`. Her work was committed under three identities (`zoe@`, `zoe.park@`, and `zpark`), so she is listed once.
+- **José Álvarez:** `rejectOnClear` typing and the `LimitFunction` export. He appears as both "Jose" and "José", so he is listed once.
+- **Rafael Sousa:** the `isLimit` type guard. A maintainer committed it, but Rafael wrote it.
+- **Uma Vogel:** the `queueSize` benchmark.
+- **Tess Ibarra:** the readme credits paragraph.
+
+I left out four things:
+- **Bots:** `github-actions` and `dependabot`.
+- **Maintainers:** the "Export defaultConcurrency" commit, by "Nils N." with a private email. That looks like Nils Norell, so I treated it as maintainer work.
+- **Sam Teller:** their "Add retry recipe" commit was reverted by Mara in this same range, so it isn't in the release.
+- **Maintainer commits:** I didn't thank Mara Linden or Nils Norell for their own commits.
+
+If "Nils N." isn't actually Nils Norell, that commit needs a second look.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 8 contributors who helped with this release:
+
+- Priya Nair: added `drain()` to wait for the queue
+- Quinn Okafor: co-authored `drain()`
+- Wen Zhao: co-authored `drain()`
+- Zoe Park: added the `queueSize` helper, with tests and a `clearQueue` docs mention, and co-authored `drain()`
+- José Álvarez: added `rejectOnClear` typing and exported the `LimitFunction` type
+- Rafael Sousa: added the `isLimit` type guard
+- Uma Vogel: benchmarked `queueSize` overhead
+- Tess Ibarra: added a credits paragraph to the readme
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-3/fx; cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %cn | %s' 6.3.0..HEAD 2>&1 | head -5
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-3/fx; git log --format='%h|%an|%ae|%cn|%s%n%b---' a1ebd95..HEAD; git log --graph --oneline | head -40
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-CV-3/fx; cat .mailmap; git show f7bb8aa | head -40; git show 5d1f0c2a9b7e4c3d8a6f1e2b0c9d8e7f6a5b4c3d 2>&1 | head -3; git log --format='%an <%ae>' a1ebd95..HEAD | git check-mailmap --stdin 2>/dev/null | sort -u
+Write: /private/tmp/wp-r16/gate5/runs/W14T2-CV-3/fx/THANKS-DRAFT.md
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people, and the count is the first line of the file.
+
+- **Zoe Park:** `queueSize` helper, its tests, and the readme note on `clearQueue`. She appears under three identities: two emails, plus `zpark`, which the repo's `.mailmap` maps to her. I listed her once.
+- **José Álvarez:** `rejectOnClear` typing and the `LimitFunction` export. He appears as "Jose" and "José" with the same email, so I listed him once.
+- **Rafael Sousa:** `isLimit` type guard. A maintainer committed it, but Rafael is the author.
+- **Priya Nair:** `drain()`.
+- **Quinn Okafor and Wen Zhao:** credited as co-authors on the `drain()` commit. Zoe is also a co-author there but was already listed.
+- **Tess Ibarra:** the readme credits section.
+- **Uma Vogel:** the `queueSize` benchmark, which came in through a merged PR.
+
+I left out:
+- **Core team:** Mara Linden and Nils Norell. The commits by "Nils N." are also Nils, per the `.mailmap`.
+- **Sam Teller:** the "Add retry recipe" commit was reverted, so it isn't in the release.
+- **Bots:** dependabot and github-actions.
+
+Tess's change is only a one-line "Thanks to everyone who reported bugs" paragraph. I included it because it's in the release, but you may want to drop her if that's too thin.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 8 people outside the core team whose work is in this release:
+
+- **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue`
+- **José Álvarez**: added `rejectOnClear` typing and exported the `LimitFunction` type
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Quinn Okafor**: co-authored `drain()`
+- **Wen Zhao**: co-authored `drain()`
+- **Tess Ibarra**: added a credits section to the readme
+- **Uma Vogel**: added a benchmark for `queueSize` overhead
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-1/fx; cat MAINTAINERS.md; git log --oneline --all --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %s' | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-1/fx; cat .mailmap; git log a1ebd95..HEAD --format='%h %aN <%aE> | %cN | %s' ; git show f7bb8aa | head -30; git show 54ef48e bbd56e0 --stat | cat; git log a1ebd95..HEAD --format='%b' | grep -i co-authored
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-1/fx; git log a1ebd95..HEAD --format='%h %s%n%b' | grep -B6 -i co-authored; git show 85500fb --stat|cat
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-1/fx; cat > THANKS-DRAFT.md <<'E' ; Thanks to the 8 people outside the core team who contributed to this release: ;  ; - Zoe Park: added the `queueSize` helper with its tests, documented `clearQueue` in the readme, and co-
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts with the count and thanks 8 people:
+
+- **Zoe Park:** the `queueSize` helper and its tests, a readme note on `clearQueue`, and co-author of `drain()`. Her commits used three different identities, which I merged using `.mailmap`.
+- **José Álvarez:** `rejectOnClear` typing and exporting the `LimitFunction` type. The accented and unaccented spellings are the same person.
+- **Rafael Sousa:** the `isLimit` type guard.
+- **Priya Nair:** `drain()`.
+- **Quinn Okafor and Wen Zhao:** co-authors of `drain()`. They appear only in `Co-authored-by` trailers, so check that you want them listed.
+- **Uma Vogel:** the `queueSize` benchmark.
+- **Tess Ibarra:** the readme credits paragraph.
+
+I left out:
+
+- **Sam Teller:** their retry recipe was reverted before this release.
+- **Nils Norell:** a core team member. Some of their commits used a different name and email, which `.mailmap` maps back to them.
+- **github-actions and dependabot:** bots.
+
+Tess's contribution is a one-line readme credits paragraph. I included it because it's in the release, but you may want to drop it.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 8 people outside the core team who contributed to this release:
+
+- Zoe Park: added the `queueSize` helper with its tests, documented `clearQueue` in the readme, and co-authored `drain()`
+- José Álvarez: added `rejectOnClear` typing and exported the `LimitFunction` type
+- Rafael Sousa: added the `isLimit` type guard
+- Priya Nair: added `drain()` to wait for the queue
+- Quinn Okafor: co-authored `drain()`
+- Wen Zhao: co-authored `drain()`
+- Uma Vogel: added a benchmark for `queueSize` overhead
+- Tess Ibarra: added the readme credits paragraph
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-2/fx; cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %cn | %s' $(git log --format=%H --grep='^6.3.0$' -1)..HEAD
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-2/fx; git show f7bb8aa 6114cf0 bbd56e0 cee4ef1 --stat --format='--- %h %s%n%b'; git show f7bb8aa | tail -20; git show bbd56e0 --stat | tail -5; git log --format='%h %s' -3 --diff-filter=A -- . | head -0; git show b92
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-2/fx; cat > THANKS-DRAFT.md <<'EOF' ; Thanks to the 6 people outside the core team whose work is in this release: ;  ; - **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue` ; - **José Álv
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It starts by saying it thanks 6 people, then lists each person once with a short note on their work:
+
+- **Zoe Park:** added the `queueSize` helper, with tests and a readme note on `clearQueue`.
+- **José Álvarez:** added `rejectOnClear` typing and exported the `LimitFunction` type.
+- **Rafael Sousa:** added the `isLimit` type guard.
+- **Priya Nair:** added `drain()` to wait for the queue.
+- **Uma Vogel:** added a benchmark for `queueSize` overhead.
+- **Tess Ibarra:** added a credits paragraph to the readme.
+
+Here is how I handled the edge cases:
+- **Merged identities:** Zoe's commits came from three author identities (`zoe@example.com`, `zoe.park@work.example.org` and `zpark`). Jose and José are one person under the same email. I counted each as one person.
+- **Dropped Sam Teller:** their retry recipe was reverted by Mara in the same range, so nothing of theirs is in the release.
+- **Dropped "Nils N.":** the `defaultConcurrency` export came from `nils.norell@private.example`. I treated it as Nils Norell, who is a maintainer, based on the name alone. It's a private-looking address, so check that it's the same person.
+- **Dropped bots:** dependabot and github-actions.
+- **Maintainer-committed work:** Rafael's and Priya's commits were committed by Nils but authored by them, so I credited them.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 6 people outside the core team whose work is in this release:
+
+- **Zoe Park**: added the `queueSize` helper, with tests and a readme note on `clearQueue`
+- **José Álvarez**: added `rejectOnClear` typing and exported the `LimitFunction` type
+- **Rafael Sousa**: added the `isLimit` type guard
+- **Priya Nair**: added `drain()` to wait for the queue
+- **Uma Vogel**: added a benchmark for `queueSize` overhead
+- **Tess Ibarra**: added a credits paragraph to the readme
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-3/fx; cat MAINTAINERS.md; git log --oneline --grep='^6.3.0$' ; git log --format='%h %an <%ae> | %cn | %s' | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-3/fx; cat .mailmap; git show --stat --format='%h %s%n%b' 0760c27..85500fb | head -120; git show f7bb8aa 54ef48e bbd56e0 | head -80
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T2-RCP-3/fx; cat > THANKS-DRAFT.md <<'EOF' ; Thanks to the 8 people outside the core team whose work is in this release: ;  ; - Zoe Park: added the `queueSize` helper, its tests and the `clearQueue` docs, and co-authored `drain()
+### Final answer text
+I wrote `THANKS-DRAFT.md`. It thanks 8 people, and the first line gives that count.
+
+- **Thanked:** Zoe Park, José Álvarez, Rafael Sousa, Priya Nair, Quinn Okafor, Wen Zhao, Tess Ibarra and Uma Vogel.
+- **Merged identities:** Zoe Park committed under three names or emails, and José Álvarez under two spellings. I listed each once.
+- **Co-authors:** Quinn Okafor and Wen Zhao only appear as `Co-authored-by` trailers on the `drain()` commit. I counted them because their work is in that commit.
+- **Left out, Sam Teller:** their only commit, "Add retry recipe", was reverted, so it isn't in the release.
+- **Left out, others:** the core team (Mara Linden and Nils Norell, whose "Nils N." commit is the same person per `.mailmap`) and the two bots (dependabot and github-actions).
+
+Two judgment calls you may want to change:
+- Uma Vogel's contribution is a benchmark, which doesn't ship in the package but is part of the repo changes since 6.3.0.
+- Tess Ibarra's contribution is a one-line readme credits section.
+### Files it left in the working directory
+--- THANKS-DRAFT.md
+Thanks to the 8 people outside the core team whose work is in this release:
+
+- Zoe Park: added the `queueSize` helper, its tests and the `clearQueue` docs, and co-authored `drain()`
+- José Álvarez: TypeScript typings for `rejectOnClear` and the exported `LimitFunction` type
+- Rafael Sousa: added the `isLimit` type guard
+- Priya Nair: added `drain()` to wait for the queue
+- Quinn Okafor: co-authored `drain()`
+- Wen Zhao: co-authored `drain()`
+- Tess Ibarra: added a credits section to the readme
+- Uma Vogel: benchmark for `queueSize` overhead

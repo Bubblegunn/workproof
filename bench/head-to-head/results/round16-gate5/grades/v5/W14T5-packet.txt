@@ -1,0 +1,774 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --format='%h %an | %cn | %ad | %s' --date=short | head -20; echo; git log --format='%h %s' | grep -n -E 'Release 3.1.[12]'; git branch -a; git tag | tail
+Bash: git log --graph --format='%h %an | %s' d966868~1..HEAD | head -30; echo; git log --format='%h %an | %s%n%b' d966868..0cd9bc8 | head -60; echo ---; git show --stat --format='%h %s' 0cd9bc8 5d9909c | head -30; for c in 3b5d221 a7b2785 a490426 5a70d4a f9e47be; do
+Bash: cat > RELEASE-3.1.2.md <<'EOF' ; # Mustermann 3.1.2 ;  ; Patch release on the 3.1 line. It contains only fixes copied over from the development line. ;  ; ## Fixes ;  ; - **Fix escaping of `|` in Flask patterns**: credit Bea Blom (original change f9e47be; copied to 3.1 by M
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each once, with credit going to whoever wrote the change.
+
+- **Flask `|` escaping:** credited to Bea Blom. The 3.1 copy was committed by Mara Linden, and its message says it was cherry-picked from Bea's original.
+- **Frozen string error in Regular:** credited to Dov Dahl. The 3.1 copy has a different message ("Backport: …"), but it has the same author and the same diff as the original.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author from the commit trailer. The commit says it squashes 5 commits. Those 5 aren't in this repository, so I couldn't check who wrote which part.
+
+The bottom list has four changes that are on the development line but not in 3.1.2:
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- the Express greedy-match fix (Eli Ek)
+- the translator nil guard (Hal Hart), which came after the release.
+
+I left out the release commits and the merge commit themselves.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line. It contains only fixes copied over from the development line.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: credit Bea Blom (original change f9e47be; copied to 3.1 by Mara Linden as a490426).
+- **Fix frozen string error in Regular**: credit Dov Dahl (original change 5a70d4a; the 3.1 copy a7b2785 was committed by Mara Linden under the message "Backport: frozen string error in Regular").
+- **Fix thread-safety in the pattern cache (#210)**: credit Fay Fox, with Gus Gil as co-author (squash of 5 commits, 3b5d221).
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` (Ann Adler, 6d6f8e0)
+- Add Rails 7.2 syntax (Cyd Cole, 8faf58e)
+- Fix greedy match in Express (Eli Ek, 40a2423)
+- Fix nil guard in translator (Hal Hart, 048965f; made after the release commit)
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --decorate -25 && git tag | tail; git log --format='%h %an | %cn | %s' 3.1.1..HEAD 2>&1 | head -30; git log --format='%h %s' --grep='Release 3.1.1'
+Bash: git log --format='%h | author %an <%ae> %ad | committer %cn %cd%n   %s%n%b' --date=short d966868..0cd9bc8 --no-merges; echo ======; git log --format='%h | author %an %ad | committer %cn | %s' --date=short d966868..main --no-merges --first-parent; git log --for
+Bash: git log --format='%h | author %an %ad | committer %cn | %s' --date=short 0cd9bc8..main --no-merges; for c in a490426 a7b2785 3b5d221 f9e47be 5a70d4a 40a2423 8faf58e 6d6f8e0 048965f; do echo "== $c"; git show --stat --format='%an | %s' $c|head -8; git show $c |
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-OURS-2/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md` with three fixes, each listed once.
+
+**In 3.1.2**
+- **Flask `|` escaping:** credited to Bea Blom. Mara Linden cherry-picked it, so it appears once under Bea.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. The "Backport: frozen string error in Regular" commit has the same patch and author as the original fix on the development line, so the two are one fix.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. This one was a squash of 5 commits made directly on the 3.1 line. I found no separate copy of it on the development line.
+
+Mara Linden made the release commit and did the cherry-picking. The file notes this but doesn't credit her with writing the fixes.
+
+**On the development line but not in 3.1.2**
+- Rails 7.2 syntax (Cyd Cole)
+- `Pattern#to_proc` (Ann Adler)
+- Express greedy match fix (Eli Ek)
+- Translator nil guard fix (Hal Hart)
+
+I treated "Release 3.1.1" as the starting point, since the repository has no tags.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line (changes since 3.1.1). Credit goes to whoever wrote each change, not to whoever copied it onto the patch line.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: written by Bea Blom (original 2025-03-10, f9e47be; cherry-picked to 3.1 as a490426 by Mara Linden).
+- **Fix frozen string error in `Regular`**: written by Dov Dahl (original 2025-03-14, 5a70d4a; backported to 3.1 as a7b2785 under the message "Backport: frozen string error in Regular", with the same change and the same author).
+- **Fix thread-safety in the pattern cache (#210)**: written by Fay Fox, with Gus Gil as co-author (3b5d221, squashed from 5 commits, 2025-03-27). This fix was made directly on the 3.1 line.
+
+Release commit (3.1.2, 0cd9bc8): Mara Linden. She also did the cherry-picking, which is not credited as authorship.
+
+## On the development line but not in 3.1.2
+
+- Add Rails 7.2 syntax (Cyd Cole, 8faf58e)
+- Add `Pattern#to_proc` (Ann Adler, 6d6f8e0)
+- Fix greedy match in Express (Eli Ek, 40a2423)
+- Fix nil guard in translator (Hal Hart, 048965f)
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --all --format='%h %an | %cn | %s' | head -50; git tag; git branch -a
+Bash: for c in a490426 a7b2785 3b5d221 f9e47be 5a70d4a 40a2423 8faf58e 6d6f8e0 048965f 0cd9bc8; do echo "$c $(git show $c | git patch-id --stable | cut -c1-12) $(git log -1 --format='%an|%ad|%s' $c)"; git show --stat --format= $c | head -5; done; git log -1 --format
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-OURS-3/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each once, with credit to the person who wrote the change. The Release 3.1.2 commit itself isn't listed.
+
+- **Flask `|` escaping:** credited to Bea Blom. Mara Linden copied it over, and the change is identical to Bea's original.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. Mara copied it over with the message "Backport: frozen string error in Regular". The change is identical to Dov's original, so it is listed once.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. The commit was squashed from 5 commits and exists only on the 3.1 line. Gus is named in the commit's `Co-authored-by` line, so I credited them too.
+
+The list of changes that did not make 3.1.2 has four items:
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Express greedy match (Eli Ek)
+- The translator nil guard (Hal Hart)
+
+I treated two commits as the same change when their diffs were identical. The history also holds other commits by Mara and Patrik Ragnarsson that are not part of this release.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line (changes since 3.1.1). Credit goes to whoever wrote the change, not whoever backported it.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns** (mustermann-contrib). Written by Bea Blom (original 10 Mar 2025, f9e47be on the development line). Backported by Mara Linden as a490426.
+- **Fix frozen string error in `Regular`**. Written by Dov Dahl (original 14 Mar 2025, 5a70d4a). Backported by Mara Linden as a7b2785 under the message "Backport: frozen string error in Regular"; the change is identical.
+- **Fix thread-safety in the pattern cache (#210)**. Written by Fay Fox, with Gus Gil as co-author. It was squashed from 5 commits and made directly on the 3.1 line (3b5d221). It has no counterpart on the development line.
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` (Ann Adler, 6d6f8e0)
+- Add Rails 7.2 syntax (Cyd Cole, 8faf58e)
+- Fix greedy match in Express (Eli Ek, 40a2423)
+- Fix nil guard in translator (Hal Hart, 048965f)
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --graph --all --format='%h %p | %an <%ae> | committer %cn | %s' | head -60; git log --all --oneline | grep -E "Release 3.1" ; git branch -a
+Bash: for c in a490426 a7b2785 3b5d221 0cd9bc8 6d6f8e0 f9e47be 5a70d4a 8faf58e 40a2423 048965f; do echo "$c $(git show $c | git patch-id --stable | cut -c1-12) $(git show -s --format='%an | %ad | %s' $c)"; git show --stat --format=%b $c | head -8; done; git show 3b5
+Bash: cat > RELEASE-3.1.2.md <<'EOF' ; # Mustermann 3.1.2 ;  ; Patch release on the 3.1 line (changes since 3.1.1). Each fix is listed once and credited to whoever wrote the change, not whoever backported it. ;  ; ## Fixes ;  ; - **Fix escaping of `|` in Flask patterns**: Bea Blo
+### Final answer text
+I wrote `RELEASE-3.1.2.md` in the repo root. I didn't use the receipts skill's workflow. It builds a Claude Code usage report from session transcripts, which doesn't fit release notes, so I worked from the git history.
+
+**Fixes in 3.1.2** (each listed once):
+- **Flask `|` escaping:** credited to Bea Blom. They wrote it on the development line, and it was cherry-picked into the patch line under the same message.
+- **`Regular` frozen string error:** credited to Dov Dahl. Dov wrote the original, and the backport (committed by Mara Linden) was reworded to "Backport: frozen string error in Regular". I matched the two by identical diffs.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. It has no counterpart on the development line.
+
+**On the development line but not in 3.1.2:**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Express greedy match fix (Eli Ek)
+- Translator nil guard fix (Hal Hart)
+
+I left the "Release 3.1.2" commit itself out of the fix list, since it only bumps the version.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line (changes since 3.1.1). Each fix is listed once and credited to whoever wrote the change, not whoever backported it.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: Bea Blom (original `f9e47be`, backported as `a490426`)
+- **Fix frozen string error in `Regular`**: Dov Dahl (original `5a70d4a`, backported as `a7b2785` "Backport: frozen string error in Regular")
+- **Fix thread-safety in the pattern cache (#210)**: Fay Fox, co-authored by Gus Gil (`3b5d221`, squashed from 5 commits)
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc`: Ann Adler (`6d6f8e0`)
+- Add Rails 7.2 syntax: Cyd Cole (`8faf58e`)
+- Fix greedy match in Express: Eli Ek (`40a2423`)
+- Fix nil guard in translator: Hal Hart (`048965f`)
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --graph --all --format='%h %p | %an <%ae> | committer %cn | %s' | head -60; git branch -a; git log --oneline --grep='Release 3.1.1'
+Bash: git log --format='%h %an | %s%n%b' d966868..0cd9bc8; git cherry -v 0cd9bc8 5d9909c; for c in a490426 f9e47be a7b2785 5a70d4a 3b5d221 048965f; do echo == $c; git show --stat --format='%h %s' $c | tail -n +1; done; git show 3b5d221 a490426 | grep -i -E 'co-autho
+Bash: git show --stat --format='%h %an %s' a490426 f9e47be a7b2785 5a70d4a 3b5d221 048965f | cat; echo; git diff a490426~1 a490426 | grep '^[+-]' ; echo ---; git diff f9e47be~1 f9e47be | grep '^[+-]'; echo ---; git diff a7b2785~1 a7b2785|grep '^[+-]'; echo ---;git d
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-RCP_I-2/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md` in the repo root. I didn't run the receipts skill's miner. That skill produces a Claude Code usage report, not a changelog, so I built the notes from git instead.
+
+**Fixes in 3.1.2**
+- **Escape `|` in Flask patterns:** credited to Bea Blom. Mara Linden cherry-picked it as `a490426`; the original is `f9e47be`.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. It was copied over as "Backport: frozen string error in Regular" (`a7b2785`), so the message differs from the original `5a70d4a`. Mara Linden did the copying.
+- **Thread-safety in the pattern cache (#210):** credited to Fay Fox, with Gus Gil as co-author. It was written on the patch line and reached the development line only through a later merge.
+
+I checked the first two against their originals. Each pair has the same diff, so each is listed once.
+
+**On the development line but not in 3.1.2**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Greedy match fix in Express (Eli Ek)
+- Nil guard fix in translator (Hal Hart), which was committed after the release merge
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1 (`d966868`). Credit goes to the author of the original change, not the person who copied it to the patch line.
+
+## Fixes
+
+- **Escape `|` in Flask patterns** (mustermann-contrib) — Bea Blom.
+  Cherry-picked to the patch line by Mara Linden as `a490426`. The original change is `f9e47be`.
+- **Fix frozen string error in `Regular`** — Dov Dahl.
+  Backported as `a7b2785` under the message "Backport: frozen string error in Regular". The original change is `5a70d4a`, "Fix frozen string error in Regular". Mara Linden did the copying.
+- **Fix thread-safety in the pattern cache (#210)** — Fay Fox, with Gus Gil (co-author).
+  Written on the patch line (`3b5d221`, squashed from 5 commits) and merged into the development line afterwards.
+
+## Changes on the development line that are not in 3.1.2
+
+- Add `Pattern#to_proc` — Ann Adler (`6d6f8e0`)
+- Add Rails 7.2 syntax — Cyd Cole (`8faf58e`)
+- Fix greedy match in Express — Eli Ek (`40a2423`)
+- Fix nil guard in translator — Hal Hart (`048965f`, committed after the 3.1.2 merge)
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --graph --all | head -60; git log --format='%h %an <%ae> | %cn | %s' 3.1.1..HEAD 2>/dev/null | head; git log --oneline --grep='Release 3.1.1' --all
+Bash: git log --format='%h | author=%an <%ae> | committer=%cn | %s%n%b---' d966868..0cd9bc8; echo ======; git log --format='%h | author=%an <%ae> | committer=%cn | %s%n%b---' 0cd9bc8..048965f --no-merges; for c in a490426 a7b2785 3b5d221; do echo == $c; git show --s
+Bash: git log --format='%h | author=%an | committer=%cn | %s%n%b---' 0cd9bc8..048965f --no-merges 2>&1; git log --format='%h | author=%an | committer=%cn | %s%n%b---' d966868..5d9909c --no-merges --first-parent 2>&1 | head -0; for c in f9e47be 5a70d4a 6d6f8e0 8faf58
+Bash: cat > RELEASE-3.1.2.md <<'EOF' ; # Mustermann 3.1.2 ;  ; Patch release on the 3.1 line (since 3.1.1). Each fix is listed once, credited to whoever wrote the change. ;  ; ## Fixes ;  ; - **Fix escaping of `|` in Flask patterns**: Bea Blom (originally f9e47be on the developme
+### Final answer text
+I wrote `RELEASE-3.1.2.md` from the git history. I did not run the receipts skill. It only produces a Claude Code usage report from session transcripts, so it has nothing to do with release notes.
+
+**Fixes in 3.1.2**
+- **Escaping of `|` in Flask patterns:** credited to Bea Blom. Mara Linden cherry-picked it as a490426. The original is f9e47be, and the cherry-pick footer records it.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. a7b2785 is the same patch as the original 5a70d4a, under the message "Backport: frozen string error in Regular". It is a different message, but the author is the same person.
+- **Thread-safety in the pattern cache (#210):** credited to Fay Fox, with Gus Gil as co-author. It was made on the 3.1 line as a squash of 5 commits.
+
+**On the development line but not in 3.1.2**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Greedy match in Express (Eli Ek)
+- Nil guard in translator (Hal Hart)
+
+Mara Linden only made the release commit and one cherry-pick, so they get no credit line of their own.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line (since 3.1.1). Each fix is listed once, credited to whoever wrote the change.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: Bea Blom (originally f9e47be on the development line, cherry-picked as a490426)
+- **Fix frozen string error in `Regular`**: Dov Dahl (originally 5a70d4a, backported as a7b2785 under the message "Backport: frozen string error in Regular")
+- **Fix thread-safety in the pattern cache (#210)**: Fay Fox, with Gus Gil (co-author). 3b5d221 is a squash of 5 commits made directly on the 3.1 line.
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc`: Ann Adler (6d6f8e0)
+- Add Rails 7.2 syntax: Cyd Cole (8faf58e)
+- Fix greedy match in Express: Eli Ek (40a2423)
+- Fix nil guard in translator: Hal Hart (048965f)
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --decorate -n 5 --all | head -20; git tag | tail; git log --all --oneline --graph | head -60; git log --all --grep='Release 3.1' --format='%h %s'
+Bash: git log d966868..0cd9bc8 --format='=== %h%nauthor: %an <%ae>%ncommitter: %cn <%ce>%n%B' ; for c in a490426 f9e47be 5a70d4a a7b2785 3b5d221 0cd9bc8 40a2423 8faf58e 6d6f8e0 048965f; do echo "##### $c"; git show --stat --format='%h %an | %cn | %s' $c | head -12; 
+Bash: cat > RELEASE-3.1.2.md <<'EOF' ; # Mustermann 3.1.2 ;  ; Fixes since 3.1.1. Credit goes to the author of the original change, not to whoever backported it. ;  ; ## Fixes ;  ; - **Fix escaping of `|` in Flask patterns**: Bea Blom (original `f9e47be`, cherry-picked as `a49042
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. I didn't use the cv-builder skills, since they are for resumes and this was a release-notes task. I worked from the git history instead.
+
+**Fixes in 3.1.2**, each listed once and credited to whoever wrote the change:
+- **Flask `|` escaping:** Bea Blom. The 3.1.2 commit `a490426` is a cherry-pick of `f9e47be`, and the two have identical patches. Mara Linden committed the cherry-pick.
+- **Frozen string error in `Regular`:** Dov Dahl. The "Backport: …" commit `a7b2785` has the same patch as the original `5a70d4a`. Mara Linden committed the backport.
+- **Pattern cache thread-safety (#210):** Fay Fox, with Gus Gil as co-author. This is a squash of 5 commits, and the `Co-authored-by` trailer names Gus Gil.
+
+The "Release 3.1.2" commit only bumps the version, so I left it out of the fix list.
+
+**On the development line but not in 3.1.2:**
+- Express greedy match fix (Eli Ek)
+- Rails 7.2 syntax (Cyd Cole)
+- `Pattern#to_proc` (Ann Adler)
+- Translator nil guard fix (Hal Hart)
+
+The file is uncommitted.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1. Credit goes to the author of the original change, not to whoever backported it.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: Bea Blom (original `f9e47be`, cherry-picked as `a490426`)
+- **Fix frozen string error in `Regular`**: Dov Dahl (original `5a70d4a`, backported as `a7b2785`, "Backport: frozen string error in Regular")
+- **Fix thread-safety in the pattern cache (#210)**: Fay Fox, with Gus Gil as co-author (`3b5d221`, squashed from 5 commits)
+
+## On the development line but not in 3.1.2
+
+- Fix greedy match in Express: Eli Ek (`40a2423`)
+- Add Rails 7.2 syntax: Cyd Cole (`8faf58e`)
+- Add `Pattern#to_proc`: Ann Adler (`6d6f8e0`)
+- Fix nil guard in translator: Hal Hart (`048965f`)
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --all --decorate | head -60; git tag | tail; git log --format='%h %an <%ae> | %cn | %s' --grep='Release 3.1' 
+Bash: git log --format='%h | author: %an | committer: %cn | %ad | %s%n%b' --date=short d966868..0cd9bc8 ; echo ------; git log --format='%h | author: %an | committer: %cn | %ad | %s' --date=short d966868..048965f --no-merges 2>&1 | head -20; for c in a490426 a7b2785
+Bash: for c in a490426 f9e47be a7b2785 5a70d4a 3b5d221 0cd9bc8 048965f; do echo "== $c $(git show $c --format= | git patch-id --stable | cut -c1-12)"; git show --stat --format= $c; done; git show a7b2785 5a70d4a --format='--- %h' ; git show 0cd9bc8 --format=
+Bash: git log --all --format='%h %an %s' --grep='3b5d221\|#210\|pattern cache' ; git show 3b5d221 --format=fuller | head -30; git branch -a
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-CV_I-2/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. I didn't use the cv-builder skills, because they're for resumes and this was a release-notes task. I worked from the git history between "Release 3.1.1" and "Release 3.1.2".
+
+**Fixes in 3.1.2**
+- **Flask `|` escaping:** credited to Bea Blom. The patch-line commit `a490426` is a cherry-pick of `f9e47be`, and both are Bea's with an identical diff. Mara Linden only copied it over.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. The "Backport:" commit `a7b2785` has the same diff as the original `5a70d4a`, so I listed it once.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. This was a squash of 5 commits made directly on the patch line.
+
+I left Mara Linden out of the credits, since the only commit of hers in the release is the version bump.
+
+**On the development line but not in 3.1.2**
+- Fix greedy match in Express (Eli Ek)
+- Add Rails 7.2 syntax (Cyd Cole)
+- Add `Pattern#to_proc` (Ann Adler)
+- Fix nil guard in translator (Hal Hart). It was committed after the release.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line (previous release: 3.1.1). It contains only fixes
+copied over from the development line.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns** (`mustermann-contrib`)
+  Credit: Bea Blom. Original change `f9e47be`, cherry-picked to the patch line
+  as `a490426`.
+- **Fix frozen string error in `Regular`** (`mustermann`)
+  Credit: Dov Dahl. Original change `5a70d4a`, copied over as `a7b2785` with the
+  message "Backport: frozen string error in Regular".
+- **Fix thread-safety in the pattern cache** (#210) (`mustermann`)
+  Credit: Fay Fox, with Gus Gil (co-author). Landed directly on the patch line
+  as `3b5d221`, squashed from 5 commits.
+
+Release commit `0cd9bc8` (version bump) by Mara Linden.
+
+## On the development line but not in 3.1.2
+
+- Fix greedy match in Express (Eli Ek, `40a2423`)
+- Add Rails 7.2 syntax (Cyd Cole, `8faf58e`)
+- Add `Pattern#to_proc` (Ann Adler, `6d6f8e0`)
+- Fix nil guard in translator (Hal Hart, `048965f`, committed after the release)
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --all --graph | head -60; git log --format='%h %s' --grep='Release 3.1' -i | head
+Bash: git log --format='%h | author=%an <%ae> | committer=%cn | %s%n%b---' d966868..0cd9bc8; for c in a490426 a7b2785 3b5d221 f9e47be 5a70d4a 40a2423 8faf58e 6d6f8e0 048965f; do echo "=== $c"; git show --stat --format='%an | %cn | %s' $c | head -20; done; git patch-
+Bash: git show -s --format='%B' 3b5d221; git branch -a; git log --all --format='%h %an %s' | grep -i -E 'thread|cache'; git show 3b5d221 | tail -15; git log --format='%h %an %s' --all -- mustermann/lib/mustermann/identity.rb | head
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-CV_I-3/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each credited to whoever wrote the change rather than whoever copied it over. I didn't use the cv-builder skills, since they're for resumes and don't apply to release notes.
+
+**Fixes in 3.1.2:**
+- **Flask `|` escaping:** credited to Bea Blom. Mara Linden cherry-picked it, and the commit message points back to the original.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. Mara Linden copied it under the message "Backport: frozen string error in Regular". It's the same change as "Fix frozen string error in Regular" on the development line, so I listed it once.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. Fay Fox's commit is a squash of 5 commits.
+
+**On the development line but not in 3.1.2:**
+- Greedy match in Express (Eli Ek)
+- Rails 7.2 syntax (Cyd Cole)
+- `Pattern#to_proc` (Ann Adler)
+- Nil guard in translator (Hal Hart). It was committed after the release.
+
+Mara Linden also wrote the "Release 3.1.2" commit, but I left them out of the credits because it contains no fix.
+
+The file shows the original commit hashes next to each fix. The thread-safety change has no separate original on the development line, so I couldn't trace who wrote the 5 squashed commits beyond the author and co-author in the squash message.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1. Credit goes to whoever wrote the change, not to whoever
+copied it onto the patch line (Mara Linden did the backports and the release).
+
+- **Fix escaping of `|` in Flask patterns** (mustermann-contrib). Written by Bea Blom
+  (`f9e47be`, cherry-picked as `a490426`).
+- **Fix frozen string error in `Regular`**. Written by Dov Dahl (`5a70d4a`,
+  copied as `a7b2785` with the message "Backport: frozen string error in Regular").
+- **Fix thread-safety in the pattern cache** (#210). Written by Fay Fox, with
+  Gus Gil as co-author (`3b5d221`, a squash of 5 commits).
+
+## On the development line, not in 3.1.2
+
+- Fix greedy match in Express (Eli Ek, `40a2423`)
+- Add Rails 7.2 syntax (Cyd Cole, `8faf58e`)
+- Add `Pattern#to_proc` (Ann Adler, `6d6f8e0`)
+- Fix nil guard in translator (Hal Hart, `048965f`, committed after the release)
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --all --graph --decorate | head -60; git tag; git branch -a
+Bash: git log d966868..main --format='--- %h %an <%ae> | committer %cn | %ad%n%s%n%b' --date=short --no-merges; for c in a490426 a7b2785 3b5d221 0cd9bc8 f9e47be 5a70d4a; do echo "=== $c"; git show $c --stat --format='%h %an' | head -20; done
+Bash: for p in "f9e47be a490426" "5a70d4a a7b2785"; do set -- $p; echo $(git show $1 | git patch-id --stable) / $(git show $2 | git patch-id --stable); done; git show 3b5d221 | tail -15; git show 5d9909c --stat --format=%s | tail -5; git log d966868..main --format='
+Bash: for c in f9e47be a490426 5a70d4a a7b2785; do echo $c $(git show $c | git patch-id --stable); done
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-BASE-1/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each once, with credit going to whoever wrote the change.
+
+**Fixes in 3.1.2**
+- **Escaping of `|` in Flask patterns:** credited to Bea Blom. The backport has a different message but the same patch as Bea's original commit. Mara Linden did the cherry-pick, so Mara isn't credited.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. The backport has a different message ("Backport: …") but the same patch as Dov's original.
+- **Thread-safety in the pattern cache (#210):** credited to Fay Fox, with Gus Gil as co-author, taken from the commit's `Co-authored-by` trailer. This fix exists only on the 3.1 line, so it has no development-line commit.
+
+**On the development line but not in 3.1.2**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Greedy match fix in Express (Eli Ek)
+- Nil guard fix in the translator (Hal Hart)
+
+The commit "Release 3.1.2" is only the version bump, so it isn't listed as a change.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1. Credit goes to the original author of each change, not to whoever backported it.
+
+## Fixes
+
+- **Escaping of `|` in Flask patterns** — Bea Blom
+  (dev: f9e47be, backported as a490426)
+- **Frozen string error in `Regular`** — Dov Dahl
+  (dev: 5a70d4a, backported as a7b2785)
+- **Thread-safety in the pattern cache** (#210) — Fay Fox, with Gus Gil (co-author)
+  (3b5d221, squashed from 5 commits; made on the 3.1 line only, so it has no separate development-line commit)
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` — Ann Adler (6d6f8e0)
+- Add Rails 7.2 syntax — Cyd Cole (8faf58e)
+- Fix greedy match in Express — Eli Ek (40a2423)
+- Fix nil guard in translator — Hal Hart (048965f)
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-BASE-2/fx; git log --oneline --all --graph | head -60; git tag; git branch -a
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-BASE-2/fx; git log d966868..0cd9bc8 --format='%h %an <%ae> | committer %cn | %s%n%b' --first-parent 2>&1|head -0; for c in a490426 a7b2785 3b5d221 0cd9bc8 f9e47be 5a70d4a 40a2423 8faf58e 6d6f8e0 048965f; do echo "=== $c"
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-BASE-2/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each once, and four development-line changes that missed 3.1.2.
+
+**Fixes in 3.1.2**
+- **Escaping of `|` in Flask patterns:** credited to Bea Blom. They wrote it on the development line, and Mara Linden cherry-picked it.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. Dov wrote the original fix and also made the backport commit, which has a different message ("Backport: frozen string error in Regular"). I listed it once.
+- **Thread-safety in the pattern cache (#210):** credited to Fay Fox, with Gus Gil as co-author. This was made directly on the 3.1 line. Gus appears only in the commit's `Co-authored-by` trailer.
+
+**On the development line but not in 3.1.2**
+- Fix greedy match in Express (Eli Ek).
+- Add Rails 7.2 syntax (Cyd Cole).
+- Add `Pattern#to_proc` (Ann Adler).
+- Fix nil guard in translator (Hal Hart). This landed after the merge of `stable-3.1`.
+
+Only the first two items in that list are fixes. The Rails syntax and `Pattern#to_proc` are additions, so I'd expect them to stay out of a patch release. The "Release 3.1.2" commit only bumps the version file, so I left it out of the list.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1. Credit goes to whoever wrote the change, not to whoever
+cherry-picked or backported it to the 3.1 line.
+
+## Fixes
+
+- **Escape `|` in Flask patterns** (`mustermann-contrib`). Credit: Bea Blom.
+  Originally f9e47be on the development line; cherry-picked as a490426.
+- **Fix frozen string error in `Regular`** (`mustermann`). Credit: Dov Dahl.
+  Originally 5a70d4a on the development line; backported as a7b2785
+  ("Backport: frozen string error in Regular").
+- **Fix thread-safety in the pattern cache** (#210) (`mustermann`).
+  Credit: Fay Fox, with Gus Gil as co-author. Made directly on the 3.1 line
+  (3b5d221, squashed from 5 commits).
+
+## On the development line but not in 3.1.2
+
+- Fix greedy match in Express (40a2423), Eli Ek
+- Add Rails 7.2 syntax (8faf58e), Cyd Cole
+- Add `Pattern#to_proc` (6d6f8e0), Ann Adler
+- Fix nil guard in translator (048965f), Hal Hart
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-BASE-3/fx; git branch -a; git tag | tail; git log --oneline --graph --all | head -60; git log --format='%h %s' | grep -i 'release 3.1'
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-BASE-3/fx; git log --format='%h | A:%an <%ae> | C:%cn | %ad%n%B---' d966868..main --no-merges; for c in a490426 f9e47be a7b2785 5a70d4a 3b5d221 0cd9bc8; do echo $c $(git show $c | git patch-id --stable); git show --stat 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-BASE-3/fx; cat > RELEASE-3.1.2.md <<'EOF' ; # Mustermann 3.1.2 ;  ; Fixes in this patch release (all backported from the development line): ;  ; - **Fix escaping of `|` in Flask patterns** (`mustermann-contrib`) — credit: Bea Blom
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each once, and credits whoever wrote the change rather than whoever copied it over.
+
+- **Flask `|` escaping:** credited to Bea Blom. Mara Linden cherry-picked it, but the diff is identical to Bea's original commit on the development line.
+- **Frozen string error in Regular:** credited to Dov Dahl. The "Backport:" commit has the same diff as Dov's development-line commit, and Mara only committed it.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. Fay's commit is a squash of 5 commits and names Gus in a `Co-authored-by` line. This fix has no matching commit on the development line in this repo.
+
+I left out the "Release 3.1.2" commit itself, since it only bumps the version.
+
+The bottom list covers four changes on the development line that didn't make 3.1.2:
+- `Pattern#to_proc`, by Ann Adler
+- Rails 7.2 syntax, by Cyd Cole
+- the greedy-match fix in Express, by Eli Ek
+- the nil guard in the translator, by Hal Hart. This one came after the 3.1 merge.
+
+I haven't committed the file.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes in this patch release (all backported from the development line):
+
+- **Fix escaping of `|` in Flask patterns** (`mustermann-contrib`) — credit: Bea Blom.
+  Cherry-picked by Mara Linden as a490426 from f9e47be.
+- **Fix frozen string error in Regular** (`mustermann`) — credit: Dov Dahl.
+  Backported by Mara Linden as a7b2785 (original: 5a70d4a, same author).
+- **Fix thread-safety in the pattern cache (#210)** (`mustermann`) — credit: Fay Fox, with Gus Gil (co-author).
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` — Ann Adler
+- Add Rails 7.2 syntax — Cyd Cole
+- Fix greedy match in Express — Eli Ek
+- Fix nil guard in translator — Hal Hart
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --all --decorate | head -60; git tag; git branch -a
+Bash: git log --format='%h | A:%an <%ae> | C:%cn | %ad%n%B---' --date=short d966868..0cd9bc8; echo ======; git log --format='%h | A:%an <%ae> | C:%cn | %ad%n%B---' --date=short 0cd9bc8..main --no-merges; git log -1 --format=%B 5d9909c; for c in a490426 a7b2785 3b5d2
+Bash: git log --format='%h | A:%an | C:%cn | %ad%n%B---' --date=short 0cd9bc8..main --no-merges; git log -1 --format=%B 5d9909c; for c in a490426 f9e47be a7b2785 5a70d4a 3b5d221; do echo "## $c"; git show --format='%an' $c; done; git show --stat 0cd9bc8
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-RCP-1/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md` at the repo root. I haven't committed it.
+
+**Fixes in 3.1.2** (the commits between "Release 3.1.1" and "Release 3.1.2"):
+- **Flask `|` escaping:** credited to Bea Blom. The cherry-pick on the patch line was committed by Mara Linden, but Bea Blom wrote the original.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. The patch-line commit has a different message ("Backport: …"), but the change is the same as Dov Dahl's original commit.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. This is one squashed commit from 5 commits, and it doesn't appear on `main`.
+
+**Development-line changes that missed 3.1.2:**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Express greedy-match fix (Eli Ek)
+- Translator nil guard (Hal Hart)
+
+I matched the cherry-picks by comparing their diffs, not just their messages. The two duplicates have identical changes to their originals, so each fix is listed once.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes included in this patch release (changes since 3.1.1):
+
+- **Fix escaping of `|` in Flask patterns**: credit Bea Blom.
+  (Originally `f9e47be` on the development line; backported as `a490426`.)
+- **Fix frozen string error in `Regular`**: credit Dov Dahl.
+  (Originally `5a70d4a` on the development line; backported as `a7b2785`.)
+- **Fix thread-safety in the pattern cache (#210)**: credit Fay Fox, with Gus Gil as co-author.
+  (`3b5d221`, squashed from 5 commits directly on the 3.1 line.)
+
+## Not in 3.1.2
+
+Changes on the development line (`main`) that were not part of this release:
+
+- Add `Pattern#to_proc` (Ann Adler, `6d6f8e0`)
+- Add Rails 7.2 syntax (Cyd Cole, `8faf58e`)
+- Fix greedy match in Express (Eli Ek, `40a2423`)
+- Fix nil guard in translator (Hal Hart, `048965f`)
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --no-decorate -30; git tag | tail; git branch -a; git log --format='%h %an <%ae> | %cn | %s' Release-3.1.1..HEAD 2>&1 | head -0
+Bash: git log --graph --format='%h | author %an <%ae> | committer %cn | %ad | %s' --date=short d966868~0..HEAD; echo; git branch -a; git log --format='%h %an | %cn | %s' d966868..0cd9bc8 --first-parent
+Bash: for c in f9e47be a490426 5a70d4a a7b2785 3b5d221 40a2423 8faf58e 6d6f8e0 048965f; do echo "$c $(git show $c | git patch-id --stable | cut -c1-12) $(git show --stat --format= $c | tr '\n' ' ')"; done; git show 3b5d221 | head -40; git show 0cd9bc8 --stat --forma
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-RCP-2/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md` with the three fixes in 3.1.2 and a short list of four development-line changes that missed it.
+
+**Fixes in 3.1.2**
+- **Flask `|` escaping:** credit Bea Blom. Mara Linden copied it over as a490426. It has the same patch as the original, f9e47be.
+- **Frozen string error in `Regular`:** credit Dov Dahl. The "Backport:" commit a7b2785 has the same patch as the original, 5a70d4a. Mara Linden committed it.
+- **Pattern cache thread-safety (#210):** credit Fay Fox, with Gus Gil as co-author. It was made directly on the 3.1 line as a squash of 5 commits, and nothing on the development line matches it.
+
+**Development line, not in 3.1.2**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Express greedy-match fix (Eli Ek)
+- Translator nil guard (Hal Hart)
+
+I matched copies to originals by comparing patch contents (`git patch-id`), so the differing commit messages didn't matter.
+
+The nil guard (048965f) came after the merge of `stable-3.1`, so it isn't in 3.1.2.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1. Credit goes to the original author of each change, not to whoever backported it.
+
+- **Fix escaping of `|` in Flask patterns**: credit Bea Blom.
+  Developed on the main line as f9e47be and cherry-picked to 3.1.x as a490426. Both commits have the same patch.
+- **Fix frozen string error in `Regular`**: credit Dov Dahl.
+  Developed on the main line as 5a70d4a and backported as a7b2785 ("Backport: frozen string error in Regular"). Both commits have the same patch.
+- **Fix thread-safety in the pattern cache (#210)**: credit Fay Fox, with Gus Gil as co-author.
+  This was made directly on the 3.1 line as a squash of 5 commits.
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` (Ann Adler)
+- Add Rails 7.2 syntax (Cyd Cole)
+- Fix greedy match in Express (Eli Ek)
+- Fix nil guard in translator (Hal Hart)
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --all --format='%h %an <%ae> | %cn | %s' | head -60; git tag; git branch -a
+Bash: for c in a490426 f9e47be a7b2785 5a70d4a 3b5d221 0cd9bc8 6d6f8e0 8faf58e 40a2423 048965f; do echo "=== $c"; git show --format='%B' -s $c; git show --stat --format= $c; git show --format= $c | grep '^[+-][^+-]' | head -12; done; git log -1 --format=%ad d966868;
+Bash: cat > RELEASE-3.1.2.md <<'EOF' ; # Mustermann 3.1.2 ;  ; Fixes since 3.1.1: ;  ; - **Escape `|` in Flask patterns** — credit: Bea Blom (originally f9e47be on the development line, cherry-picked as a490426 by Mara Linden). ; - **Fix frozen string error in `Regular`** — cre
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, credited to whoever wrote each change rather than whoever copied it over:
+
+- **Escape `|` in Flask patterns:** credited to Bea Blom. Mara Linden cherry-picked it onto the patch line.
+- **Frozen string error in `Regular`:** credited to Dov Dahl. Mara Linden backported it under the message "Backport: frozen string error in Regular", so the message doesn't match the original.
+- **Thread-safety in the pattern cache (#210):** credited to Fay Fox, with Gus Gil as co-author. The commit was squashed from 5 commits. I only had the squashed commit, so any other authors of those 5 commits aren't credited.
+
+The development-line changes that missed 3.1.2 are listed at the bottom:
+
+- Add `Pattern#to_proc` (Ann Adler)
+- Add Rails 7.2 syntax (Cyd Cole)
+- Fix greedy match in Express (Eli Ek)
+- Fix nil guard in translator (Hal Hart)
+
+The Release 3.1.2 commit itself only bumps the version, so I left it out of the fix list.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1:
+
+- **Escape `|` in Flask patterns** — credit: Bea Blom (originally f9e47be on the development line, cherry-picked as a490426 by Mara Linden).
+- **Fix frozen string error in `Regular`** — credit: Dov Dahl (originally 5a70d4a, backported as a7b2785 by Mara Linden).
+- **Fix thread-safety in the pattern cache (#210)** — credit: Fay Fox, with Gus Gil as co-author (3b5d221).
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` (Ann Adler, 6d6f8e0)
+- Add Rails 7.2 syntax (Cyd Cole, 8faf58e)
+- Fix greedy match in Express (Eli Ek, 40a2423)
+- Fix nil guard in translator (Hal Hart, 048965f)
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-CV-1/fx; git log --oneline --graph --all | head -50; git tag; git branch -a; git log --format='%h %an <%ae> | %cn | %s' 3.1.1..0cd9bc8 2>&1 | head -40
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-CV-1/fx; git log --format='%h | A:%an <%ae> | C:%cn | %ad%n   %s%n%b' --date=short d966868..0cd9bc8; echo ====; git log --format='%h | A:%an <%ae> | C:%cn | %ad%n   %s%n%b' --date=short d966868..main --no-merges ^0cd9bc8
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T5-CV-1/fx; git log --format='%h | A:%an <%ae> | C:%cn | %ad | %s' --date=short d966868..main --no-merges; for c in f9e47be 5a70d4a a490426 a7b2785 3b5d221 0cd9bc8 048965f; do echo "--- $c"; git show --format=%s $c | head -
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-CV-1/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, credited to whoever wrote them rather than whoever copied them over:
+
+- **Flask `|` escaping:** Bea Blom wrote it. Mara Linden cherry-picked it, so she isn't credited for the fix.
+- **Frozen string error in `Regular`:** Dov Dahl wrote the original. The backport commit has a different message ("Backport: …"), so I matched it to the original by its identical diff. Mara only copied it over.
+- **Pattern cache thread-safety (#210):** Fay Fox and Gus Gil, who is listed as co-author. It was a squash of 5 commits made directly on the patch line. I couldn't see the individual commits, so I credited only the squash author and the co-author named in the message.
+
+Mara also prepared the release commit, and the file says so.
+
+The "not in 3.1.2" list has four changes from the development line:
+
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Greedy match fix in Express (Eli Ek)
+- Nil guard fix in the translator (Hal Hart). It landed after the release, on top of the merge.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Fixes since 3.1.1. Credit goes to the author of each change, not to whoever backported it.
+
+- **Fix escaping of `|` in Flask patterns**: thanks to Bea Blom. Backported from the development line (`f9e47be`, backport `a490426`).
+- **Fix frozen string error in `Regular`**: thanks to Dov Dahl. Backported from the development line (`5a70d4a`, backport `a7b2785`).
+- **Fix thread-safety in the pattern cache** (#210): thanks to Fay Fox and Gus Gil (co-author). Squashed from 5 commits (`3b5d221`).
+
+Release prepared by Mara Linden, who also did the backports of the Flask and `Regular` fixes.
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` (Ann Adler)
+- Add Rails 7.2 syntax (Cyd Cole)
+- Fix greedy match in Express (Eli Ek)
+- Fix nil guard in translator (Hal Hart). Landed on `main` after the 3.1.2 release.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --all --decorate | head -60; git tag; git branch -a
+Bash: git log --format='%h | author: %an <%ae> | committer: %cn | %ad%n%B---' d966868..main --no-merges; git show 3b5d221 a7b2785 a490426 --stat --format='%h %an'; git show 0cd9bc8 --stat --format=%h
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-CV-2/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each once, and four development-line changes that missed the release.
+
+**Fixes in 3.1.2**
+- **Flask `|` escaping:** credited to Bea Blom. Mara Linden cherry-picked it, so Bea is the author.
+- **Frozen string error in Regular:** credited to Dov Dahl. Mara Linden committed the backport under the message "Backport: …", but Dov wrote the change.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. This commit is a squash of 5 commits, and the history only records those two names. Anyone else who contributed to the squashed commits can't be identified from the history.
+
+**On the development line but not in 3.1.2**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Greedy match fix in Express (Eli Ek)
+- Nil guard fix in translator (Hal Hart). It landed on `main` after the stable merge.
+
+I left out the "Release 3.1.2" version bump itself, since it isn't a fix.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on the 3.1 line (changes since 3.1.1).
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: credit Bea Blom. This was cherry-picked from the development line (f9e47be).
+- **Fix frozen string error in Regular**: credit Dov Dahl. This was backported from the development line (5a70d4a).
+- **Fix thread-safety in the pattern cache (#210)**: credit Fay Fox and Gus Gil (co-author). The commit is a squash of 5 commits. Only the squash author and the co-author are recorded, so other contributors to those commits can't be identified from the history.
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc` (Ann Adler)
+- Add Rails 7.2 syntax (Cyd Cole)
+- Fix greedy match in Express (Eli Ek)
+- Fix nil guard in translator (Hal Hart)
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --all --decorate | head -60; git tag; git branch -a
+Bash: git log --format='%h %an <%ae> | committer %cn | %s%n%b' d966868..0cd9bc8 --no-merges; echo ====; git log --format='%h %an <%ae> | %cn | %s' 6d6f8e0^..40a2423 --no-merges; for p in "a490426 f9e47be" "a7b2785 5a70d4a"; do set -- $p; echo "== $1 vs $2"; git show
+Bash: git log --format='%h %an <%ae> | %cn | %s%n%b' 6d6f8e0^..40a2423 --no-merges; git show a7b2785 5a70d4a a490426 f9e47be 3b5d221 --format='--- %h %an' | head -200; git show 0cd9bc8 --stat --format=%B
+Bash: git log -1 --format='%an' 048965f; git show 048965f --stat --format=%B | head
+Write: /private/tmp/wp-r16/gate5/runs/W14T5-CV-3/fx/RELEASE-3.1.2.md
+### Final answer text
+I wrote `RELEASE-3.1.2.md`. It lists three fixes, each credited to the person who wrote it, with the two cherry-picked fixes matched to their originals on main. I haven't committed it.
+
+**Fixes in 3.1.2**
+- **Flask `|` escaping:** credited to Bea Blom. Mara Linden, who also made the 3.1.2 release commit, cherry-picked it, but the commit's author is Bea.
+- **Frozen string error in `Regular`:** credited to Dov Dahl, who wrote the original and also the backport.
+- **Pattern cache thread-safety (#210):** credited to Fay Fox, with Gus Gil as co-author. It was squashed from 5 commits.
+
+**On the development line but not in 3.1.2**
+- `Pattern#to_proc` (Ann Adler)
+- Rails 7.2 syntax (Cyd Cole)
+- Express greedy match fix (Eli Ek)
+- Translator nil guard fix (Hal Hart)
+
+The Flask and `Regular` fixes each appear on both lines, so I listed each once.
+### Files it left in the working directory
+--- RELEASE-3.1.2.md
+# Mustermann 3.1.2
+
+Patch release on top of 3.1.1. Credit goes to whoever wrote each change, not to whoever backported it.
+
+## Fixes
+
+- **Fix escaping of `|` in Flask patterns**: credit Bea Blom. Backported from the development line (cherry-picked as a490426, original f9e47be).
+- **Fix frozen string error in `Regular`**: credit Dov Dahl. Backported from the development line (a7b2785, original 5a70d4a). The backport commit was retitled "Backport: frozen string error in Regular".
+- **Fix thread-safety in the pattern cache (#210)**: credit Fay Fox, with Gus Gil as co-author (3b5d221). This was squashed from 5 commits.
+
+## On the development line but not in 3.1.2
+
+- Add `Pattern#to_proc`: Ann Adler (6d6f8e0)
+- Add Rails 7.2 syntax: Cyd Cole (8faf58e)
+- Fix greedy match in Express: Eli Ek (40a2423)
+- Fix nil guard in translator: Hal Hart (048965f)

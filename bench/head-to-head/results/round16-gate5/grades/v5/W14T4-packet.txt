@@ -1,0 +1,704 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-1/fx; R27=$(git log --format=%H --grep='^Release 1.0.27' -1); R26=$(git log --format=%H --grep='^Release 1.0.26' -1); echo $R27 $R26; git merge-base --is-ancestor $R26 $R27 && echo anc; echo total; git rev-list --co
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-1/fx; cat .mailmap 2>/dev/null; echo ---; git log --format='%an|%ae' 19860493..e9557cc | sort -u >/tmp/in.txt; git log --format='%an|%ae|%cn' 19860493 | sort -u; echo; git log --format='%h %an' --grep='Co-authored' 
+### Final answer text
+**Header: 10 commits from 8 people, 5 of them first-time contributors**
+
+**Range.** I used `Release 1.0.26..Release 1.0.27` (`1986049..e9557cc`), which is by ancestry, not date. Commits after the release (`698dc85`, `051d825`) are excluded. The range has 13 commits.
+
+**N = 10.** I dropped three of the 13:
+- the release commit itself, `e9557cc`
+- the merge commit `d919b3b` ("Merge pull request #339"), since its content is already counted as the commits it merged
+- the `dependabot[bot]` commit `2b511eb`
+
+The Revert commit `d0720ea` counts as a normal commit. Without those exclusions, the raw count is 13, or 12 without merges.
+
+**M = 8.** Counted by author, not committer, and bots excluded. The 8 people are Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+- **Mara Linden** counts because of the Revert, even though they also made the release and merge commits.
+- **Lena Ortiz** and "Lena O." (`lena.ortiz@uni.example`) are one person. The repo's `.mailmap` maps the second to the first.
+- **Priya Nair** appears with a different email (`priya@new.example`) than before (`priya@old.example`). I counted the name as one person.
+
+**K = 5.** A person is first-time if neither their name nor their email appears among the authors of commits reachable from `Release 1.0.26`. The 5 are:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+Mara Linden, Omar Odum and Priya Nair all have earlier commits.
+
+**Judgement calls.**
+- If you'd rather count the release commit and bot, N becomes 12. M and K don't change.
+- If you'd rather treat Priya's new email as a different person, K becomes 6. I wouldn't, since the name matches an earlier contributor.
+- I didn't check commit-message trailers like `Co-authored-by`.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-2/fx; git log --oneline --grep='^Release 1.0.2[67]' --all; git log --format='%h %p | %an <%ae> | %cn | %s' Release 2>/dev/null | head -0; R27=$(git log --format=%H --grep='^Release 1.0.27$' -1); R26=$(git log --form
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-2/fx; cat .mailmap 2>/dev/null; echo ---; git log --format='%an <%ae> | c: %cn <%ce>' 1986049 | sort | uniq -c; echo ---; git log 1986049..e9557cc --format='%h %cn <%ce>%n%b' | grep -iE 'co-authored|^[0-9a-f]{7} ' ;
+### Final answer text
+**Header: 11 commits from 8 people, 5 of them first-time contributors**
+
+I counted by walking the commit graph with `git log Release-1.0.26..Release-1.0.27` (`1986049..e9557cc`). I didn't use dates, so the bad clocks and the commits after the release don't affect it. That range has 13 commits.
+
+**N = 11**
+- I dropped the release commit itself, `e9557cc`, because it's a version bump.
+- I dropped the merge commit `d919b3b` (Merge pull request #339), because the PR's own commits are already in the range.
+- I kept the dependabot commit and the "Revert" commit, since both are real changes to the repo.
+
+**M = 8**, counted by commit author:
+- Mara Linden, counted through the revert `d0720ea`
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+- Omar Odum
+- Priya Nair
+
+- **Bots:** `dependabot[bot]` is not counted as a person, but its commit is in N.
+- **One person:** I used the repo's `.mailmap`, which maps "Lena O. <lena.ortiz@uni.example>" to Lena Ortiz, so those two identities are one person. Priya Nair appears under `priya@new.example` here and `priya@old.example` before, with no mailmap entry. I treated her as one person, matched by name, and she is a returning contributor.
+- **Committer vs author:** Everything is by author. The committer was always the same as the author here.
+
+**K = 5 first-time contributors**
+A first-timer is an author with no commits at or before `1986049` (Release 1.0.26), under any of their names or emails.
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+The returning contributors are Mara Linden (2 earlier commits), Omar Odum (1) and Priya Nair (1, under the old email).
+
+**Co-author:** `ab5fe85` (Rae's commit) has a `Co-authored-by: Sol Sato` trailer. I didn't count Sol, since they aren't a commit author. If you want co-authors included, the header becomes 11 commits from 9 people, 6 first-timers, because Sol has no earlier commits either.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-3/fx; git log --oneline --grep='^Release 1.0.2[67]$'; git log --format='%H %s' | grep -n 'Release 1.0.2[67]'
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-3/fx; R=1986049..e9557cc ; echo total $(git rev-list --count $R) nomerge $(git rev-list --count --no-merges $R) merges $(git rev-list --count --merges $R) ; git log --no-merges --format='%an <%ae> | %cn <%ce>' $R | sort
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-3/fx; git log --format='%an|%ae' 1986049 | sort -u > /tmp/prior.txt; wc -l /tmp/prior.txt ; for a in "Zed Zhu" "Mara Linden" "Rae Rowe" "Priya Nair" "Omar Odum" "Lena Ortiz" "Lena O." "Kai Kemp" "Jun Ito"; do echo "==
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-BASE-3/fx; cat .mailmap; git log --use-mailmap --format='%aN <%aE>' 1986049..e9557cc | sort | uniq -c; grep -iE 'zed|rae|kai|jun|lena|uni\.' /tmp/prior.txt; git log 1986049 --format='%ae' | grep -E 'example' | sort -u | 
+### Final answer text
+**Header: 10 commits from 8 people, 5 of them first-time contributors**
+
+I counted the range `Release 1.0.26..Release 1.0.27` (`1986049..e9557cc`) by commit ancestry, not by date. That range holds 13 commits.
+
+**How I counted**
+- **Commits (N = 10):** I dropped three of the 13.
+  - The release commit itself (`e9557cc`, "Release 1.0.27").
+  - The one merge commit (`d919b3b`, "Merge pull request #339"). Its branch commits are in the range and are counted.
+  - The one bot commit, `dependabot[bot]` (the serde_derive bump).
+  - If you want the bot's commit in N, the figure is 11. If you also want the merge and release commits, it is 13.
+- **People (M = 8):** I excluded the bot. The eight are Zed Zhu, Mara Linden, Rae Rowe, Priya Nair, Omar Odum, Lena Ortiz, Kai Kemp and Jun Ito.
+  - Mara counts through the "Revert display: alternate flag" commit. Her other two commits are the release and the merge.
+- **One person:** I matched on author identity with the repo's `.mailmap` applied.
+  - `Lena O. <lena.ortiz@uni.example>` maps to `Lena Ortiz <lena@example.com>`, so the 2 Lena commits are one person.
+  - Priya Nair's commit uses `priya@new.example`. She has earlier commits as `priya@old.example`. There is no mailmap entry linking them, but I treated the same name as the same person.
+- **First-time contributors (K = 5):** these are people with no commits reachable from `Release 1.0.26`, under any name or email.
+
+**First-time contributors**
+1. Zed Zhu (2 commits, the two ordering tests)
+2. Rae Rowe (`Add Prerelease::is_empty`)
+3. Lena Ortiz (2 commits, including the ones authored as "Lena O.")
+4. Kai Kemp (MSRV docs)
+5. Jun Ito (long-prerelease bench)
+
+**Returning:** Mara Linden, Omar Odum and Priya Nair. If you'd rather not link Priya's two emails, K becomes 6 and M stays 8.
+
+The `Merge pull request #339 from zed/ordering-tests` message names `zed`, but that merge was authored by Mara. The branch commits are Zed Zhu's.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep='^Release 1.0.2[67]' --format='%h %s' ; R27=$(git log --format=%H --grep='^Release 1.0.27$' -1); R26=$(git log --format=%H --grep='^Release 1.0.26$' -1); echo $R26 $R27; git merge-base --is-ancestor $R26 $R27 && echo ancestor; echo tot
+Bash: ls -a | head -30; cat .mailmap 2>/dev/null; echo ---prior; git log 1986049 --format='%an|%ae' | sort | uniq -c; echo ---trailers; git log 1986049..e9557cc --format=%B | grep -i 'co-authored' 
+Bash: git log 1986049 -i -E --author='rae|jun|zed|kai|lena|ortiz|sol |sato|linden' --format='%h %an <%ae>'; git log 1986049 --format=%B | grep -i -E 'co-authored|sol|rae r|jun i|zed|kai k|lena' | head; git log 1986049..e9557cc --format='%h %s%n%b' | grep -B3 -i co-a
+### Final answer text
+**N = 11, M = 9, K = 6**
+
+Header line: **11 commits from 9 people, 6 of them first-time contributors**
+
+I counted over `Release 1.0.26..Release 1.0.27`, which is 13 commits, by walking the graph. Dates play no part. I checked that 1.0.26 (1986049) is an ancestor of 1.0.27 (e9557cc), so the post-release commits at HEAD are out.
+
+**N (commits)**
+- I excluded the 1.0.26 commit, since the range is exclusive at that end.
+- I excluded the merge commit `d919b3b` ("Merge pull request #339"). That takes 13 down to 12.
+- I excluded the "Release 1.0.27" commit itself, which is a version bump. That takes 12 down to 11.
+- I kept the dependabot commit, because it is a real change in the release. I kept the revert `d0720ea` for the same reason.
+- `ab5fe85` (#341) says "Squashed from 4 commits", but it is one commit in the history, so it counts once.
+- If you'd rather count the release commit, N is 12. If you also count the merge, N is 13.
+
+**M (people)**
+- I excluded `dependabot[bot]`, since it isn't a person.
+- Authors are Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair, which makes 8.
+- I added Sol Sato, who appears only as `Co-authored-by` on #341. That makes 9. Without co-authors, M is 8.
+- "Lena O." (lena.ortiz@uni.example) and "Lena Ortiz" (lena@example.com) are one person. `.mailmap` maps them together, so Lena counts once. Counted separately, M would be 10.
+
+**K (first-time contributors)**
+- I counted anyone with no commit, under any of their names or emails, in the history up to and including 1.0.26.
+- The six are Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz and Sol Sato.
+- Sol Sato's status rests on a search of earlier author names and commit messages, which found no earlier trace. Sol appears only as a co-author here.
+- Not first-time: Mara Linden and Omar Odum have earlier commits. Priya Nair has an earlier commit under priya@old.example, so her new priya@new.example address doesn't make her new.
+- If you leave out co-authors, K is 5.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-CV_I-2/fx; R=$(git log --format=%H --grep='^Release 1.0.27' -1); P=$(git log --format=%H --grep='^Release 1.0.26' -1); echo $R $P; git merge-base --is-ancestor $P $R && echo anc; echo total; git rev-list --count $P..$R; 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-CV_I-2/fx; P=19860493d785e525e8e72e293da7e6bbed4305f0; R=e9557cc; git log --use-mailmap --format='%aN <%aE>' $P | sort | uniq -c; echo ---; git log --use-mailmap --format='%aN <%aE>' $P..$R | sort | uniq -c; git log --fo
+### Final answer text
+**11 commits from 8 people, 5 of them first-time contributors**
+
+I skipped the cv-builder skills, since they're for resumes and this is a git question.
+
+**Range.** I used `Release 1.0.26..Release 1.0.27` by ancestry (`e9557cc`, `19860493`), with no date filtering. That range has 13 commits.
+
+**N = 11.** I took the 13 commits and removed:
+- the `Release 1.0.27` commit itself (`e9557cc`);
+- the merge commit "Merge pull request #339" (`d919b3b`), because its content commits are already counted.
+
+I kept the dependabot bump (a real change) and the `Revert "display: alternate flag"` commit. The two post-release commits (`698dc85`, `051d825`) are outside the range.
+
+If you count raw commits, N is 13. If you also drop the bot, it's 10.
+
+**M = 8.** I counted distinct authors after applying the repo's `.mailmap`, and I excluded `dependabot[bot]`. The 8 are:
+- Mara Linden
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+- Omar Odum
+- Priya Nair
+
+Two identity decisions:
+- **Lena:** "Lena O." (`lena.ortiz@uni.example`) and "Lena Ortiz" (`lena@example.com`) are one person, because `.mailmap` maps them together.
+- **Priya:** "Priya Nair" appears with `priya@old.example` before the release and `priya@new.example` in it. I treated her as one person because the name matches exactly, but there's no mailmap entry confirming it. If these are different people, M becomes 9 and K becomes 6.
+
+**K = 5.** A first-time contributor is an author with no commits reachable from `Release 1.0.26`, again by ancestry and not by date. They are:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+Three people in the range are not first-time:
+- Mara Linden has 2 earlier commits.
+- Omar Odum has 1 earlier commit.
+- Priya Nair has 1 earlier commit, under the old email.
+
+The bot is not counted as a contributor.
+
+**Header line:** "11 commits from 8 people, 5 of them first-time contributors"
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep='^Release 1.0.2[67]$' --format='%h %s' ; git log --format='%h %p|%an|%ae|%cn|%s' $(git log --format=%h --grep='^Release 1.0.26$' -1)..$(git log --format=%h --grep='^Release 1.0.27$' -1) | cat; ls .mailmap 2>&1
+Bash: cat .mailmap; echo ---; R=1986049; for e in mara@example.com rae@example.com jun@example.com zed@example.com kai@example.com lena.ortiz@uni.example lena@example.com omar@example.com priya@new.example; do echo "$e: $(git log --format='%an' --author=$e $R | sort
+### Final answer text
+**Header: "10 commits from 8 people, 5 of them first-time contributors"**
+
+I counted the commits reachable from `Release 1.0.27` (e9557cc) but not from `Release 1.0.26` (1986049), using `git log 1986049..e9557cc`. That follows the commit graph, so the bad dates don't matter, and it also picks up the commits that came in through the #339 merge. The range holds 13 commits, and I dropped three of them:
+
+- **Release commit:** I left out `Release 1.0.27` itself.
+- **Merge commit:** I left out `Merge pull request #339`, since it has no changes of its own.
+- **Bot commit:** I left out the dependabot "Bump serde_derive" commit. A bot isn't a person, and it isn't a contributor to credit. If you'd rather count it, N becomes 11 and M, K stay the same.
+
+I did not exclude the revert (`Revert "display: alternate flag"`, by Mara Linden). It's a real change by a person, so it counts. I also counted the HEAD commits after the release as outside the range.
+
+**People (M = 8).** I merged identities by name and by the repo's `.mailmap`:
+- `Lena O. <lena.ortiz@uni.example>` and `Lena Ortiz <lena@example.com>` are one person, because `.mailmap` maps them together.
+- `Priya Nair <priya@new.example>` is the same person as `Priya Nair <priya@old.example>`, who has a commit in earlier history. That match is by name only, since `.mailmap` has no entry for it.
+
+The 8 people are Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+
+**First-time contributors (K = 5).** These people have no commit under any of their names or emails in history up to Release 1.0.26:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+The other three are not first-timers. Mara Linden has 2 earlier commits, Omar Odum has 1, and Priya Nair has 1 under her old email.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-OURS-1/fx; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people 2>&1 | head -30; R26=$(git log --format=%H --grep='^Release 1.0.26' -1); R27=$(git log --format=%H --grep='^Release 1.0.27' -1); echo $R26 $R27; git 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-OURS-1/fx; R26=19860493d785e525e8e72e293da7e6bbed4305f0; cat .mailmap 2>/dev/null; for p in "Rae Rowe" "Jun Ito" "Zed Zhu" "Kai Kemp" "Lena" "Omar Odum" "Priya" "Mara Linden" "dependabot"; do echo "== $p"; git log $R26 -
+### Final answer text
+**10 commits from 8 people, 5 of them first-time contributors.**
+
+**How I counted**
+- **Range:** I used `Release 1.0.26..Release 1.0.27` (`1986049..e9557cc`), which follows parent links. That gives 13 commits and doesn't depend on dates, so the bad clock dates don't matter.
+- **Merges:** I excluded 1, the `Merge pull request #339` commit by Mara Linden. The commits it brought in are counted individually.
+- **Bots:** I excluded 1, `dependabot[bot]` (the serde_derive bump).
+- **Release commit:** I excluded `Release 1.0.27` itself. If you want it included, N is 11.
+- **Reverts:** I kept the `Revert "display: alternate flag"` commit, because it's a real change. It is Mara's only counted commit.
+- **One person:** I merged identities using the repo's `.mailmap`, which maps "Lena O." (`lena.ortiz@uni.example`) to Lena Ortiz. So her 2 commits count as one person.
+- **Priya Nair:** Her commit here uses `priya@new.example`, and her earlier commit used `priya@old.example`. The same full name with a changed address is almost certainly one person, but it isn't proven, so I counted her once and as returning, not first-time. If she were really two people, M would be 9 and K would be 6.
+- **First-time:** I counted someone as first-time if they have no commits (by name or address, after mailmap) reachable from `Release 1.0.26`.
+
+**The 8 people (10 commits)**
+- Zed Zhu: 2
+- Lena Ortiz: 2
+- Rae Rowe: 1
+- Mara Linden: 1 (the revert)
+- Jun Ito: 1
+- Kai Kemp: 1
+- Omar Odum: 1
+- Priya Nair: 1
+
+**First-time contributors (5)**
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+Omar Odum, Priya Nair and Mara Linden all have commits before 1.0.26, so they aren't first-time.
+
+Header line: "10 commits from 8 people, 5 of them first-time contributors".
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-OURS-2/fx; git log --oneline -3 --format='%h %s' ; R=$(git log --format=%H --grep='^Release 1.0.27$' -1); P=$(git log --format=%H --grep='^Release 1.0.26$' -1); echo $R $P; git log --format='%h|%an|%ae|%cn|%P|%s' $P..$R;
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-OURS-2/fx; P=19860493d785e525e8e72e293da7e6bbed4305f0; ls -a | grep -i mailmap; echo prior authors:; git log --format='%an|%ae|%cn' $P | sort | uniq -c; echo; git log --format='%h|%an|%ae|%s' --all | grep -i -E 'lena|co-
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-OURS-2/fx; cat .mailmap | grep -v '^#' | grep -i -E 'example|lena|priya|ortiz' ; P=19860493d785e525e8e72e293da7e6bbed4305f0; git log $P --format='%an|%ae|%s' | grep -i -E 'priya|lena|jun ito|kai kemp|rae rowe|zed zhu|sol
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-OURS-2/fx; git show --stat --format='%h %an %s' e9557cc | head -20; git log --all --format='%h %an %s' | grep -i -E 'sol|squash' | head; git log --format='%an' 19860493d785e525e8e72e293da7e6bbed4305f0..HEAD | sort -u | w
+### Final answer text
+**11 commits from 8 people, 5 of them first-time contributors.**
+
+**Range.** I counted `Release 1.0.26..Release 1.0.27` by commit ancestry, not by date. That is 13 commits (`19860493..e9557cc`). Later commits such as "Start 1.0.28 development" and "parse: faster path" are outside it.
+
+**N = 11.** I took the 13 commits and removed two:
+- **Release commit (`e9557cc`):** it only bumps the version in `Cargo.toml`, so it isn't a change in the release.
+- **Merge commit (`d919b3b`, "Merge pull request #339"):** the commits it merged are already counted individually.
+
+I kept the other commits:
+- **Dependabot bump:** it is a real commit, so it counts in N.
+- **The revert ("Revert 'display: alternate flag'"):** it counts as a commit.
+
+If you'd rather count the release commit or merge, N is 12 or 13.
+
+**M = 8.**
+- **Bots:** dependabot[bot] is not a person.
+- **Same person under two identities:** Lena O. (`lena.ortiz@uni.example`) and Lena Ortiz (`lena@example.com`) are one person. The repo's `.mailmap` maps them together.
+- **Same name, different email:** Priya Nair appears with `priya@new.example` here and `priya@old.example` earlier. I treated that as one person, matching on name.
+- **Mara Linden:** she authored the revert, so she counts. She also made the release and merge commits.
+
+The 8 are Rae Rowe, Mara Linden, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+
+**K = 5.** These are people with no commits reachable from `Release 1.0.26`, matched by name and email after `.mailmap`:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+Not first-time: Mara Linden, Omar Odum and Priya Nair all have earlier commits. Priya's earlier one is "Add Identifier::is_inline".
+
+**Co-author trailer.** The release commit message says "Squashed from 4 commits" and has a `Co-authored-by: Sol Sato` trailer, but the commit itself is only the one-line version bump. Sol Sato has no commits in the history, so I didn't count them. If you do count them, it becomes 9 people and 6 first-timers.
+
+Suggested header: "11 commits from 8 people, 5 of them first-time contributors".
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep='^Release 1.0.2[67]$' && git log --format='%H %P|%an|%ae|%cn|%s' e9557cc ^$(git log --format=%H --grep='^Release 1.0.26$' -1) | wc -l
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people 2>&1 | head -40
+Bash: git log --format='%h|%p|%an <%ae>|%cn <%ce>|%s' 1986049..e9557cc; echo; git log --format='%b' 1986049..e9557cc | grep -i co-authored; git log -1 --format=%h 1986049; git merge-base --is-ancestor 1986049 e9557cc && echo ancestor; cat .mailmap 2>/dev/null
+Bash: for n in "Rae Rowe" "Mara Linden" "Jun Ito" "Zed Zhu" "Kai Kemp" "Lena" "Omar Odum" "Priya Nair" "Sol Sato"; do echo "== $n"; git log 1986049 --all-match -i --author="$n" --format='%h %an <%ae> %ad %s' --date=short | head -3; git log 1986049 -i --grep="$n" --f
+### Final answer text
+**10 commits from 8 people, 5 of them first-time contributors**
+
+**Range.** I used `git log 1986049..e9557cc`, which is Release 1.0.26 (exclusive) to Release 1.0.27 (inclusive). It follows the commit graph, not dates, so the bad clocks don't matter. It contains 13 commits.
+
+**N = 10.** From the 13 I removed:
+- The release commit itself, `e9557cc` "Release 1.0.27".
+- One merge commit, `d919b3b` "Merge pull request #339".
+- One bot commit, `dependabot[bot]`, "Bump serde_derive".
+
+The revert of "display: alternate flag" is a real authored change, so I kept it. If you'd rather include everything, the raw count is 13.
+
+**M = 8.** I counted authors of those 10 commits:
+- Rae Rowe
+- Mara Linden (the revert only)
+- Jun Ito
+- Zed Zhu (2 commits)
+- Kai Kemp
+- Lena Ortiz (2 commits)
+- Omar Odum
+- Priya Nair
+
+Lena appears as "Lena Ortiz <lena@example.com>" and "Lena O. <lena.ortiz@uni.example>". The repo's `.mailmap` maps them to one person, so she counts once. Mara is counted because she authored the revert, even though her release and merge commits were dropped. I didn't count Sol Sato, who appears only in a `Co-authored-by` trailer on one commit. Counting co-authors would make M = 9. Sol also has no earlier commits, so K would become 6.
+
+**K = 5.** First-time means the person has no commits under their name or address among the ancestors of Release 1.0.26. The first-time contributors are:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+The other three had earlier commits, so they are not first-time:
+- **Mara Linden:** she has earlier commits, including Release 1.0.26.
+- **Omar Odum:** his earlier commit `8a3ef9d` has a bad date (2027), but it is an ancestor of 1.0.26, so he counts as returning.
+- **Priya Nair:** her earlier commit `0c2a648` is under `priya@old.example`, and her 1.0.27 commit uses `priya@new.example`. I treated her as the same person because the full name matches. It's a judgment call, since no `.mailmap` entry links the two. If you treat the addresses as different people, K = 6 and M stays 8.
+
+I also ran the workproof `people` tool, but it only gives all-history totals, so I counted this range directly with git.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP_I-1/fx; git log --oneline --grep='^Release 1.0.2[67]' ; echo; R27=$(git log --format=%H --grep='^Release 1.0.27$' | head -1); R26=$(git log --format=%H --grep='^Release 1.0.26$' | head -1); echo $R26 $R27; git merge-
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP_I-1/fx; ls -a | grep -i mailmap; R26=1986049; for a in "Mara Linden" "Rae Rowe" "Jun Ito" "Zed Zhu" "Kai Kemp" "Lena O." "Lena Ortiz" "Omar Odum" "Priya Nair"; do echo "$a: before=$(git log $R26 --author="$a" --forma
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP_I-1/fx; cat .mailmap; echo ---; git log 1986049..e9557cc --format='%h %aN <%aE> | %an' ; echo ---; git log 1986049..e9557cc --format='%h%n%B' | grep -B3 -i 'co-authored'; git log 1986049 --format='%aN|%aE' | grep -i 
+### Final answer text
+**N = 10 commits, M = 8 people, K = 5 first-time contributors.**
+
+Header line: "10 commits from 8 people, 5 of them first-time contributors"
+
+The receipts skill makes Claude Code usage reports and has nothing for release contributor counts, so I didn't run it. I counted straight from git with the range `Release 1.0.26..Release 1.0.27` (`1986049..e9557cc`). That range follows commit ancestry, so the bad dates don't affect it.
+
+**How I counted**
+- **Raw range:** 13 commits.
+- **Excluded:**
+  - The release commit itself ("Release 1.0.27", e9557cc).
+  - The merge commit ("Merge pull request #339", d919b3b).
+  - The `dependabot[bot]` commit (2b511eb).
+- **Kept:** 10 commits. That includes Mara Linden's `Revert "display: alternate flag"`, because it's a real change.
+- **Who counts as one person:** I used the `.mailmap`, which maps "Lena O." (`lena.ortiz@uni.example`) to Lena Ortiz. That merges her two commits into one person. The 8 people are Rae Rowe, Mara Linden, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+- **Co-authors:** I didn't count Sol Sato, who appears only in a `Co-authored-by:` trailer on the squashed commit (ab5fe85). If you'd count trailer credits, M becomes 9. Sol has no earlier commits, so K would become 6.
+
+**First-time contributors (5):** Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp and Lena Ortiz. None of them has an authored commit reachable from Release 1.0.26.
+
+**Not first-time:**
+- Mara Linden has 2 earlier commits.
+- Omar Odum has 1 earlier commit.
+- Priya Nair has 1 earlier commit, under a different email (`priya@old.example`, now `priya@new.example`). I matched her by name, not email, so please confirm it's the same person. If it isn't, K becomes 6.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: R27=$(git log --format=%H --grep='^Release 1.0.27$' -n1) && R26=$(git log --format=%H --grep='^Release 1.0.26$' -n1) && echo $R26 $R27 && git merge-base --is-ancestor $R26 $R27 && echo ancestor && echo total-with-release: $(git rev-list --count $R26..$R27) mer
+Bash: cat .mailmap 2>/dev/null; R26=19860493d785e525e8e72e293da7e6bbed4305f0; echo ---prior; git log --format='%an|%ae' $R26 | sort | uniq -c; echo ---trailers; git log $R26..e9557cc --format=%B | grep -i 'co-authored'; echo ---merge; git log --merges --format='%h %
+Bash: git log 19860493d785..e9557cc --format='%h %an: %s' --grep='Co-authored' -i; git log --format='%an' 19860493d785 | grep -ci 'sol sato'; git log --all --format='%an|%ae' | grep -i 'sol\|lena\|priya'
+### Final answer text
+**Header line:** 11 commits from 9 people, 5 of them first-time contributors
+
+(`19860493..e9557cc`, which is Release 1.0.26 up to Release 1.0.27.)
+
+I didn't use the receipts skill's miner for this. It only reports Claude Code usage, so I counted straight from `git log`.
+
+## How I counted
+
+- **Range:** I took the commits after "Release 1.0.26" up to and including "Release 1.0.27", walking the commit graph with no date filter. The raw count is 13.
+- **Merge commit:** I excluded one, `d919b3b`, the "Merge pull request #339" merge. That leaves 12.
+- **Bot:** I excluded one, `dependabot[bot]`'s serde_derive bump. That leaves 11. It's also left out of the people count.
+- **Release commit:** I counted it. It's a real commit authored by Mara Linden, who also wrote the revert in the same range. If you'd rather not count it, N is 10 and M and K stay the same.
+- **Reverted commit:** I counted both "display: alternate flag" and its revert, since both are commits.
+- **One person:** Authors are merged using the repo's `.mailmap`. That joins "Lena O." (`lena.ortiz@uni.example`) and Lena Ortiz (`lena@example.com`) into one person. Without the mailmap, M would be 10.
+- **Co-authors:** Sol Sato is a `Co-authored-by` trailer on Rae Rowe's #341 commit. I did not count Sol as one of the 9 people, because I only counted commit authors. If you count co-authors, M becomes 10 and K becomes 6, since Sol has no earlier commits. That is a policy choice for you.
+
+The 9 people are Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum, Priya Nair and Mara's co-release author, which is Mara herself. So the distinct names are 8 plus Lena once, and the 9th is Priya counted once. In full: Mara, Rae, Jun, Zed, Kai, Lena, Omar and Priya make 8 people, not 9. I made an error in that listing above, so here is the recount.
+
+**Corrected recount:** the distinct authors are Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair. That is **8 people (M = 8)**, not 9.
+
+**Corrected header line:** 11 commits from 8 people, 5 of them first-time contributors.
+
+## First-time contributors (K = 5)
+
+I counted someone as first-time if no commit by them exists at or before the Release 1.0.26 commit. The five are:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz. The mailmap merges her two identities, and neither appears earlier.
+
+Not first-time:
+- **Mara Linden** and **Omar Odum** each have earlier commits.
+- **Priya Nair** has an earlier commit under `priya@old.example`. I treated her `priya@new.example` commit as the same person because the name matches exactly. If she turns out to be a different person, K becomes 6.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP_I-3/fx; git log --oneline --grep='^Release 1.0.2[67]$'; R27=$(git log --format=%H --grep='^Release 1.0.27$' -1); R26=$(git log --format=%H --grep='^Release 1.0.26$' -1); echo $R26 $R27; echo total $(git rev-list --co
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP_I-3/fx; cat .mailmap 2>/dev/null; R26=1986049; echo ---prior; git log --format='%an|%ae' $R26 | sort | uniq -c; echo ---after-release; git log --format='%h|%an|%ae|%s' e9557cc..HEAD
+### Final answer text
+**Header line (N = 10, M = 8, K = 5):**
+
+> 10 commits from 8 people, 5 of them first-time contributors
+
+I didn't use the receipts skill. It builds a Claude Code usage report, which isn't what you asked for, so I counted from git history directly.
+
+**How I counted**
+- **Range:** `Release 1.0.26` (1986049) up to and including `Release 1.0.27` (e9557cc), by commit ancestry (`git log 1986049..e9557cc`), not by date. That range holds 13 commits. Commits after the release (`parse: faster path` by Tess Tran, and `Start 1.0.28 development`) are outside it.
+- **Excluded from N:**
+  - The release commit itself (Mara Linden).
+  - The merge commit `Merge pull request #339` (Mara Linden), which is mechanical. The commits it merged are counted individually.
+  - The `dependabot[bot]` commit, because a bot isn't a person.
+- **Kept in N:** the `Revert "display: alternate flag"` commit, since it's a real change. If you'd rather quote the raw range, it's 13 commits, or 12 without the merge.
+- **M:** Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair. Mara still counts because of the revert. Dependabot isn't counted.
+- **Who counts as one person:**
+  - "Lena O." (lena.ortiz@uni.example) and "Lena Ortiz" (lena@example.com) are one person. The repo's `.mailmap` maps them together.
+  - Priya Nair appears with two emails (old.example before the range, new.example in it). I treated her as one person because the name is the same. Nothing in the repo confirms it, so tell me if you want her counted differently.
+
+**First-time contributors (K = 5):** none of these appear as an author in history before 1.0.26.
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+Not first-time: Mara Linden (2 earlier commits), Omar Odum (1 earlier commit) and Priya Nair (1 earlier commit under the old email).
+
+If you count the 1.0.27 release commit or the merge, N changes but M and K don't.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%H %h %an <%ae> | %cn | %s' --grep='^Release 1.0.2[67]$' ; git log --oneline -3 --format='%h %s' HEAD
+Bash: git log --format='%h|%an|%ae|%cn|%ce|%p|%s' 1986049..e9557cc; echo; git log --format='%an|%ae' e9557cc | sort | uniq -c; git log --format='%an|%ae' 1986049 | sort -u | wc -l; cat .mailmap 2>/dev/null
+Bash: git log --format='%an|%ae' 1986049 | grep -iE 'mara|rae|jun|zed|kai|lena|omar|priya|uni.example'; git log --format='%h %an %ae %s' 1986049 | grep -iE 'omar|priya|rae@|jun@|kai@|zed@|lena'
+### Final answer text
+**Header: 10 commits from 8 people, 4 of them first-time contributors**
+
+N = 10, M = 8, K = 4.
+
+**How I counted**
+- **Range:** I used commit ancestry, `1986049 (Release 1.0.26)..e9557cc (Release 1.0.27)`, with no date filtering. That range holds 13 commits.
+- **Release commit:** I excluded "Release 1.0.27" (Mara Linden). If you'd rather include it, N becomes 11. M and K don't change, because Mara has other commits in the range.
+- **Merge commit:** I excluded "Merge pull request #339" (d919b3b). The commits it brought in are counted individually.
+- **Bots:** I excluded `dependabot[bot]` (the serde_derive bump). That leaves 10 human, non-merge commits.
+- **One person:** I merged authors by identity, not by raw name or email.
+  - Lena Ortiz (`lena@example.com`) and "Lena O." (`lena.ortiz@uni.example`) are one person. The repo's `.mailmap` maps them together.
+  - Priya Nair appears under `priya@new.example` and `priya@old.example`. I treated those as one person, matching by name.
+  - I used author names, not committers. They were identical in this range.
+- **M = 8:** Rae Rowe, Mara Linden, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+
+**First-time contributors (K = 4)**
+
+I counted someone as first-time if they have no commits at or before Release 1.0.26.
+- **Rae Rowe:** "Add Prerelease::is_empty".
+- **Jun Ito:** "bench: long prerelease".
+- **Zed Zhu:** two test commits.
+- **Kai Kemp:** "docs: state MSRV in readme".
+
+**Not first-time**
+- **Lena Ortiz:** her two commits in this range are her only ones, so she is a first-time contributor. That makes K = 5, not 4.
+- **Mara Linden:** she has earlier commits.
+- **Omar Odum:** he has an earlier commit, "Expose Error::position".
+- **Priya Nair:** she has an earlier commit under `priya@old.example`, "Add Identifier::is_inline". Matching by email alone would wrongly call her new.
+
+I missed Lena in the first pass. The corrected header is **10 commits from 8 people, 5 of them first-time contributors**. The first-timers are Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp and Lena Ortiz.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep='^Release 1.0.2[67]' --all; git log --format='%h %p|%an|%ae|%cn|%s' Release 2>/dev/null | head -0; git status | head -3
+Bash: git log --format='%h|%p|%an|%ae|%cn|%s' 1986049..e9557cc; echo ---; git rev-list --count 1986049..e9557cc; git rev-list --count --no-merges 1986049..e9557cc; ls .mailmap 2>&1
+Bash: cat .mailmap; echo ---; for a in "Mara Linden" "Rae Rowe" "Jun Ito" "Zed Zhu" "Kai Kemp" "Lena" "Omar Odum" "Priya Nair"; do echo "$a: $(git log --format='%h' --author="$a" 1986049 | wc -l) prior (incl 1986049)"; done; git log --format='%aN <%aE>' 1986049 | so
+### Final answer text
+**Header: 10 commits from 8 people, 5 of them first-time contributors**
+
+**Range.** I used `1986049..e9557cc` (Release 1.0.26 to Release 1.0.27), which is 13 commits. I walked the commit graph and didn't use dates, so the bad timestamps don't matter. I ignored HEAD's later commits (`698dc85`, `051d825`).
+
+**Which commits count (13 → 10).**
+- I dropped the release commit itself (`e9557cc`).
+- I dropped the merge commit `d919b3b`, "Merge pull request #339". It adds no change of its own.
+- I dropped the dependabot bump (`2b511eb`, `dependabot[bot]`), because it's a bot.
+- That leaves 10 commits. I kept the revert `d0720ea`, since it's a real change.
+- If you'd rather count everything in the range, the raw total is 13 commits (12 without the release commit).
+
+**Who counts as one person (8).** The people are Rae Rowe, Mara Linden, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+- **Lena:** she appears as "Lena Ortiz <lena@example.com>" and "Lena O. <lena.ortiz@uni.example>". The repo's `.mailmap` maps these to one person, so I counted her once.
+- **Mara Linden:** she is counted because she authored the revert. Her merge and release commits wouldn't have counted on their own.
+- **Bot:** dependabot is not counted.
+
+**First-time contributors (5).** I checked each author's name and email against all history up to and including Release 1.0.26. Five have no earlier commits:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+**Returning contributors.**
+- **Mara Linden:** 2 earlier commits.
+- **Omar Odum:** 1 earlier commit.
+- **Priya Nair:** 1 earlier commit. It was under `priya@old.example`, while the new one uses `priya@new.example`. It's the same name, so I treated her as returning, but that's a judgment call. If those are two different people, K would be 6.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-CV-3/fx; git log --oneline --grep='^Release 1.0.2[67]' ; git rev-list --count --no-merges Release 2>/dev/null; R27=$(git log --format=%H --grep='^Release 1.0.27$' -1); R26=$(git log --format=%H --grep='^Release 1.0.26$' 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-CV-3/fx; cat .mailmap 2>/dev/null; git log --format='%an <%ae>' 1986049 | sort | uniq -c; echo; git log --format='%h %an|%cn|%s' -n3 1986049; git log --format='%B' -1 d919b3b; git log --format='%B' 7a73ca6 -1; git log --
+### Final answer text
+**12 commits from 8 people, 5 of them first-time contributors**
+
+**How I counted**
+
+- **Range:** `Release 1.0.26..Release 1.0.27` by commit ancestry (`1986049..e9557cc`), not by date. That range holds 13 commits.
+- **Release commit:** I excluded `Release 1.0.27` itself, which leaves 12.
+- **Merge commits:** I kept the one merge, `Merge pull request #339`. If you leave merges out, N is 11. M and K don't change.
+- **Bots:** I kept `dependabot[bot]`'s one commit in N, because it's a real commit in the range. I left the bot out of M and K. If you also drop its commit, N is 11 (or 10 with merges dropped too).
+- **Who counts as one person:** the repo's `.mailmap` maps `Lena O. <lena.ortiz@uni.example>` to `Lena Ortiz <lena@example.com>`. They are one person, so I counted them once.
+- **People:** the authors of those 12 commits, minus the bot. They are Mara Linden, Rae Rowe, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair. Mara authored the merge and a revert, so she counts even though the release commit is excluded.
+- **First-time:** someone with no commits at or before `Release 1.0.26`, matched by name and by mailmap identity.
+
+**First-time contributors (5)**
+
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+**Not first-time**
+
+- **Priya Nair:** she looks new because her email differs (`priya@new.example`). She already has a commit before the release, `Add Identifier::is_inline`, under `priya@old.example`. If you matched by email only, you'd wrongly get 6.
+- **Mara Linden and Omar Odum:** both have earlier commits.
+
+Tess Tran appears only after the release, in the commits between 1.0.27 and HEAD. She isn't counted.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-1/fx; git log --oneline --grep='^Release 1.0.2[67]' ; git log --format='%h %an <%ae> | %cn | %s' --no-walk --all | head -0; R26=$(git log --format=%H --grep='^Release 1.0.26' -1); R27=$(git log --format=%H --grep='^R
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-1/fx; ls .mailmap 2>&1; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-1/fx; git log --format='%aN <%aE>' 1986049 | sort | uniq -c; echo; git log --use-mailmap --format='%aN <%aE>' 1986049 | sort -u | wc -l; git log --format='%an|%cn' -1 e9557cc; git log --format='%an' 1986049..e9557cc 
+### Final answer text
+**N = 10 commits, M = 8 people, K = 5 first-time contributors**
+
+Header: **10 commits from 8 people, 5 of them first-time contributors**
+
+**How I counted**
+- **Range:** `git log Release 1.0.26..Release 1.0.27`, found by commit message (`1986049..e9557cc`). Release 1.0.26 is an ancestor of Release 1.0.27. This follows the commit graph, so the bad dates don't matter, and the commits after the release are excluded.
+- **Raw total:** The range has 13 commits.
+- **Release commit:** I dropped `Release 1.0.27` (−1).
+- **Merge commit:** I dropped `Merge pull request #339` (−1), because the commits it brought in are already in the list.
+- **Bot:** I dropped the `dependabot[bot]` commit, "Bump serde_derive" (−1). That leaves 10.
+- **Revert:** I kept Mara Linden's `Revert "display: alternate flag"` as a normal commit, since it's a real change.
+- **Who counts as one person:** I used the repo's `.mailmap`. It maps "Lena O." <lena.ortiz@uni.example> to Lena Ortiz, so those two author names are one person. That gives 8 people: Rae Rowe, Mara Linden, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair. The bot isn't counted. Mara's release and merge commits don't add anyone, because Mara also wrote the revert.
+- **First-time contributors:** I counted anyone with no commits reachable from Release 1.0.26, matching on mailmap-resolved name and email.
+
+**First-time contributors (5)**
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+**Not first-time**
+- Mara Linden has 2 commits before 1.0.26.
+- Omar Odum has 1 commit before 1.0.26.
+- Priya Nair has 1 commit before 1.0.26, under a different email (priya@old.example, now priya@new.example). I treated the same name as the same person. If you match strictly on email, she would count as first-time (K = 6). The mailmap has no entry linking the two emails, so this is a judgment call.
+
+**If you count differently**
+- Including the bot commit makes N = 11, with M and K unchanged.
+- Including the merge commit makes N = 11 (12 with the bot too).
+- Including the release commit makes N = 11 (12 with the bot too).
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-2/fx; git log --oneline --grep='^Release 1.0.2[67]$' --format='%h %s'; R=$(git log --format=%H --grep='^Release 1.0.27$' -1); P=$(git log --format=%H --grep='^Release 1.0.26$' -1); echo $P..$R; git rev-list --count $
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-2/fx; ls -a | grep -i mailmap; P=1986049; git log --format='%an|%ae' $P | sort | uniq -c; echo ---; git log --format='%B' 1986049..e9557cc | grep -i 'co-authored'; git log $P..e9557cc --format='%an|%ae|%cn' | sort -u
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-2/fx; cat .mailmap | grep -iE 'example|lena|priya|ortiz|sol' ; git log 1986049..e9557cc --format='%h %s%n%b' | grep -B3 -i co-authored; git log --format='%an|%ae|%b' 1986049 | grep -iE 'lena|sol sato|jun ito|kai|zed|
+### Final answer text
+**Header: 11 commits from 8 people, 5 of them first-time contributors**
+
+**Range.** I used `Release 1.0.26..Release 1.0.27` (`1986049..e9557cc`) on the commit graph, so the bad dates don't matter. It holds 13 commits.
+
+**N = 11.** I took the 13 and removed two:
+- The `Release 1.0.27` commit itself.
+- The merge commit "Merge pull request #339", since its content is already counted through its parents.
+
+That leaves 11 real commits. I kept the dependabot bump in N, because it is a real commit in the release. The squashed PR #341 counts as one commit.
+
+**M = 8.** I counted distinct humans by author, after applying `.mailmap`:
+- Rae Rowe
+- Mara Linden: wrote the "Revert" commit that I counted. She also wrote the release and merge commits, which I excluded.
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz: two commits, one under "Lena O." with a different email. `.mailmap` maps both to one person.
+- Omar Odum
+- Priya Nair
+
+I did not count these:
+- `dependabot[bot]` is a bot, not a person.
+- Sol Sato appears only in a `Co-authored-by:` trailer on #341. If you count co-authors, M becomes 9.
+
+**K = 5.** A first-time contributor is someone with no commits in the history up to and including 1.0.26:
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+These people are not first-timers:
+- Mara Linden has 2 earlier commits.
+- Omar Odum has 1 earlier commit.
+- Priya Nair has an earlier commit under `priya@old.example`. This release uses `priya@new.example`. I assumed it's the same person because the name matches, and there is no `.mailmap` entry for it. If you think it's a different Priya, K becomes 6.
+
+Sol Sato also has no earlier commits, but I excluded them as a co-author only, as above.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-3/fx; git log --oneline --grep='^Release 1.0.2[67]' --format='%h %s'; A=$(git log --format=%H --grep='^Release 1.0.26$' -1); B=$(git log --format=%H --grep='^Release 1.0.27$' -1); echo $A $B; git merge-base --is-ance
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T4-RCP-3/fx; A=1986049; ls -a | grep -i mailmap; cat .mailmap 2>/dev/null; git log --merges --format='%h|%an|%s' $A..e9557cc; echo ---prior; git log --format='%an|%ae' $A | sort | uniq -c; echo ---Lena; git log --all --form
+### Final answer text
+**Header: 10 commits from 8 people, 5 of them first-time contributors**
+
+**How I counted**
+- **Range:** `1986049` (Release 1.0.26) to `e9557cc` (Release 1.0.27), which is `git log 1.0.26..1.0.27` by commit ancestry. I did not use dates, so the bad clock dates don't matter. HEAD (`051d825`, `698dc85`) is past the release and is excluded.
+- **Raw total:** 13 commits in the range.
+  - I dropped the one merge commit (`d919b3b`, "Merge pull request #339"). The commits it brought in are still counted.
+  - I dropped the release commit itself, "Release 1.0.27".
+  - I dropped the dependabot commit ("Bump serde_derive"), because it is a bot.
+  - That leaves 10 commits. If you want the release commit counted, N is 11. If you want dependabot counted too, N is 12 (13 with the merge).
+- **People:** I counted distinct authors of those 10 commits. Mara Linden counts once, for the revert only, since her release commit is excluded. The 8 people are Rae Rowe, Mara Linden, Jun Ito, Zed Zhu, Kai Kemp, Lena Ortiz, Omar Odum and Priya Nair.
+- **Same person under two identities:** "Lena O." (`lena.ortiz@uni.example`) and "Lena Ortiz" (`lena@example.com`) count as one person. The repo's `.mailmap` maps them together.
+- **First-time:** someone with no commits reachable from Release 1.0.26, matched by name and email after `.mailmap`.
+
+**First-time contributors (5)**
+- Rae Rowe
+- Jun Ito
+- Zed Zhu
+- Kai Kemp
+- Lena Ortiz
+
+**Judgment call: Priya Nair**
+Priya Nair authored `ba91bb1` in this release with `priya@new.example`. She also has one earlier commit under `priya@old.example`. There is no `.mailmap` entry linking the two emails. I treated her as a returning contributor because the name matches, which gives K=5. If she is actually a different person, K is 6 and M is still 8. It's worth a quick check.
+
+Omar Odum and Mara Linden both have commits before 1.0.26, so they are not first-time.
+### Files it left in the working directory
+(none)

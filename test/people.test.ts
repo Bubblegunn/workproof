@@ -50,12 +50,12 @@ test("the same full name at the same organisation, or beside a personal mailbox,
   assert.equal(personal.merges[0]!.rule, "same full name beside a personal mailbox");
 });
 
-test("the same full name at unrelated organisations stays two people and is listed as a namesake", () => {
+test("the same full name at different organisations is joined as probable, with a namesake caution and the split figure", () => {
   const g = groupPeople([c("Nadia Petrova", "nadia@acme-labs.dev"), c("Nadia Petrova", "nadia.petrova@othercorp.example")]);
-  assert.equal(g.people.length, 2);
-  assert.equal(g.merges.length, 0);
+  assert.equal(g.people.length, 1);
+  assert.deepEqual(g.merges.map((m) => [m.rule, m.strength]), [["same full name at a different organisation (a namesake is possible)", "probable"]]);
   assert.equal(g.namesakes.length, 1);
-  assert.match(g.namesakes[0]!.reason, /unrelated organisations/);
+  assert.match(g.namesakes[0]!.reason, /different organisations.*proven-only figure is the split/);
 });
 
 test("a one-word name is not enough, and a bot is not a person", () => {
@@ -160,17 +160,25 @@ test("figures --person joins the addresses the evidence ties, and says why", asy
   }
 });
 
-test("a namesake at an unrelated organisation is kept out of --person figures and shown in people", async () => {
+test("a namesake at another organisation is joined in --person figures, flagged in people, and the proven-only count is the split", async () => {
   const dir = await buildHistory([
     { name: "Nadia Petrova", email: "nadia@acme-labs.dev", date: "2026-02-01T10:00:00Z", message: "mine", files: { "a.txt": lines(1) } },
     { name: "Nadia Petrova", email: "nadia.petrova@othercorp.example", date: "2026-02-02T10:00:00Z", message: "theirs", files: { "b.txt": lines(1) } },
   ]);
   try {
     const r = await computePeople({ repo: dir, since: "2026-01-01", until: "2026-12-31", json: false, emails: false, max: 40 }, NOW);
-    assert.equal(r.people.filter((p) => p.name === "Nadia Petrova").length, 2);
+    const nadia = r.people.filter((p) => p.name === "Nadia Petrova");
+    assert.equal(nadia.length, 1);
+    assert.equal(nadia[0]!.commits, 2);
+    assert.equal(nadia[0]!.commitsProvenOnly, 1, "the split reading is printed beside the merged one");
     assert.equal(r.namesakes.length, 1);
-    const f = await computeFigures({ repo: dir, authors: [], person: "nadia@acme-labs.dev", since: "2026-01-01", until: "2026-12-31", json: false }, NOW);
-    assert.equal(f.rows.find((x) => x.label === "authored non-merge commits")?.value, 1);
+    assert.match(renderPeople(r), /caution, namesake possible \| nadia petrova \| the same full name at different organisations/);
+    const f = await computeFigures({ repo: dir, authors: [], person: "Nadia Petrova", since: "2026-01-01", until: "2026-12-31", json: false }, NOW);
+    assert.equal(f.rows.find((x) => x.label === "authored non-merge commits")?.value, 2);
+    const one = await computeFigures({ repo: dir, authors: [], person: "nadia@acme-labs.dev", since: "2026-01-01", until: "2026-12-31", json: false }, NOW);
+    assert.equal(one.rows.find((x) => x.label === "authored non-merge commits")?.value, 2, "a person is the joined addresses");
+    const split = await computeFigures({ repo: dir, authors: ["nadia@acme-labs.dev"], since: "2026-01-01", until: "2026-12-31", json: false }, NOW);
+    assert.equal(split.rows.find((x) => x.label === "authored non-merge commits")?.value, 1, "--author keeps exactly one address");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
@@ -201,19 +209,6 @@ test("figures --person with a name nobody has is a not-computed row, never the c
   }
 });
 
-test("figures --person with a name that two unrelated people share asks for an address", async () => {
-  const dir = await buildHistory([
-    { name: "Nadia Petrova", email: "nadia@acme-labs.dev", date: "2026-02-01T10:00:00Z", message: "mine", files: { "a.txt": lines(1) } },
-    { name: "Nadia Petrova", email: "nadia.petrova@othercorp.example", date: "2026-02-02T10:00:00Z", message: "theirs", files: { "b.txt": lines(1) } },
-  ]);
-  try {
-    const r = await computeFigures({ repo: dir, authors: [], person: "Nadia Petrova", json: false }, NOW);
-    assert.match(String(r.rows.find((x) => x.label === "authored non-merge commits")!.value), /2 people in this history match "Nadia Petrova".*pass one address with --author/);
-  } finally {
-    await rm(dir, { recursive: true, force: true });
-  }
-});
-
 test("people in a repository with no commit prints one not-computed line and exits 0; a bad zone is a usage error", async () => {
   const dir = await buildHistory([]);
   try {
@@ -222,6 +217,19 @@ test("people in a repository with no commit prints one not-computed line and exi
     assert.match(chunks.join(""), /people \| not computed \(/);
     assert.doesNotMatch(chunks.join(""), /usage:/);
     assert.equal(await runPeople(["--repo", dir, "--tz", "Mars/Olympus"], { write: () => {} }), 1);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("figures --person with a one-word name two people share asks for an address instead of choosing", async () => {
+  const dir = await buildHistory([
+    { name: "sam", email: "sam@acme-labs.dev", date: "2026-02-01T10:00:00Z", message: "a", files: { "a.txt": lines(1) } },
+    { name: "sam", email: "sam@othercorp.example", date: "2026-02-02T10:00:00Z", message: "b", files: { "b.txt": lines(1) } },
+  ]);
+  try {
+    const r = await computeFigures({ repo: dir, authors: [], person: "sam", json: false }, NOW);
+    assert.match(String(r.rows.find((x) => x.label === "authored non-merge commits")!.value), /2 people in this history match "sam".*pass one address with --author/);
   } finally {
     await rm(dir, { recursive: true, force: true });
   }

@@ -1,0 +1,817 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "For the data-management section of our funder report I need to know how much code each person on the team wrote from 1 November 2025 until today. We only want to count code we actually wrote ourselves: not the datasets, not third-party code we copied in, not generated files. Give me a table per person with lines added in our own code (tests included) and say what you excluded and why. If some commits cannot be tied to one person, tell me instead of guessing."
+Ground truth: own code, lines added per person:
+  Oscar Lind    282   docs lines: 0
+  Mia Rossi     172   docs lines: 0
+  Noah Berg       1   docs lines: 0
+docs-only people: {'frank ito': 4}
+shared account lab-pc-3 (not attributable): 171 lines; initials in messages: {'QY': 120, 'PV': 51}
+excluded line counts: {'requirements.lock': 600, 'docs': 4000, 'generated header: lab/gen/schema_pb2.py': 801, 'data': 50003, 'binary/data': 0, 'vendor': 3000}
+excluded commits: ['bot commit: Bump pinned-package', 'formatter commit: style: apply black to lab/model.py']
+Hazards: large dataset and binary file; vendored directory declared in .gitattributes; generated file with a header but no declaration; lock file; reformat commit; pure rename; bot; shared account with initials in messages; one person with two e-mail addresses; commit before the window. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The per-person table of lines added in own code (tests included) matches truth.txt: Oscar Lind 282, Mia Rossi 172 (two e-mail addresses merged, June 2025 commit outside the window not counted), Noah Berg 1 (only a one-line import fix in a test). FAIL if numbers differ materially (more than about 10%) without a different convention stated and applied consistently (for example counting surviving lines, or adding documentation lines).
+C2 The big non-code material is excluded and named: data/ (50,003 lines and a binary image), vendor/fastcsv (3,000 lines), docs/_generated (4,000 lines), requirements.lock (600 lines), and the generated protobuf module lab/gen/schema_pb2.py (801 lines, detected from its header although no .gitattributes line covers it). FAIL if any of these inflates a person's total, or if the generated protobuf file is counted as Noah's own code.
+C3 The reformat commit "style: apply black" is not counted as effort (Oscar would otherwise show 100 extra lines), the pure rename adds nothing, and the dependabot commit is not a person. FAIL if the reformat or the bot is counted.
+C4 The lab-pc-3 commits (171 lines) are reported separately as not attributable to one person. The initials in the messages (PV 51, QY 120) may be mentioned as a hint but must not be silently turned into two named employees. FAIL if the lines are credited to a named person as fact or are silently dropped without telling the user.
+C5 The answer says what it excluded and why in plain terms, says which period it used (from 1 November 2025), and keeps the documentation edit (Frank Ito, 4 lines of README.rst) out of the code table or shows it clearly separate. FAIL if the exclusions are not listed or the period is unclear.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; ls -la; cat .gitattributes .gitmodules .mailmap 2>/dev/null; git ls-files | head -100
+Bash: git log --since=2025-11-01 --format='--- %h %an %ad %s' --date=short --numstat; echo ====; git log --format='%h %an %ad %s' --date=short | sed -n 17,40p; cat AUTHORS.rst | head -50; cat data/README.md; cat .gitattributes; git log -3 --format=%B -- lab/plots.py
+Bash: for f in lab/*.py lab/gen/*.py lab/models/*.py tests/*.py vendor/fastcsv/*.py; do echo "## $f"; head -6 $f; done; git status --short | head; git log --all --oneline | wc -l; git log --since=2025-11-01 --merges --oneline
+Bash: git branch -a; git log --all --since=2025-11-01 --oneline | wc -l; diff <(sed 1d lab/report.py) <(sed 1d lab/clean.py) | head -5; wc -l lab/*.py; git log --format='%h %an %s' -- lab/legacy.py | head; grep -n "QY\|PV\|pc-3\|lab-pc" -ri AUTHORS.rst README.rst HI
+### Final answer text
+I checked every commit since 1 November 2025. There are 17, all on `main`, with no merge commits. The cv-builder skills are for resumes, so I didn't use them.
+
+## Lines added in our own code (tests included)
+
+| Person | Lines added | Where it comes from |
+|---|---|---|
+| Oscar Lind | **282** | `lab/model.py` 201 (model stages) and `tests/test_model.py` 81 |
+| Mia Rossi | **172** | `lab/clean.py` 121 (cleaning rules) and `lab/report.py` 51 (report helpers) |
+| Noah Berg | **1** | One edited line in `tests/test_model.py`, from moving the model into `lab/models/`. The move itself adds no lines. |
+| Frank Ito | **0** | His two commits are the lock file and README text, both excluded below. |
+| **Unassigned (shared account `lab-pc-3`)** | **171** | `lab/plots.py` only: 51 lines in the commit marked "PV" and 120 lines across three commits marked "QY" |
+
+## Commits I could not tie to one person
+- **`lab-pc-3`:** four commits come from a shared lab-PC account. The messages end in "(PV)" or "(QY)", which looks like two different people's initials. Nothing in the repo (`AUTHORS.rst`, docs, history) says who PV and QY are, so I haven't assigned these lines to anyone. If you tell me who they are, they can be added to the table.
+- **Mia Rossi has two email addresses:** `mia.rossi@lab.example` and `m.rossi@gmail.example`. I treated them as the same person because the name is identical. Her Gmail commit is the 121-line `lab/clean.py`, so the 172 total depends on that assumption.
+
+## What I excluded and why
+- **Datasets (Mia):** `data/measurements.csv` (50,000 lines), `data/figure1.png` and 3 lines of `data/README.md`. These are data, not code.
+- **Third-party code (Noah):** `vendor/fastcsv/` (3,000 lines, "vendor fastcsv 2.3"). It was copied in, and `.gitattributes` marks `vendor/**` as vendored.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (Noah, 801 lines): its header says "Generated by the protocol buffer compiler. DO NOT EDIT!".
+  - `docs/_generated/api.html` (Oscar, 4,000 lines): marked generated in `.gitattributes`.
+  - `requirements.lock` (Frank, 600 lines): a generated lock file.
+  - The `dependabot[bot]` commit (1 line): a bot, and also a lock-file change.
+- **Formatting only (Oscar):** the "apply black" commit shows 100 lines added and 100 removed. It only reformats the model code he had already written, so I counted nothing for it.
+- **Documentation (Frank):** 4 lines of prose in `README.rst`. I counted code and tests only.
+
+## One thing to be aware of
+`lab/report.py` (Mia, 51 lines) has the same content as the first 50 rules in her `lab/clean.py`. It's her own code, so I counted it. If you'd rather not count duplicated lines, her total drops to 121.
+
+`lab/legacy.py` and the `schedule/` package were committed before the window, so they aren't counted.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; ls -la; cat .gitattributes .mailmap .gitmodules 2>/dev/null; git ls-files | head -100
+Bash: git log --since=2025-11-01 --reverse --format='--- %h %an <%ae> %ad %s' --date=short --numstat; echo ====; git log --format='%h %an %ad %s' --date=short | tail -8; cat AUTHORS.rst | head -30; cat data/README.md; cat README.rst; head -15 lab/legacy.py lab/gen/s
+Bash: git log --format='%h %an %ad %s' --date=short | tail -6; git log --format='%h' | wc -l; cat AUTHORS.rst | head -25; cat data/README.md; cat README.rst|tail -15; head -8 lab/legacy.py lab/gen/schema_pb2.py; git log --format='%h %an %s' -- lab/legacy.py; git sho
+Bash: for f in lab/plots.py lab/report.py lab/clean.py lab/models/model.py tests/test_model.py; do echo "== $f"; head -6 $f; done; git log --format='%h %an | %b' -n 20 --since=2025-11-01 | grep -v '^$' | head -30; git log --all --oneline | wc -l; git branch -a; git 
+### Final answer text
+I counted lines added in our own code from 1 November 2025 to 25 October 2026. That is 17 commits on `main`, taken from `git log --numstat`. The cv-builder skills are for resumes, so I didn't use them.
+
+## Lines added in our own code (tests included)
+
+| Person | Own-code lines | Where they come from |
+|---|---|---|
+| Oscar Lind | 282 | `lab/model.py` 201, `tests/test_model.py` 81 |
+| Mia Rossi | 172 | `lab/report.py` 51, `lab/clean.py` 121 |
+| Noah Berg | 1 | import-path fix in `tests/test_model.py` |
+| Frank Ito | 0 | |
+| dependabot[bot] | 0 | |
+| Unattributed (`lab-pc-3`) | 171 | `lab/plots.py`, see below |
+
+- **Mia's `lab/clean.py`:** the 121 lines were committed under `m.rossi@gmail.example`, not her lab address. The name matches and there's no `.mailmap`, so I counted it as hers. If you can't confirm that address is hers, her figure is 51 (lab address only).
+- **Total:** 626 lines, or 455 without the `lab-pc-3` commits.
+
+## Not tied to one person
+Four commits to `lab/plots.py` were made from a shared machine account, `lab-pc-3`: 51 + 40 + 40 + 40 = 171 lines.
+- The commit messages end in the initials "PV" (axis labels) and "QY" (colour sets 1–3).
+- Nothing in the repo links those initials to anyone on the team, so I didn't assign them. Someone who knows who PV and QY are can place them.
+
+## Excluded, and why
+- **Datasets (Mia, 50,003 lines):** `data/measurements.csv` (50,000), `data/README.md` (3) and `data/figure1.png` (binary).
+- **Vendored code (Noah, 3,000 lines):** `vendor/fastcsv/*` is the third-party fastcsv 2.3 library, and `.gitattributes` marks `vendor/**` as vendored.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (Noah, 801 lines) has a "Generated by the protocol buffer compiler. DO NOT EDIT!" header.
+  - `docs/_generated/api.html` (Oscar, 4,000 lines) is marked generated in `.gitattributes`.
+  - `requirements.lock` (Frank 600 lines, dependabot 1 line) is a lock file.
+- **Black reformat (Oscar, 100 lines):** commit `8b3f744` rewrote `lab/model.py` with 100 lines added and 100 deleted. It is whitespace-only, so it is the same code as the original 201 lines, which I already counted.
+- **File move (Noah):** commit `39d6e9b` moved `lab/model.py` to `lab/models/model.py` with 0 lines changed. Only the 1-line import fix in the test counts.
+- **Prose docs (Frank, 4 lines):** the "Lab usage" section in `README.rst` is documentation, not code. Say if you want it counted.
+
+The repo also contains the open-source `schedule` library (`schedule/`, `test_schedule.py`, most of `docs/`). Nobody on the team touched it in this window, so it doesn't affect the numbers.
+
+These are lines added, not a measure of effort. For example, Noah's work this period was mostly vendoring and restructuring, which this metric doesn't show.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -100 && echo && git shortlog -sne --since=2025-11-01 HEAD && cat .gitattributes .gitmodules .mailmap 2>/dev/null; ls -a
+Bash: git log --since=2025-11-01 --format='=== %h %an <%ae> | committer %cn | %ad | %s' --date=short --numstat --no-merges; echo; git log --since=2025-11-01 --merges --oneline; cat AUTHORS.rst; head -30 lab/gen/schema_pb2.py lab/legacy.py; head -15 vendor/fastcsv/re
+Bash: for f in lab/clean.py lab/models/model.py lab/report.py lab/plots.py tests/test_model.py; do echo "## $f"; head -8 $f; grep -niE 'copyright|licen|generated|copied|vendored|adapted|auto' $f; done; git show 8b3f744 --stat --format=%b | head; git diff -w --stat 8
+Bash: git diff 8b3f744^ 8b3f744 | head -20; git diff --ignore-all-space --stat 8b3f744^ 8b3f744; git diff 8b3f744^ 8b3f744 | grep -c '^+'
+### Final answer text
+I counted lines added in `git log --since=2025-11-01 --no-merges --numstat` on `main`, which covers 17 non-merge commits. None of the cv-builder skills apply here, since they're for resumes, so I used git directly.
+
+## Lines added in our own code (tests included)
+
+| Person | Own-code lines added | Where |
+|---|---|---|
+| Oscar Lind | **282** | `lab/model.py` +201, `tests/test_model.py` +81 |
+| Mia Rossi | **172** | `lab/clean.py` +121, `lab/report.py` +51 |
+| Noah Berg | **1** | `tests/test_model.py` +1, an import path fix after the move |
+| Frank Ito | **0** | only a lock file and a README edit, both excluded below |
+| **Cannot be tied to one person** | **171** | the shared `lab-pc-3` account, in `lab/plots.py` |
+| dependabot[bot] | 0 | a bot, and its one change is a generated file |
+
+## What I excluded and why
+
+| Excluded | Lines added | Who | Reason |
+|---|---|---|---|
+| `data/measurements.csv`, `data/figure1.png`, `data/README.md` | 50,000 + a binary image + 3 | Mia | Datasets, not code. |
+| `vendor/fastcsv/*` (`fastcsv 2.3`) | 3,000 | Noah | Third-party code that was copied in. `.gitattributes` also marks `vendor/**` as vendored. |
+| `lab/gen/schema_pb2.py` | 801 | Noah | Generated protobuf bindings. The file header says "DO NOT EDIT". |
+| `docs/_generated/api.html` | 4,000 | Oscar | Generated docs. `.gitattributes` marks `docs/_generated/**` as generated. |
+| `requirements.lock` | 600 (Frank) + 1 (bot) | Frank, dependabot | Generated lock file. |
+| `style: apply black to lab/model.py` | 100 added, 100 deleted | Oscar | A formatting-only change. A whitespace-ignoring diff shows no difference, so it adds no new code. |
+| `README.rst` | 4 | Frank | Documentation, not code. If you count docs, Frank's total becomes 4. |
+| Move into `lab/models/` | 0 | Noah | A pure rename with no lines changed. |
+
+## Commits I could not tie to one person
+
+- **`lab-pc-3` account (4 commits, 171 lines in `lab/plots.py`):** This is a shared lab machine, not a person. The commit messages end in initials, "(QY)" on three of them and "(PV)" on the fourth. So at least two different people appear to have used it. I did not guess who they are. Each commit adds:
+  - 3a5293f, "colour set 1 (QY)": 40 lines
+  - 277c96a, "colour set 2 (QY)": 40 lines
+  - b5f2650, "colour set 3 (QY)": 40 lines
+  - 7d0550d, "axis labels (PV)": 51 lines
+
+  If you can tell me who QY and PV are, I'll reassign them. That would be 120 lines for QY and 51 for PV. I'd want your confirmation first.
+
+- **Mia Rossi has two author emails:** `mia.rossi@lab.example` (51 lines) and `m.rossi@gmail.example` (121 lines, the cleaning rules). I combined them because the name matches exactly and it looks like a personal email used once. That's still an assumption, so please confirm it. Without that merge, her 172 lines would split into those two amounts.
+
+## Caveats
+- "Lines added" means raw additions to our own files. It doesn't net out later deletions or rewrites, and it doesn't check whether the code is any good.
+- The repo's other files (`schedule/`, `test_schedule.py`, `docs/*.rst`) have no commits in this window, so they don't affect the numbers.
+- `lab/legacy.py` and `lab/clean.py` look similar, but `legacy.py` was added before 1 Nov, so it isn't counted.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h %an <%ae> %s' | head -100; echo; git shortlog -sne --since=2025-11-01; ls -a; cat .gitattributes .mailmap 2>/dev/null; git ls-files | head -100
+Bash: cat /private/tmp/claude-501/-private-tmp-wp-r16-gate5-runs-W15T5-RCP-1-fx/a9baa7d9-16fb-42c1-8202-3fd0f510531d/tasks/b00ylolds.output | head -50; git rev-list --count HEAD
+Bash: git log --since=2025-11-01 --format='%h %ad %an' --date=short | wc -l; git log --since=2025-11-01 --format='%h %ad %an %p' --date=short|tail -20; ls -a; cat .gitattributes .mailmap 2>/dev/null; git ls-files | head -80; git log --since=2025-11-01 --numstat --fo
+Bash: head -5 lab/clean.py lab/report.py lab/plots.py lab/models/model.py tests/test_model.py lab/gen/schema_pb2.py; git show 8b3f744 --stat --format=%B | head; git show 8b3f744 -w --stat | tail -3; git show 39d6e9b -M --stat|tail -4; git show 7d0550d --format=%B -s
+### Final answer text
+That notification is just the first, slow `git` command being stopped at its time limit. It was the `git shortlog` in that command that hung, since it was probably waiting on stdin. I got the same data from later commands that finished normally, so the table and exclusions above don't change. Nothing needs restarting.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git ls-files | head -100; cat .gitattributes .mailmap 2>/dev/null; git shortlog -sne --all | head
+Bash: git log --since=2025-11-01 --no-merges --format='== %h %an %ad %s' --date=short --numstat; git log --since=2025-11-01 --format='%h %b' | grep -i -E 'co-authored|by' ; cat data/README.md; head -5 lab/legacy.py lab/gen/schema_pb2.py lab/clean.py; cat AUTHORS.rst
+Bash: git show 8b3f744 -w --stat --format= ; git show 8b3f744 --color-words=. --format= | head -20; git show 39d6e9b -- tests | tail -8; git show 2f58612 | tail -12; head -3 requirements.lock
+### Final answer text
+Here are the counts of lines added in our own code (tests included) for 1 Nov 2025 to 25 Oct 2026. I counted from `git log --numstat` on `main`.
+
+## Lines of own code added
+
+| Person | Lines added | Where it comes from |
+|---|---|---|
+| Mia Rossi | **172** | `lab/clean.py` 121 (2 Dec 2025) and `lab/report.py` 51 (14 Jul 2026) |
+| Oscar Lind | **282** | `lab/model.py` 201 (15 Dec 2025) and `tests/test_model.py` 81 (16 Dec 2025) |
+| Noah Berg | **1** | one-line import fix in `tests/test_model.py` (2 Apr 2026) |
+| Frank Ito | **0** | his only code-adjacent commit was the lock file, which is excluded |
+
+## Not attributable to one person
+
+The `lab-pc-3` account made 4 commits adding **171 lines** to `lab/plots.py`. This is a shared lab machine, not a person. The commit messages end in initials: "(PV)" on 51 lines and "(QY)" on 3 × 40 = 120 lines. The initials aren't tied to anyone in the repo, so I didn't assign them. If you tell me who PV and QY are, I'll add the lines to their rows.
+
+## Assumptions to check
+
+- **Mia Rossi** has two commit emails, `mia.rossi@lab.example` and `m.rossi@gmail.example`. I treated them as one person because the name is identical. Her 121-line `clean.py` commit is the one under the gmail address. If that's a different person, her total drops to 51.
+- **Noah Berg's 1 line** is an import path update, made by hand after he moved the model file. I counted it because it's a real edit to our test code, but you may prefer to call it 0.
+
+## Excluded, and why
+
+| Excluded | Lines | Reason |
+|---|---|---|
+| `data/measurements.csv`, `data/figure1.png`, `data/README.md` (Mia) | 50,003 (plus the image) | Datasets and a figure, not code. |
+| `vendor/fastcsv/*` (Noah) | 3,000 | Third-party code we copied in. It is marked `linguist-vendored` in `.gitattributes`. |
+| `lab/gen/schema_pb2.py` (Noah) | 801 | Generated protobuf bindings. The file header says "DO NOT EDIT". |
+| `docs/_generated/api.html` (Oscar) | 4,000 | Generated docs. It is marked `linguist-generated` in `.gitattributes`. |
+| `requirements.lock` (Frank, dependabot) | 601 | Generated dependency lock file. The dependabot commit is a bot, not a person. |
+| Black reformat of `lab/model.py` (Oscar) | 100 | Formatting only. The diff changes whitespace and rewrites no logic. Oscar's real 201 lines are already counted. |
+| `README.rst` (Frank) | 4 | Prose documentation, not code. |
+| `lab/{ => models}/model.py` (Noah) | 0 | A pure file move that adds no lines. |
+
+`lab/legacy.py` was not touched in this period, so it doesn't appear in the counts.
+
+These are gross lines added. Lines later deleted or rewritten still count, because I measured additions rather than what survives today. If the report needs surviving lines, I can run `git blame` instead.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T5-RCP-3/fx; git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; ls -a; cat .gitattributes .mailmap 2>/dev/null; git ls-files | head -100
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T5-RCP-3/fx; git log --since=2025-11-01 --format='=== %h %an %ad %s%n%b' --date=short --numstat --no-merges; cat AUTHORS.rst | head -30; cat .gitignore; cat data/README.md; git log --format='%h %ad %an %s' --date=short | ta
+### Final answer text
+Between 1 Nov 2025 and 25 Oct 2026, the team added 455 lines of our own code. A further 171 lines can't be tied to one person.
+
+I counted lines added per commit with `git log --numstat`. There are no merge commits in the window.
+
+| Person | Files counted | Lines added |
+|---|---|---|
+| Oscar Lind | `lab/model.py` (201), `tests/test_model.py` (81) | **282** |
+| Mia Rossi | `lab/clean.py` (121), `lab/report.py` (51) | **172** |
+| Noah Berg | `tests/test_model.py` (1) | **1** |
+| Frank Ito | none | **0** |
+| **Attributed total** | | **455** |
+
+**Not tied to one person:** `lab/plots.py` has 171 added lines, all in four commits made from the shared `lab-pc-3` account:
+- Axis labels (51 lines) has "(PV)" in its message.
+- Colour sets 1–3 (40 lines each, 120 in total) have "(QY)" in their messages.
+
+The initials suggest two different people, but nothing in the repo maps them to names, so I haven't assigned them. If you confirm who PV and QY are, I'll add them. That would give PV 51 lines and QY 120.
+
+**Assumption to check:** one Mia Rossi commit (`fbc7656`, the 121-line `clean.py`) was authored under `m.rossi@gmail.example`. The other two use `mia.rossi@lab.example`. The name is identical, so I counted all three as Mia, but git itself doesn't link the two emails. Please confirm that's the same person. If it isn't, her total drops to 51.
+
+**Excluded, and why:**
+- **Datasets:** `data/measurements.csv` (50,000 lines), `data/figure1.png` and `data/README.md` (3 lines) are data, not code.
+- **Vendored third-party code:** `vendor/fastcsv/*` (3,000 lines) is copied-in fastcsv 2.3. `.gitattributes` also marks `vendor/**` as vendored.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (801 lines) is protobuf output marked "DO NOT EDIT".
+  - `docs/_generated/api.html` (4,000 lines) is generated and marked in `.gitattributes`.
+  - `requirements.lock` (601 lines: 600 from Frank, 1 from dependabot) is a lock file.
+- **Bot commit:** dependabot's one line is the lock-file change above.
+- **Formatting and moves:** Oscar's `black` reformat of `lab/model.py` touched 100 lines, all rewrites of code he'd already written. The move of `model.py` into `lab/models/` added no lines. I excluded both so they don't inflate the counts.
+- **Prose:** Frank's 4 lines in `README.rst` are documentation, not code. If you count docs as code, add 4 to Frank.
+
+The `schedule/` package, `test_schedule.py` and `docs/*.rst` appear to come from the upstream `schedule` library. No commits in the window touch them, so they don't affect the numbers.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-11-01 --format='%h %an <%ae> | %cn | %s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; echo; git ls-files | head -200; cat .gitattributes .gitmodules 2>/dev/null; ls
+Bash: cat AUTHORS.rst .mailmap 2>/dev/null; git log --since=2025-11-01 --format='--- %h %an %ad' --date=short --numstat; head -5 lab/gen/schema_pb2.py lab/legacy.py schedule/__init__.py; git log --format='%h %an %ad %s' --date=short | tail -5; git log -3 --format=%B
+### Final answer text
+The receipts skill doesn't fit this question, so I didn't use its output. It summarises one person's Claude Code sessions from local transcripts. It can't say who wrote what in the repo. I counted from `git log --numstat` for 2025-11-01 to 2026-10-25 instead.
+
+## Lines added in our own code, per person
+
+| Person | Own code | Lines added |
+|---|---|---|
+| Oscar Lind | `lab/model.py` (201), `tests/test_model.py` (81) | **282** |
+| Mia Rossi | `lab/clean.py` (121), `lab/report.py` (51) | **172** |
+| Noah Berg | `tests/test_model.py` (1, a path fix after the move) | **1** |
+| Frank Ito | none | **0** |
+| Unattributed (shared `lab-pc-3` account) | `lab/plots.py`, 4 commits | **171** (not assigned to anyone) |
+| **Total** | | **626** |
+
+I merged Mia's two author emails, `mia.rossi@lab.example` and `m.rossi@gmail.example`, into one person. They have the same name, but that is my assumption, so please confirm it. Her `clean.py` commit comes from the gmail address, so it is 121 of her 172 lines.
+
+## Commits I could not tie to one person
+
+- **The `lab-pc-3` commits (171 lines):** they were made from a shared lab machine. The commit messages end in initials: `PV` on the axis-labels commit (51 lines), and `QY` on the three colour-set commits (40 lines each, 120 in total). Neither set of initials matches anyone on the team list I could see. I haven't assigned them to anyone. Someone who knows the lab should say who PV and QY are. If you add them to the table, they will be new people, not existing team members.
+
+## What I excluded, and why
+
+| Excluded | Added lines | Reason |
+|---|---|---|
+| `vendor/fastcsv/*` (Noah) | 3,000 | Third-party code copied in. |
+| `data/measurements.csv`, `data/README.md`, `data/figure1.png` (Mia) | 50,003 | Dataset and figure, not code. |
+| `lab/gen/schema_pb2.py` (Noah) | 801 | Generated protobuf bindings ("DO NOT EDIT" header). |
+| `docs/_generated/api.html` (Oscar) | 4,000 | Generated API docs. |
+| `requirements.lock` (Frank 600, dependabot 1) | 601 | Generated lock file. The dependabot line is also a bot. |
+| `lab/model.py` black reformat (Oscar) | 100 | Mechanical formatting of lines already counted, so it adds no new code. It shows as 100 added and 100 deleted. |
+| `README.rst` (Frank) | 4 | Documentation, not code. Add it back if you count docs. |
+| `lab/{ => models}/model.py` move (Noah) | 0 | A pure rename with no new lines. |
+
+Nothing in the window touched `schedule/`, `test_schedule.py` or `lab/legacy.py`. Those were committed earlier, so they don't count.
+
+For the test file, only Noah's single line changed. The other 81 lines are Oscar's.
+
+I didn't write the `.md` or `.html` receipt files, because that report would describe Claude Code usage and not authorship.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git ls-files | head -100; cat .gitattributes .gitmodules 2>/dev/null; ls
+Bash: git log --since=2025-11-01 --format='== %h %an <%ae>' --numstat | grep -v '^$'; echo ---; cat AUTHORS.rst; head -5 lab/gen/schema_pb2.py lab/legacy.py schedule/__init__.py test_schedule.py; git log --format='%h %an %ad' --date=short -3 -- schedule test_schedul
+Bash: git show 39d6e9b -- tests | tail -8; for f in lab/plots.py lab/clean.py lab/report.py lab/models/model.py tests/test_model.py; do echo "## $f"; head -6 $f; grep -niE 'copied|adapted from|license|generated|stackoverflow|copyright' $f; done; git log --format='%h
+### Final answer text
+The receipts skill couldn't produce this. It reports one person's Claude Code activity from local transcripts, so it has no per-person authored-code counts. I took the numbers straight from `git log --numstat` for 2025-11-01 to 2026-10-25 (today) on `main`. The skill's miner never ran and nothing was written to your home directory.
+
+## Lines added in our own code (tests included)
+
+| Person | Lines added | Where it comes from |
+|---|---|---|
+| Oscar Lind | 282 | `lab/model.py` (201), `tests/test_model.py` (81) |
+| Mia Rossi | 172 | `lab/clean.py` (121), `lab/report.py` (51) |
+| Noah Berg | 1 | one-line import fix in `tests/test_model.py` |
+| Frank Ito | 0 | only a lock file and a README edit, both excluded below |
+| **Unattributed** | 171 | four commits from the shared `lab-pc-3` account (see below) |
+
+Mia's 172 includes `lab/clean.py`, which was committed under a different email (`m.rossi@gmail.example`). I counted it as hers because the name matches. Without that merge her figure is 51, so please confirm it's the same person.
+
+## Commits I can't tie to one person
+
+All four commits to `lab/plots.py` came from the shared account `lab-pc-3`: 40 + 40 + 40 + 51 = 171 lines. The messages end in initials, "(QY)" three times and "(PV)" once. That suggests two different people, but the repo has no mapping from initials to names, so I didn't assign them. If you tell me who QY and PV are, I'll add the lines to their rows. The 40-line commits would go to QY and the 51-line one to PV.
+
+## What I excluded and why
+
+- **`data/measurements.csv` (50,000 lines), `data/figure1.png`, `data/README.md` (Mia):** these are datasets, not code.
+- **`vendor/fastcsv/*` (3,000 lines, Noah):** third-party code copied in. `.gitattributes` also marks `vendor/**` as vendored.
+- **`lab/gen/schema_pb2.py` (801 lines, Noah):** generated protobuf bindings. The file header says "DO NOT EDIT".
+- **`docs/_generated/api.html` (4,000 lines, Oscar):** generated docs. `.gitattributes` marks them as generated.
+- **`requirements.lock` (600 lines from Frank, 1 line from dependabot[bot]):** generated lock file and a bot commit.
+- **The `black` reformat of `lab/model.py` (100 lines added, 100 removed, Oscar):** a style rewrite of code he had already written, so I didn't count it twice.
+- **`lab/{ => models}/model.py` (Noah):** a pure rename with 0 lines changed.
+- **README section (4 lines, Frank):** documentation, not code. If you want docs counted, his figure becomes 4.
+
+Nothing in the window touched the `schedule/` package or `test_schedule.py`. Those files date from before 1 November, so they don't affect these numbers.
+
+## Method
+
+These are lines added by commit author. I didn't check authorship line by line, and I didn't look for copied code beyond the vendored, generated and lock files above. I counted only lines added. Counting net lines or churn would give different totals.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git ls-files | head -100 && echo --- && git shortlog -sne --since=2025-11-01 HEAD && cat .gitattributes .gitmodules CODEOWNERS .mailmap 2>/dev/null; git log --since=2025-11-01 --format='%h %an <%ae> | %cn | %s' | head -80
+Bash: git log --since=2025-11-01 --format='== %h %an %ad | %cd | %s' --date=short --numstat --no-renames; echo; git log --format='%h %ad %an %s' --date=short | tail -5; cat AUTHORS.rst | head -20; head -15 lab/legacy.py; head -5 lab/gen/schema_pb2.py lab/models/mode
+Bash: git log --format='%h %an %ad %s' --date=short -- lab/legacy.py; git log -M --numstat --format='%h %s' -1 39d6e9b; git diff --stat -w 8b3f744^ 8b3f744 | tail -2; wc -l lab/*.py; grep -n -i 'copyright\|licen\|http' lab/*.py lab/models/*.py tests/test_model.py | 
+Bash: git diff --shortstat -w 8b3f744^ 8b3f744; git diff 8b3f744^ 8b3f744 | sed -n 1,14p
+### Final answer text
+I didn't use the receipts skill's report, because it measures Claude Code session activity rather than who wrote what in git. I counted lines added from `git log --numstat` for 1 Nov 2025 to 25 Oct 2026. The first commit in range is 10 Nov 2025.
+
+## Lines added in our own code, by person
+
+| Person | Lines added | What it consists of |
+|---|---|---|
+| Oscar Lind | 282 | `lab/model.py` (201), `tests/test_model.py` (81) |
+| Mia Rossi | 172 | `lab/clean.py` (121), `lab/report.py` (51) |
+| Noah Berg | 1 | One import-path edit in `tests/test_model.py` |
+| Frank Ito | 0 | Only a lock file and 4 lines of README prose (see exclusions) |
+| **Not tied to one person** | 171 | `lab/plots.py`, 4 commits from the shared `lab-pc-3` account |
+
+- **Mia Rossi:** her commits appear under two emails (`mia.rossi@lab.example` and `m.rossi@gmail.example`). I merged them because the name is identical. Please confirm that's the same person. The gmail-address commit accounts for 121 of her 172 lines.
+- **`lab-pc-3`:** the commit subjects end in initials (`QY` on 3 commits, 120 lines; `PV` on 1 commit, 51 lines). Nothing in the repo links those initials to anyone, so I haven't assigned them. If you can tell me who QY and PV are, those lines can be split.
+
+## What I excluded and why
+
+| Excluded | Lines | Who | Reason |
+|---|---|---|---|
+| `data/measurements.csv`, `data/README.md`, `data/figure1.png` | 50,003 (the PNG is binary and has no line count) | Mia | Dataset, not code |
+| `vendor/fastcsv/*` | 3,000 | Noah | Third-party code copied in ("vendor fastcsv 2.3"). The repo's `.gitattributes` also marks `vendor/**` as vendored. |
+| `lab/gen/schema_pb2.py` | 801 | Noah | Generated by the protobuf compiler ("DO NOT EDIT") |
+| `docs/_generated/api.html` | 4,000 | Oscar | Generated docs. `.gitattributes` marks it as generated. |
+| `requirements.lock` | 601 | Frank (600), dependabot (1) | Generated lock file. The dependabot commit is also a bot. |
+| `lab/model.py` black reformat | 100 | Oscar | Whitespace-only change (`x*1+1` to `x * 1 + 1`). A diff that ignores whitespace shows nothing. |
+| `lab/model.py` to `lab/models/model.py` | 201 | Noah | A pure move. Git detects it as a rename with no changes to the file. |
+| `README.rst` | 4 | Frank | Documentation prose, not code. Including it would give him 4. |
+
+I also didn't count `lab/legacy.py` (101 lines, Mia). It was committed on 10 Jun 2025, before the window.
+
+Counting everything git recorded as added would have given 61,000+ lines. The 625 lines above are the part that is our own code.
+
+I haven't written any files. If you want this saved as a report, tell me where.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --since 2025-11-01 --until 2026-10-25 2>&1 | head -150
+Bash: git log --since=2025-11-01T00:00:00Z --no-merges --format='== %h %an <%ae> %ad %s' --date=iso --numstat | head -200; cat .gitattributes .mailmap 2>/dev/null | head -30
+### Final answer text
+Lines added in our own code from 1 November 2025 to 25 October 2026 (author dates, UTC), counted from the commit history. Tests are included.
+
+| Person | Own code lines added | Commits counted | What the lines are |
+|---|---|---|---|
+| Oscar Lind | 282 | 2 | `lab/model.py` (201), `tests/test_model.py` (81) |
+| Mia Rossi | 172 | 2 | `lab/clean.py` (121), `lab/report.py` (51) |
+| Noah Berg | 1 | 1 | one changed line in `tests/test_model.py` |
+| Frank Ito | 0 | 0 | none (see exclusions) |
+
+**Mia's figure depends on one identity join.** The 121 lines in `clean.py` were committed from a personal mailbox (m.rossi@gmail.example). I matched it to her by identical full name. That is a probable match, not a proven one, so please confirm it. If you don't accept it, her figure is 51.
+
+**Commits I can't tie to one person.** The account `lab-pc-3` made 4 commits on 3–6 February 2026, adding 171 lines to `lab/plots.py`. It looks like a shared lab machine. The commit messages end in initials, "(PV)" once and "(QY)" three times, but git doesn't say whose initials those are. I have not assigned these lines to anyone. If you tell me who PV and QY are, they can be added. Until then they are 171 lines of our own code with no named author.
+
+**Excluded, and why**
+- **Datasets (Mia, 25 Nov 2025):** `data/measurements.csv` (50,000 lines), `data/figure1.png` and `data/README.md` (3 lines). This is data, not code.
+- **Third-party code (Noah, 10 Nov 2025):** `vendor/fastcsv`, 3,000 lines copied in from fastcsv 2.3. The repository marks `vendor/**` as vendored.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (Noah, 801 lines) is regenerated protobuf output. The repository doesn't flag it as generated. I excluded it from the commit message ("regenerate protobuf bindings") and the `_pb2` filename.
+  - `docs/_generated/api.html` (Oscar, 4,000 lines) is generated API docs, and the repository flags it as generated.
+  - `requirements.lock` (Frank, 600 lines) is a dependency lock file.
+- **Automated commit:** one `dependabot[bot]` commit (1 line in `requirements.lock`). It is a bot, not a person.
+- **Reformatting (Oscar, 10 Mar 2026):** running the black formatter on `lab/model.py` showed 100 added lines. It changed no logic, and the code was already counted in his 201 lines.
+- **Documentation (Frank, 3 Aug 2026):** 4 lines of README text. This is prose, not code. Say so if you want it counted.
+- **Move and rename (Noah, 2 Apr 2026):** moving `model.py` into `lab/models/` added no lines. Only the one-line test update counts.
+
+Noah's 1 line and Frank's 0 are accurate. Their commits in this window were mostly vendored, generated or lock-file content.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --since 2025-11-01 --until 2026-10-25 2>&1 | head -150
+Bash: git ls-files | head -100; ls; cat .gitattributes 2>/dev/null; git log --since=2025-11-01 --format='%h %an <%ae> %cn %ad %s' --date=short | head -80
+Bash: git log --since=2025-11-01 --no-merges --reverse --format='== %h %an %ad %s' --date=short --numstat; git log -3 --format=%h -- lab/legacy.py; head -5 lab/legacy.py; head -3 lab/gen/schema_pb2.py
+### Final answer text
+Mia Rossi wrote the most original code in the window, with 172 lines. 171 more lines can't be tied to one person.
+
+Counts cover 1 Nov 2025 to 25 Oct 2026, by author date in UTC, non-merge commits only. The figures come from the repository tool. I then removed the excluded files by hand from each commit's per-file line counts.
+
+| Person | Own-code lines added | Where |
+|---|---|---|
+| Mia Rossi | **172** | `lab/clean.py` 121, `lab/report.py` 51 |
+| Oscar Lind | **282** | `lab/model.py` 201, `tests/test_model.py` 81 (tests included) |
+| Noah Berg | **1** | One-line import-path edit in `tests/test_model.py` |
+| Frank Ito | **0** | No own code in the window |
+| lab-pc-3 (shared account) | **171, not assigned** | `lab/plots.py`, 4 commits |
+
+Mia's identity join across her lab and personal addresses is probable, not proven. Her lab-address commits alone give 121 for `lab/clean.py`? No: the 121 comes from her personal-address commit, and her lab-address commit added only data. Please confirm both addresses are hers. If they aren't, the 121 lines would not be hers.
+
+**Not tied to one person.** The four `lab-pc-3` commits were made from a shared lab computer. Two commit messages end in "(PV)" and three in "(QY)", which looks like two people's initials. The log doesn't say who they are, so I haven't guessed. The lines are 51 for PV and 120 for QY. If you can tell me who PV and QY are, I'll add them to the right rows.
+
+**Excluded:**
+- **Datasets (Mia, 50,003 lines):** `data/measurements.csv`, `data/figure1.png` and `data/README.md` are data, not code.
+- **Third-party code (Noah, 3,000 lines):** `vendor/fastcsv/` is fastcsv 2.3, copied in.
+- **Generated files (Noah 801, Oscar 4,000 lines):** `lab/gen/schema_pb2.py` is protobuf output marked "DO NOT EDIT", and `docs/_generated/api.html` is generated API docs.
+- **Lock file (Frank 600, dependabot 1 line):** `requirements.lock` is produced by tooling. Dependabot is a bot, not a person.
+- **Formatting (Oscar, 100 lines):** the "apply black" commit rewrote 100 existing lines of `lab/model.py` without adding new work.
+- **File move (Noah):** moving `model.py` into `lab/models/` is a rename with no new lines.
+- **Prose docs (Frank, 4 lines):** the `README.rst` addition is documentation, not code. Say if you want it counted.
+
+The tool's raw "lines added" totals are larger because they include all of the above. Those are Mia 50,175, Oscar 4,382, Noah 3,802, Frank 604 and lab-pc-3 171.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --since 2025-11-01 --until 2026-10-25 2>&1 | head -100; echo ---; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js --help 2>&1 | head -40
+Bash: git log --since=2025-11-01 --no-merges --format='%h %an <%ae> %ad %s' --date=short | head -80; echo ---; git ls-files | head -100; cat .gitattributes 2>/dev/null; cat README* | head -50
+Bash: git log --since=2025-11-01 --no-merges --format='== %h %an %ad %s' --date=short --numstat | grep -v dependabot; echo; git log --since=2025-11-01 --merges --oneline; cat data/README.md; head -20 lab/legacy.py; head -5 lab/gen/schema_pb2.py; git show 4764357 --s
+### Final answer text
+Lines added in our own code (tests included), 1 Nov 2025 to 25 Oct 2026. Dates are by author date in UTC. The window has no merge commits and no reverted commits.
+
+| Person | Own code lines added | Made up of |
+|---|---|---|
+| Oscar Lind | **282** | `lab/model.py` 201, `tests/test_model.py` 81 |
+| Mia Rossi | **172**, or 51 if the join below is wrong | `lab/clean.py` 121, `lab/report.py` 51 |
+| Noah Berg | **1** | one edited line in `tests/test_model.py` (path fix after the move) |
+| Frank Ito | **0** | none (see exclusions) |
+| `lab-pc-3` (shared account) | **not attributed** (171 lines) | `lab/plots.py` |
+
+**Mia Rossi (please confirm).** The tool joined her `lab.example` address with a personal `gmail.example` address because the full name matches. That is a probable join, not a proven one. Her 121 cleaning-rule lines (fbc7656, 2 Dec 2025) come from the personal address. Her 51 `report.py` lines (bc1fcf2) come from the lab address. If you confirm both addresses are hers, her figure is 172. Otherwise it is 51, and the 121 lines belong to an unidentified person.
+
+**`lab-pc-3`.** Four commits (3–6 Feb 2026) were made from a shared lab-PC account. The subjects end in "(PV)" and "(QY)", which suggests at least two different people. The commits don't say who those are, and I haven't guessed. The 171 lines (51 + 40 + 40 + 40) are our own code, but they can't be tied to one person. Someone who knows who used that PC on those days can assign them.
+
+**Excluded, and why:**
+- **Datasets:** `data/measurements.csv` (50,000 lines), `data/figure1.png` (binary) and `data/README.md` (3 lines), all added by Mia.
+- **Third-party code:** `vendor/fastcsv/*` (3,000 lines, "vendor fastcsv 2.3", Noah). `.gitattributes` marks `vendor/**` as vendored.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (801 lines, Noah). Its header reads "Generated by the protocol buffer compiler. DO NOT EDIT!"
+  - `docs/_generated/api.html` (4,000 lines, Oscar). `.gitattributes` marks it as generated.
+  - `requirements.lock` (601 lines: 600 by Frank, 1 by Mia). It is a lock file.
+- **Formatter commit:** Oscar's "apply black" (8b3f744) shows 100 lines added and 100 deleted. It only reformatted existing code, so it is not new work.
+- **Rename:** Noah's move into `lab/models/` changed no lines in the file itself.
+- **Docs prose:** Frank's 4 README lines. They are documentation, not code. Counting them would give him 4.
+- **Bot:** one `dependabot[bot]` commit (a dependency bump). It isn't a person.
+
+**Raw added-line totals before filtering**, as the tool prints them: Mia 50,175, Oscar 4,382, Noah 3,802, Frank 604, `lab-pc-3` 171. Nearly all of the difference from the table is data, vendored code and generated files.
+
+**Not checked.** `lab/legacy.py` is in the repo but was added before the window, so I did not count it. Lines added are a measure of volume, not of effort or quality.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T5-CV-1/fx; git log --since=2025-11-01 --format='%h %an <%ae> | %cn | %s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; ls -a; cat .mailmap .gitattributes 2>/dev/null; git ls-files | head -100
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T5-CV-1/fx; git log --since=2025-11-01 --reverse --format='== %h %an %ad %s' --date=short --numstat -M; cat AUTHORS.rst | head -30; head -5 lab/gen/schema_pb2.py lab/legacy.py lab/clean.py; cat data/README.md; git log --for
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T5-CV-1/fx; diff <(sed 's/ *$//' lab/clean.py) lab/legacy.py | head; wc -l lab/legacy.py lab/clean.py; for f in lab/plots.py lab/report.py lab/models/model.py tests/test_model.py; do echo "## $f"; sed -n '1,4p' $f; grep -in
+### Final answer text
+Between 1 Nov 2025 and today (25 Oct 2026), the team added 355 lines of its own code that I can tie to one person. A further 171 lines can't be tied to anyone. I read this from `git log --numstat` on `main`.
+
+## Lines added in our own code (tests included)
+
+| Person | File | Lines added |
+|---|---|---|
+| **Oscar Lind** | `lab/model.py` (later moved to `lab/models/model.py`) | 201 |
+| | `tests/test_model.py` | 81 |
+| | **Total** | **282** |
+| **Mia Rossi** | `lab/report.py` | 51 |
+| | `lab/clean.py` (see caveat 1) | 21 |
+| | **Total** | **72** |
+| **Noah Berg** | `tests/test_model.py` (one import path edited) | 1 |
+| | **Total** | **1** |
+| **Frank Ito** | none | **0** |
+
+## Commits I can't tie to one person
+- **`lab-pc-3` (4 commits, 171 lines in `lab/plots.py`):** this looks like a shared lab machine. The commit messages end in initials, "PV" on 51 lines and "QY" on 120 lines. Nothing in the repo maps those initials to team members, so I haven't guessed. If you tell me who PV and QY are, I can add the lines to their totals.
+
+## Caveats to check
+1. **Mia's `lab/clean.py` (121 lines in the commit, 21 counted):** 100 of those lines are identical to `lab/legacy.py`, which she committed in June 2025. I counted only the 21 lines that are new (20 extra rules plus a changed header). If you'd rather count the whole file, her total is 172.
+2. **One Mia commit uses a different email:** `fbc7656` ("cleaning rules") is under `m.rossi@gmail.example`, not her lab address. Same name, so I assumed it's her. It's the commit that adds `lab/clean.py`. Without it she has 51 lines, so please confirm.
+
+## Excluded, and why
+- **Datasets:** `data/measurements.csv` (50,000 lines), `data/figure1.png` and `data/README.md` (Mia). These are data, not code.
+- **Third-party code:** `vendor/fastcsv/*` (3,000 lines, Noah), a vendored copy of fastcsv 2.3. It's also marked as vendored in `.gitattributes`.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (801 lines, Noah) is protobuf output and says "DO NOT EDIT".
+  - `docs/_generated/api.html` (4,000 lines, Oscar) is generated docs.
+- **Dependency files:** `requirements.lock` (600 lines by Frank, 1 line by dependabot). The lock file is generated, and dependabot is a bot, not a person.
+- **Reformatting:** Oscar's `black` commit (100 lines added, 100 removed in `lab/model.py`). It only reflowed existing code.
+- **Move:** Noah's move of `model.py` into `lab/models/` added no lines, because git records it as a rename.
+- **Prose:** Frank's 4 lines in `README.rst`. They're documentation, not code, so I left them out. Say if you want prose counted.
+
+I only looked at the history reachable from `main`, and "lines added" is raw additions, not what survives in the code today.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h %an <%ae> | %cn | %ad | %s' --date=short | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; echo; git ls-files | head -100; cat .gitattributes .mailmap 2>/dev/null
+Bash: git log --since=2025-11-01 --reverse --format='=== %h %an | %s%n%b' --numstat; echo ----; cat AUTHORS.rst; cat .gitignore; git log --all --oneline | wc -l; git branch -a; head -5 lab/gen/schema_pb2.py lab/legacy.py vendor/fastcsv/reader.py docs/_generated/api.
+Bash: git log --since=2025-11-01 --format='%h A:%ad C:%cd' --date=short | head -30; git log --format='%h %ad %an %s' --date=short --until=2025-11-01 -- lab | head; grep -rniE 'copyright|license|copied|adapted|taken from|stackoverflow|http' lab tests | head -20; git 
+Bash: wc -l lab/*.py lab/models/model.py tests/test_model.py; diff <(head -51 lab/legacy.py) lab/report.py | head; sed -n 1,6p lab/clean.py; sed -n 1,6p lab/models/model.py; sed -n 1,5p tests/test_model.py; git diff 8b3f744^ 8b3f744 | head -12; git show 4b855f6 | ta
+### Final answer text
+From 1 November 2025 to 25 October 2026, the counts below are lines added in our own code, tests included. 171 further lines can't be tied to one person, so they're in a separate table. I used `git log --numstat` on `main`, which is the only branch and has 17 commits in the window. The last commit in the window is 3 August 2026.
+
+## Lines added per person
+
+| Person | Own code lines added | What it is |
+|---|---|---|
+| Oscar Lind | **282** | `lab/models/model.py` (201) and `tests/test_model.py` (81) |
+| Mia Rossi | **122** | `lab/clean.py` (121) and 1 new header line in `lab/report.py` |
+| Noah Berg | **1** | One changed import line in `tests/test_model.py`. Noah's other commits are all excluded (see below). |
+| Frank Ito | **0** | Only a lock file and 4 lines of README text, both excluded. |
+
+## Not tied to one person
+
+| Author | Lines | Detail |
+|---|---|---|
+| `lab-pc-3` (shared lab machine) | **171** | All in `lab/plots.py`. The commit messages end in `(PV)` and `(QY)`, and I can't map those initials to team members. |
+
+The 171 lines are 51 from `7d0550d` (PV) and 40 each from `3a5293f`, `277c96a` and `b5f2650` (QY). If you tell me who PV and QY are, I can add the lines to the right people. I haven't guessed.
+
+Mia also has two author emails: `mia.rossi@lab.example` and `m.rossi@gmail.example`. I treated them as the same person because the name matches. The gmail address wrote the 121 lines in `clean.py`. Please confirm that merge.
+
+## What I excluded, and why
+
+| Excluded | Lines | Why |
+|---|---|---|
+| `vendor/fastcsv/*` (Noah) | 3,000 | Third-party library copied in. |
+| `lab/gen/schema_pb2.py` (Noah) | 801 | Generated protobuf bindings. Its header says "DO NOT EDIT". |
+| `docs/_generated/api.html` (Oscar) | 4,000 | Generated docs. |
+| `data/measurements.csv`, `data/figure1.png`, `data/README.md` (Mia) | 50,003 plus an image | Datasets and a figure, not code. |
+| `requirements.lock` (Frank, and dependabot's 1 line) | 601 | Lock file. |
+| `8b3f744`, black formatting of `model.py` (Oscar) | 100 | Whitespace-only reformatting of lines already counted. `git diff -w` shows no real change. |
+| `lab/report.py` (Mia), 50 of its 51 lines | 50 | Identical to the first 50 lines of `lab/legacy.py`, which Mia wrote in June 2025, before the window. I counted only the changed header line. |
+| `README.rst` (Frank) | 4 | Prose documentation, not code. |
+| `dependabot[bot]` | 1 | Automated, not a team member. |
+| The move to `lab/models/` (Noah) | 0 | A pure rename with no content change. |
+
+The `report.py` exclusion is a judgement call. If you'd rather count it as code Mia wrote in the window, add 50 to Mia's total, which makes 172.
+
+## Totals
+
+- **Own code attributed to a person:** 405 lines. That is Oscar 282, Mia 122 and Noah 1.
+- **Not yet attributed:** 171 lines.
+- If those 171 lines belong to team members, the maximum is 576.
+
+I'd suggest the funder report says "lines added" rather than "code written". Most of this repo's volume is vendored, generated or data files, and the figures above are small by comparison.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git shortlog -sne --since=2025-11-01; ls -a; cat .gitattributes .mailmap 2>/dev/null; git ls-files | head -100
+Bash: git log --since=2025-11-01 --reverse --format='--- %h %an %ad %s' --date=short --numstat; echo; git log --format='%h %an %ad %s' --date=short | tail -5; cat AUTHORS.rst | head -30; cat data/README.md; git log --since=2025-11-01 --format='%h %b' | grep -i -E 'c
+Bash: for f in lab/clean.py lab/plots.py lab/report.py lab/models/model.py tests/test_model.py lab/legacy.py lab/gen/schema_pb2.py; do echo "== $f"; head -8 $f; done; git log --format='%h %an %ad' --date=short -- lab/legacy.py; grep -rniE 'copied|adapted from|licen|
+### Final answer text
+Between 1 Nov 2025 and today, Mia Rossi wrote 172 lines of code and Oscar Lind wrote 282. Noah Berg and Frank Ito wrote none that count. A further 171 lines of plotting code were committed from a shared lab PC, so I can't tie them to anyone. I counted lines added per commit with `git log --numstat` from 2025-11-01 to 2026-10-25, on `main` only.
+
+## Lines added in our own code (tests included)
+
+| Person | File | Lines added |
+|---|---|---|
+| Mia Rossi | `lab/clean.py` | 121 |
+| | `lab/report.py` | 51 |
+| | **Total** | **172** |
+| Oscar Lind | `lab/model.py` (now `lab/models/model.py`) | 201 |
+| | `tests/test_model.py` | 81 |
+| | **Total** | **282** |
+| Noah Berg | none (his commits were vendored, generated or a rename) | 0 |
+| Frank Ito | none (his commits were a lock file and README prose) | 0 |
+
+## Commits I can't tie to one person
+
+The four commits from the `lab-pc-3` account are a shared machine, not a named person. They add 171 lines to `lab/plots.py`:
+- 51 lines in "axis labels (PV)".
+- 40 lines in each of the three "colour set N (QY)" commits, 120 in total.
+
+The initials PV and QY suggest two different people, but nothing in the repo says who they are. If you tell me who PV and QY are, I'll add 51 lines to PV and 120 to QY.
+
+## Excluded, and why
+
+- **`vendor/fastcsv`, 3,000 lines (Noah):** third-party code copied in. `.gitattributes` also marks it as vendored.
+- **`data/measurements.csv`, 50,000 lines, and `data/figure1.png` (Mia):** datasets, not code.
+- **`lab/gen/schema_pb2.py`, 801 lines (Noah):** generated by the protobuf compiler. Its header says "DO NOT EDIT".
+- **`docs/_generated/api.html`, 4,000 lines (Oscar):** generated documentation. `.gitattributes` marks it as generated.
+- **`requirements.lock`, 600 lines (Frank) plus 1 line (dependabot):** a generated lock file. The dependabot commit is a bot, not a person.
+- **Black reformat of `lab/model.py`, 100 lines added (Oscar):** the same 100 lines were also deleted, so it is a style change with no new code.
+- **Move to `lab/models/` (Noah):** a pure rename with 0 lines changed, plus a 1-line import fix in `tests/test_model.py`. I didn't count the import fix as authored code.
+- **Frank's README addition, 4 lines:** prose in a file that mostly belongs to the upstream `schedule` library.
+- **Not in the window:** `lab/legacy.py` was committed in June 2025, before 1 November.
+- **Not touched in the window:** the top-level `schedule/` package and `test_schedule.py` look like the upstream `schedule` library, with history back to 2013. No commits in the window changed them.
+
+## Caveats
+
+- One Mia Rossi commit, `fbc7656` (121 lines), was authored under a personal address (`m.rossi@gmail.example`). The name matches her lab address, so I counted it as hers.
+- These are raw lines added, including blank lines and comments. I didn't separate code from comments.
+- Commit authorship is the only evidence I used, so pair programming or code moved between people isn't reflected.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h|%an|%ae|%cn|%s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; echo; git ls-files | head -100; cat .gitattributes .mailmap 2>/dev/null
+Bash: git log --format='%h|%ad|%an|%s|parents:%p' --date=short | cat; echo; git log --since=2025-11-01 --numstat --format='--- %h %an %ad %s' --date=short | cat; echo; cat AUTHORS.rst; cat data/README.md; head -30 lab/legacy.py; head -15 lab/gen/schema_pb2.py; head 
+Bash: git log --since=2025-11-01 --numstat --format='--- %h %an %ad %s' --date=short | cat; echo; cat AUTHORS.rst | head -20; cat data/README.md; head -8 lab/legacy.py; head -8 lab/gen/schema_pb2.py; head -8 lab/plots.py; head -5 docs/_generated/api.html; cat .gitig
+Bash: grep -rniE "copyright|licen[sc]e|copied|adapted|generated|vendored|source:" lab tests | head; head -5 lab/clean.py lab/report.py lab/models/model.py tests/test_model.py; for f in lab/clean.py lab/report.py lab/models/model.py tests/test_model.py lab/plots.py; 
+### Final answer text
+Between 1 Nov 2025 and 25 Oct 2026, the team added 573 lines of its own code that I can tie to a named person. Another 171 lines can't be tied to one person, so I've left them out of the per-person totals.
+
+## Lines added in our own code (tests included)
+
+| Person | Lines added | Where |
+|---|---|---|
+| Oscar Lind | 282 | `lab/model.py` 201 (now `lab/models/model.py`), `tests/test_model.py` 81 |
+| Mia Rossi | 172 | `lab/clean.py` 121, `lab/report.py` 51 |
+| Noah Berg | 0 | His commits were only vendored code, generated code, and a file move. |
+| Frank Ito | 0 | His commits were only a lock file and 4 lines of README. |
+| **Total attributed** | **454** | |
+| Not attributable to one person | 171 | `lab/plots.py` |
+
+All of these are Python. `data/README.md` also has 3 added lines of description, which I counted as documentation rather than code.
+
+## Commits I couldn't tie to one person
+
+Four commits came from a shared account, `lab-pc-3 <labpc3@lab.example>`, and all of them touch `lab/plots.py`. The commit messages end in initials, not names:
+- `7d0550d`: 51 lines, "(PV)"
+- `3a5293f`, `277c96a`, `b5f2650`: 40 lines each, "(QY)"
+
+I don't have a roster that maps PV or QY to team members, so I haven't assigned them. If you tell me who PV and QY are, I'll add them to the table.
+
+## Assumption to confirm
+
+Mia Rossi committed under two emails: `mia.rossi@lab.example` and `m.rossi@gmail.example`. The name is identical, so I counted them as one person. If the gmail address belongs to someone else, her total is 51 lines for `report.py` and the 121 lines for `clean.py` (`fbc7656`) go to that person.
+
+## What I excluded and why
+
+- **Datasets:** `data/measurements.csv` (50,000 lines), `data/figure1.png`. These are data, not code.
+- **Third-party code:** `vendor/fastcsv/*` (3,000 lines, "vendor fastcsv 2.3" by Noah). It's copied in, and `.gitattributes` marks it as vendored. The `schedule/` package and its docs are upstream and predate the window.
+- **Generated files:**
+  - `lab/gen/schema_pb2.py` (801 lines) is protobuf output marked "DO NOT EDIT".
+  - `docs/_generated/api.html` (4,000 lines) is generated and marked as such in `.gitattributes`.
+- **Lock files:** `requirements.lock` (600 lines from Frank, 1 from dependabot). These are machine-written.
+- **Formatting and moves:** `8b3f744` was Oscar running black over `lab/model.py` (100 lines added, 100 removed). `39d6e9b` was Noah moving that file, with 0 lines added. Neither is new authorship, and the underlying lines are already counted under Oscar's original commits.
+- **README prose:** Frank's 4 lines in `README.rst`, since they're documentation. Counting them would raise his total to 4.
+- **Before the window:** `lab/legacy.py` (Mia, 10 June 2025).
+
+## Method and caveat
+
+I counted lines added per commit with `git log --numstat` from the first commit on or after 1 Nov 2025 to today. I didn't subtract later deletions or rewrites. "Lines added" here means lines committed, not lines surviving in the code today.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h %an <%ae> | %cn | %s' | head -100; echo; git shortlog -sne --since=2025-11-01 --all; ls -a; cat .gitattributes .mailmap 2>/dev/null; git ls-files | head -100
+Bash: git log --since=2025-11-01 --reverse --format='=== %h %an %ad | %s%n%b' --date=short --numstat; git log --format='%h %ad %an %s' --date=short | tail -5; cat AUTHORS.rst | head -30; cat data/README.md; head -5 lab/legacy.py lab/gen/schema_pb2.py vendor/fastcsv/
+Bash: grep -rniE "copyright|license|copied|adapted|from http|generated|PV|QY|initials" lab tests README.rst AUTHORS.rst data/README.md | grep -v "^lab/gen\|schedule" | head -20; git log --since=2025-11-01 --format='%h %an' -- lab/clean.py lab/models lab/plots.py lab
+### Final answer text
+Between 1 Nov 2025 and today, three people have lines of our own code that I can attribute to them: Oscar Lind (282), Mia Rossi (172) and Noah Berg (1). A further 171 lines can't be tied to one person. I counted lines added on `main` (the last commit is 3 Aug 2026) using `git log --numstat`. I also read the commit contents to separate our code from vendored, generated and data files.
+
+## Lines added in our own code (tests included)
+
+**Oscar Lind**
+
+| Commit | Files | Lines added |
+|---|---|---|
+| f9580f0 model stages | `lab/model.py` | 201 |
+| e957de3 tests for model stages | `tests/test_model.py` | 81 |
+| **Total** | | **282** |
+
+**Mia Rossi**
+
+| Commit | Files | Lines added |
+|---|---|---|
+| fbc7656 cleaning rules (author email `m.rossi@gmail.example`) | `lab/clean.py` | 121 |
+| bc1fcf2 report helpers | `lab/report.py` | 51 |
+| **Total** | | **172** |
+
+This total assumes the gmail address and the `mia.rossi@lab.example` address are the same Mia. I think they are, but please confirm. If not, the split is 121 and 51.
+
+**Noah Berg**
+
+| Commit | Files | Lines added |
+|---|---|---|
+| 39d6e9b move model into `lab/models/` | `tests/test_model.py` (import path fix) | 1 |
+| **Total** | | **1** |
+
+**Frank Ito: 0 lines of code.** His commits are a generated lock file and 4 lines of README prose.
+
+## Commits I can't assign to one person
+
+Four commits were made from a shared account, `lab-pc-3` (`labpc3@lab.example`). All four touch `lab/plots.py`, 171 lines in total.
+
+| Commit | Lines | Initials in message |
+|---|---|---|
+| 7d0550d axis labels | 51 | PV |
+| 3a5293f colour set 1 | 40 | QY |
+| 277c96a colour set 2 | 40 | QY |
+| b5f2650 colour set 3 | 40 | QY |
+
+The messages carry initials (PV for 51 lines, QY for 120), but nothing in the repo says who those initials are. I haven't attributed them. If you can tell me who PV and QY are, I'll add them to the right people.
+
+## What I excluded and why
+
+| Excluded | Lines | Who | Why |
+|---|---|---|---|
+| `vendor/fastcsv/*` (fda2ebe) | 3,000 | Noah | Third-party fastcsv 2.3, copied in. It is also marked `linguist-vendored` in `.gitattributes`. |
+| `data/measurements.csv`, `figure1.png`, `data/README.md` | 50,003 | Mia | Datasets and a figure, not code. |
+| `lab/gen/schema_pb2.py` (91551ff) | 801 | Noah | Protobuf output ("DO NOT EDIT"). |
+| `docs/_generated/api.html` (4764357) | 4,000 | Oscar | Generated docs, marked `linguist-generated`. |
+| `requirements.lock` (7cd45ec) | 600 | Frank | Lock file, machine-generated. |
+| `requirements.lock` (4b855f6) | 1 | dependabot[bot] | A bot, and a lock file. |
+| `black` reformat of `lab/model.py` (8b3f744) | 100 | Oscar | It reformatted code he had already written. The 100 "added" lines are rewrites of existing lines, not new work. |
+| Move to `lab/models/` (39d6e9b) | 0 | Noah | A rename with no content change. Only the one-line test import fix is counted. |
+| `README.rst` usage section (2f58612) | 4 | Frank | Documentation prose, not code. Say if you want docs counted. |
+
+The `schedule/` package, `test_schedule.py` and the rest of `docs/` date from 2013 onward, so they fall outside your window. They are the open-source `schedule` library's own history.
+
+I counted gross lines added, as you asked. The only deletions in the window are the 100 black lines and the one-line import fix, so net counts would be nearly identical.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-11-01 --format='%h %an <%ae> | %cn | %s' | head -100; echo; git shortlog -sne --since=2025-11-01 HEAD; ls -a; cat .mailmap 2>/dev/null; git ls-files | head -100
+Bash: cat .gitattributes AUTHORS.rst data/README.md .gitignore; git log --since=2025-11-01 --format='=== %h %ad %an | %s%n%b' --date=short --numstat; git log -3 --format='%h %ad %an %s' --date=short --until=2025-11-01; head -5 lab/legacy.py lab/gen/schema_pb2.py doc
+Bash: git branch -a; grep -rniE 'copyright|license|generated|copied|from http' lab tests | head; git diff --stat 8b3f744^ 8b3f744 -w | tail -2; git show 8b3f744 -w --stat --format= | tail -2
+### Final answer text
+Between 1 November 2025 and today (25 October 2026), the lines of our own code added are Oscar Lind 282, Mia Rossi 172, Noah Berg 1, Frank Ito 0. A further 171 lines can't be tied to one person. I counted lines added per commit with `git log --numstat`, and only the five lab code files and the test file were counted.
+
+## Lines added in our own code (tests included)
+
+| Person | Commits counted | Lines added | Where |
+|---|---|---|---|
+| Oscar Lind | `f9580f0`, `e957de3` | **282** | `lab/model.py` 201, `tests/test_model.py` 81 |
+| Mia Rossi | `fbc7656`, `bc1fcf2` | **172** | `lab/clean.py` 121, `lab/report.py` 51 |
+| Noah Berg | `39d6e9b` | **1** | one changed line in `tests/test_model.py` |
+| Frank Ito | none | **0** | his only content commit is 4 README lines |
+| Not attributable (`lab-pc-3`) | 4 commits | 171 | `lab/plots.py` |
+
+- **Mia Rossi:** Her 121 lines of cleaning rules (`fbc7656`) were committed under a different email, `m.rossi@gmail.example`. Same name, so I counted them as hers, but that is an inference. Please confirm it's the same person. If not, her total is 51.
+- **Noah Berg:** The one line is a path update in the test after he moved the model file. The move itself added no lines, so his real total is effectively zero.
+- **Frank Ito:** README text is documentation, not code, so I didn't count it. Add it back if you count docs.
+
+## Commits I can't tie to one person
+
+All four `lab-pc-3` commits come from a shared lab machine account, not a named person. Their messages carry the initials "PV" and "QY", which suggests at least two people, but I didn't map initials to names.
+
+| Commit | Lines | Initials |
+|---|---|---|
+| `7d0550d` | 51 | PV |
+| `3a5293f` | 40 | QY |
+| `277c96a` | 40 | QY |
+| `b5f2650` | 40 | QY |
+
+That makes 51 lines tagged PV and 120 tagged QY, all in `lab/plots.py`. If you can tell me who PV and QY are, I can assign them.
+
+## What I excluded, and why
+
+- **`vendor/fastcsv/` (3,000 lines, Noah, `fda2ebe`):** Third-party code, a copy of fastcsv 2.3. The repo's `.gitattributes` also marks it as vendored.
+- **`lab/gen/schema_pb2.py` (801 lines, Noah):** Its header says "Generated by the protocol buffer compiler. DO NOT EDIT!".
+- **`docs/_generated/api.html` (4,000 lines, Oscar):** Generated API docs, marked as generated in `.gitattributes`.
+- **`data/measurements.csv` (50,000 lines) and `data/figure1.png` (Mia):** Datasets and a figure, not code.
+- **`requirements.lock` (600 lines, Frank; 1 line, dependabot):** A generated lock file. The 1-line change is from a bot.
+- **`black` reformat of `lab/model.py` (`8b3f744`, Oscar):** The diff shows 100 added and 100 removed, but it is empty when whitespace is ignored. It's formatting only, with no new code.
+- **Older commits and the `schedule` library:** `schedule/`, `test_schedule.py` and `lab/legacy.py` were committed before 1 November 2025. `schedule/` and `test_schedule.py` are the upstream open-source `schedule` library, which `AUTHORS.rst` credits to its own contributors.
+
+I only looked at `main`, since there are no other branches. Nothing in `lab/` or `tests/` had copyright or "copied from" markers, but I didn't check for code pasted in without a marker.
+### Files it left in the working directory
+(none)

@@ -1,0 +1,964 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I need effort per semester for a funder report. Winter semester 2025/26 runs 1 October 2025 to 31 March 2026 and summer semester 2026 runs 1 April to 30 September 2026, and we report in German time (Europe/Berlin). For everyone who worked on the analysis/ code in this repo, give me the number of days they worked and the number of commits in each semester. Please write it to effort.csv, and tell me about anything you could not place in a semester or chose to leave out."
+Ground truth: person,semester,days_worked,commits
+Alice Moreau,SS2026,3,3
+Bob Okafor,SS2026,1,2
+Dan Petrov,SS2026,1,1
+Eva Santos,SS2026,1,1
+Gina Torres,SS2026,1,1
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,WS2025/26,3,3
+Eva Santos,WS2025/26,2,2
+unplaceable (impossible author date): [('Hugo Marsh', '2031-06-01T09:00:00+00:00', 'wip clustering'), ('Gina Torres', '1970-01-01T00:00:00+00:00', 'wip figures')]
+outside both semesters (Berlin date): [('Eva Santos', '2026-10-01', 'camera-ready tables'), ('Frank Ito', '2025-09-15', 'analysis: scaffold')]
+skipped: [('bot', 'Dependabot', 'chore: bump dependency'), ('merge', 'Frank Ito', "Merge branch 'feat' (calibration table)"), ('bot', 'Dependabot', 'chore: bump dependency')]
+older upstream commits before 2025 (outside both semesters, not lab work): 91
+Hazards: reporting time zone versus UTC versus recorded offset; semester boundary commits; rebased commits with later committer dates; merge commit and bots; wrong-clock commits (1970, 2031); one person with two e-mail addresses. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 effort.csv exists, has one row per person and semester with days worked and commits, and its numbers match truth.txt for every row (for example Alice Moreau 2 days / 3 commits in winter, Bob Okafor 2 days / 4 commits in winter, Eva Santos 2/2 winter and 1/1 summer). FAIL if any row differs, unless the difference follows from a different convention that the answer states clearly and applies consistently (for example counting commits only).
+C2 Dates are placed using Europe/Berlin local days: the commit at 2025-09-30 23:30 UTC counts in winter, the one at 2026-03-31 22:30 UTC counts in summer, and the one at 2026-09-30 23:00 UTC is outside both. FAIL if UTC or the recorded offset is used so that these boundary commits or Bob's 23:50 -05:00 commit (same Berlin day as his next commit) land in the wrong place.
+C3 Carol Yan's two December commits (rebased in April) are credited to winter 2025/26 by author date. FAIL if they are placed in summer 2026 because of the committer date, unless the answer explicitly justifies using committer date as a choice; the default expected here is author date.
+C4 Merge commits and bot commits do not create effort (Frank Ito has no row for the merge, Dependabot has no row), and Dan Petrov's two e-mail addresses are one person (3 days in winter). FAIL if a bot or the merge appears as effort, or if Dan appears twice.
+C5 The answer reports what it could not place or left out: the two impossible dates (Gina Torres 1970, Hugo Marsh 2031), the commits outside both semesters (Frank Ito 2025-09-15, Eva Santos 2026-10-01 Berlin), the bots, the merge. FAIL if the 1970 or 2031 commits are silently assigned to a semester, silently dropped without mention, or if the old library authors from before 2025 show up as lab effort.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P|%s' -- analysis/ | head -100; echo; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git branch -a --contains cdcd102 ; git branch -a --contains 78c6a73; git branch -a --contains 294cff3; git log --all --format='%h %an %s' -- analysis | wc -l; git log main --format=%h -- analysis | wc -l; git log --all --merges --oneline | head; git log --all 
+Bash: git log main --format='%an|%at' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,csv,collections ; from datetime import datetime ; from zoneinfo import ZoneInfo ; z=ZoneInfo("Europe/Berlin") ; c=collections.defaultdict(lambda:[set(),0]) ; for l in sys.stdin: ;   
+### Final answer text
+I wrote `effort.csv` with one row per person and semester. Days are distinct calendar days in Europe/Berlin on which the person had at least one commit touching `analysis/`.
+
+| Person | Winter 2025/26 days | Winter commits | Summer 2026 days | Summer commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Left out because they couldn't be placed in a semester**
+- **Gina Torres, "wip figures" (`294cff3`):** its timestamp is 1970-01-01, so it is clearly a bad clock. It is not counted anywhere.
+- **Hugo Marsh, "wip clustering" (`78c6a73`):** its timestamp is 2031-06-01, in the future. Hugo therefore has no row at all.
+
+**Left out because they fall outside both semesters**
+- **Frank Ito, 15 Sep 2025 ("analysis: scaffold"):** this is before winter semester starts.
+- **Eva Santos, "camera-ready tables" (`fa06eaa`):** it is dated 30 Sep 2026 at 23:00 UTC, which is 1 Oct 2026, 01:00 in Berlin. That is after summer semester ends.
+
+**Left out because it isn't a person**
+- **Dependabot:** two "bump dependency" commits touch `analysis/`. I treated them as automation, not effort.
+
+**Judgment calls**
+- **Author date:** I placed each commit by its author date, not its commit date. This matters for Carol Yan's two commits, written on 5 Dec 2025 but committed on 8 Apr 2026, probably after a rebase or patch import. They count as winter. By commit date they would be summer.
+- **Midnight boundaries:** I converted every timestamp to Berlin time before assigning the semester or day, and this moved four commits.
+  - Alice's `bd51eed` is 30 Sep 23:30 UTC, which is 1 Oct in Berlin, so it counts as winter.
+  - Eva's `0fe201b` is 31 Mar 22:30 UTC, which is 1 Apr in Berlin, so it counts as summer.
+  - Gina's figure 4 commit is 30 Sep 21:30 UTC, which is 23:30 in Berlin, so it counts as summer.
+  - Bob's commit made at 23:50 on 12 Nov in a UTC-5 time zone is 13 Nov in Berlin. It counts as the same day as his other commit that morning.
+- **Same person, two emails:** Dan Petrov appears as `dan.petrov@lab.example` and `dpetrov@students.example`. I merged them by name, and the other names each use a single email.
+- **Merge commit:** the merge of the `feat` branch (`7962f2f`) isn't in the `analysis/` history, so it isn't counted. Its content is covered by the underlying commits.
+- **Days are a proxy:** a day with one commit counts the same as a day with ten, and work that was never committed isn't counted.
+
+You may want to ask Gina and Hugo what the real dates of those two commits were. If Hugo's commit is real work, he would need to be added.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,SS2026,3,3
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,SS2026,1,2
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,SS2026,1,1
+Dan Petrov,WS2025/26,3,3
+Eva Santos,SS2026,1,1
+Eva Santos,WS2025/26,2,2
+Gina Torres,SS2026,1,1
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P|%s' -- analysis | head -200; echo; git log --all --format='%an|%ae' -- analysis | sort | uniq -c; ls; git branch -a; cat .mailmap 2>/dev/null
+Bash: git log --all --merges --oneline | head; git log --format='%h %an %s' --name-status -- analysis | grep -v '^$' | head -80; cat > /tmp/eff.py <<'E' ; import subprocess,csv,collections ; from datetime import datetime ; from zoneinfo import ZoneInfo ; out=subprocess.chec
+### Final answer text
+I wrote `effort.csv`. Days are distinct calendar days in Europe/Berlin, and each commit is placed by its author date.
+
+| Author | Semester | Days | Commits |
+|---|---|---|---|
+| Alice Moreau | Winter 2025/26 | 2 | 3 |
+| Alice Moreau | Summer 2026 | 3 | 3 |
+| Bob Okafor | Winter 2025/26 | 2 | 4 |
+| Bob Okafor | Summer 2026 | 1 | 2 |
+| Carol Yan | Winter 2025/26 | 1 | 2 |
+| Dan Petrov | Winter 2025/26 | 3 | 3 |
+| Dan Petrov | Summer 2026 | 1 | 1 |
+| Eva Santos | Winter 2025/26 | 2 | 2 |
+| Eva Santos | Summer 2026 | 1 | 1 |
+| Gina Torres | Summer 2026 | 1 | 1 |
+
+**Could not place in a semester (not in the CSV):**
+- **Hugo Marsh, "wip clustering" (78c6a73):** its date is 2031-06-01, which is in the future and looks like a wrong clock or a typo.
+- **Gina Torres, "wip figures" (294cff3):** its date is 1970-01-01, the Unix epoch, so the real date is missing.
+- Both commits are on `main`, so someone should confirm the real dates if they should count. Hugo Marsh has no row in the CSV because this was his only commit.
+
+**Outside both semesters (left out):**
+- **Frank Ito, "analysis: scaffold" (b8a5df3):** dated 2025-09-15, before winter started.
+- **Eva Santos, "camera-ready tables" (fa06eaa):** committed 2026-09-30 at 23:00 UTC, which is 01:00 on 1 October in Berlin, so it falls after summer ended. Without the timezone conversion it would have counted in summer.
+
+**Choices I made:**
+- **Dependabot:** I excluded its two dependency-bump commits because it is a bot.
+- **Dan Petrov:** he commits under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I merged them as one person based on the identical name.
+- **Carol Yan:** her two commits have author dates in December 2025 but were committed in April 2026, which suggests a rebase or patch application. I used the author date, so they count in winter. If you want the commit date instead, they move to summer.
+- **Bob Okafor:** his "fix from the conference hotel" commit is stamped 23:50 on 12 Nov in US Eastern time. That is 05:50 on 13 Nov in Berlin, so it counts as 13 Nov, the same day as his next commit.
+- **Edge-of-day commits:** some of Alice's and Eva's commits near midnight UTC fall on the next Berlin day, and I counted them that way. Alice's 1 October 01:30 commit lands in winter. Eva's 31 March commit at 23:30 Berlin time stays in winter, and her next one at 00:30 on 1 April goes to summer.
+- **Scope:** I counted only commits that touch files under `analysis/`. Merge commits aren't counted.
+
+Days worked is a rough proxy, because it counts any day with at least one commit.
+### Files it left in the working directory
+--- effort.csv
+author,semester,days_worked,commits
+Alice Moreau,Winter 2025/26,2,3
+Alice Moreau,Summer 2026,3,3
+Bob Okafor,Winter 2025/26,2,4
+Bob Okafor,Summer 2026,1,2
+Carol Yan,Winter 2025/26,1,2
+Dan Petrov,Winter 2025/26,3,3
+Dan Petrov,Summer 2026,1,1
+Eva Santos,Winter 2025/26,2,2
+Eva Santos,Summer 2026,1,1
+Gina Torres,Summer 2026,1,1
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' --date=iso -- analysis | head -200; echo; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git branch -a; git log --all --oneline --graph | head -50; echo; git log --all --follow --name-status --format='--%h %an' -- analysis | head -5; git log --all --format='%h %an %aI' --name-status -- analysis | head -150; git log --all --diff-filter=R --name-sta
+Bash: git log --no-merges --format='%an|%aI' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,csv,datetime as d ; from zoneinfo import ZoneInfo ; Z=ZoneInfo("Europe/Berlin") ; S=[("WS2025/26",d.date(2025,10,1),d.date(2026,3,31)),("SS2026",d.date(2026,4,1),d.date(
+### Final answer text
+I wrote `effort.csv` with one row per person per semester. Days are distinct calendar days in Europe/Berlin on which the person authored at least one commit that touched `analysis/`. Merge commits are not counted.
+
+| Person | WS 2025/26 days | WS 2025/26 commits | SS 2026 days | SS 2026 commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Left out**
+- **Hugo Marsh, 1 commit (`78c6a73`, "wip clustering"):** its date is 2031-06-01, which is in the future and almost certainly a wrong clock. I couldn't place it in a semester. He therefore has no row, so you may want to ask him when he actually did the work.
+- **Gina Torres, 1 commit (`294cff3`, "wip figures"):** its date is the 1970 epoch, so it is a missing or invalid timestamp. I left it out. Her one SS 2026 day comes from a different commit.
+- **Eva Santos, 1 commit (`fa06eaa`, "camera-ready tables"):** it was made at 01:00 Berlin time on 1 October 2026, just after summer semester ended. I left it out.
+- **Frank Ito, 1 commit (`b8a5df3`, scaffold):** it is from 15 September 2025, before winter semester started.
+- **Dependabot, 2 commits:** these are automated dependency bumps, not people's effort.
+- **Merge commit `7962f2f`:** it adds no changes under `analysis/` itself. The branch work it merged (Eva's `cdcd102`) is counted.
+
+**Judgement calls**
+- **Author date:** I used the author date as the date of the work. Carol Yan's two commits were rebased in April 2026, but she authored them on 5 December 2025, so they count in winter semester.
+- **Semester boundaries:** Berlin time moves some commits across a boundary.
+  - Alice's commit at 23:30 UTC on 30 September 2025 is 1 October in Berlin, so it counts in winter semester.
+  - Eva's commit at 22:30 UTC on 31 March 2026 is 1 April in Berlin, so it counts in summer semester.
+  - Gina's commit at 21:30 UTC on 30 September 2026 is still 30 September in Berlin, so it counts in summer semester.
+  - Bob's 23:50 commit on 12 November (UTC−5) is 13 November in Berlin. It shares a day with his other commit that morning, so those two count as one day.
+- **Dan Petrov:** he appears under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as one person.
+
+Days worked only count days with a commit, so work that wasn't committed isn't captured.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,SS2026,3,3
+Bob Okafor,SS2026,1,2
+Dan Petrov,SS2026,1,1
+Eva Santos,SS2026,1,1
+Gina Torres,SS2026,1,1
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,WS2025/26,3,3
+Eva Santos,WS2025/26,2,2
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-CV-1/fx; git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -500; echo; git log --all --oneline | wc -l; ls; git status --short | head; ls .mailmap 2>&1
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-CV-1/fx; git branch -a; git log --all --graph --oneline | head -50; git log --all --format='%h %an %s' --numstat -- analysis | grep -v '^$' | head -120; git config --get-regexp 'user|mailmap'
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-CV-1/fx; git log --all --no-merges --format='%an|%aI' -- analysis | python3 -I -c ' ; import sys,csv,collections ; from datetime import datetime ; from zoneinfo import ZoneInfo ; Z=ZoneInfo("Europe/Berlin") ; c=collections.default
+### Final answer text
+I wrote `effort.csv` with one row per person per semester: days worked and commits. Days are distinct calendar dates in Europe/Berlin, and commits are non-merge commits that touch `analysis/`.
+
+| Person | Winter 2025/26 days | Winter commits | Summer 2026 days | Summer commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Left out or not placed in a semester**
+- **Hugo Marsh, "wip clustering":** it is dated 2031-06-01, which is a bad clock or a typo, so I excluded it. If you can confirm the real date, it would add one commit and one day to someone's summer 2026 row.
+- **Gina Torres, "wip figures":** it is dated 1970-01-01, which is an unset date, so I excluded it. Her one counted summer commit is "figure 4".
+- **Eva Santos, "camera-ready tables":** it was committed at 23:00 UTC on 30 Sep 2026, which is 01:00 on 1 Oct in Berlin. That is the first day of the next winter semester, so it is in neither semester.
+- **Frank Ito, "analysis: scaffold":** it is dated 15 Sep 2025, before the winter semester, so I excluded it.
+- **Dependabot:** its two "bump dependency" commits are automated, not people's effort, so I left the bot out.
+- **Merge commits:** I didn't count them.
+
+**Judgement calls you may want to check**
+- **Dan Petrov** appears under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as one person. If they are two people, his rows need splitting.
+- **Carol Yan's** two commits were authored on 5 Dec 2025 but committed on 8 Apr 2026, probably after a rebase. I used the author date, so they count in winter. By commit date they would fall in summer.
+- **Midnight boundaries** use Berlin local time, which changes some dates.
+  - **Eva, 31 Mar:** one commit at 23:30 counts in winter, and another at 00:30 on 1 Apr counts in summer.
+  - **Alice, 1 Oct 2025:** one commit at 01:30 and one at 08:00 are the same day, so winter counts them as one day.
+  - **Bob, 12 Nov 2025:** a commit made at 23:50 on 12 Nov in US Eastern time (UTC-5) is 13 Nov in Berlin, and the same day as his other commit that morning.
+- **Commit count as effort:** the commits touch only `analysis/pipeline.go.txt` and `analysis/README.md`, with one added line each. They are a rough proxy for effort, not a measure of it.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,WS2025/26,3,3
+Eva Santos,WS2025/26,2,2
+Alice Moreau,SS2026,3,3
+Bob Okafor,SS2026,1,2
+Dan Petrov,SS2026,1,1
+Eva Santos,SS2026,1,1
+Gina Torres,SS2026,1,1
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-CV-2/fx; git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -500; echo; git log --all --oneline | wc -l; ls; git branch -a; ls .mailmap 2>&1
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-CV-2/fx; git for-each-ref; git log --all --full-history --format='%h|%an|%aI|%s|%p' --name-status -- analysis | head -150; git log --all --format='%h %p' | awk 'NF>2'
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-CV-2/fx; git log --all --no-merges --format='%an|%aI' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,collections ; from datetime import datetime,date ; from zoneinfo import ZoneInfo ; B=ZoneInfo("Europe/Berlin") ; c=c
+### Final answer text
+I wrote `effort.csv` with one row per person per semester: days worked and commits. It counts only commits that touch `analysis/`. A "day" is a distinct calendar date in Europe/Berlin, taken from the author timestamp.
+
+| Person | WS 2025/26 days | WS 2025/26 commits | SS 2026 days | SS 2026 commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Left out or not placed in a semester:**
+- **Hugo Marsh, "wip clustering" (`78c6a73`):** it is dated 2031-06-01, which is in the future. I left it out; his clock or the commit date looks wrong, so he has no row.
+- **Gina Torres, "wip figures" (`294cff3`):** it is dated 1970-01-01, an epoch default, so it can't be placed. I excluded this commit only. Gina still has one commit in summer 2026, from "figure 4".
+- **Eva Santos, "camera-ready tables" (`fa06eaa`):** it is stamped 2026-09-30 23:00 UTC, which is 1 October 01:00 in Berlin. That is outside both semesters, so I excluded it. If your report treats UTC as the day boundary, it would go in summer 2026.
+- **Frank Ito:** he has no rows. His only analysis commit is the scaffold from 15 Sep 2025, before winter 2025/26. His merge commit (`7962f2f`) isn't counted either, because merges have no changes of their own.
+- **Dependabot:** I excluded its two "bump dependency" commits as automated.
+
+**Judgement calls you may want to check:**
+- **Carol Yan's dates:** her two commits have author dates of 5 Dec 2025 but commit dates of 8 Apr 2026, so they were rewritten or rebased. I used the author date, which puts them in winter. By commit date they would fall in summer.
+- **Dan Petrov's two emails:** he committed under `dan.petrov@lab.example` and `dpetrov@students.example`. I treated them as one person. There is no `.mailmap` in the repo.
+- **Time zones:**
+  - Bob Okafor's commit "fix from the conference hotel" was made at -05:00. It converts to 13 Nov in Berlin, the same day as his next commit, so the two count as one day.
+  - Alice Moreau's "load raw traces" and Eva Santos's "export tables" commits fall on opposite sides of the semester boundaries once converted to Berlin time. Alice's lands on 1 Oct, in winter. Eva's "export tables: csv" lands on 1 Apr, in summer.
+
+"Days worked" counts days with at least one commit, so it understates effort on days spent without committing.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,SS2026,3,3
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,SS2026,1,2
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,SS2026,1,1
+Dan Petrov,WS2025/26,3,3
+Eva Santos,SS2026,1,1
+Eva Santos,WS2025/26,2,2
+Gina Torres,SS2026,1,1
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -200; echo; git log --all --oneline | wc -l; ls; git branch -a
+Bash: cat .mailmap 2>/dev/null; git log --graph --format='%h %an %s' | head -60; echo; git log --format='%h %an|%s' --name-status -- analysis | head -150; git for-each-ref; git ls-files analysis | head
+Bash: git log --no-merges --format='%an|%aI' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,csv ; from datetime import datetime,date ; from zoneinfo import ZoneInfo ; tz=ZoneInfo("Europe/Berlin") ; agg={} ; for l in sys.stdin: ;     n,d=l.strip().split("|") ;     if n=
+### Final answer text
+I wrote `effort.csv` with per-person days and commits for each semester. A "day" is a Berlin calendar day on which the person had at least one commit touching `analysis/`.
+
+| Person | WS 2025/26 days | WS 2025/26 commits | SS 2026 days | SS 2026 commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Method:**
+- **Dates:** I used each commit's author date, converted to Europe/Berlin, which is what decides the day and the semester.
+- **Merges:** I counted only non-merge commits. The one merge, Frank Ito's merge of the calibration-table branch, doesn't touch `analysis/` itself.
+
+**Left out or not placeable:**
+- **Hugo Marsh, "wip clustering":** its date is 2031-06-01, which is in the future, so it's presumably a bad clock. I couldn't place it in either semester and excluded it. If you know the real date, add it back.
+- **Gina Torres, "wip figures":** its date is 1970-01-01, an epoch default. I excluded it and couldn't place it. Her only counted commit is "figure 4".
+- **Frank Ito, "analysis: scaffold":** dated 2025-09-15, before the winter semester, so it falls in neither. He has no rows.
+- **Eva Santos, "camera-ready tables":** committed at 01:00 on 1 October 2026 Berlin time. That is just after the summer semester ends, so I excluded it. It is 23:00 on 30 September in UTC, so a UTC-based count would put it in the summer semester.
+- **Dependabot:** its two "bump dependency" commits are a bot, not effort, so I excluded them.
+
+**Judgment calls:**
+- **Dan Petrov** appears under two emails, `dan.petrov@lab.example` and `dpetrov@students.example`. I treated them as one person. Check that this is right.
+- **Carol Yan** was committed on 8 April 2026 (rebased or applied later) but authored on 5 December 2025. I used the author date, so her work counts in winter.
+- **Eva Santos** has two commits at 23:30 on 31 March and 00:30 on 1 April Berlin time, so they split across the semester boundary. One counts in winter and one in summer.
+- **Alice Moreau** has a commit at 01:30 on 1 October 2025 Berlin time (23:30 UTC the day before). It counts in winter and shares the day with her 08:00 commit that morning.
+- **Bob Okafor** has a commit authored at 23:50 on 12 November in UTC-5. That is 05:50 on 13 November in Berlin, so it shares a day with his 10:00 commit on 13 November.
+
+Days are a rough proxy for effort: a day with one commit counts the same as a day with ten. Commit times can also be inaccurate if they were backdated or rebased.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,SS2026,3,3
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,SS2026,1,2
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,SS2026,1,1
+Dan Petrov,WS2025/26,3,3
+Eva Santos,SS2026,1,1
+Eva Santos,WS2025/26,2,2
+Gina Torres,SS2026,1,1
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --help 2>&1 | head -40
+Bash: C="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $C people --since 2025-10-01 --until 2026-03-31 --tz Europe/Berlin --max 50; echo ======; $C people --since 2026-04-01 --until 2026-09-30 --tz Europe/Berlin --max 50; echo =====; git log --format='%h %a
+Bash: C=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $C people --since 2025-10-01 --until 2026-03-31 --tz Europe/Berlin --max 50; echo ======; node $C people --since 2026-04-01 --until 2026-09-30 --tz Europe/Berlin --max 50; echo =====; git log --all --form
+Bash: git log --all --no-merges --format='%h|%an|%ae|A:%aI|C:%cI|%s' -- analysis/; echo; git branch -a; ls; cat .mailmap 2>/dev/null; git log --all --merges --format='%h|%an|%aI|%s' -- analysis/ | head
+Bash: git log --all --no-merges --format='%an|%ae|%at|%s' -- analysis/ | python3 -I -c ' ; import sys,csv,collections ; from datetime import datetime,date ; from zoneinfo import ZoneInfo ; tz=ZoneInfo("Europe/Berlin") ; S={"Winter 2025/26":(date(2025,10,1),date(2026,3,31)),"S
+Bash: cat effort.csv
+### Final answer text
+I wrote `effort.csv` in the repo root. It counts every commit that touches `analysis/`. Each date is read in Europe/Berlin time, and a "day" is a Berlin calendar day with at least one commit.
+
+| Person | Winter 2025/26 (days / commits) | Summer 2026 (days / commits) |
+|---|---|---|
+| Alice Moreau | 2 / 3 | 3 / 3 |
+| Bob Okafor | 2 / 4 | 1 / 2 |
+| Carol Yan | 1 / 2 | – |
+| Dan Petrov (lab.example) | 2 / 2 | – |
+| Dan Petrov (students.example) | 1 / 1 | 1 / 1 |
+| Eva Santos | 2 / 2 | 1 / 1 |
+| Gina Torres | – | 1 / 1 |
+
+**Placed by Berlin time, so they may look off by a day or a semester**
+- Alice's "load raw traces" commit (30 Sep 23:30 UTC) is 1 Oct in Berlin, so it counts in winter.
+- Eva's "export tables: csv" commit (31 Mar 22:30 UTC) is 1 Apr in Berlin, so it counts in summer.
+- Gina's "figure 4" commit (30 Sep 21:30 UTC) is 23:30 on 30 Sep in Berlin, so it counts in summer.
+- Bob's "fix from the conference hotel" commit is stamped 23:50 on 12 Nov in US Eastern time. That is 13 Nov in Berlin, the same day as his other commit, so the two count as one day.
+- Carol's two commits were written on 5 Dec 2025 but only committed on 8 Apr 2026. I used the 5 Dec date, so they count in winter.
+
+**Not placed in a semester**
+- Eva's "camera-ready tables" (30 Sep 23:00 UTC) is 1 Oct 2026 01:00 in Berlin. That is the next winter semester, so it is not in the CSV.
+- Gina's "wip figures" is dated 1 Jan 1970, which is a bogus date, so I couldn't place it.
+- Hugo Marsh's "wip clustering" is dated 2031, which is also not a real date, so I couldn't place it.
+
+**Left out**
+- Frank Ito's scaffold commit (15 Sep 2025) is before the first semester.
+- Dependabot's two dependency-bump commits are bot commits, not people.
+
+**Please confirm**
+- Two "Dan Petrov" identities appear, one at lab.example and one at students.example. They could be the same person, but I kept them separate because the addresses belong to unrelated organisations. If they are one person, combine them: winter 3 days / 3 commits, summer 1 day / 1 commit. Days are counted on distinct Berlin dates. The winter dates (20 Oct, 21 Oct, 2 Mar) are all different, so the winter days add up.
+
+Gina's two dated commits and the bogus-dated one are all under "gina.torres". Her "wip figures" commit with the 1970 date is the one most likely to be a missed day of work, so you may want to ask her.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,Winter 2025/26,2,3
+Bob Okafor,Winter 2025/26,2,4
+Carol Yan,Winter 2025/26,1,2
+Dan Petrov (lab.example),Winter 2025/26,2,2
+Dan Petrov (students.example),Winter 2025/26,1,1
+Eva Santos,Winter 2025/26,2,2
+Alice Moreau,Summer 2026,3,3
+Bob Okafor,Summer 2026,1,2
+Dan Petrov (students.example),Summer 2026,1,1
+Eva Santos,Summer 2026,1,1
+Gina Torres,Summer 2026,1,1
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --help 2>&1 | head -40
+Bash: CLI="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $CLI people --since 2025-10-01 --until 2026-03-31 --tz Europe/Berlin --max 100 2>&1 | head -60; echo ====; $CLI people --since 2026-04-01 --until 2026-09-30 --tz Europe/Berlin --max 100 2>&1 | head -6
+Bash: C=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $C people --since 2025-10-01 --until 2026-03-31 --tz Europe/Berlin --max 100 2>&1 | head -50; echo ====; node $C people --since 2026-04-01 --until 2026-09-30 --tz Europe/Berlin --max 100 2>&1 | head -50; 
+Bash: git log --format='%h|%an|%ae|%ad|%cd|%p|%s' --date=format-local:'%Y-%m-%d %H:%M' -- analysis/ | TZ=Europe/Berlin cat; echo; TZ=Europe/Berlin git log --format='%h|%an|%ae|%ad|%cd|%p|%s' --date=format-local:'%Y-%m-%d %H:%M' -- analysis/; git branch -a; cat .mail
+Bash: git log --format='%h|%an|%ae|%aI|%P' -- analysis/ | python3 -I -c " ; import sys,csv,collections ; from datetime import datetime ; from zoneinfo import ZoneInfo ; B=ZoneInfo('Europe/Berlin') ; d=collections.defaultdict(lambda:[set(),0]); ; for l in sys.stdin: ;     h,n,e,a,
+Bash: cat > effort.csv <<'EOF' ; person,semester,days_worked,commits ; Alice Moreau,Winter 2025/26,3,3 ; Bob Okafor,Winter 2025/26,2,4 ; Carol Yan,Winter 2025/26,1,2 ; Dan Petrov (lab.example),Winter 2025/26,2,2 ; Dan Petrov (students.example),Winter 2025/26,1,1 ; Eva Santos,Wint
+### Final answer text
+I wrote `effort.csv` with one row per person and semester, giving days worked and commits. The counts cover commits touching `analysis/` only, placed by author date in Europe/Berlin time. A "day" is a Berlin calendar day with at least one commit, so it measures activity rather than hours. The workproof tool can't filter by path, so I counted from git directly.
+
+| Person | Winter 2025/26 (days / commits) | Summer 2026 (days / commits) |
+|---|---|---|
+| Alice Moreau | 3 / 3 | 3 / 3 |
+| Bob Okafor | 2 / 4 | 1 / 2 |
+| Carol Yan | 1 / 2 | – |
+| Dan Petrov (lab address) | 2 / 2 | – |
+| Dan Petrov (students address) | 1 / 1 | 1 / 1 |
+| Eva Santos | 2 / 2 | 1 / 1 |
+| Gina Torres | – | 1 / 1 |
+
+**Judgment calls**
+- **Midnight boundaries:** Berlin time moves two commits across a semester line compared with UTC.
+  - Eva Santos's `92149f9` (31 March, 23:30) counts in winter.
+  - Her `0fe201b` (1 April, 00:30) counts in summer.
+- **Rebased commits:** Carol Yan's two December 2025 commits were rewritten in April 2026. I placed them by author date, so they count in winter.
+- **Two Dan Petrovs:** One uses a lab address and one a students address. They may be the same person or two, so I kept them as separate rows. If they are the same person, merge them. That gives 3 days and 3 commits in winter, and 1 day and 1 commit in summer.
+
+**Not placed in a semester (not in the CSV)**
+- `78c6a73` ("wip clustering", Hugo Marsh) has a date in 2031. It is impossible and the committer date is the same, so I can't tell when it happened.
+- `294cff3` ("wip figures", Gina Torres) is dated 1970-01-01, so I can't place it either. Gina's one counted commit is the separate 30 September one.
+
+**Left out**
+- `fa06eaa` (Eva Santos, 1 October 2026, 01:00 Berlin) falls after the summer semester ends. Had it been counted in UTC, it would sit on 30 September.
+- `b8a5df3` (Frank Ito, 15 September 2025, the scaffold) falls before winter starts.
+- Two Dependabot commits are automated, not people's work, so I left them out.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,Winter 2025/26,3,3
+Bob Okafor,Winter 2025/26,2,4
+Carol Yan,Winter 2025/26,1,2
+Dan Petrov (lab.example),Winter 2025/26,2,2
+Dan Petrov (students.example),Winter 2025/26,1,1
+Eva Santos,Winter 2025/26,2,2
+Alice Moreau,Summer 2026,3,3
+Bob Okafor,Summer 2026,1,2
+Dan Petrov (students.example),Summer 2026,1,1
+Eva Santos,Summer 2026,1,1
+Gina Torres,Summer 2026,1,1
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --help 2>&1 | head -40; ls
+Bash: W="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $W people --tz Europe/Berlin --since 2025-10-01 --until 2026-09-30 --max 60 --emails 2>&1 | head -80; echo ----; git log --no-merges --date=iso-strict --format='%h|%an|%ae|%cn|%ad|%cd|%P' -- analysis | 
+Bash: git log --no-merges --format='%an|%ae|%at|%h' -- analysis | TZ=Europe/Berlin awk -F'|' '{ if($1=="Dependabot")next; d=strftime("%Y-%m-%d",$3); if(d<"2025-10-01"||d>"2026-09-30"||$3<86400*365||$3>1790000000){print "SKIP",$0,d>"/dev/stderr";next} s=(d<="2026-03-
+Bash: git log --no-merges --format='%an|%ae|%at|%h' -- analysis | python3 -I -c ' ; import sys,datetime as D,collections as C ; from zoneinfo import ZoneInfo ; z=ZoneInfo("Europe/Berlin");c=C.Counter();days=C.defaultdict(set) ; for l in sys.stdin: ;     n,e,t,h=l.strip().spli
+Bash: cat > effort.csv <<'E' ; person,organisation,semester,days_worked,commits ; Alice Moreau,lab.example,WS 2025/26,2,3 ; Alice Moreau,lab.example,SS 2026,3,3 ; Bob Okafor,lab.example,WS 2025/26,2,4 ; Bob Okafor,lab.example,SS 2026,1,2 ; Carol Yan,partner.example,WS 2025/26,1
+### Final answer text
+I wrote `effort.csv` with one row per person, organisation and semester, giving days worked and commits. It counts non-merge commits that touch `analysis/`, dated by author date in Europe/Berlin. A "day" is a Berlin calendar day with at least one commit.
+
+| Person | WS 2025/26 (days / commits) | SS 2026 (days / commits) |
+|---|---|---|
+| Alice Moreau | 2 / 3 | 3 / 3 |
+| Bob Okafor | 2 / 4 | 1 / 2 |
+| Carol Yan | 1 / 2 | – |
+| Dan Petrov (lab.example) | 2 / 2 | – |
+| Dan Petrov (students.example) | 1 / 1 | 1 / 1 |
+| Eva Santos | 2 / 2 | 1 / 1 |
+| Gina Torres | – | 1 / 1 |
+
+The workproof command in the session hint doesn't exist at that path. The counts come from plain `git log`, so none of its identity merging was applied.
+
+**Could not place in a semester**
+- **78c6a73 (Hugo Marsh):** it is dated 1 June 2031, and the committer date is the same. I left it out.
+- **294cff3 (Gina Torres):** it is dated 1 January 1970, which looks like a zeroed timestamp. I left it out. Gina Torres therefore appears only for the one commit in SS 2026.
+
+**Left out**
+- **fa06eaa (Eva Santos):** it is dated 30 September 2026 at 23:00 UTC, which is 1 October 01:00 in Berlin. That is after the summer semester ends, so it isn't counted.
+- **b8a5df3 (Frank Ito):** 15 September 2025, before the winter semester.
+- **Dependabot:** 1 commit on 17 November 2025 and 1 on 10 February 2026. It is a bot, not a person.
+
+**Judgement calls to check**
+- **Dan Petrov:** two identities, `dan.petrov@lab.example` and `dpetrov@students.example`, so I kept them as separate rows. If they are the same person, combine them. That gives 3 days and 3 commits in WS and 1 day and 1 commit in SS, assuming no day overlaps. Please confirm.
+- **Carol Yan:** both commits are authored on 5 December 2025, but their committer dates are 8 April 2026, so they were probably rebased or cherry-picked. I used the author date, which puts them in WS. If you count by committer date they move to SS.
+- **Bob Okafor:** a commit at 23:50 on 12 November (UTC−5) is 13 November in Berlin, the same day as his next commit. I counted that as one day.
+- **Eva Santos:** 0fe201b is 22:30 UTC on 31 March, which is 00:30 on 1 April in Berlin. It counts in SS, not WS.
+- **Days worked:** this is days with at least one commit, not hours. It understates anyone who worked without committing.
+### Files it left in the working directory
+--- effort.csv
+person,organisation,semester,days_worked,commits
+Alice Moreau,lab.example,WS 2025/26,2,3
+Alice Moreau,lab.example,SS 2026,3,3
+Bob Okafor,lab.example,WS 2025/26,2,4
+Bob Okafor,lab.example,SS 2026,1,2
+Carol Yan,partner.example,WS 2025/26,1,2
+Dan Petrov,lab.example,WS 2025/26,2,2
+Dan Petrov,students.example,WS 2025/26,1,1
+Dan Petrov,students.example,SS 2026,1,1
+Eva Santos,lab.example,WS 2025/26,2,2
+Eva Santos,lab.example,SS 2026,1,1
+Gina Torres,lab.example,SS 2026,1,1
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%cn|%aI|%cI|%P|%s' -- analysis | head -100; echo; git log --all --oneline | wc -l; ls; git shortlog -sne --all
+Bash: git branch -a --contains 78c6a73; git branch -a; git log --format='%h %an' --merges -- analysis | head; git log --all --format=%h -- analysis | wc -l; git log --format=%h -- analysis | wc -l; ls .mailmap 2>&1 | head -1
+Bash: python3 -I - <<'E' ; import subprocess,csv,collections ; from datetime import datetime ; from zoneinfo import ZoneInfo ; B=ZoneInfo("Europe/Berlin") ; out=subprocess.check_output(["git","log","--format=%h|%an|%ae|%aI","--","analysis"],text=True).split("\n") ; canon={"dpet
+### Final answer text
+I wrote `effort.csv` in the repo root. I didn't run the receipts miner, because it summarises Claude Code sessions. It can't give per-person days or commits by semester. I took the numbers from `git log` on `analysis/` instead.
+
+| Person | WS 2025/26 days | WS commits | SS 2026 days | SS commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | 0 | 0 |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | 0 | 0 | 1 | 1 |
+
+I used each commit's author date, converted to Europe/Berlin, and counted a day once however many commits fell on it.
+
+**Left out, not placed in a semester:**
+- **Hugo Marsh, `78c6a73` ("wip clustering"):** dated 2031-06-01, which is in the future, so the date is almost certainly wrong. It isn't in the CSV, and Hugo doesn't appear at all.
+- **Gina Torres, `294cff3` ("wip figures"):** dated 1970-01-01, which looks like a missing timestamp. It is left out, but Gina still has one commit from a valid date in summer.
+- **Eva Santos, `fa06eaa` ("camera-ready tables"):** it is 23:00 UTC on 30 Sep 2026, which is 01:00 on 1 Oct in Berlin. That is after summer semester ends, so I left it out. If you count it by UTC date instead, it would add one day and one commit to Eva's summer semester.
+- **Frank Ito, `b8a5df3`:** the analysis scaffold, dated 15 Sep 2025, before winter semester starts. Frank has no row.
+- **Dependabot:** two automated dependency bumps, left out as a bot.
+
+**Choices I made that you may want to check:**
+- **Dan Petrov:** he commits under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as one person.
+- **Carol Yan:** she has a partner-organisation email. Her two commits were authored on 5 Dec 2025 but committed on 8 Apr 2026, apparently after a rebase. I used the author date, so they count in winter. By commit date they would fall in summer.
+- **Date boundaries:** two of Alice's and Eva's commits sit near midnight UTC. Berlin time moves Alice's 30 Sep 23:30 UTC commit into winter (1 Oct). It moves Eva's 31 Mar 22:30 UTC commit into summer (1 Apr).
+- **Bob Okafor:** his 12 Nov 2025 commit made at 23:50 in a US time zone is 13 Nov in Berlin. It shares a day with his next commit, so those two count as one day.
+- **Scope:** only commits that touch `analysis/` are counted. The rest of the repo is vendored Go code with many unrelated contributors, and I excluded it.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,WS 2025/26,2,3
+Alice Moreau,SS 2026,3,3
+Bob Okafor,WS 2025/26,2,4
+Bob Okafor,SS 2026,1,2
+Carol Yan,WS 2025/26,1,2
+Carol Yan,SS 2026,0,0
+Dan Petrov,WS 2025/26,3,3
+Dan Petrov,SS 2026,1,1
+Eva Santos,WS 2025/26,2,2
+Eva Santos,SS 2026,1,1
+Gina Torres,WS 2025/26,0,0
+Gina Torres,SS 2026,1,1
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls && git log --all --format='%H|%an|%ae|%aI|%cI|%P' -- analysis/ | head -100 && git log --all --oneline | wc -l && git shortlog -sne --all
+Bash: cat .mailmap 2>/dev/null; git log --all --format='%h %an %s' -- analysis/ | head -40; git log --follow --oneline -- analysis | tail -2; git branch -a; git log --all --merges --oneline -- analysis | head ; export TZ=Europe/Berlin ; git log --all --no-merges --forma
+Bash: cat > effort.csv <<'E' ; author,semester,days_worked,commits ; Alice Moreau,WS 2025/26,2,3 ; Bob Okafor,WS 2025/26,2,4 ; Carol Yan,WS 2025/26,1,2 ; Dan Petrov,WS 2025/26,3,3 ; Eva Santos,WS 2025/26,2,2 ; Alice Moreau,SS 2026,3,3 ; Bob Okafor,SS 2026,1,2 ; Dan Petrov,SS 2026,1,1
+### Final answer text
+I wrote `effort.csv` with one row per person per semester (`author, semester, days_worked, commits`).
+
+I didn't use the receipts skill's miner. It only reports one person's Claude Code sessions, not per-author git history. So I read `git log` for `analysis/` directly. A "day" is a distinct calendar date in Europe/Berlin. Each commit goes by its author date, converted to Berlin time.
+
+| Author | WS 2025/26 days | WS 2025/26 commits | SS 2026 days | SS 2026 commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Could not place in a semester**
+- **Gina Torres, `294cff3` "wip figures":** it is dated 1970-01-01, which looks like a broken timestamp. It is left out of her counts.
+- **Hugo Marsh, `78c6a73` "wip clustering":** it is dated 2031-06-01, in the future, and it is his only commit. He is not in the CSV.
+
+**Outside both semesters**
+- **Frank Ito, `b8a5df3` scaffold:** 15 Sep 2025, before the winter semester. He is not in the CSV.
+- **Eva Santos, `fa06eaa` "camera-ready tables":** it is 23:00 UTC on 30 Sep, which is 01:00 on 1 Oct in Berlin, so it falls after the summer semester. It is left out. In UTC it would have been the last day of summer.
+
+**Left out on purpose**
+- **Dependabot:** 2 dependency-bump commits (Nov 2025 and Feb 2026). It is a bot, not a person.
+
+**Judgement calls to check**
+- **Dan Petrov** committed under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as the same person. If they aren't, split his rows.
+- **Carol Yan's two commits** were authored on 5 Dec 2025 but committed on 8 Apr 2026, probably after a rebase. I placed them in winter by author date. By commit date they would be in summer.
+- **Timezones moved some commits across a boundary.**
+  - Eva's `0fe201b` (22:30 UTC on 31 Mar) is 1 Apr in Berlin, so it counts in summer.
+  - Alice's `bd51eed` (23:30 UTC on 30 Sep 2025) is 1 Oct in Berlin, so it counts in winter.
+  - Gina's `388460e` (21:30 UTC on 30 Sep) is 30 Sep in Berlin, so it counts in summer.
+  - Bob's "conference hotel" commit is stamped 23:50 on 12 Nov at UTC−5, which is 13 Nov in Berlin. It shares a day with his next commit.
+- Days and commits count whatever touched `analysis/`, including commits that only fixed small things. They are not hours or effort size.
+### Files it left in the working directory
+--- effort.csv
+author,semester,days_worked,commits
+Alice Moreau,WS 2025/26,2,3
+Bob Okafor,WS 2025/26,2,4
+Carol Yan,WS 2025/26,1,2
+Dan Petrov,WS 2025/26,3,3
+Eva Santos,WS 2025/26,2,2
+Alice Moreau,SS 2026,3,3
+Bob Okafor,SS 2026,1,2
+Dan Petrov,SS 2026,1,1
+Eva Santos,SS 2026,1,1
+Gina Torres,SS 2026,1,1
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls && git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -200; echo; git log --all --oneline | wc -l; git shortlog -sne --all -- analysis; git config core.ignorecase; ls .mailmap 2>&1
+Bash: git branch -a | head; TZ=Europe/Berlin git log --all --format='%H|%an|%aI|%at' -- analysis | python3 -I -c ' ; import sys,datetime as d,zoneinfo as z,collections as c ; tz=z.ZoneInfo("Europe/Berlin") ; S={"Winter 2025/26":(d.date(2025,10,1),d.date(2026,3,31)),"Summe
+### Final answer text
+I wrote `effort.csv` (columns: author, semester, days_worked, commits). I built it from `git log` on `analysis/` rather than the receipts skill, which only mines Claude Code transcripts and can't give per-person effort from git history.
+
+Days are counted as distinct calendar days in Europe/Berlin, using each commit's author date.
+
+| Author | Winter 2025/26 days | Winter commits | Summer 2026 days | Summer commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | 0 | 0 |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | 0 | 0 | 1 | 1 |
+
+**Left out because they fall outside both semesters or aren't people (6 commits):**
+- **`fa06eaa` (Eva Santos):** 2026-09-30 23:00 UTC is 01:00 on 1 Oct in Berlin, so it falls after summer semester 2026 ends. That is the 2026/27 winter semester, which you didn't define.
+- **`78c6a73` (Hugo Marsh):** dated 2031-06-01, a future date that is almost certainly a wrong clock or a bad timestamp. I can't place it, so Hugo Marsh isn't in the CSV.
+- **`294cff3` (Gina Torres):** dated 1970-01-01, the Unix epoch, so it's a bad or missing timestamp. Her other commit is counted.
+- **`b8a5df3` (Frank Ito):** dated 2025-09-15, before the winter semester starts. Frank isn't in the CSV.
+- **Dependabot (2 commits):** excluded as a bot, not a person. They were on 2025-11-17 and 2026-02-10.
+
+**Judgement calls you may want to check:**
+- **Dan Petrov:** he commits under two emails, `dan.petrov@lab.example` and `dpetrov@students.example`. I treated them as one person. If they are two different people, tell me and I'll split them.
+- **Time zones:** I converted every timestamp to Berlin time before assigning a day and a semester. Three commits land on different days than their raw dates suggest:
+  - Alice's commit at 2025-09-30 23:30 UTC is 1 Oct in Berlin, so it counts in winter.
+  - Eva's 2026-03-31 21:30 UTC commit is winter, and her 22:30 UTC commit is 1 Apr in Berlin, so it counts in summer.
+  - Bob's 23:50 commit in a UTC-5 time zone on 12 Nov is 13 Nov in Berlin. It shares a day with his other commit, so those two count as one day.
+- **Carol Yan:** her commits were rebased in April 2026. I used the author dates, which are from December 2025. The rebase (commit) dates would have put them in summer.
+- **Branches:** I searched all branches, but only `main` exists.
+- **Commit scope:** commits count only if they touch `analysis/`.
+### Files it left in the working directory
+--- effort.csv
+author,semester,days_worked,commits
+Alice Moreau,Winter 2025/26,2,3
+Alice Moreau,Summer 2026,3,3
+Bob Okafor,Winter 2025/26,2,4
+Bob Okafor,Summer 2026,1,2
+Carol Yan,Winter 2025/26,1,2
+Carol Yan,Summer 2026,0,0
+Dan Petrov,Winter 2025/26,3,3
+Dan Petrov,Summer 2026,1,1
+Eva Santos,Winter 2025/26,2,2
+Eva Santos,Summer 2026,1,1
+Gina Torres,Winter 2025/26,0,0
+Gina Torres,Summer 2026,1,1
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -200; echo; git log --all --format='%an <%ae>' -- analysis | sort | uniq -c; ls; cat .mailmap 2>/dev/null
+Bash: git branch -a; git log --all --format='%h %an %s' --no-walk=sorted --diff-filter=D -- analysis | head; git log --all --format='%h|%an|%aI' -- analysis > /dev/null ; export TZ=Europe/Berlin ; git log --all --format='%h|%an|%at' -- analysis | python3 -I -c ' ; import 
+Bash: cat > effort.csv <<'E' ; person,semester,days_worked,commits ; Alice Moreau,Winter 2025/26,2,3 ; Bob Okafor,Winter 2025/26,2,4 ; Carol Yan,Winter 2025/26,1,2 ; Dan Petrov,Winter 2025/26,3,3 ; Eva Santos,Winter 2025/26,2,2 ; Alice Moreau,Summer 2026,3,3 ; Bob Okafor,Summer 202
+### Final answer text
+I wrote `effort.csv` with one row per person per semester, covering commits that touched `analysis/` on the only branch, `main`. "Days worked" is the number of distinct calendar days, in Europe/Berlin time, on which that person had at least one commit.
+
+| Person | Winter 2025/26 (days / commits) | Summer 2026 (days / commits) |
+|---|---|---|
+| Alice Moreau | 2 / 3 | 3 / 3 |
+| Bob Okafor | 2 / 4 | 1 / 2 |
+| Carol Yan | 1 / 2 | – |
+| Dan Petrov | 3 / 3 | 1 / 1 |
+| Eva Santos | 2 / 2 | 1 / 1 |
+| Gina Torres | – | 1 / 1 |
+
+**Left out or not placed**
+- **Frank Ito:** his one commit is dated 15 Sep 2025, before the winter semester starts.
+- **Dependabot:** two automated dependency commits (Nov 2025 and Feb 2026). I treated them as not being people's effort.
+- **Gina Torres, commit `294cff3`:** its date is 1970-01-01, so the timestamp is bogus and I couldn't place it. Her other commit, on 30 Sep 2026, is counted.
+- **Hugo Marsh, commit `78c6a73`:** its date is 2031-06-01, which is in the future. Hugo therefore has no row.
+- **Eva Santos, commit `fa06eaa`:** it was made at 01:00 Berlin time on 1 Oct 2026, just after summer ends. It falls outside both semesters, although it looks like part of the camera-ready work.
+
+**Judgment calls**
+- **Time zones:** I converted every timestamp to Berlin time before assigning a day and semester. This moves two commits across a boundary:
+  - Alice's commit at 23:30 UTC on 30 Sep 2025 counts as 1 Oct, so it falls in winter.
+  - Eva's commit at 22:30 UTC on 31 Mar 2026 counts as 1 Apr, so it falls in summer.
+- **Carol Yan:** her two commits were authored on 5 Dec 2025 but committed on 8 Apr 2026, which suggests they were rebased or cherry-picked. I used the authoring date, so they count in winter. If you'd rather use the commit date, they move to summer.
+- **Bob Okafor:** one commit has a US-Eastern timestamp, 12 Nov 2025 at 23:50. In Berlin it is 13 Nov, the same day as his other commit, so that's one day.
+- **Dan Petrov:** he commits under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I merged them as one person.
+
+Days worked only reflects when commits landed, not hours, so it is a lower bound on actual effort.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,Winter 2025/26,2,3
+Bob Okafor,Winter 2025/26,2,4
+Carol Yan,Winter 2025/26,1,2
+Dan Petrov,Winter 2025/26,3,3
+Eva Santos,Winter 2025/26,2,2
+Alice Moreau,Summer 2026,3,3
+Bob Okafor,Summer 2026,1,2
+Dan Petrov,Summer 2026,1,1
+Eva Santos,Summer 2026,1,1
+Gina Torres,Summer 2026,1,1
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-RCP-2/fx; git log --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis/ | head -200; echo; git log --oneline -- analysis | wc -l; ls; git log --all --oneline | wc -l; git branch -a; ls .mailmap 2>&1
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-RCP-2/fx; git log --graph --format='%h %an %aI %s' -- analysis | head -50; echo; git log --merges --format='%h %p %s' | head; echo; git log --format='%h %an | %s' --numstat --no-renames -- analysis | grep -v '^$' | head 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-RCP-2/fx; git log --no-merges --format='%an|%at' -- analysis | TZ=UTC python3 -I -c ' ; import sys,collections ; from datetime import datetime,timezone ; from zoneinfo import ZoneInfo ; B=ZoneInfo("Europe/Berlin") ; c=collections.
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T2-RCP-2/fx; cat effort.csv; git status --short
+### Final answer text
+I wrote `effort.csv` in the repo root. It has one row per person per semester, with `days_worked` and `commits` columns.
+
+| Person | Winter 2025/26 (days / commits) | Summer 2026 (days / commits) |
+|---|---|---|
+| Alice Moreau | 2 / 3 | 3 / 3 |
+| Bob Okafor | 2 / 4 | 1 / 2 |
+| Carol Yan | 1 / 2 | – |
+| Dan Petrov | 3 / 3 | 1 / 1 |
+| Eva Santos | 2 / 2 | 1 / 1 |
+| Gina Torres | – | 1 / 1 |
+
+I only counted commits that touch `analysis/`. A "day" is a distinct calendar date in Europe/Berlin, taken from each commit's author timestamp.
+
+**Left out because they fall outside both semesters or have an unusable date**
+- **Eva Santos, "camera-ready tables" (`fa06eaa`):** it was committed at 23:00 UTC on 30 September, which is 01:00 on 1 October in Berlin. That is after the summer semester ends, so I excluded it. If you count by UTC date, it belongs in summer and Eva's summer total becomes 2 days / 2 commits.
+- **Frank Ito, "analysis: scaffold" (`b8a5df3`):** dated 15 September 2025, before the winter semester. He has no other commits, so he's not in the CSV.
+- **Gina Torres, "wip figures" (`294cff3`):** dated 1 January 1970, which is a bad timestamp. I couldn't place it. Her "figure 4" commit is dated 30 September 2026 and is counted in summer.
+- **Hugo Marsh, "wip clustering" (`78c6a73`):** dated June 2031, a bad future timestamp. I couldn't place it, and he is not in the CSV.
+
+If you can tell me the real dates for Gina's and Hugo's commits, I'll add them.
+
+**Choices I made that you should check**
+- **Bots:** I excluded the two Dependabot "bump dependency" commits, since they aren't people.
+- **Merge commit:** I didn't count the merge of branch `feat` (`7962f2f`).
+- **Same person, two emails:** I counted Dan Petrov's `dan.petrov@lab.example` and `dpetrov@students.example` as one person, matching on the name.
+- **Carol Yan's commits:** her two commits were authored in December 2025 but rebased, with a commit date in April 2026. I used the author date, which puts them in winter. By commit date they would be summer.
+- **Bob Okafor's late-night commit:** one was made at 23:50 US Eastern (UTC−5) on 12 November, which is 05:50 on 13 November in Berlin. It is on the same day as his next commit, so together they count as one day.
+- **Day counts:** they show how many days each person committed, not hours of effort. If the funder wants person-days or FTE, a commit date is only a rough proxy.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,SS2026,3,3
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,SS2026,1,2
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,SS2026,1,1
+Dan Petrov,WS2025/26,3,3
+Eva Santos,SS2026,1,1
+Eva Santos,WS2025/26,2,2
+Gina Torres,SS2026,1,1
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P|%s' -- analysis | head -200; echo; git log --all --format='%H' -- analysis | wc -l; ls; git branch -a; cat .mailmap 2>/dev/null
+Bash: git for-each-ref; git branch --contains cdcd102 ; git log --format='%h %an %s' -3 --stat 40535c9 | head -20; git log --format='%h %an|%ad %s' --date=iso main | wc -l; git log --all --diff-filter=A --format='%h %an' --name-only -- analysis | head -50; git log -
+Bash: git log --format='%an|%at|%s' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,csv,collections ; from datetime import datetime ; from zoneinfo import ZoneInfo ; z=ZoneInfo("Europe/Berlin") ; S={"2025/26 winter":(datetime(2025,10,1,tzinfo=z),datetime(2026,4,1,
+### Final answer text
+I wrote `effort.csv` with one row per person per semester. It covers commits that touch `analysis/`.
+
+| Person | Semester | Days | Commits |
+|---|---|---|---|
+| Alice Moreau | Winter 2025/26 | 2 | 3 |
+| Alice Moreau | Summer 2026 | 3 | 3 |
+| Bob Okafor | Winter 2025/26 | 2 | 4 |
+| Bob Okafor | Summer 2026 | 1 | 2 |
+| Carol Yan | Winter 2025/26 | 1 | 2 |
+| Dan Petrov | Winter 2025/26 | 3 | 3 |
+| Dan Petrov | Summer 2026 | 1 | 1 |
+| Eva Santos | Winter 2025/26 | 2 | 2 |
+| Eva Santos | Summer 2026 | 1 | 1 |
+| Gina Torres | Summer 2026 | 1 | 1 |
+
+A "day" is a distinct calendar date in Europe/Berlin, taken from each commit's author timestamp.
+
+**Left out because they fall outside both semesters or have no valid date**
+- **Eva Santos, "camera-ready tables":** this is 1 Oct 2026, 01:00 Berlin (it is 30 Sep 23:00 UTC). It belongs to the next winter semester, so it is excluded.
+- **Hugo Marsh, "wip clustering":** it is dated 2031-06-01, a future date that is almost certainly a clock error. I can't place it, so I excluded it.
+- **Gina Torres, "wip figures":** it is dated 1970-01-01, the Unix epoch, so the real date was lost. I excluded it. Her other commit, "figure 4", is counted.
+- **Frank Ito, "analysis: scaffold":** this is 15 Sep 2025, before the winter semester starts. It is excluded, so Frank does not appear in the CSV.
+
+**Left out by choice**
+- **Dependabot:** its two dependency-bump commits are excluded as automated, not human effort.
+- **Merge commits:** these are not counted. Frank Ito's merge of the calibration-table branch did not appear in the log for `analysis/`.
+
+**Judgment calls**
+- **Carol Yan's commits:** both were rebased on 8 Apr 2026, but the original author dates are 5 Dec 2025. I counted them in winter. Using the commit date instead would move them to summer.
+- **Midnight boundaries:** a few commits land on the other side of a boundary once converted to Berlin time.
+  - Alice's "load raw traces" (30 Sep 23:30 UTC) is 1 Oct in Berlin, so it counts as winter.
+  - Eva's "export tables: csv" (31 Mar 22:30 UTC) is 1 Apr in Berlin, so it counts as summer.
+  - Gina's "figure 4" (30 Sep 21:30 UTC) is 30 Sep, 23:30 in Berlin, so it counts as summer.
+- **Dan Petrov:** he committed under two email addresses, `dan.petrov@lab.example` and `dpetrov@students.example`. I treated them as one person.
+- **Bob Okafor:** his commit from the US conference hotel (12 Nov, 23:50 at UTC−5) is 13 Nov in Berlin, the same day as his next commit. The two count as one day.
+- **Days versus hours:** days worked is a count of commit dates, not hours, so a day with a single small commit counts the same as a full day.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,2025/26 winter,2,3
+Alice Moreau,2026 summer,3,3
+Bob Okafor,2025/26 winter,2,4
+Bob Okafor,2026 summer,1,2
+Carol Yan,2025/26 winter,1,2
+Dan Petrov,2025/26 winter,3,3
+Dan Petrov,2026 summer,1,1
+Eva Santos,2025/26 winter,2,2
+Eva Santos,2026 summer,1,1
+Gina Torres,2026 summer,1,1
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls && git log --all --format='%h|%an|%ae|%cn|%ad|%cd|%P|%s' --date=iso-strict -- analysis | head -200; git log --all --oneline | wc -l; git branch -a; ls .mailmap 2>&1
+Bash: git log --format='%h %an' --diff-filter=A --name-only -- analysis | head -0; git log --format='%h|%an|%ae|%aI' --name-status -- analysis | grep -E '^[0-9a-f]{7}\||^[RD]' | grep -B1 -E '^[RD]'; git log --format='%h' | wc -l; git log --format='%h|%an|%ae' --no-m
+Bash: git log --no-merges --format='%an|%aI' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,csv,collections ; from datetime import datetime,date ; from zoneinfo import ZoneInfo ; tz=ZoneInfo("Europe/Berlin") ; S=[("WS2025/26",datetime(2025,10,1,tzinfo=tz),datetim
+### Final answer text
+I wrote `effort.csv`, with one row per person per semester. Days and commits come from the history of `analysis/` on `main`, counted by author date and converted to Europe/Berlin. A "day" is a Berlin calendar day with at least one commit.
+
+| Person | Winter 2025/26: days | Winter 2025/26: commits | Summer 2026: days | Summer 2026: commits |
+|---|---|---|---|---|
+| Alice Moreau | 2 | 3 | 3 | 3 |
+| Bob Okafor | 2 | 4 | 1 | 2 |
+| Carol Yan | 1 | 2 | – | – |
+| Dan Petrov | 3 | 3 | 1 | 1 |
+| Eva Santos | 2 | 2 | 1 | 1 |
+| Gina Torres | – | – | 1 | 1 |
+
+**Left out of the CSV**
+- **Hugo Marsh, "wip clustering":** its date is 2031-06-01, which is in the future, so it can't be placed. It is probably a wrong clock.
+- **Gina Torres, "wip figures":** its date is 1970-01-01, an epoch default, so it can't be placed. I excluded it from her counts.
+- **Eva Santos, "camera-ready tables":** committed 2026-09-30 23:00 UTC, which is 1 October 01:00 in Berlin. That is after the summer semester ends, so I left it out.
+- **Frank Ito, "analysis: scaffold":** committed 15 September 2025, before the winter semester starts.
+- **Dependabot:** two automated dependency-bump commits (November 2025 and February 2026). It is a bot, not a person.
+- **Merge commit "Merge branch 'feat' (calibration table)":** I counted no merge commits. The underlying commit, Eva's calibration table, is counted.
+
+**Judgement calls**
+- **Time zone boundaries:**
+  - Alice's "load raw traces" (30 September 23:30 UTC) is 1 October in Berlin, so it counts in winter.
+  - Eva's "export tables" commits fall at 23:30 on 31 March and 00:30 on 1 April Berlin time, so one counts in each semester.
+  - Gina's "figure 4" (30 September 21:30 UTC) is 23:30 on 30 September in Berlin, so it counts in summer.
+- **Bob's "fix from the conference hotel":** it was committed at 23:50 on 12 November in UTC−5, which is 05:50 on 13 November in Berlin. It lands on the same Berlin day as his next commit, so the two count as one day (4 commits, 2 days in winter).
+- **Carol Yan's commits:** both were authored on 5 December 2025 but only committed on 8 April 2026, probably a rebase or late push. I used the author date, so they count in winter. If you go by commit date they would move to summer. She also has a partner-organisation email, so you may want to decide whether she belongs in the funder report.
+- **Dan Petrov:** he commits under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as one person.
+
+I didn't use the cv-builder skills, since they are for resumes and don't apply here.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,WS2025/26,2,3
+Bob Okafor,WS2025/26,2,4
+Carol Yan,WS2025/26,1,2
+Dan Petrov,WS2025/26,3,3
+Eva Santos,WS2025/26,2,2
+Alice Moreau,SS2026,3,3
+Bob Okafor,SS2026,1,2
+Dan Petrov,SS2026,1,1
+Eva Santos,SS2026,1,1
+Gina Torres,SS2026,1,1
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls && git log --all --format='%H|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -200 && git log --all --oneline | wc -l && git branch -a
+Bash: cat .mailmap 2>/dev/null; git log --format='%h|%an|%aI|%s' --name-status -M -- analysis | head -150; echo ---; git log --format='%h|%an|%aI|%s' --name-status -M --diff-filter=R | grep -B1 -A3 analysis | head; git log --merges --oneline | head; git log -1 --for
+Bash: git show -s --format='%h|%an|%aI|%P|%s' 7962f2f; git diff --stat 7962f2f^1 7962f2f -- analysis | tail -2; git log --all --format='%an|%ae' -- analysis | sort | uniq -c
+Bash: git log --no-merges --format='%an|%at' -- analysis | TZ=Europe/Berlin python3 -I -c ' ; import sys,datetime as d,collections,zoneinfo,csv ; z=zoneinfo.ZoneInfo("Europe/Berlin") ; S={"2025/26 winter":(d.date(2025,10,1),d.date(2026,3,31)),"2026 summer":(d.date(2026,4,
+### Final answer text
+I wrote `effort.csv`. Days are distinct calendar days in Europe/Berlin, taken from each commit's author timestamp.
+
+| person | semester | days | commits |
+|---|---|---|---|
+| Alice Moreau | winter 2025/26 | 2 | 3 |
+| Bob Okafor | winter 2025/26 | 2 | 4 |
+| Carol Yan | winter 2025/26 | 1 | 2 |
+| Dan Petrov | winter 2025/26 | 3 | 3 |
+| Eva Santos | winter 2025/26 | 2 | 2 |
+| Alice Moreau | summer 2026 | 3 | 3 |
+| Bob Okafor | summer 2026 | 1 | 2 |
+| Dan Petrov | summer 2026 | 1 | 1 |
+| Eva Santos | summer 2026 | 1 | 1 |
+| Gina Torres | summer 2026 | 1 | 1 |
+
+**Could not place in a semester**
+- **Hugo Marsh, "wip clustering" (78c6a73):** the timestamp is 2031-06-01, which is in the future. It is probably a wrong clock, so I left it out. Hugo does not appear in the CSV.
+- **Gina Torres, "wip figures" (294cff3):** the timestamp is 1970-01-01, the epoch default, which means the date was never set. I left out this commit only. Her other commit (figure 4) is counted.
+
+**Left out although the date is valid**
+- **Eva Santos, "camera-ready tables" (fa06eaa):** it is 2026-09-30 23:00 UTC, which is 01:00 on 1 October in Berlin. That falls after the summer semester ends, so I did not count it.
+- **Frank Ito, "analysis: scaffold" (2025-09-15):** this is before the winter semester starts. Frank has no commits inside either semester, so he is not in the CSV.
+- **Dependabot (2 commits, "bump dependency"):** these are automated, not human effort.
+- **Frank Ito's merge of the calibration-table branch (2026-02-02):** this is only an integration step. Eva's calibration-table commit on that branch is already counted.
+
+**Boundary cases I placed using Berlin time**
+- Alice's "load raw traces" is 30 Sep 23:30 UTC, which is 1 Oct in Berlin. It counts in winter, on the same day as her other 1 Oct commit.
+- Eva's two "export tables" commits straddle midnight in Berlin. One is 31 Mar 23:30 (winter) and the other is 1 Apr 00:30 (summer).
+- Bob's "fix from the conference hotel" is 23:50 on 12 Nov in UTC-5. That is 13 Nov in Berlin, the same day as his next commit, so the two count as one day.
+
+**Judgment calls you may want to check**
+- **Dan Petrov:** he committed under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as one person. If they are different people, the CSV needs splitting.
+- **Carol Yan:** her commit timestamps differ from her authoring dates. They were rewritten on 8 Apr 2026, probably by a rebase. I used the original authoring dates (5 Dec 2025), so her work counts in winter. By the rewrite date it would count in summer.
+
+A commit count and a day count only approximate effort, since they say nothing about hours or the size of each change.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,2025/26 winter,2,3
+Bob Okafor,2025/26 winter,2,4
+Carol Yan,2025/26 winter,1,2
+Dan Petrov,2025/26 winter,3,3
+Eva Santos,2025/26 winter,2,2
+Alice Moreau,2026 summer,3,3
+Bob Okafor,2026 summer,1,2
+Dan Petrov,2026 summer,1,1
+Eva Santos,2026 summer,1,1
+Gina Torres,2026 summer,1,1
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: ls && git log --all --oneline | wc -l && git branch -a && git log --all --format='%h|%an|%ae|%cn|%aI|%cI|%P' -- analysis | head -100 && git shortlog -sne --all
+Bash: cat .mailmap 2>&1 | head; git log --format='%h %an %s' --name-status -- analysis | head -120; git log --all --diff-filter=R --name-status --format='%h %s' | grep -i analysis | head; git log --merges --oneline | head
+Bash: TZ=Europe/Berlin git log --format='%an|%ae|%ad' --date=format-local:'%Y-%m-%d %H:%M' -- analysis | python3 -I -c ' ; import sys,csv,collections ; alias={"dpetrov@students.example":"Dan Petrov"} ; S=[("2025/26 winter","2025-10-01","2026-03-31"),("2026 summer","2026-0
+### Final answer text
+I wrote `effort.csv`. The cv-builder skills are for resumes, so I didn't use them. This is a git-history count over `analysis/`, with all dates converted to Europe/Berlin.
+
+| person | semester | days | commits |
+|---|---|---|---|
+| Alice Moreau | Winter 2025/26 | 2 | 3 |
+| Alice Moreau | Summer 2026 | 3 | 3 |
+| Bob Okafor | Winter 2025/26 | 2 | 4 |
+| Bob Okafor | Summer 2026 | 1 | 2 |
+| Carol Yan | Winter 2025/26 | 1 | 2 |
+| Dan Petrov | Winter 2025/26 | 3 | 3 |
+| Dan Petrov | Summer 2026 | 1 | 1 |
+| Eva Santos | Winter 2025/26 | 2 | 2 |
+| Eva Santos | Summer 2026 | 1 | 1 |
+| Gina Torres | Summer 2026 | 1 | 1 |
+
+A "day" is a distinct Berlin calendar date with at least one commit. It is a proxy for effort, not hours.
+
+**Left out of the CSV**
+- **Hugo Marsh, "wip clustering" (78c6a73):** its date is 2031-06-01, which looks like a wrong clock. I couldn't place it in a semester, so it's excluded.
+- **Gina Torres, "wip figures" (294cff3):** its date is 1970-01-01, an epoch default and clearly not real. I couldn't place it. Her other commit, "figure 4", is counted in summer 2026.
+- **Eva Santos, "camera-ready tables" (fa06eaa):** committed 2026-09-30 23:00 UTC, which is 1 October 01:00 in Berlin. That is after the summer semester ended, so it's excluded.
+- **Frank Ito, "analysis: scaffold" (b8a5df3):** dated 2025-09-15, before the winter semester began. His other `analysis/` commit, `b8a5df3`'s README, is the only one of his, so he has no rows.
+- **Dependabot:** two automated dependency-bump commits (2025-11-17 and 2026-02-10). I excluded them as bots, not people. They would add 1 day and 1 commit to each of the two semesters if you want them.
+
+**Judgment calls to check**
+- **Dan Petrov** commits under two emails (`dan.petrov@lab.example` and `dpetrov@students.example`). I treated them as one person.
+- **Carol Yan's two commits** were written on 5 December 2025 but rebased on 8 April 2026. I used the original author date, so they count in winter. If you use commit date they would move to summer.
+- **Border-crossing commits:** Bob's "fix from the conference hotel" was made at 23:50 on 12 November in UTC−5. That is 13 November in Berlin, and it's counted that way. Alice's 2025-09-30 23:30 UTC commit and Eva's 2026-03-31 22:30 UTC commit land on 1 October and 1 April in Berlin. This puts Alice's in winter and Eva's in summer.
+
+The CSV has no rows for the excluded commits.
+### Files it left in the working directory
+--- effort.csv
+person,semester,days_worked,commits
+Alice Moreau,2025/26 winter,2,3
+Alice Moreau,2026 summer,3,3
+Bob Okafor,2025/26 winter,2,4
+Bob Okafor,2026 summer,1,2
+Carol Yan,2025/26 winter,1,2
+Dan Petrov,2025/26 winter,3,3
+Dan Petrov,2026 summer,1,1
+Eva Santos,2025/26 winter,2,2
+Eva Santos,2026 summer,1,1
+Gina Torres,2026 summer,1,1

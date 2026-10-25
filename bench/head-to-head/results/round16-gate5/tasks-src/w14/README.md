@@ -1,0 +1,13 @@
+# w14b: five release-manager tasks (release notes, thanks, back-outs, counts, patch release)
+
+All upstream facts (repository, pinned sha, layout) were read from the cloned repositories; nothing is from memory. Each fixture clones the public repository, pins an old commit (all pins are before 2025) and adds synthetic commits dated 2025. Two builds per task give the same HEAD; truth.py output equals truth.txt on both.
+
+t1 pallets/itsdangerous (Python), pin 62fde54d, HEAD f8d86758. Release notes after the commit "Release version 2.3.0". Hazards: revert, revert of a revert, revert of a change already shipped in 2.3.0, whitespace-only formatter commit, bot, docs/tests-only commits, merge commit with two commits, squash with co-author. Conventions: graph range, user-facing = non-whitespace change under src/, net effect of reverts, shipped-then-reverted reported as removal.
+
+t2 sindresorhus/p-limit (JS), pin 7d14b3f0, HEAD 85500fb2. Thank-you section after commit "6.3.0". Hazards: one person under three identities (mailmap covers two), accent spelling with the same e-mail, maintainer with a second e-mail, bots, Co-authored-by trailers, cherry-pick (author differs from committer), reverted contribution, merged branch. Conventions: people not strings, author credit, co-authors credited, maintainers (MAINTAINERS.md) and bots excluded, reverted-only contributor not thanked (alternative accepted).
+
+t3 mattn/go-isatty (Go), pin 13e91bf4, HEAD e5619c89. What was backed out since "Release v0.0.21". Hazards: revert dated before its original, abbreviated sha in trailer, hand-written back-out, revert of a merge (-m 1), partial back-out, revert then identical re-land, "Revert to ..." title that is a new change. Conventions: first-parent units, content-based back-out detection, graph order not date.
+
+t4 dtolnay/semver (Rust), pin dd8dc0ad, HEAD 051d8258. Header counts (commits, people, first-timers) for "Release 1.0.27" vs "Release 1.0.26". Hazards: author dates 1970, 2031, 2027, rebased commit, long-lived branch merged after the previous release, commits after the release, bot, two identities (mailmap and name only), co-author trailer, revert pair. Conventions: graph range R26..R27, primary counts plus listed variants (release commit, merges, bots, co-authors).
+
+t5 sinatra/mustermann (Ruby), pin 573cd316, HEAD 048965f2. Patch release 3.1.2 notes plus development-only list. Hazards: cherry-picks (committer differs), one without the "cherry picked from" line and with a changed message, same fix on two lines, squash with co-author, stable line merged back into HEAD, release commit not at HEAD. Conventions: R1..R2 range, credit authors and co-authors, patch-id matching of copies.

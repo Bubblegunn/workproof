@@ -8,10 +8,11 @@ import { isBotIdentity } from "./bot.js";
  *
  * - proven: the repository itself ties the addresses (a Signed-off-by trailer of the same name, a GitHub noreply login
  *   that equals the other address's name, a .mailmap, which git has already applied).
- * - probable: the same full name on two addresses at the same organisation, or beside a personal mailbox. Counted in the
- *   merged figure and labelled, so the user can see the split figure beside it.
- *
- * The same full name at two unrelated organisations is NOT merged: it is listed as a namesake and kept apart.
+ * - probable: the same full name (two words or more) on two addresses: at the same organisation, beside a personal mailbox, or
+ *   at a different organisation. Counted in the merged figure and labelled, so the user can see the split figure beside it.
+ *   In seven independent writers' task sets, six treated one full name as one person; a real namesake is rarer than a person
+ *   with a work address, a university address and a personal one. When the joined addresses sit at different organisations the
+ *   join says that a namesake is possible and lists it as a caution; the proven-only figure is the split.
  */
 export interface PersonCommit {
   sha: string;
@@ -156,11 +157,24 @@ export function groupPeople(commits: PersonCommit[]): People {
     }
     for (const group of perOrg.values()) for (const e of group.slice(1)) join(group[0]!, e, "same full name at the same organisation", "probable");
     const anchor = perOrg.size ? [...perOrg.values()][0]![0]! : others[0];
-    if (perOrg.size <= 1) {
-      for (const e of others) if (e !== anchor) join(anchor!, e, "same full name beside a personal mailbox", "probable");
-    } else {
-      namesakes.push({ name: n, emails: es, reason: `the same full name at unrelated organisations (${[...perOrg.keys()].join(", ")}): kept apart, not merged` });
+    for (const e of others) if (e !== anchor) join(anchor!, e, "same full name beside a personal mailbox", "probable");
+    if (perOrg.size > 1) {
+      const firsts = [...perOrg.values()].map((g) => g[0]!);
+      for (const e of firsts.slice(1)) join(firsts[0]!, e, "same full name at a different organisation (a namesake is possible)", "probable");
+      namesakes.push({ name: n, emails: es, reason: `the same full name at different organisations (${[...perOrg.keys()].join(", ")}): joined as probable; if these are two people the proven-only figure is the split` });
     }
+  }
+  // Probable: a first name shortened to its initial ("D. Whitfield") with the surname of exactly one full name that starts with that initial.
+  const fullNames = new Map<string, Set<string>>();
+  for (const e of emails) for (const n of nameKeys(e)) {
+    const parts = n.split(" ");
+    if (parts.length === 2 && parts[0]!.replace(".", "").length > 1) fullNames.set(`${parts[0]![0]} ${parts[1]}`, new Set([...(fullNames.get(`${parts[0]![0]} ${parts[1]}`) ?? []), find(e)]));
+  }
+  for (const e of emails) for (const n of nameKeys(e)) {
+    const m = /^([a-z])\.? ([^ ]+)$/.exec(n);
+    if (!m) continue;
+    const roots = fullNames.get(`${m[1]} ${m[2]}`);
+    if (roots && roots.size === 1 && !roots.has(find(e))) join([...roots][0]!, e, "first name shortened to an initial with the surname of one full name", "probable");
   }
   const groups = new Map<string, string[]>();
   for (const e of emails) groups.set(find(e), [...(groups.get(find(e)) ?? []), e]);

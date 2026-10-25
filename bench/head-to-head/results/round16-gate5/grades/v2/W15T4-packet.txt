@@ -1,0 +1,780 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git blame -w -M -C -C --line-porcelain src/method.c | grep '^author ' | sort | uniq -c; wc -l src/method.c
+Bash: git show be5dc1c --stat --format='%H%n%an %cn%n%B' | head -30; git show 57ca66b --stat -M --format='%B' | head; git log --all --format='%h %an %s' | head -20; git blame -w -M -C -C --date=short src/method.c | cut -c1-60 | awk '{print $1,$2,$3,$4}' | uniq -c -w
+Bash: git log -p --format='=== %h %an' --stat=200 -M -- src/method.c core/method.c | grep -v '^index' | sed -n '1,400p' | awk '/^===/{p=1} p' | head -300; git diff --shortstat be5dc1c HEAD -- src/method.c core/method.c
+### Final answer text
+**Short answer:** about 62% of `src/method.c` is original code from before this repository's history. The git history credits that code to Kai Oksanen, but Kai only imported it. The commit message names Lars Weber and Hana Ito as the original authors.
+
+**What `git blame` gives for the 148 lines** (run with `-w -M -C -C`, so the rename and whitespace changes don't distort it):
+
+| Person | Lines | Share |
+|---|---|---|
+| Kai Oksanen | 92 | 62% |
+| Mira Costa | 30 | 20% |
+| Jun Park | 20 | 14% |
+| Ivan Pop | 6 | 4% |
+
+**How sure I am for each name**
+
+- **Lars Weber and Hana Ito (original authors): moderate confidence that they are the right people to credit, low confidence on who wrote what.**
+  - The only evidence is one sentence in Kai's import commit `be5dc1c`. It says the svn log shows Lars Weber wrote r1–r300 (2019–2021) and Hana Ito wrote r301–r412 (2021–2022).
+  - Git has no record of this. The svn history was not converted, and neither person has a git account.
+  - The line split between them can't be recovered from this repository. The file's first commit is a single snapshot of r412.
+  - You need the original svn server or a dump to verify the claim and to say who wrote which part.
+- **Kai Oksanen: high confidence about the import, low confidence as an author.**
+  - Kai committed the whole file on 2025-02-03, but the commit message itself says it is a snapshot of someone else's work.
+  - Kai may also have written some of the svn revisions, but nothing here shows that. Crediting Kai as author of the 92 lines would be wrong on the evidence we have.
+- **Mira Costa: high confidence.** In `3afdad4` (2025-10-21) she rewrote a block of about 30 lines into `fma(...) * w; /* simd-friendly */` form.
+- **Jun Park: high confidence.** Jun wrote 20 lines today: the `/* weight */` comments on 14 lines in `0e5f45f` and the `(double)` casts on 6 lines in `e975fa8`.
+- **Ivan Pop: high confidence, but minimal contribution.** Ivan made the pure rename `core/` → `src/` (`57ca66b`, no content change) and a 6-line edit in `19f9abc`.
+
+**What the history can't establish**
+
+1. **Who designed the method.** Line counts and commit authorship don't show who conceived the algorithm. Everything after the import is a mechanical or stylistic edit: casts, comments, an fma rewrite, and a simplification.
+2. **Anything before r412.** This covers the svn history, the Weber/Ito split, and any contributions that were squashed or lost.
+3. **Whether the svn authorship claim is accurate.** It is Kai's recollection or paraphrase of the svn log. The svn log itself isn't in this repository.
+4. **Whether the later edits preserved behaviour.** I haven't checked this, but it matters if the paper's results depend on this file.
+   - `19f9abc` ("simplify tail terms") replaces six distinct terms with six identical `coeff[0] * x[0] * 0.5` lines.
+   - Mira's `fma(c, x, 0.0)` lines also use different index and weight pairings from the originals.
+   - Either change could alter the numerical result. The commit messages say "simplify" and "restructure", so please confirm with Ivan and Mira that these were intended.
+5. **Contributions outside this file.** The repository also contains an unrelated project (the inih INI parser, with 150+ upstream commits). I ignored it because it doesn't touch `method.c`.
+
+**Suggested wording for the letter:** "The core method originates in the lab's earlier Subversion codebase (r1–r412), written by Lars Weber and Hana Ito according to the svn log. It was im
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-RCP-2/fx; git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git shortlog -sne --all; ls; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-RCP-2/fx; wc -l src/method.c; git blame -w -M -C -C --date=short -e src/method.c | awk '{print}' | head -150; echo; git blame -w -M -C -C --line-porcelain src/method.c | grep '^author ' | sort | uniq -c; for c in be5dc1c
+### Final answer text
+**Short answer:** git history cannot support naming any of the people who committed to `src/method.c` as the author of the core method. About 62% of today's lines trace to a 2025 import of a legacy SVN snapshot. The commit message says that code was written by two people who have no git account.
+
+The file is 148 lines. I counted them with `git blame -w -M -C -C`, following the rename from `core/` to `src/`.
+
+| Source | Lines | Share | What they did |
+|---|---|---|---|
+| Kai Oksanen (import commit `be5dc1c`, 2025-02-03) | 92 | 62% | Imported the SVN snapshot r412 |
+| Mira Costa (`3afdad4`, 2025-10) | 30 | 20% | Restructured the inner terms for vectorisation |
+| Jun Park (`e975fa8`, `0e5f45f`, 2025-04 and 06) | 20 | 14% | Fixed integer promotion (6 lines) and added weight comments (14 lines) |
+| Ivan Pop (`19f9abc`, 2026-02) | 6 | 4% | Simplified the tail terms |
+
+Ivan Pop also committed the move into `src/` (`57ca66b`), which changed no lines. He also committed Jun Park's two commits as the committer, but Park is the author on both.
+
+**How sure I am for each name:**
+
+- **Lars Weber (r1–r300, 2019–2021) and Hana Ito (r301–r412, 2021–2022): probable original authors of the 62%, but not confirmed by git.**
+  - The only evidence is the import commit message. It lists them as "original authors according to the svn log".
+  - The split between them is unknown. The history doesn't say which of the 92 lines come from whom, and that code was never converted to git.
+  - To confirm, check the original SVN server's log and blame, ideally with their agreement.
+- **Kai Oksanen: confident they imported the code, not that they wrote it.** The commit message itself describes the commit as an import of other people's work. Crediting Kai as the author of the core would likely be wrong. They may have contributed in SVN, but nothing here shows it.
+- **Mira Costa: confident about the 30 lines (20%).** These are a vectorisation rewrite of the existing terms, so it's an adaptation, not the method's design. The email is a students.example address, so check her role before you describe her.
+- **Jun Park: confident about the 20 lines (14%).** These are a type-promotion fix and comments, which doesn't make them an author of the method.
+- **Ivan Pop: confident about the 6 lines (4%).** He is mostly a maintainer or committer in this history.
+
+**What the history cannot establish:**
+
+- Who designed the algorithm or the weights. Line counts measure surviving text, not intellectual contribution. Those 92 lines could be heavily or trivially rewritten relative to what Weber and Ito originally wrote.
+- Whether the git names are the same people as the paper's authors. I matched them only by name and email.
+- Whether Weber and Ito's SVN work was itself derived from earlier code or papers.
+- Whether the line counts understate anyone's work. Reformatting or deleted code leaves no trace in blame.
+
+**Suggested wording:** "The method originates in the lab's legacy SVN solver (Weber, Ito; imported to git by Oksanen). It was later modified by Park, Costa, and Pop." Please confirm the Weber and Ito attribution against the SVN log before sending.
+
+**A separate problem in the current code:** Ivan Pop's latest commit (`19f9abc`) replaced lines 140–145 with six identical lines, `acc += coeff[0] * x[0] * 0.5;`. That looks like a copy-paste error, not a simplification, because it changes the computed result. Please check it before the revision. The file also calls `fma` but includes only `<
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-RCP-3/fx; git log --follow --format='%h %an <%ae> %ad %cn %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git shortlog -sne --all; ls; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-RCP-3/fx; git blame --follow -w -M -C -C -e --line-porcelain src/method.c | grep -E '^(author-mail|author) ' | paste - - | sort | uniq -c; wc -l src/method.c
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-RCP-3/fx; git log --follow --stat --format='--- %h %an | committer %cn | %s%n%b' -- src/method.c | head -60; git show be5dc1c --stat | head -20; git head 2>/dev/null; head -30 src/method.c; git log --format='%h %an %s' -
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-RCP-3/fx; git show 3afdad4 -- src/method.c | head -30; git show 19f9abc e975fa8 0e5f45f --format='== %h' -- src/method.c core/method.c | grep -E '^(==|[+-] )' | head -40
+### Final answer text
+**Short answer:** the history only partly supports naming the git authors. By line count, most of `src/method.c` as it stands today comes from the 2019–2022 Subversion code. That code was imported as one snapshot, so the repository cannot tell you who wrote it.
+
+**Current file, by `git blame` (148 lines, `--follow -w -M -C -C`)**
+
+| Git author | Lines | Share | What the commits were |
+|---|---|---|---|
+| Kai Oksanen | 92 | 62% | A single bulk import (`be5dc1c`, 2025‑02‑03) of Subversion r412. |
+| Mira Costa | 30 | 20% | `3afdad4`, "restructure inner terms for vectorisation" (30 lines replaced). |
+| Jun Park | 20 | 14% | `e975fa8` (6 lines, integer‑promotion casts) and `0e5f45f` (14 lines, "document weights"). |
+| Ivan Pop | 6 | 4% | `19f9abc`, "simplify tail terms" (6 lines). His `57ca66b` was a pure rename, which blame doesn't count. |
+
+**Confidence per name**
+- **Mira Costa: high** that she wrote those 30 lines. It is her own commit, authored and committed by her.
+- **Ivan Pop: high** for the 6 lines in `19f9abc`, which he authored and committed. He also committed Jun Park's two commits and did the move into `src/`, but that is not authorship of the code.
+- **Jun Park: high** that they authored those 20 lines. Ivan Pop is the committer on both, so credit Jun Park as author. Ivan Pop was only the committer.
+- **Kai Oksanen: high** that they made the import, and **low to none** that they wrote the code. The commit message says it is a snapshot of someone else's work, so Kai should not be named as author of those 92 lines.
+- **Lars Weber (r1–r300, 2019–2021) and Hana Ito (r301–r412, 2021–2022): low to moderate.**
+  - The only evidence is Kai's commit message ("according to the svn log"). Neither has a git account, and the repository holds no svn log to check it against.
+  - They are probably the original authors, since the message is specific and consistent.
+  - I can't verify it, and I can't tell you how the 92 surviving lines split between the two. The r300/r301 boundary isn't recoverable from this history.
+
+**What the history cannot establish**
+1. **Original authorship.** The svn history was not converted, so the git history shows nothing before Kai's import. Check the original svn log or ask Kai for it before you name Weber and Ito.
+2. **Whether the commits were really solo work.** Authorship here means the git author field. Pair work, code taken from elsewhere, or a different person typing for someone else wouldn't show up.
+3. **Intellectual authorship of the method.** Line counts say nothing about who designed the algorithm. Much of the later work is mechanical or small (casts, comments, reordering, a 6‑line simplification), so the later contributors improved or maintained the method rather than originating it.
+4. **Whether the git identities are single people.** I found no `.mailmap` and no duplicate identities for these four, but I can't confirm that from the history alone.
+5. **Whether the line counts reflect effort.** The counts reflect only what survives today.
+
+**Suggested wording:** "The core method originates in the lab's earlier Subversion codebase (2019–2022), attributed in the import record to Lars Weber and Hana Ito. It was imported to git by Kai Oksanen and has since been revised by Jun Park, Mira Costa and Ivan Pop." Before you send it, confirm the Weber/Ito attribution against the original svn log.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | %cn | %ad | %s' --date=short -- src/method.c; echo ---; git log --all --format='%h %an | %ad | %s' --date=short | head -50; echo ---; git blame -w -M -C -C --line-porcelain src/method.c | grep '^author ' | sort | uniq 
+Bash: git show be5dc1c --stat --format=fuller | head -30; for c in e975fa8 0e5f45f 57ca66b 3afdad4 19f9abc; do echo "=== $c"; git show $c --format=fuller --stat -M | head -20; done; echo; git blame -w -M -C -C --date=short src/method.c
+Bash: git show be5dc1c -- src/method.c method.c | head -40; git log --all --oneline --diff-filter=AD --name-status -- '*method*' ; git log -3 --format=%B 19f9abc 3afdad4 | head -30
+Bash: git show 19f9abc | tail -20; git show e975fa8 | sed -n 1,16p | tail -8; git show 3afdad4 | sed -n 8,16p
+### Final answer text
+**Short answer:** Today's `src/method.c` is mostly Kai Oksanen's import of older code, and the history cannot say who actually wrote that code. The git history alone doesn't support naming Kai as the author of the method.
+
+## What the history shows (148 lines, `git blame -w -M -C -C`)
+
+| Name | Lines now | Share | What they did |
+|---|---|---|---|
+| Kai Oksanen | 92 | 62% | Committed the whole file on 2025-02-03 as a snapshot of Subversion r412. |
+| Mira Costa | 30 | 20% | Rewrote the inner terms for vectorisation (2025-10-21). |
+| Jun Park | 20 | 14% | Fixed an integer promotion (6 lines). Added `/* weight */` comments (14 lines). |
+| Ivan Pop | 6 | 4% | Changed the tail terms (2026-02-10). He also did the `core/`→`src/` move, which is a pure rename. |
+
+## Who the history supports crediting, and how sure I am
+
+- **Lars Weber and Hana Ito: very likely the original authors, but only on Kai's word.** The import commit message says the svn log credits Weber for r1–r300 (2019–2021) and Ito for r301–r412 (2021–2022). Neither has a git account, and the old history was not converted. That is a claim in a commit message, not something the repository can verify. The svn log on the lab server is the real evidence.
+- **Kai Oksanen: confident they imported the file, not at all confident they wrote it.** The commit says "Import legacy solver", so the 92 lines blamed on Kai are the legacy code. Crediting Kai as author would very likely be the wrong call. Kai is the right name for "who brought it into git."
+- **Mira Costa: confident, for the current form.** Mira authored and committed the vectorisation rewrite themselves. Their 30 lines are the 30 inner terms the commit replaced. The changes go beyond reformatting: the indices and weights also changed, not only the `fma` wrapper.
+- **Jun Park: confident about the 20 lines, but the commits need care.** Jun is the author of two commits that Ivan Pop committed (Ivan applied them 1–2 days later). Credit Jun as the author. Ivan was the committer, so don't credit Ivan for those lines.
+  - The 14 "document weights" lines only add comments.
+  - The 6 "integer promotion" lines add a `(double)` cast, so Jun's contribution there is a correction.
+- **Ivan Pop: confident about 6 lines, and those lines look wrong.** Lines 140–145 are now six identical `coeff[0] * x[0] * 0.5` terms. They replaced six distinct terms (weights 134–139), so the numerical result changed. This looks like a bug or a bad merge to me. Ask Ivan whether it was intentional before the paper's numbers depend on it.
+
+## What the history cannot establish
+
+1. **Who designed the method.** The algorithm predates git. Authorship of the idea and of the original code rests on the svn log only.
+2. **The split between Weber and Ito.** The commit message gives revision ranges but no line mapping, so I can't say which lines belong to whom.
+3. **Whether the paper's method equals this file.** The file has been edited since the import, and Mira's and Ivan's changes alter the terms.
+4. **Whether anyone else contributed outside git.** This includes pair programming, code pasted in from elsewhere, and work done under another identity.
+5. **Whether the email identities are who we think.** The names come from commit metadata, which can be set freely.
+
+## Suggested wording for the response letter
+
+> The method originates in the lab's legacy solver, written by Lars Weber (2019–2021) and Hana Ito (2021–2022), and imported into git by Kai Oksanen in 2025. The current im
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | %cn | %ad | %s' --date=short -- src/method.c; echo ---; git log --all --format='%h %an | %ad | %s' --date=short | head -50; echo ---; git shortlog -sne --all; ls; cat .mailmap 2>/dev/null
+Bash: git blame -w -M -C -C --follow -e --date=short src/method.c | head -150; echo; git blame -w -M -C -C --follow --line-porcelain src/method.c | grep '^author ' | sort | uniq -c
+Bash: git show -s --format='%h%nA: %an %ae %ad%nC: %cn %ce %cd%n%B---' be5dc1c e975fa8 0e5f45f 57ca66b 3afdad4 19f9abc; git show --stat -M 57ca66b | tail -5; git show 19f9abc 3afdad4 | grep -E '^[-+]' | cut -c1-90 | head -80; git show --stat be5dc1c | head -20; ls c
+### Final answer text
+Almost all of `src/method.c` descends from legacy code that Kai Oksanen imported from Subversion. The people who wrote that code are not recorded in git as authors.
+
+I used `git log --follow` and `git blame -w -M -C -C --follow` (whitespace-insensitive, following moves and copies). The file is 148 lines today, and the blame splits like this:
+
+| Lines | Share | Git author | What they did |
+|---|---|---|---|
+| 92 | 62% | Kai Oksanen | Imported the file in one snapshot commit, `be5dc1c` (2025-02-03). |
+| 30 | 20% | Mira Costa | `3afdad4` rewrote 30 terms as `fma(c, x, 0.0) * w`, marked "simd-friendly". |
+| 20 | 14% | Jun Park | `e975fa8` added `(double)` casts on 6 lines. `0e5f45f` added `/* weight */` comments on 14 lines. |
+| 6 | 4% | Ivan Pop | `19f9abc` replaced 6 terms with `acc += coeff[0] * x[0] * 0.5;`. |
+
+## Who to name, and how sure I am
+
+- **Lars Weber and Hana Ito: original authors, but only moderately sure.**
+  - The only evidence is the import commit message. It says the svn log credits Weber for r1–r300 (2019–2021) and Ito for r301–r412 (2021–2022). Neither has a git account.
+  - Git can't confirm that claim, and it can't say which of the 92 surviving lines come from which person.
+  - Kai wrote the message, so it is a reliable pointer to the svn log but not proof. Check the svn log itself before relying on it.
+- **Kai Oksanen: importer, not author, as far as the history shows.**
+  - I'm highly sure Kai made the import commit. I have no evidence Kai wrote the algorithm.
+  - Kai may have edited the code before importing it. The history can't show that.
+  - Don't credit Kai with the method on the strength of 62% blame. Those lines are an import.
+- **Mira Costa: modest contributor, highly sure.** They rewrote 30 lines for vectorisation. `fma(c, x, 0.0)` gives the same value as `c * x`, so this changes how the code is written, not what it computes.
+- **Jun Park: small contributor, highly sure.** The cast is a real bug fix, and the comments are documentation.
+- **Ivan Pop: maintainer, not an author of the method.**
+  - Ivan authored 6 lines.
+  - Ivan also committed Jun's two commits, which is why `git log` shows Ivan as committer there. That means Ivan applied Jun's patches, not that Ivan wrote them.
+  - Ivan also made `57ca66b`, a pure rename from `core/` to `src/` with no content change.
+
+## What the history cannot establish
+
+- **Who devised the algorithm.** Authorship of a file is not authorship of a method. The paper's idea may predate the svn history, or live outside this repository.
+- **Which original author wrote which line.** Only one snapshot of r412 was imported, so Weber's and Ito's contributions are merged and indistinguishable. The roughly 90 surviving lines can't be divided between them.
+- **Whether Kai changed anything at import.** There is nothing to compare against.
+- **Identities.** Git emails are not verified. I'm assuming each name is one person and that the emails belong to the people named.
+- **Other work on the method.** Design discussion, reviews, and algorithm work outside this file leave no trace here.
+
+## A problem in Ivan's commit
+
+`19f9abc` is titled "simplify tail terms", but it did more than that. It deleted `coeff[1..6] * x[2..7] * w` for w = 134–139 and added six identical `coeff[0] * x[0] * 0.5` lines. That changes the numerical result, and it looks like a mistake or a placeholder.
+
+The `fma` calls also appear with no `<math.h>` include. Check whether the results in the paper were produced before 
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | %cn | %ad | %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git log --all --format='%h %an | %s' --date=short | head -50; ls; cat .mailmap 2>/dev/null
+Bash: git blame -w -C -C -C -M --line-porcelain src/method.c | grep -E '^author ' | sort | uniq -c; wc -l src/method.c; git blame -C -C -C -M -e src/method.c | awk '{print $2}' | sort | uniq -c
+Bash: git show be5dc1c --stat --format=full | head -30; git log --format='%h %an %ad %s' --date=short --name-status -- core src | head -40; git show 57ca66b --stat -M | head; head -30 src/method.c
+Bash: git blame -w -M -C -C --date=short src/method.c | cut -c1-110
+Bash: git show 19f9abc 3afdad4 | grep -E '^(commit|Author|[-+])' | cut -c1-90 | awk 'NR<20 || /^commit|^Author/ || /^[-+]/ && ++n<60'; git show e975fa8 0e5f45f --format='%h %an / %cn' --stat | head -12
+### Final answer text
+**Short answer:** about 62% of `src/method.c` is the legacy code Kai Oksanen imported, and the history cannot tell you who actually wrote it. Svn history names Lars Weber and Hana Ito as the original authors. I'd credit Kai as the person who brought the code in, not as its author.
+
+**Current file (148 lines).** I used `git blame -w -M -C -C -C`, which follows the 2025-08-18 move from `core/` to `src/`:
+
+| Lines | Share | Git author | What they did |
+|---|---|---|---|
+| 92 | 62% | Kai Oksanen | Committed the single import snapshot on 2025-02-03. Not necessarily the author. |
+| 30 | 20% | Mira Costa | On 2025-10-21, rewrote lines 100–129 into `fma(…, 0.0) * w` form for vectorisation. |
+| 20 | 14% | Jun Park | On 2025-04-07, changed 6 lines with a `(double)` cast. On 2025-06-02, added `/* weight */` comments to 14 lines. |
+| 6 | 4% | Ivan Pop | On 2026-02-10, replaced 6 terms in "simplify tail terms". The 2025-08-18 move commit changed no content. |
+
+**Confidence for each name**
+- **Lars Weber and Hana Ito: high that they wrote the original code, but I can't give a split.**
+  - The import commit message says the svn log credits Lars for r1–r300 (2019–2021) and Hana for r301–r412 (2021–2022). It says neither has a git account.
+  - The 92 imported lines are a single snapshot of r412, so git can't say which lines came from which of them. I'd say "Lars Weber and Hana Ito (original lab Subversion history)" without a ratio.
+  - The only source for this is Kai's own commit message. Checking it needs the svn server's `svn blame` on r412.
+- **Kai Oksanen: high confidence as importer, low as author.** The commit message doesn't claim Kai wrote any of it.
+- **Mira Costa: high that she wrote her 30 lines.** The change is a mechanical rewrite of existing terms for vectorisation, not new method design.
+- **Jun Park: high that they wrote their 20 lines.** The changes are a bug-fix cast and comments. Ivan Pop is listed as committer on both commits, so Ivan probably applied Jun's patches. Credit Jun, since git records them as author.
+- **Ivan Pop: high for 6 lines, which is minor authorship.** Ivan appears as author on only the move and the tail-terms commit, and as committer for Jun's two commits.
+
+**What the history cannot establish**
+- **Who designed the method.** The idea could predate the code and the svn history. This file is only its implementation.
+- **Per-author shares of the original 92 lines.** See Lars and Hana above.
+- **Whether any commit's author field is accurate.** Git authorship is self-reported. For example, Mira's address is a students.example one, and I can't tell whether her work was supervised or a collaboration.
+- **Work outside this file.** Design discussion, review, and testing don't show up in blame. I only checked `src/method.c`, and I didn't check the rest of the repo for the method's other parts.
+- **Pre-svn history.** Anything before r1 is unknown.
+
+**A finding you should check before replying.** Two recent edits look like they changed behaviour, not just style:
+- **Mira's `fma` block:** the new index pairs don't match the lines they replaced. For example, line 94 was `coeff[3]*x[6]*94.0` and is now `fma(coeff[2], x[1], 0.0)*94.0`.
+- **Ivan's tail edit:** six distinct terms (`…*134.0` through `…*139.0`) became six identical `coeff[0]*x[0]*0.5` lines.
+
+These may be intentional, or they may be regressions that change the published results. I haven't compared outputs, so I don't know which.
+
+**Suggested wording for the letter:**
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path src/method.c 2>&1 | head -60; git log --follow --format='%h %an <%ae> %ad | %cn | %s' --date=short -- src/method.c | head -50
+Bash: git show -s --format=full be5dc1c; git show --stat --format=%h be5dc1c | tail -8; git show -s --format='%h %B' 0e5f45f e975fa8 | head; grep -n -i -E 'author|copyright|\(c\)|written|svn' src/method.c | head
+### Final answer text
+**Short answer:** git cannot name the original authors of `src/method.c`. The 62% credited to Kai Oksanen is an import of someone else's code. I would not name Kai as its author in the response letter.
+
+**What the history shows**
+
+The file has 6 commits by 4 people. It is 148 lines at HEAD. The surviving-line figures below come from blame with whitespace and moves ignored, and plain blame gives the same numbers.
+
+| Person | Surviving lines | Commits | Confidence in the credit |
+|---|---|---|---|
+| Kai Oksanen | 92 (62.2%) | 1 | **Low** as author, **high** as importer. |
+| Mira Costa | 30 (20.3%) | 1 (2025-10-21, vectorisation restructure) | High. |
+| Jun Park | 20 (13.5%) | 2 (2025-04-07, 2025-06-02) | High for what git records. One caveat is below. |
+| Ivan Pop | 6 (4.1%) | 2 (2025-08-18, 2026-02-10) | High for the 6 lines. |
+
+- **Kai Oksanen:** the file was created in be5dc1c on 2025-02-03 as a snapshot of the lab's old Subversion repository at r412. The commit message says the old history was not converted. It names the original authors from the svn log as **Lars Weber** (r1–r300, 2019–2021) and **Hana Ito** (r301–r412, 2021–2022). Neither has a git account.
+- **Ivan Pop:** the 57ca66b commit only moved the file into `src/`, with no content change.
+- **Jun Park:** the committer on both of their commits is Ivan Pop, but the author is Jun Park. I credited Jun, since authorship is what counts here.
+
+**What the history cannot establish**
+
+1. **Who wrote the 92 lines Kai imported.** The commit message says Lars Weber and Hana Ito wrote them, but that is Kai's own note and git doesn't verify it. The split between the two is only known as revision ranges, not as lines or percentages. Lars wrote r1–r300 and Hana r301–r412, so a revision count is a poor proxy for lines. The svn log, or the lab's Subversion server, would settle it.
+2. **Whether the 92 lines are unchanged since r412.** I assumed they are, and the blame output doesn't contradict that. Kai may still have edited the code before importing it.
+3. **Work not in git.** Design ideas, the algorithm itself and any paper-level contribution are outside what git records. Whoever designed the method may not be anyone listed here.
+4. **Whether the first-commit date is real.** It is not backdated by the usual signs. The committer and author dates match across all 6 commits.
+
+**For the letter**
+
+I would say that the current file combines a legacy solver written by Lars Weber and Hana Ito (2019–2022, imported from Subversion by Kai Oksanen in February 2025) with later changes by Jun Park, Ivan Pop and Mira Costa. Before sending, check the svn log for the Weber/Ito split and confirm both of them agree to be named.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path src/method.c; git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c | head -50
+Bash: git show -s --format=fuller be5dc1c; git show --stat --format= be5dc1c | tail -5; head -20 src/method.c; ls; git log --format='%h %an %s' | head -20
+### Final answer text
+**Short answer:** git blame names Kai Oksanen for 62% of `src/method.c`, but that is a statement about who imported the file. It is not a statement about who wrote it. The commit message says the original code came from two other people, and neither appears in the git history.
+
+**What the history shows**
+
+The file has 148 lines today and 6 commits by 4 git authors. The blame figures below are the same with and without whitespace and move detection.
+
+| Git author | Surviving lines | Commits | Dates |
+|---|---|---|---|
+| Kai Oksanen | 92 (62%) | 1 | 2025-02-03 |
+| Mira Costa | 30 (20%) | 1 | 2025-10-21 |
+| Jun Park | 20 (14%) | 2 | 2025-04-07 and 2025-06-02 |
+| Ivan Pop | 6 (4%) | 2 | 2025-08-18 and 2026-02-10 |
+
+- **Kai Oksanen (the 62%):** Kai's single commit, be5dc1c, is titled "Import legacy solver from the lab Subversion server (r1-r412)". Its message says the old history was not converted and that this is one snapshot of r412. It names the original authors from the svn log as Lars Weber (r1–r300, 2019–2021) and Hana Ito (r301–r412, 2021–2022). It adds that neither has a git account. The file was also at `core/method.c` then and was moved to `src/` later.
+- **Mira Costa (30 lines):** Mira restructured the inner terms for vectorisation in 3afdad4. Mira's lines are real, current edits.
+- **Jun Park (20 lines):** Jun fixed an integer promotion in `accumulate` and documented the weights.
+- **Ivan Pop (6 lines):** Ivan simplified the tail terms in 19f9abc. Ivan's other commit, 57ca66b, only moved the file and changed no lines.
+
+**How sure I am for each name**
+
+- **Mira Costa, Jun Park, Ivan Pop:** High confidence. Their lines were added by their own commits, and each is credited for the edits listed above. Mira's and Jun's commit addresses are university-style and Ivan's is a lab address, but the history doesn't establish anyone's employer. I haven't looked at the diffs to see which lines changed.
+- **Kai Oksanen:** High confidence that Kai brought the code into git. Low confidence, and probably wrong, that Kai wrote the 92 lines. The commit message itself attributes that code to others.
+- **Lars Weber and Hana Ito:** Moderate confidence that they wrote the original code, because the claim rests on one sentence in a commit message that quotes the svn log. I couldn't check it against the svn log itself. It also doesn't say which of the 92 surviving lines come from Lars and which from Hana. The revision split (r1–r300 and r301–r412) can't be mapped onto lines from git alone.
+
+**What the history cannot establish**
+
+- **Who wrote the 92 imported lines:** Only the svn log can settle this. If you can get it, `svn blame` at r412 would give a line-by-line split between Lars and Hana.
+- **Whether Kai changed the code during import:** The snapshot is a single commit, so any edits Kai made at import time are invisible.
+- **Who designed the method:** Authorship of lines is not the same as who devised the algorithm. Git cannot say who had the idea.
+- **Whether the date `2025-02-03` can be trusted:** The tool found no sign of backdating, but a date alone can't prove it.
+
+**Suggested wording for the response letter**
+
+"The method originates in the lab's legacy solver, written by Lars Weber (2019–2021) and Hana Ito (2021–2022) according to our Subversion records. It was imported into git by Kai Oksanen in February 2025. It has since been modified by Jun Park, Mira Costa and Ivan Pop."
+
+Please get the svn log confirmed before sending this. Today roughly 6
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path src/method.c; git log --follow --format='%h %an %ad %s' --date=short -- src/method.c | head -50
+Bash: git show be5dc1c --stat --format='%an <%ae>%n%cn%n%B' | head -30; git show be5dc1c:src/method.c 2>/dev/null | head -20 || git show be5dc1c --name-only; git log --all --oneline | wc -l; ls
+### Final answer text
+**Short answer:** git blame credits Kai Oksanen with most of `src/method.c`. That is almost certainly wrong as authorship, because Kai's commit imported the code from an older Subversion repository. The real original authors are Lars Weber and Hana Ito, and git can't tell us what each of them wrote.
+
+**Current lines (148 in total, same result with and without whitespace and move detection):**
+
+| Name | Lines | Share | What the history shows |
+|---|---|---|---|
+| Kai Oksanen | 92 | 62% | One commit, be5dc1c, on 2025-02-03. It is a snapshot import of the old Subversion repository at r412. |
+| Mira Costa | 30 | 20% | One commit, 3afdad4, on 2025-10-21. It restructured the inner terms for vectorisation. |
+| Jun Park | 20 | 13.5% | Two commits (2025-04-07 and 2025-06-02). One fixed integer promotion in accumulate. The other documented the weights. |
+| Ivan Pop | 6 | 4% | 19f9abc on 2026-02-10 simplified the tail terms. 57ca66b only moved the file into `src/`, so it adds no lines. |
+
+**How sure I am for each name:**
+- **Mira Costa, Jun Park and Ivan Pop: high.** Their lines come from their own commits in this repository. The counts are exact for the file as it stands.
+- **Kai Oksanen: high that Kai committed these 92 lines, but low that Kai wrote them.** The commit message says the old history was not converted. It credits the original authors, "according to the svn log", as Lars Weber (r1–r300, 2019–2021) and Hana Ito (r301–r412, 2021–2022). It says neither has a git account. Naming Kai as the author of the 92 lines would be the mistake you want to avoid.
+- **Lars Weber and Hana Ito: medium, and from the commit message only.** It is Kai's own account, and I haven't checked it against the Subversion log. It cites revision ranges, but not who wrote which lines.
+
+**What the history can't establish:**
+- **The split between Lars and Hana.** Blame can't see inside the snapshot. The revision ranges give a rough order of work but no line counts. Only the Subversion server can show who wrote which lines.
+- **Whether Kai changed anything during the import.** The commit shows 148 added lines as a snapshot. Kai may have edited it and it would look the same.
+- **Who designed the method.** Line counts say nothing about the idea. I don't know whether the algorithm is described in the paper, or who the paper credits for it.
+- **How much of the original survives.** About 92 of 148 lines are still the imported text. Later commits may have changed some of those lines. Blame gives them to the later author only where a line was replaced.
+
+**Suggested wording for the letter:** "The solver in `src/method.c` was written in our lab's Subversion repository by Lars Weber (2019–2021) and Hana Ito (2021–2022), and imported into git by Kai Oksanen in February 2025. Since then it has been modified by Mira Costa (about 20% of current lines), Jun Park (about 14%) and Ivan Pop (about 4%)."
+
+Before you send it, I suggest two checks. Ask Kai to confirm the import was unmodified and that the Subversion attribution is right. Pull the Subversion log (`svn blame` at r412) to get the Lars and Hana split. The Subversion log would settle the one question git can't.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo ---; git log --all --oneline | wc -l; git blame -w -M -C -C --line-porcelain src/method.c | grep -E '^(author |author-mail )' | paste - - | sort | uniq -c; echo ---; wc -l src/m
+Bash: git show -s --format='%an / committer %cn%n%B' be5dc1c; git show --stat --format='%h' be5dc1c | head; head -30 src/method.c; grep -rniE 'author|copyright|svn|credit' --include='*' -l . 2>/dev/null | grep -v '^./.git/' | head; git show -s --format='%h %an %s' 3
+### Final answer text
+**Short answer:** git shows the surviving lines as mostly Kai Oksanen's, but Kai only imported them. The commit message says the original authors were Lars Weber and Hana Ito. I'd credit the original code to them, not Kai.
+
+I did not run the receipts skill's miner. It reports Claude Code usage and can't answer an authorship question, so I used `git blame` and `git log --follow` on `src/method.c` instead.
+
+**Who wrote the 148 lines as they stand today** (`git blame -w -M -C -C`):
+
+| Lines | Share | Git author | What the history shows |
+|---|---|---|---|
+| 92 | ~62% | Kai Oksanen | One commit on 2025-02-03 importing a snapshot of SVN r412. The commit message says "Original authors according to the svn log: Lars Weber (r1-r300, 2019-2021) and Hana Ito (r301-r412, 2021-2022). Neither has a git account." |
+| 30 | ~20% | Mira Costa | Restructured the inner terms for vectorisation (2025-10-21). |
+| 20 | ~14% | Jun Park | Fixed integer promotion in accumulate (2025-04-07) and documented the weights (2025-06-02). |
+| 6 | ~4% | Ivan Pop | Simplified the tail terms (2026-02-10). His move into `src/` (2025-08-18) was a pure rename with no content change. |
+
+**Who to name, and how sure I am**
+- **Lars Weber and Hana Ito, original authors of the legacy solver (~62% of lines): fairly sure they wrote it, but I can't give a split.** The only evidence is Kai's own commit message, quoting the SVN log. I can't check that log. I also can't tell how many of the 92 lines each person wrote, or how much of it survives unchanged from them. The revision ranges (r1-r300 vs r301-r412) are not a measure of code volume, so don't turn them into percentages.
+- **Kai Oksanen: confident they imported the code, not that they wrote it.** Their name is on 92 lines only because of the import. Whether they also contributed to the legacy code in SVN is unknown. Crediting Kai as author would likely be wrong. They could be credited for bringing the code into git.
+- **Mira Costa (~20%): confident.** Their commit is a single, clearly attributed change. The caveats are that it is a restructuring, and that "30 lines" is the size of the edit, not an estimate of new ideas.
+- **Jun Park (~14%): confident.** Their changes were a bug fix and documentation. They changed the lines but probably didn't design the method.
+- **Ivan Pop (~4%): confident about the lines, but there's a flag below.** Their only content commit is the "simplify tail terms" change. The `src/` move is attributed to them but didn't change the content.
+
+**What the history can't establish**
+- **Anything before the import.** Git holds one snapshot. There is no per-line authorship from the 412 SVN revisions, and the SVN server isn't here.
+- **Who designed the method.** Git records who typed lines. The idea behind the method may predate all of this, or come from someone with no commits. Ask Lars Weber, Hana Ito or Kai for that.
+- **Whether the git author is the real author.** Commits could be rebased, committed on someone's behalf, or made from a shared account. Nothing in the log suggests that here, but I can't rule it out.
+- **Work outside this file.** I followed renames, so the `core/` to `src/` move is covered. Ideas discussed elsewhere, or code copied in from other files, would not show up.
+- **How the 92 vs 30 vs 20 vs 6 line counts relate to intellectual contribution.** They are only a rough measure of surviving text.
+
+**A flag before you cite Ivan Pop's commit.** Commit 19f9abc is labelled "simplify tail terms", but
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h %an <%ae> | committer %cn | %ad | %s' --date=short --stat -M -- src/method.c; echo ---; git log --all --oneline | wc -l; echo; git blame -w -M -C -C --line-porcelain src/method.c | awk '/^author /{a=substr($0,8)} /^author-mail/{m=
+Bash: git show -s --format=%B be5dc1c; head -30 src/method.c; grep -rniE "kai|oksanen|svn|subversion|legacy|author" README.md LICENSE.txt src/method.c | head; git log --all --format='%h %an %s' | grep -iE "svn|import|legacy|merge"|head; git show 0e5f45f 3afdad4 --st
+### Final answer text
+I answered this from the git history. The receipts skill reports Claude Code usage, so it wasn't the right tool.
+
+## Who wrote `src/method.c` today
+
+`src/method.c` has 148 lines. `git blame` (ignoring whitespace, following moves and copies) splits them like this:
+
+| Lines | Share | Git author | What the history shows |
+|---|---|---|---|
+| 92 | ~62% | Kai Oksanen | One commit, 2025-02-03. It imported a snapshot of an old Subversion repo, so Kai is not necessarily the author of this code. |
+| 30 | ~20% | Mira Costa | 2025-10-21, "restructure inner terms for vectorisation". |
+| 20 | ~14% | Jun Park | Two commits: the integer-promotion fix (2025-04) and "document weights" (2025-06). Ivan Pop committed both, but Jun is the author. |
+| 6 | ~4% | Ivan Pop | 2026-02-10, "simplify tail terms". Ivan's other commit only moved the file from `core/` to `src/`. |
+
+## The Kai Oksanen line is the one to be careful with
+
+Kai's commit message says the import was a single snapshot of svn r412. It says the old history was not converted. It also says: "Original authors according to the svn log: **Lars Weber** (r1-r300, 2019-2021) and **Hana Ito** (r301-r412, 2021-2022). Neither has a git account."
+
+- **Kai Oksanen:** probably not the author of the 92 lines. Confidence that Kai wrote them is low. Kai is the importer, and the message points to Weber and Ito as the authors.
+- **Lars Weber and Hana Ito:** the likely original authors of that ~62%, with moderate confidence. This rests only on a sentence in a commit message that quotes an svn log we don't have. Neither name appears as a git author anywhere in the repo.
+- **Mira Costa:** high confidence for ~30 lines, a restructuring of existing code. The commit touched 60 lines with 30 added and 30 removed, so it rewrote the existing lines in place.
+- **Jun Park:** high confidence for ~20 lines, mostly fixes and documentation of existing code.
+- **Ivan Pop:** high confidence for ~6 lines. Ivan also committed Jun's two commits, so Ivan's name appears as committer on three of the five commits after the import.
+
+## What the history cannot establish
+
+- **Who wrote which of the 92 imported lines.** The split between Weber and Ito is unknowable from git. If they matter for the letter, the answer is in the old Subversion server (`svn blame` or `svn log`).
+- **Whether the svn authorship claim is right.** I can't verify it. It also doesn't say whether Weber and Ito wrote the algorithm or only maintained it, or whether someone before r1 contributed.
+- **Credit for the ideas.** Line counts measure surviving text, not design. The later commits changed how terms are computed and organised. A 6-line change can matter more than a 30-line one. Mira's vectorisation rewrite touches the same expressions the original authors wrote, so the algorithm's origin is still theirs.
+- **Whether authors really are who the git metadata says.** Name and email come from git config, so a shared account or a commit made on someone's behalf wouldn't show. This matters mainly for Kai's import.
+- **Deleted history.** Anything that was in the file and has since been rewritten no longer counts in `blame`. I only checked the current file and its commit list.
+
+## Suggested wording for the response letter
+
+> The core method (`src/method.c`) originates in the lab's legacy solver, authored per the Subversion log by Lars Weber and Hana Ito (2019–2022). It was imported into git by Kai Oksanen in 2025 and subsequently revised by Jun Park, Mira Costa and Ivan Po
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h %an <%ae> | %cn | %ad | %s' --date=short -- src/method.c; echo ---; git log --all --format='%h %an | %s' --date=short | wc -l; echo --- blame; git blame -w -M -C -C --line-porcelain src/method.c | grep '^author ' | sort | uniq -c;
+Bash: git show be5dc1c --stat --format='%B%n%an %cn %ad' | head -30; for c in e975fa8 0e5f45f 3afdad4 19f9abc; do echo "=== $c"; git show $c --format='%an / %cn%n%B' --numstat -- src/method.c method.c | head -20; done; git show be5dc1c -- method.c src/method.c | hea
+Bash: for c in e975fa8 0e5f45f; do echo "=== $c"; git show $c --format='A:%an C:%cn%n%B' --stat | head -12; done; git log --all --format='%h %an | %s' -- core/method.c
+### Final answer text
+I used git history instead of the receipts skill, because that skill reports Claude Code usage and can't attribute authorship. I didn't generate or save any receipt files.
+
+## Who wrote `src/method.c` as it stands today
+
+`git blame` (ignoring whitespace, following moves) attributes the file's 148 lines like this:
+
+| Line owner in git | Lines | Share | What the history shows |
+|---|---|---|---|
+| Kai Oksanen | 92 | ~62% | Committed the file on 2025-02-03 as a single import |
+| Mira Costa | 30 | ~20% | Restructured the inner terms for vectorisation (2025-10-21) |
+| Jun Park | 20 | ~14% | Fixed an integer promotion in `accumulate` and documented the weights (Apr and Jun 2025) |
+| Ivan Pop | 6 | ~4% | Simplified the tail terms (2026-02-10) |
+
+## Kai Oksanen did not write the 92 lines
+
+The import commit message says this is one snapshot of r412 from the lab's Subversion server. It says the old history was not converted. It names the original authors from the svn log:
+
+- **Lars Weber:** r1–r300, 2019–2021
+- **Hana Ito:** r301–r412, 2021–2022
+
+Neither has a git account.
+
+The 92 "Kai" lines are therefore Weber's and Ito's work, or work by others that the svn log doesn't capture. Kai is the importer.
+
+## How sure I am for each name
+
+- **Lars Weber and Hana Ito:** high confidence they are the original authors of the core. The only evidence is the commit message, which is Kai's own note and not something git verifies.
+  - I can't say how much is Weber's and how much is Ito's. The 300/112 revision split is not a line split.
+  - I haven't seen the svn log, so I can't confirm it.
+- **Kai Oksanen:** high confidence they imported the file. Low confidence they wrote any of it. Don't credit Kai as author on this evidence alone.
+- **Mira Costa:** high confidence on 30 lines (~20%). Git records both author and committer as Mira, and the change is a plain 30-line edit.
+- **Jun Park:** high confidence on ~20 lines (~14%).
+  - Ivan Pop is the committer on both of Jun's commits and Jun is the author. That fits Ivan applying Jun's patches, and the git author field is the one to trust.
+  - I can't tell how much of the "document weights" change is comments and how much is code. Line counts overstate how much Jun changed the method itself.
+- **Ivan Pop:** high confidence on the 6 lines (~4%). Ivan also moved the file into `src/` (57ca66b), but a move doesn't make Ivan the author of the content.
+
+## What the history cannot establish
+
+- **Who wrote which of the 92 original lines**, and anything that happened between r1 and r412.
+- **Ideas versus lines.** Blame measures the surviving text. The vectorisation restructure and the numerics fixes may matter more to the method than their line share suggests. Nothing in git says which parts the paper's contribution rests on.
+- **Work outside this repo.** If someone designed the method on paper or in another repo and others typed it in, git won't show it. The same goes for pair work or patches sent by email under another name.
+- **Identity.** I'm assuming each name is a single person. I didn't check for aliases.
+
+## Suggested wording
+
+I'd credit the core to the original authors, Lars Weber and Hana Ito, with the caveat that their share is from the svn log and can't be split. I'd credit later modifications to Mira Costa, Jun Park and Ivan Pop, and describe Kai Oksanen as the person who migrated it to git. Before you send this, ask Kai for the svn log, or ask Weber or Ito to confirm their contributions.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git shortlog -sne --all
+Bash: git blame -w -M -C -C --line-porcelain src/method.c | grep -E '^(author |author-mail )' | paste - - | sort | uniq -c; wc -l src/method.c; ls; cat .mailmap 2>/dev/null
+Bash: git show be5dc1c --stat --format='%B' | head -30; git show 57ca66b --stat --format='%B'|head; for c in e975fa8 0e5f45f 3afdad4 19f9abc; do echo == $c; git show $c --format='%an | %cn | %B' --numstat -- src/method.c method.c | head -8; done; grep -rniE 'method|
+Bash: for c in e975fa8 0e5f45f 3afdad4 19f9abc; do echo == $c; git show $c --format='%an | %cn | %s%n%b' --numstat | head -8; done; git show 3afdad4 19f9abc -- src/method.c core/method.c | head -120
+Bash: for c in e975fa8 0e5f45f 3afdad4 19f9abc; do echo "-- $c"; git show $c --format='%an | %cn | %s%n%b' --numstat | head -8; done; git show 3afdad4 19f9abc -- src/method.c core/method.c | head -150
+### Final answer text
+**Short answer:** the history shows who last touched each line. It does not show who wrote the method. About 62% of `src/method.c` (92 of 148 lines) comes from a single snapshot import, and the authors of that snapshot are named only in a commit message.
+
+**Line-by-line blame (148 lines, `git blame -w -M -C -C`, following the rename from `core/`)**
+
+| Lines | Share | Git author | What it really is |
+|---|---|---|---|
+| 92 | 62% | Kai Oksanen | Importer of the SVN snapshot (r412), not necessarily an author |
+| 30 | 20% | Mira Costa | Rewrote inner terms for vectorisation (Oct 2025) |
+| 20 | 14% | Jun Park | Integer-promotion fix (6 lines) and weight documentation (14 lines) |
+| 6 | 4% | Ivan Pop | Tail-term change (Feb 2026); the move to `src/` changed no lines |
+
+**How sure I am for each name**
+
+- **Lars Weber** (SVN r1–r300, 2019–21) and **Hana Ito** (r301–r412, 2021–22): these are the likely original authors of the 92 imported lines. The only evidence is the import commit message, which says "according to the svn log". I could not verify it, and neither person has a git account. The old history was not converted. I can't split the 92 lines between them, and I can't tell whether Weber or Ito wrote the algorithm itself or inherited it from someone else.
+- **Kai Oksanen:** high confidence they performed the import. Low confidence they wrote any of the code. Don't credit them as author based on blame alone.
+- **Mira Costa:** high confidence for the 30 lines she changed. She is the git author and committer, and her edits are still there in full. I can't tell how much of the original method her edits preserve.
+- **Jun Park:** high confidence for 20 small lines, a bug fix and documentation. That is a minor contribution, not authorship of the core method. Ivan Pop committed both of Jun's commits, so Jun was probably a contributor whose patches Ivan applied.
+- **Ivan Pop:** high confidence for 6 lines. They are also the committer on Jun's commits, but that is gatekeeping, not authorship.
+
+**What the history cannot establish**
+
+- Who conceived the method, as opposed to who wrote the code. Nothing here shows who designed it, and the code may implement an algorithm from the lab or from the literature.
+- Anything about SVN r1–r412 beyond the commit message: who wrote which lines, whether Weber and Ito used code from others, and whether the file existed in some other form before the snapshot.
+- Whether the Git identities are single people. I found no `.mailmap` file. Those named in the 154 total commits are only the six above plus the other contributors to this repository, who never touched this file.
+- Whether authors worked in pairs or copied from others. Git records one author per commit.
+
+**Possible behaviour changes in the two recent edits**
+
+Both edits are labelled as refactors, but on my reading of the diffs they changed what the code computes. I did not compile or run anything.
+- Mira's commit changes the indices as well as the form. For example, `coeff[3]*x[6]*94.0` became `fma(coeff[2], x[1], 0.0)*94.0`. The `fma(...,0.0)` wrapper is neutral, but the different `coeff` and `x` indices are not.
+- Ivan's commit replaces six distinct terms (`coeff[1..6]` times `x[2..7]`, weights 134–139) with six copies of `coeff[0]*x[0]*0.5`.
+
+If your published results come from the pre-October-2025 version, the authorship of the code that produced them is almost entirely the imported snapshot. Check this with the authors before you answer.
+
+**Suggested word
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> | %cn | %ad | %s' --date=short -- src/method.c; echo; git log --oneline --all | wc -l; git blame -w -M -C -C --line-porcelain src/method.c | grep -E '^(author |author-mail )' | paste - - | sort | uniq -c; wc -l src/metho
+Bash: git show be5dc1c --stat --format='%B' | head -30; head -30 src/method.c; ls -a; cat .mailmap AUTHORS* CONTRIBUTORS* README* 2>/dev/null | head -40; for c in e975fa8 0e5f45f 3afdad4 19f9abc 57ca66b; do echo "== $c"; git show $c --format='%an | %cn%n%B' --stat -
+Bash: git blame -w -M -C -C --date=short src/method.c | awk '{print $1}' | sort | uniq -c; git log --format='%h %an %ad %s' --date=short -3 -- . ':!src/method.c' | head; git show 19f9abc 3afdad4 --format='--- %h' -- src/method.c | head -120
+### Final answer text
+**Short answer:** git alone can't tell you who wrote the core method. About 62% of the current file is a snapshot from a Subversion server, and the history doesn't record who wrote it. The commit message gives two names from the svn log, but with no split between them.
+
+**Current `src/method.c` (148 lines, `git blame -w -M -C -C`, follows the `core/` → `src/` move):**
+
+| Lines | Share | Commit | Git author | What the commit did |
+|---|---|---|---|---|
+| 92 | 62% | be5dc1c (2025-02-03) | Kai Oksanen | Imported svn r412 as a single snapshot |
+| 30 | 20% | 3afdad4 (2025-10-21) | Mira Costa | Restructured inner terms "for vectorisation" (fma lines) |
+| 20 | 14% | e975fa8 (6) and 0e5f45f (14) | Jun Park | Fixed integer promotion; documented weights. Ivan Pop is the committer on both. |
+| 6 | 4% | 19f9abc (2026-02-10) | Ivan Pop | Simplified tail terms |
+
+Ivan Pop's move commit (57ca66b) was a pure rename that changed no lines.
+
+**Confidence for each name:**
+- **Lars Weber** (svn r1–r300, 2019–2021) and **Hana Ito** (svn r301–r412, 2021–2022): these are the original authors of the 92 imported lines, and the evidence is only the import commit message. I'm fairly confident they are the origin of that code, but only as far as the importer's note can be trusted.
+  - Git can't say how many lines are Weber's and how many are Ito's, or whether any lines came from someone else (patches committed by them, or code copied in from elsewhere).
+  - Neither has a git identity, so they appear nowhere in blame.
+- **Kai Oksanen:** high confidence they performed the import, and low confidence they wrote any of the code. Blame credits Kai with 92 lines, but that only means Kai committed the snapshot. Don't name Kai as an author without asking them. The commit message suggests Kai was a converter and not a code author.
+- **Mira Costa:** high confidence for the 30 lines they wrote (about 20%), which are a rewrite of the inner terms.
+- **Jun Park:** high confidence for the 20 lines (about 14%), which are small fixes and documentation changes. Ivan Pop committed these but is not the author. That could mean Jun sent patches and Ivan applied them, but the history doesn't say.
+- **Ivan Pop:** high confidence for 6 lines (about 4%). The history doesn't show whether Ivan's edit was meant to change behaviour. It replaces six distinct terms (`coeff[1..6] * x[2..7] * 134..139`) with six identical `coeff[0] * x[0] * 0.5` lines. If that edit wasn't intended, it needs a check, since it affects results.
+
+**What the history can't establish:**
+1. Who designed the algorithm or wrote the original version. Everything before svn r412 is gone, so git only shows who edited the file afterwards.
+2. The split between Weber and Ito, and whether the svn log's author names match who actually wrote the code.
+3. Whether Mira's, Jun's and Ivan's edits changed the numerics. Blame measures lines changed, not scientific contribution. The 92 surviving lines are not necessarily the important ones.
+4. Anything that happened outside git, such as pair work or ideas from people who never committed.
+
+**Suggested wording for the response letter:** the method originates in the lab's legacy solver, written by Lars Weber and Hana Ito (2019–2022, per the svn log). It was later revised by Jun Park, Mira Costa and Ivan Pop. I'd avoid giving percentages for the original authors. To firm this up, get the original svn repository (or its log and blame) from the lab server and ask Weber and Ito to confirm. Once you 
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-CV-3/fx; git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git blame -w -M -C -C --line-porcelain src/method.c | grep '^author ' | sort | uniq -c; echo; 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-CV-3/fx; git show -s --format='%B' be5dc1c; git show --stat --format='%h %an' be5dc1c | head -20; head -30 src/method.c; grep -rniE 'author|copyright|credit|svn' README.md LICENSE.txt | head; git log --all --format='%an'
+### Final answer text
+**Short answer:** git blame names the person who imported most of `src/method.c`, not the people who wrote it. The original authors are Lars Weber and Hana Ito, and that comes from a commit message, not from git's authorship data.
+
+## What the history shows
+
+`src/method.c` has 148 lines. It started as `core/method.c` and was moved to `src/` in commit 57ca66b. `git log --follow` and `git blame -w -M -C -C` agree on who owns the current lines:
+
+| Person | Lines today | Share | What they did |
+|---|---|---|---|
+| Kai Oksanen | 92 | 62% | Committed the whole file on 2025-02-03 in one import commit (be5dc1c). |
+| Mira Costa | 30 | 20% | Restructured the inner terms for vectorisation on 2025-10-21. |
+| Jun Park | 20 | 14% | Fixed an integer promotion on 2025-04-07 and documented the weights on 2025-06-02. |
+| Ivan Pop | 6 | 4% | Simplified the tail terms on 2026-02-10. He also moved the file into `src/`, which changed no content. |
+
+## The import
+
+The import commit message says:
+- It is a single snapshot of r412 from the lab's Subversion server. The old history was not converted.
+- The Subversion log credits **Lars Weber** for r1–r300 (2019–2021) and **Hana Ito** for r301–r412 (2021–2022).
+- Neither of them has a git account.
+
+So the 92 lines blamed on Kai Oksanen are Weber's and Ito's work, as far as the history can tell. Oksanen's own contribution in git was the import.
+
+## Confidence per name
+
+- **Lars Weber and Hana Ito: high confidence they are the original authors, with no line split.** I am relying on one sentence in the import commit message. It says "according to the svn log", so it is secondhand. I could not check it against the Subversion repository.
+- **Kai Oksanen: high confidence for the import, very low confidence as an author.** Crediting them as the author of the 92 lines would almost certainly be wrong. They may also have edited the file before importing it, and the history can't show that.
+- **Mira Costa (30 lines), Jun Park (20), Ivan Pop (6): high confidence.** These are real git commits in this repository. The numbers are blame lines, so they are not a measure of how much each person contributed. Costa's change restructured existing terms, and Park's and Pop's were small fixes. I would credit them as later contributors, not as authors of the method.
+
+## What the history cannot establish
+
+- **Who wrote which of the 92 imported lines.** Weber's and Ito's lines are mixed together in the snapshot. The only information is the revision ranges, and nothing maps r1–r412 to lines in the file.
+- **Who designed the method.** Authorship of the code is not authorship of the idea. If the paper's method came from someone else, such as a PI or an earlier paper, git can't show it.
+- **Whether the Subversion log is accurate.** That includes revisions that touched other files, commits made under a shared account, and anyone who patched code without being credited.
+- **Whether the lines are original.** The code could have been copied from elsewhere before r1.
+- **Whether the git author is the real author.** The author field is whatever the committer configured. Pair work or patches written by someone else would be recorded under the committer's name.
+
+## Suggested next steps
+
+1. Ask Kai Oksanen, or whoever runs the lab's Subversion server, for `svn blame` output on the original file at r412. That would split the 92 lines between Weber and Ito reliably.
+2. Ask Weber and Ito to confirm what they wrote.
+
+A wording that the history supports: "T
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-1/fx; git log --follow --format='%h %an <%ae> %ad %cn %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git shortlog -sne --all; ls; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-1/fx; wc -l src/method.c; echo BLAME; git blame -w -M -C -C --line-porcelain src/method.c | awk '/^author /{a=substr($0,8)}/^summary /{s=$0}/^\t/{c[a" | "s]++}END{for(k in c)print c[k],k}' | sort -rn; echo; for c in
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-1/fx; git show --stat --format='%an|%cn|%s%n%b' be5dc1c | head -20; git show --format='%an|%cn|%s%n%b' e975fa8 0e5f45f 57ca66b | head -120; git blame -w src/method.c | cut -c1-120
+### Final answer text
+**Short answer:** the history does not support naming any of the people in it as the author of the method. The algorithm was written by Lars Weber and Hana Ito, and their work reached git only as a single snapshot.
+
+**What git shows for `src/method.c` (148 lines, current HEAD, blame with whitespace and move detection)**
+
+| Person | Lines surviving | Share | What they did |
+|---|---|---|---|
+| Kai Oksanen | 92 | 62% | Committed the file on 2025-02-03 as an import from the lab's Subversion server |
+| Mira Costa | 30 | 20% | Rewrote the inner terms to use `fma(...)` for vectorisation (2025-10) |
+| Jun Park | 20 | 14% | 6 lines adding `(double)` casts (2025-04) and 14 lines adding `/* weight */` comments (2025-06) |
+| Ivan Pop | 6 | 4% | Replaced the tail terms with six repeated lines (2026-02) |
+
+The file was moved from `core/` to `src/` in a pure rename (Ivan Pop), which doesn't change the attribution.
+
+**Confidence for each name**
+
+- **Lars Weber (r1–r300, 2019–2021) and Hana Ito (r301–r412, 2021–2022): probably the real authors, but unproven.**
+  - Kai's import commit message says the file is a snapshot of Subversion r412 and that these two were the original authors "according to the svn log". The message also says neither has a git account.
+  - The 62% for Kai is therefore a share of the lines he committed, not of the lines he wrote. Those lines are most likely Lars's and Hana's work.
+  - This rests on one sentence in a commit message. I haven't seen the svn log itself.
+  - The history can't tell you who wrote which part, or whether Lars and Hana wrote all of it.
+- **Kai Oksanen: high confidence he imported it, low confidence he wrote any of it.** Don't credit him as author of the method on blame alone. He may also have edited the code during the import. The commit message says it is a snapshot, which suggests not, but git can't show it.
+- **Mira Costa: high confidence she wrote the `fma` rewrite of lines 100–129.** She is a credible co-author of the current vectorised form. Her change kept the same coefficient and index pattern and the same weight constants, which suggests the weights are original. I didn't diff that commit in detail.
+- **Jun Park: high confidence for the small edits.** The casts and comments are a bug fix and documentation. They are not a contribution to the method itself. Ivan Pop is recorded as the committer on both commits, so Jun wrote them and Ivan applied them.
+- **Ivan Pop: high confidence he made the 6-line tail edit and the move.** Those are minor and don't make him an author of the core method.
+
+**What the history cannot establish**
+
+- Who devised the algorithm or the weights. The weight constants (1.0 through 140.0) come from the original import.
+- Whether Lars and Hana wrote their parts from scratch or adapted other code. The pre-2025 Subversion history was never converted.
+- Whether anyone else, such as an advisor or a collaborator who gave an idea, contributed without leaving a commit.
+- Whether the committer names are real identities. The email addresses are lab, university and student ones, and there is no `.mailmap`.
+
+**For the response letter**
+
+- A safe wording is that the method originates in the lab's Subversion-era solver by Lars Weber and Hana Ito (2019–2022). Later contributors then added a vectorised rewrite (Mira Costa), a bug fix and documentation (Jun Park), and a minor edit (Ivan Pop), with Kai Oksanen migrating the code to git.
+- Before sending, check the original Subversion log, which I
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-2/fx; git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo; git log --all --oneline | wc -l; git shortlog -sne --all; echo; git blame -w -M -C -C --line-porcelain src/method.c | grep '^
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-2/fx; git log --follow --format='--- %h %an | committer %cn %cd%n%B' --stat -- src/method.c; head -30 src/method.c; ls; git log --all --format='%h %an %s' | grep -iv 'benhoyt' | head -20
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-2/fx; git blame -w --date=short src/method.c | cut -c1-70 | awk '{print}' | head -160; git show 3afdad4 --stat --format=%H | head; git show 19f9abc --numstat --format= ; git show 3afdad4 --numstat --format=
+### Final answer text
+**Short answer:** Git history can't tell you who wrote the core method. About 62% of the lines that exist today come from a single import commit, and that commit hides the real authors. The import message names two people from the old Subversion history.
+
+**Surviving lines in `src/method.c` (148 lines, `git blame -w -M -C`)**
+
+| Blame name | Lines | Share | What they did |
+|---|---|---|---|
+| Kai Oksanen | 92 | 62% | Committed the snapshot of the old Subversion solver (r412) on 2025-02-03. |
+| Mira Costa | 30 | 20% | Restructured the inner terms for vectorisation (2025-10-21). |
+| Jun Park | 20 | 14% | Fixed integer promotion in `accumulate` (6 lines) and made the "document weights" change (14 lines). |
+| Ivan Pop | 6 | 4% | Simplified the tail terms (2026-02-10). He also moved the file into `src/` with no content change. |
+
+**Who to name, and how sure I am**
+
+- **Lars Weber and Hana Ito, original authors: high confidence they wrote the bulk of the 92 imported lines, but only secondhand.**
+  - The only evidence is Kai's import message: "Original authors according to the svn log: Lars Weber (r1-r300, 2019-2021) and Hana Ito (r301-r412, 2021-2022). Neither has a git account."
+  - That is a claim by Kai, not something I could check. The Subversion history isn't in this repository ("The old history was not converted").
+  - I can't tell you how the 92 lines split between Weber and Ito, or which lines each wrote. The r300 boundary can't be mapped onto the snapshot.
+  - Ito may have rewritten or deleted some of Weber's code, so their shares may not follow revision counts.
+  - Verify against the lab's Subversion server (`svn blame` on r412) before you name either of them.
+- **Kai Oksanen: low confidence as an author, high confidence as the importer.**
+  - Blame credits Kai with 62% only because Kai ran the import. Nothing shows Kai wrote any of that code.
+  - Crediting Kai as author would very likely be wrong.
+- **Mira Costa: high confidence for the 30 `fma` lines, about 20%.**
+  - The commit is hers, and she is the author and committer.
+  - This is a restructuring of existing terms rather than the algorithm itself. I did not check how much of the maths she changed.
+- **Jun Park: high confidence for ~20 lines, about 14%, and these are small edits.**
+  - One is a type-promotion fix.
+  - The other is the "document weights" commit. It touched 14 lines of code, and I saw no comments in the lines I read. Its description may not match what it changed.
+  - Ivan Pop committed both of Jun's commits (Jun is the author), so Jun's authorship is clear.
+- **Ivan Pop: high confidence for 6 lines, about 4%.** He also did the file move and committed Jun's changes, which is maintainer work rather than authorship.
+
+**What the history cannot establish**
+
+- **The origin of the 92 imported lines.** This is the main gap, and it leaves 62% of the file attributed only to a message you can't verify.
+- **Who designed the method.** Blame shows who typed lines, not who devised the algorithm. Those could be different people from the authors of the code.
+- **Pre-2025 history.** Anything before 2025-02-03 has no commit history here.
+- **Whether author names match real people.** I only have the name and email in each commit. I haven't confirmed that the names are right or that nobody committed under someone else's name.
+- **Work that left no trace.** Pair-programming, code reviews and ideas passed on informally don't show up in commits.
+
+**Suggested response-letter wording:** 
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-3/fx; git log --follow --format='%h %an <%ae> %ad %s' --date=short -- src/method.c; echo; git log --format='%h %an %s' | wc -l; echo; git blame -w -M -C -C --line-porcelain src/method.c | grep '^author ' | sort | un
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-3/fx; git show --stat --format='%H%n%an / committer %cn%n%B' be5dc1c | head -40; for c in 57ca66b 3afdad4 19f9abc; do echo ==== $c; git show --stat --format='%an / %cn %ad%n%B' $c; done; echo; git blame -w -M -C -C 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W15T4-BASE-3/fx; for c in 57ca66b 3afdad4 19f9abc e975fa8 0e5f45f; do echo "---- $c"; git show --stat --format='%an / %cn %ad%n%B' $c; done; git blame -w -M -C -C --date=short src/method.c | cut -c1-110; ls; cat .mailmap AUTHO
+### Final answer text
+**Short answer:** by the history, the core of `src/method.c` was written by Lars Weber and Hana Ito, the authors of the old Subversion solver. Kai Oksanen only imported it. Mira Costa, Jun Park and Ivan Pop made later modifications. I would not name Kai Oksanen as the author of the method.
+
+**What the history shows**
+
+I ran `git blame -w -M -C -C` on the file's 148 lines and followed it across the `core/` → `src/` rename.
+
+| Lines today | Share | Git author | What those lines are |
+|---|---|---|---|
+| 92 | 62% | Kai Oksanen | The 2025-02-03 import commit `be5dc1c`, a single snapshot of svn r412. Its message says the old history was not converted. It credits Lars Weber (r1–r300, 2019–21) and Hana Ito (r301–r412, 2021–22), who have no git accounts. |
+| 30 | 20% | Mira Costa | 2025-10-21, "restructure inner terms for vectorisation". It rewrote lines 100–129 to the `fma(...) * w` form. |
+| 20 | 14% | Jun Park | 6 lines with a `(double)` cast (integer-promotion fix) and 14 lines that only gained `/* weight */` comments. |
+| 6 | 4% | Ivan Pop | 2026-02-10, "simplify tail terms". It replaced lines 140–145. Ivan's `move method into src/` commit changed no lines, so it adds nothing to the count. |
+
+**Confidence for each name**
+
+- **Lars Weber and Hana Ito: high that they wrote the original method, but I can't split it between them.** The only evidence is one sentence in Kai's commit message. The history can't show who wrote which part, or whether they were the only contributors.
+- **Kai Oksanen: high that they imported the code, low that they wrote it.** The 62% blame figure is an artefact of the snapshot import. The repository gives no sign that Kai wrote any of that code, so credit them only for bringing the legacy code into git.
+- **Mira Costa: high.** Their 30 lines are a real rewrite of that block for vectorisation, and the blame is unambiguous. Whether the rewrite preserves the numerics is a separate question that I haven't checked.
+- **Jun Park: high that they made the edits, but they are a minor contributor.** Their changes are a cast and comments, so they didn't write the algorithm. Their two commits were committed by Ivan Pop, which looks like Ivan applying Jun's patches. It doesn't change the credit, but it does mean Ivan's commit count overstates Ivan's role.
+- **Ivan Pop: high for the 6 lines, minor contributor.** Those 6 lines are six identical `coeff[0] * x[0] * 0.5` statements. Check whether that is intentional.
+
+**What the history cannot establish**
+
+- Who designed the method. It may come from a paper or from someone not in the log, and the svn log is not in this repository.
+- Which of Weber's and Ito's lines survive, and how the 92 imported lines split between them.
+- Whether the commit author and email match each person's real identity. I only saw the names and addresses in the log.
+- Any work done outside commits, such as pair-programming, review or discussion. Ivan committing Jun's patches shows this kind of gap.
+
+**What I'd do before replying:** get the original svn log, or ask Weber and Ito directly, to confirm their roles. Then you can credit the method to them and describe Mira, Jun and Ivan as having maintained and optimised it. If you can't confirm, I'd phrase it as "originally developed by L. Weber and H. Ito (2019–2022, per the lab's svn history); subsequently adapted by M. Costa, J. Park and I. Pop."
+### Files it left in the working directory
+(none)

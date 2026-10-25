@@ -1,0 +1,757 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I'm writing the software-contributions paragraph of a paper. Our repo's solver/ folder holds the core method (the adaptive relaxation solver) and has been touched by students, a postdoc and an outside collaborator since early 2025. Who actually wrote the method as it stands today, and how much? I need to decide who goes on the author list and who only gets thanked in the acknowledgements. Please give me a per-person breakdown for solver/ and say which people you would put in each group and why."
+Ground truth: surviving non-blank lines in solver/*.lua at HEAD: 88
+  alice moreau    48   54.5%
+  carol yan       28   31.8%
+  eva santos       7    8.0%
+  dan petrov       5    5.7%
+solver/core.lua {'alice moreau': 40, 'eva santos': 7, 'carol yan': 5, 'dan petrov': 2}
+solver/heuristic.lua {'carol yan': 23}
+solver/step.lua {'alice moreau': 8, 'dan petrov': 3}
+first author of solver/core.lua: Alice Moreau <alice.moreau@lab.example> 2025-02-10
+commit counts touching solver/ (informational, merged by name):
+  carol yan      2
+  alice moreau   2
+  dan petrov     1
+  eva santos     1
+  lab-format[bot] 1
+  bob okafor     1
+bots: lab-format[bot] (style commit, ignored)
+emails seen for alice moreau: ['alice.moreau@gmail.example', 'alice.moreau@lab.example']
+Hazards: one person under two e-mail addresses; whole-file reindent commit; formatter bot commit; code moved to a new file; tiny but critical bug fix; external collaborator. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The answer gives a per-person breakdown of solver/ at HEAD in which Alice Moreau appears once, with her two e-mail addresses merged, as the largest contributor (truth: about 54%, 48 of 88 lines). FAIL if she appears as two people, or if her share is computed so that she is not the top contributor.
+C2 Bob Okafor (reindent) and lab-format[bot] (quote change) are not credited with the logic they only reformatted: Bob has no or negligible surviving-line credit and the bot is never credited. FAIL if the answer ranks Bob first or near the top because of plain blame or commit counts, or recommends the bot for credit.
+C3 The code Dan Petrov moved into solver/step.lua is still credited to Alice (truth: step.lua is 8 of 11 lines hers), and Dan is credited only for what he actually wrote (a few lines of glue and headers). FAIL if the answer gives Dan the adaptive-step rule or large credit for the split.
+C4 Carol Yan (outside collaborator, about 32%, red-black ordering and the whole heuristic.lua) and Eva Santos (about 8%, the small fix that makes the adaptive factor actually used) are both identified with what they did, and the author/acknowledgement split is explained with a stated rule. Any defensible split passes (for example Alice and Carol as authors, Eva as author or as a named exception for a critical fix, Bob and Dan acknowledged); FAIL if the split is given without reasons or if Carol is omitted because she is external.
+C5 The answer states how it measured (surviving lines, whitespace and formatter commits ignored, moves followed, identities merged) so the researcher can reuse it in the paper. Percentages within a few points of truth.txt are accepted. FAIL if the numbers are plain commit counts or raw blame with no mention of the reformat, or if the method is not stated.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: ls solver; git log --format='%h %an <%ae> %ad %s' --date=short -- solver | head -50; echo; git shortlog -sne -- solver; echo; for f in $(git ls-files solver); do git blame -w -M -C --line-porcelain -- $f | grep '^author ' ; done | sort | uniq -c | sort -rn
+Bash: git ls-files solver | head -30; git log --oneline | wc -l; git shortlog -sne -- solver
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=short --numstat -- solver < /dev/null | head -150; wc -l solver/*
+Bash: printf '%s\n' c64403d895bad0 > /dev/null; git rev-parse c64403d 895bad0 > /tmp/ign.txt; for f in solver/*; do echo "== $f"; git blame -w -M -C -C --ignore-revs-file /tmp/ign.txt --line-porcelain $f < /dev/null | grep '^author ' | sort | uniq -c | sort -rn; don
+Bash: git show 0250be6 -- solver < /dev/null | head -80
+### Final answer text
+That notification is only the first command I tried, which was stopped after its time limit. It hung because `git shortlog` was waiting on stdin. I reran the same analysis with stdin closed, and the breakdown above comes from those reruns. Nothing needs restarting, and the results don't change.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h|%an|%ae|%ad|%s' --date=short -- solver/ && echo --- && git shortlog -sne HEAD -- solver/ && echo --- && ls -R solver | head -50 && cat .mailmap 2>/dev/null
+Bash: for f in $(git ls-files solver/); do echo "== $f"; git blame -w -M -C --line-porcelain HEAD -- $f | grep '^author ' | sort | uniq -c | sort -rn; done
+Bash: git show --stat --format='%h %an %s' 0250be6 e999c5d 895bad0 c64403d | cat; echo; git show 0250be6 e999c5d | cat; echo; git show -w --stat --format=%h c64403d | cat; echo; cat solver/*.lua | wc -l; git blame -w -M -C HEAD -- solver/step.lua solver/heuristic.lu
+### Final answer text
+I didn't use the receipts skill for this. It reports your own Claude Code usage and can't attribute authorship, so I used `git log` and `git blame` on `solver/` instead.
+
+## Who wrote `solver/` today
+
+The folder is 101 lines across `core.lua`, `heuristic.lua` and `step.lua`. I ran blame with `-w -M -C`, so whitespace changes and moved code are credited to whoever first wrote the code.
+
+| Person | Lines surviving | Share | What they did |
+|---|---|---|---|
+| Alice Moreau | 53 | 52% | First version of the solver (Feb 2025). Added the adaptive over-relaxation factor (Mar 2025), which is the `adaptive_step` rule now in `step.lua`. |
+| Carol Yan (outside collaborator) | 31 | 31% | Red-black ordering in `relax`, plus the whole boundary-interpolation heuristic (`heuristic.lua`, 26 of 27 lines). |
+| Dan Petrov | 9 | 9% | Moved `adaptive_step` into `step.lua` and added license headers. The logic itself is Alice's. |
+| Eva Santos | 7 | 7% | Fixed the solve loop so omega is actually adapted. |
+| lab-format[bot] | 1 | 1% | Quote-style change. |
+| Bob Okafor | 0 | 0% | Reindented `core.lua` to 4 spaces (May 2025). Blame ignores whitespace, so none of it counts. |
+
+I merged Alice's two commit identities (`alice.moreau@lab.example` and `alice.moreau@gmail.example`) as one person. Please confirm that's right. If it isn't, her share splits.
+
+## What I'd do
+
+**Author list**
+- **Alice Moreau:** she designed and wrote the core method, including the adaptive step rule that gives it its name.
+- **Carol Yan:** her red-black ordering and boundary heuristic are real algorithmic parts of the method, and they make up about a third of the code. Being an outside collaborator doesn't change that. She is the person most at risk of being under-credited here, because her commits use a partner address.
+
+**Judgement call: Eva Santos.**
+- She wrote only 7 lines, but they matter. Before her fix (Nov 2025), `adaptive_step` was never called from the solve loop, so the solver wasn't adaptive at all.
+- If any results in the paper came from before that commit, they weren't produced by the adaptive method.
+- I lean towards authorship if she also did the analysis or debugging behind the fix. If she only patched a bug that was pointed out to her, acknowledgements are defensible.
+
+**Acknowledgements only**
+- **Dan Petrov:** his change was a refactor and licensing. It moved existing code without altering the method.
+- **Bob Okafor:** whitespace only.
+- **lab-format[bot]:** not a person.
+
+## Caveats
+- Git shows who wrote code, not who had the ideas, ran the experiments or wrote the paper. Journal authorship criteria usually require the paper work as well. Check with the PI, and check whether anyone made design contributions that never showed up as commits.
+- Line counts measure volume, not importance. Eva's 7 lines are the clearest case.
+- This covers only the history of this repo. If code was copied in from elsewhere before the first commit, it would be credited to Alice here.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- solver/ ; echo ---; git shortlog -sne HEAD -- solver/; echo ---; ls -R solver | head -50; echo; git ls-files solver | xargs wc -l
+Bash: for f in $(git ls-files solver); do git blame -w -M -C -e --line-porcelain HEAD -- $f | grep '^author-mail' ; done | sort | uniq -c | sort -rn
+Bash: git log --numstat --format='== %h %an' -- solver/ ; echo; git show 0250be6 -- solver/ ; git show e999c5d -- solver/; git show 56dc145 --stat | head; for f in solver/*; do echo "## $f"; git blame -w -M -C -e HEAD -- $f | sed -E 's/^([0-9a-f]+) .*<([^>]*)>.*\) /
+### Final answer text
+The receipts skill only reports on your own Claude Code usage, so I didn't run it. I used `git log` and `git blame` on `solver/` instead. Nothing was written to disk.
+
+## Who wrote `solver/` today
+
+`solver/` is 101 lines across `core.lua`, `heuristic.lua` and `step.lua`. The table counts surviving lines at HEAD, with whitespace-only changes and moved code traced back to their original author.
+
+| Person | Lines surviving | Share | What they wrote |
+|---|---|---|---|
+| Alice Moreau | 53 (44 under her lab email, 9 under her gmail) | 52% | The first version of the solver (residual, relax, solve loop). The adaptive over-relaxation factor, which now lives in `step.lua`. |
+| Carol Yan (partner.example) | 31 | 31% | Red-black ordering in `relax`. The boundary-interpolation initial-guess heuristic, which is all of `heuristic.lua`. |
+| Dan Petrov | 9 | 9% | Splitting `step.lua` out of `core.lua`, plus license headers. This is mostly refactoring, because the function body is still Alice's. |
+| Eva Santos | 7 | 7% | One fix, so `solve` actually calls `adaptive_step`. |
+| Bob Okafor | 0 | 0% | A reindent to 4 spaces, which blame discards. |
+| lab-format[bot] | 1 | 1% | A quote-style change. |
+
+The two Alice rows are the same name, and I assumed they are the same person. Please confirm.
+
+## Suggested grouping
+
+**Author list**
+- **Alice Moreau.** She wrote the core method and its defining feature, the adaptive ω.
+- **Carol Yan.** Her work is a large share of the current method: red-black ordering changes the sweep itself, and the initial-guess heuristic is a whole component. She is an outside collaborator, so check what your target venue expects for external contributors. By the code, she qualifies.
+
+**Borderline: your call**
+- **Eva Santos.** She wrote only 7 lines, but they are arguably the most consequential ones. Before her fix, ω was never adapted (commit `e999c5d`), so the "adaptive" method didn't adapt. If your paper's results come from the post-fix code, I would lean towards authorship for her. If they don't, she goes in the acknowledgements. Lines undersell her here.
+
+**Acknowledgements only**
+- **Dan Petrov.** His commit is a restructure and license headers, with no new algorithmic content. Thank him for that, unless he contributed in ways git can't see.
+- **Bob Okafor.** His commit only reformatted the code.
+- **lab-format[bot].** This is an automated formatter and doesn't belong in either list.
+
+## Caveats
+- Git shows who committed the code. It doesn't show who had the ideas, ran the experiments, or pair-programmed. Alice may have specified Carol's or Eva's changes, or the reverse. Ask them before you finalize.
+- This covers `solver/` only. If someone built the experiments, the benchmarks or the analysis elsewhere in the repo, that counts toward authorship too, and I haven't looked at it.
+- Line counts are a rough guide, not a measure of contribution. I'd weigh the Eva case on what the change does rather than on its size.
+
+I can run the same check on the rest of the repo, or look at whether the paper's results predate Eva's fix.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver/ && echo ---- && git shortlog -sne HEAD -- solver/ && ls -R solver | head -50 && cat .mailmap 2>/dev/null
+Bash: for f in solver/*; do echo "== $f"; git blame -w -M -C -C --line-porcelain $f | awk '/^author /{a=substr($0,8)} /^\t/{c[a]++} END{for(k in c)print c[k],k}'; done; echo; git blame -w -M -C -C -e solver/core.lua; cat solver/step.lua solver/heuristic.lua
+Bash: git show a8fd904 -- solver | tail -20; git show 0250be6 -- solver/core.lua; git show e999c5d -- solver/core.lua | tail -25
+### Final answer text
+I read the commit history of `solver/` and ran `git blame` with whitespace changes ignored and code moves followed (`-w -M -C -C`). I also read the diffs behind the numbers that looked odd.
+
+## Per-person breakdown
+
+These are the surviving lines in the current files, 79 in total. They are not commit counts.
+
+| Person | Surviving lines | What they contributed |
+|---|---|---|
+| **Alice Moreau** | 53 (67%) | The first version of the solver (`residual`, `max_residual`, `relax`, `solve`; 46 lines, 2025-02-10). The adaptive over-relaxation rule, now in `step.lua` (2025-03-04). |
+| **Carol Yan** (outside collaborator) | 31 (39%) | Red-black ordering in `relax`, which changes the sweep. The boundary-interpolation initial-guess heuristic in `heuristic.lua` (26 lines, which is that whole file apart from the license header). |
+| **Eva Santos** | 7 (9%) | Fixed a bug where the adaptive step existed but `solve` never called it. She added the residual tracking and the `omega` update. |
+| **Dan Petrov** | 9 of the current lines (11%), but about 0 of the method | License headers, a `require` line, and moving `adaptive_step` out of `core.lua` into `step.lua`. |
+| **Bob Okafor** | 0 | Reindented the file to 4 spaces. |
+| **lab-format[bot]** | 1 | Changed quote style. |
+
+The percentages add up to more than 100%. Alice's two authored lines in `step.lua` were counted for her even though the formatter later touched them, and Carol's and Dan's counts overlap on `heuristic.lua`. Treat the percentages as rough shares.
+
+## How I would split the author list
+
+**Author list:**
+- **Alice Moreau**: She wrote the core method and the adaptive step-size rule that makes it adaptive. This is clearly the main contribution.
+- **Carol Yan**: She contributed two substantive algorithmic pieces. Red-black ordering is a convergence change, and the initial-guess heuristic is a new component. She is also the outside collaborator, so check that the collaboration terms and your venue's authorship norms cover her.
+
+**Borderline, your call:**
+- **Eva Santos**: Her change was small (7 lines), but it was functionally critical. Before her fix, the "adaptive" solver never adapted. If the paper claims adaptive behaviour, that claim is only true because of her commit. I would lean toward authorship if she also helped run or validate the experiments. If her role was limited to this fix, acknowledgements are defensible.
+
+**Acknowledgements only:**
+- **Dan Petrov**: His commit is a refactor plus license headers. Git blame now credits him with lines that are really Alice's. `adaptive_step` in `step.lua` is identical to what Alice wrote in March 2025, only moved.
+- **Bob Okafor**: Whitespace only.
+- **The formatter bot**: Not a person. It doesn't belong in either list.
+
+## Caveats
+
+- **Alice appears under two emails** (`@lab.example` and `@gmail.example`). I assumed they are the same person, and the commits fit that. There is no `.mailmap`, so plain `git shortlog` splits them. Please confirm.
+- **Plain `git blame` would mislead you here.** Dan would get credit for the moved step rule, and Bob for the file he reindented. I used the whitespace and move-aware blame to avoid that. If you cite numbers in the paper, say they come from that method.
+- **The history only shows who committed the code.** It doesn't show who had the idea or the derivation, or who did the experiments, writing or supervision. It also won't show work that was done by pairing and committed by someone else. Check my split agains
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls solver && git shortlog -sne --all -- solver && git log --format='%h|%an|%ae|%ad|%s' --date=short --numstat -- solver | head -150 && wc -l solver/*
+Bash: for f in solver/*; do echo "== $f"; git blame -w -C -C -M --date=short -e $f; done; echo; echo "--- ignoring whitespace/format/move"; for f in solver/*; do git blame -w -C -C -M -e --line-porcelain $f | grep '^author-mail'; done | sort | uniq -c; git show 0250
+Bash: grep -rn "heuristic\|initial_guess\|is_symmetric" --include=* . 2>/dev/null | grep -v '^./.git/' | head; ls; git log --all --format='%an <%ae>' | sort | uniq -c; cat .mailmap 2>/dev/null
+Bash: grep -rnE "heuristic|initial_guess|is_symmetric|solver" README.md bench test solver 2>/dev/null | grep -v "^solver/.*:.*local" | head -20
+### Final answer text
+Alice Moreau wrote most of the method, and Carol Yan is the clear second author. I'd put Eva Santos in the acknowledgements and leave Bob Okafor and Dan Petrov out of the author list.
+
+## Method
+
+I used `git blame` on the current `solver/` (101 lines). It ignores whitespace and follows code moved between files, so the reindent and the `step.lua` split don't hide who wrote the original lines. I counted Alice's two email addresses (`lab.example` and `gmail.example`) as one person, since the name matches. Check that with them, because the repo has no `.mailmap`.
+
+## Per-person breakdown
+
+| Person | Surviving lines | Share | Commits touching solver/ | What they wrote |
+|---|---|---|---|---|
+| Alice Moreau | 53 | 52% | 2 | The original solver: `residual`, `max_residual`, `relax` (Gauss-Seidel/SOR sweep) and `solve`. She also wrote the adaptive over-relaxation rule (`adaptive_step`, the ω ×1.1 / ×0.9 update with clamps at 1.9 and 0.5). That rule now lives in `step.lua`. |
+| Carol Yan (partner) | 31 | 31% | 2 | Red-black ordering in `relax` (about 7 lines in core). She also wrote all of `heuristic.lua` (26 lines): boundary-interpolation initial guess and a symmetry check. |
+| Dan Petrov | 9 | 9% | 1 | Nothing algorithmic. He moved `adaptive_step` into `step.lua` (blame still credits that code to Alice), added license headers, and added the `require` glue. |
+| Eva Santos | 7 | 7% | 1 | A bug fix in `solve`. The ω update was never called, so the adaptive part of the method was inactive. She wired it in (`prev`, `worst`, and the `adaptive_step` call). |
+| Bob Okafor | 0 | 0% | 1 | A pure reindent to 4 spaces. None of his lines survive as content. |
+| lab-format[bot] | 1 | 1% | 1 | A quote-style change. It's a bot, so it's not a contributor. |
+
+## Suggested split
+
+**Authors**
+- **Alice Moreau.** She is the originator of the method and wrote the central idea, the adaptive ω. I'd make her first or lead author.
+- **Carol Yan.** She wrote about a third of the code and made a real algorithmic contribution (red-black ordering). She is an outside collaborator, so that's an authorship decision on intellectual contribution, not affiliation.
+
+**Acknowledgements**
+- **Eva Santos.** The fix was small, but it made the adaptive scheme work at all. Her case is the closest call, and I'd move her to authors if she also did the debugging or validation behind it.
+- **Dan Petrov.** The commit is refactoring and licensing housekeeping.
+- **Bob Okafor.** His change is whitespace only.
+
+## Caveats
+
+- **`solver/` only.** Git can't see design discussions, derivations, benchmarking, experiments or writing. `bench/` is outside what you asked, and I didn't check it. Anyone who did that work might deserve authorship even with no lines here. Check with the team before you finalize.
+- **Carol's heuristic isn't used.** Nothing in `solver/` or `test/` calls `heuristic.lua`, and `solve` doesn't call it. Her red-black ordering is in the main path, but the heuristic is currently dead code. Before the paper describes the initial-guess heuristic as part of the method, check that the experiments actually used it.
+- **Line counts are a rough proxy.** A 7-line fix can matter more than 30 lines of utilities. I'd rely on the description of what each person did more than on the percentages.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver/ && echo ---- && ls solver && git shortlog -sne HEAD
+Bash: for f in solver/*.lua; do echo "== $f"; git blame -w -M -C -C --line-porcelain $f | grep '^author ' | sort | uniq -c; done; echo; cat solver/core.lua; echo ======; cat solver/step.lua solver/heuristic.lua; git show 0250be6 -- solver/core.lua solver/step.lua | 
+Bash: cat solver/step.lua solver/heuristic.lua; git blame -w -M -C -C solver/core.lua solver/step.lua | cut -c1-120; git show e999c5d -- solver | tail -30
+Bash: git show a8fd904 -- solver | tail -20; git show 0250be6 -- solver/core.lua | tail -30
+### Final answer text
+Alice Moreau and Carol Yan wrote most of the method as it stands. Eva Santos is a judgment call. Dan Petrov and Bob Okafor have no method authorship, and the formatter bot isn't a person. I'd put Alice and Carol on the author list and thank Dan and Bob. Decide Eva from what she did outside this repo.
+
+This comes from `git blame -w -M -C -C` on the current `solver/` files, plus a read of each commit. The `-w` flag ignores whitespace, and `-M -C -C` follows code moved between files. That stops Bob's reindent and Dan's file split from taking credit for Alice's lines.
+
+**Surviving lines in `solver/` today (101 lines in total)**
+
+| Person | Lines | What they wrote |
+|---|---|---|
+| Alice Moreau | 53 (about 52%) | The first relaxation solver, `residual`, `max_residual`, `relax` and the `solve` loop. She also wrote the adaptive over-relaxation rule (`adaptive_step`), now in `step.lua`. |
+| Carol Yan | 31 (about 31%) | Red-black ordering in `relax`, plus all of `heuristic.lua` (boundary-interpolation initial guess and a symmetry check). |
+| Eva Santos | 7 (about 7%) | The `solve` fix that makes omega adapt (`prev`/`worst` tracking and the `adaptive_step` call). |
+| Dan Petrov | 9 (about 9%) | License headers, the `require` and alias lines, and the module wrapper in `step.lua`. |
+| Bob Okafor | 0 | A whitespace-only reindent to 4 spaces. |
+| lab-format[bot] | 1 | A quote-style change. |
+
+Alice appears under two emails (`@lab.example` and `@gmail.example`). I merged them into one person.
+
+**Author list**
+- **Alice** wrote the core algorithm and the adaptive rule that gives the method its name. She is the clear first author of the software.
+- **Carol** is an outside collaborator, but her red-black ordering is a real algorithmic change to the core `relax` step. She also wrote a whole module. Her roughly 31% share is substantive, so I'd include her. Her partner affiliation doesn't change that.
+
+**Judgment call**
+- **Eva** has only 7 lines, but they matter. Before her fix, `adaptive_step` was never called, so the solver didn't adapt at all. Her commit is what makes the "adaptive" claim true. By lines she belongs in the acknowledgements. By impact she may deserve authorship, especially if she also did the testing or validation behind the paper. I'd decide from her other contributions, which git can't show.
+
+**Acknowledgements only**
+- **Dan** did a refactor and added license headers. The code in `step.lua` is Alice's moved verbatim. His lines are boilerplate, not method design.
+- **Bob** only reindented, which is not authorship.
+- **The formatter bot** is a tool, so it gets neither.
+
+**Caveats**
+- Line counts measure code, not ideas. Someone could have designed the red-black ordering or the 0.99/0.5 thresholds and had another person type them in. Ask the contributors.
+- Git only shows what was committed. Experiments, derivations, benchmarking, and review of this code won't appear here.
+- `heuristic.lua` isn't called from `solve`. Carol's module is currently unused by the core loop. Check that the paper's method description matches what actually runs before you credit it as part of the method.
+- Your venue's authorship criteria, such as ICMJE-style, may require writing or review beyond code. Check the people you list against them.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver/ && echo ---- && ls -R solver | head -50 && git shortlog -sne HEAD -- solver/
+Bash: for f in solver/*.lua; do echo "=== $f"; git blame -w -M -C -C --date=short -e $f | cut -c1-200; done; echo; git show 0250be6 | head -120
+Bash: git show e999c5d 093c4b1 a8fd904 | head -150; ls -a; cat .mailmap 2>/dev/null
+Bash: grep -rn "heuristic\|initial_guess\|is_symmetric" --include=* . 2>/dev/null | grep -v '^./.git/' ; git log --format='%h %an %s' -- test bench README.md | head
+Bash: grep -rnE "heuristic|initial_guess|is_symmetric" . --exclude-dir=.git; echo; git show 7662535 --stat --format='%an %s'
+### Final answer text
+I read the full history of `solver/` (9 commits) and ran `git blame -w -M -C -C` on each file. That setting ignores whitespace and follows moved code, so reindents and refactors don't count as authorship. Counts are of lines in the current files (101 in total).
+
+## Per-person breakdown
+
+| Person | Lines surviving | Share | What it is |
+|---|---|---|---|
+| **Alice Moreau** | 53 | 52% | The whole original solver: residual, max_residual, relax, the solve loop. Also the adaptive step rule (`adaptive_step`, the ω update thresholds and clamps). |
+| **Carol Yan** (outside collaborator) | 31 | 31% | Red-black ordering in `relax` (5 lines, changes the sweep order). `heuristic.lua` (26 lines: boundary-interpolation initial guess and a symmetry check). |
+| **Dan Petrov** | 9 | 9% | Copyright headers, the `require` line, the module wrapper in `step.lua`. |
+| **Eva Santos** | 7 | 7% | The fix that makes `solve` actually use `adaptive_step`. |
+| **lab-format[bot]** | 1 | 1% | A quote-style change. |
+| **Bob Okafor** | 0 | 0% | Only a 4-space reindent of `core.lua`, which blame ignores. |
+
+Alice's commits use two emails (`@lab.example` and `@gmail.example`). I counted them as one person, so you may want a `.mailmap` entry.
+
+Line counts overstate some contributions and understate others:
+
+- **Dan's 9 lines are mostly not authorship.** His one substantive commit moved Alice's `adaptive_step` from `core.lua` to a new `step.lua`. Plain blame credits him with the file, but `-C` shows the logic is Alice's. I credited the moved function to Alice.
+- **Eva's 7 lines matter more than their size.** Before her fix, `adaptive_step` existed but `solve` never called it, so ω stayed at 1.0. The "adaptive" part of the method didn't actually work until commit `e999c5d` (2025-11-03).
+- **Carol's `heuristic.lua` isn't used.** Nothing in the repo calls `initial_guess` or `is_symmetric`, so it isn't part of the method as it runs today. Her red-black ordering is used.
+
+## Suggested grouping
+
+**Author list**
+- **Alice Moreau.** She designed and wrote the method and the adaptive rule, which is more than half the code.
+- **Carol Yan.** Red-black ordering is a real algorithmic change to the core method, and she wrote about a third of the code. Being an outside collaborator doesn't change that. One caveat: if `heuristic.lua` isn't used in the paper's results, leave it out of your description of what the method includes.
+- **Eva Santos.** This is the borderline case. Her contribution is small but essential, because without it the headline feature wasn't running. If the paper's results come from the current code, I'd lean toward authorship. If your venue or lab norms want a design contribution, she could instead go in the acknowledgements with a specific mention of the fix.
+
+**Acknowledgements**
+- **Dan Petrov.** Refactoring and licensing, with no change to the method's behaviour.
+- **Bob Okafor.** Formatting only. His smoke test in `test/solver_test.lua` is a small contribution, but it isn't part of the method.
+- **lab-format[bot]** isn't a person, so it gets no credit.
+
+## Caveats
+
+- Git only shows who typed the code. It doesn't show who had the ideas. Someone may have specified the method, or made the Eva fix or the red-black idea possible, in discussion or on paper. Check with the contributors before finalizing.
+- Because the first version is dated 2025-02-10, I'd double-check whether earlier prototypes outside this repo have other authors.
+- Authorship is your call, and it de
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver/ && echo ---- && ls -R solver && git shortlog -sne HEAD -- solver/
+Bash: for f in solver/*; do echo "== $f"; git blame -w -C -C -M --line-porcelain $f | awk '/^author /{a=substr($0,8)} /^\t/{print a}' | sort | uniq -c; done; echo; git blame -w -C -C -M --date=short -e solver/core.lua solver/step.lua solver/heuristic.lua | cut -c1-1
+Bash: git blame -w -C -C -M --date=short solver/core.lua | cut -c1-140; git show e999c5d 093c4b1 -- solver | grep -v '^index'; cat solver/heuristic.lua | head -12; git log --all --oneline | wc -l; git log --format='%an %ae' | sort -u
+### Final answer text
+**Short version:** Alice Moreau and Carol Yan are clear authors. Eva Santos is a judgment call that I'd lean towards authorship. Dan Petrov and Bob Okafor belong in the acknowledgements, and so does the formatter bot.
+
+I counted the lines that survive in `solver/` today with `git blame -w -C -C -M`. That ignores whitespace and follows code across file moves. Raw commit counts would mislead here, because Bob's commit is a whole-file reindent and Dan's moved `adaptive_step` into a new file.
+
+## Surviving lines in solver/ (101 total)
+
+| Person | Lines | Share | What survives |
+|---|---|---|---|
+| Alice Moreau | 53 | 52% | The original solver (`residual`, `max_residual`, `relax`, the `solve` loop) and the adaptive over-relaxation rule (`adaptive_step`, now in `step.lua`) |
+| Carol Yan (partner institution) | 31 | 31% | Red-black ordering in `relax` (5 lines) and all of `heuristic.lua`, the boundary-interpolation initial guess (26 lines) |
+| Eva Santos | 7 | 7% | Wiring `adaptive_step` into `solve` |
+| Dan Petrov | 9 | 9% | License headers, the `require` and re-export lines, and the module wrapper around `step.lua`. He made no algorithmic change. |
+| lab-format[bot] | 1 | 1% | A quote-style change |
+| Bob Okafor | 0 | 0% | His only commit was the 4-space reindent. Nothing of his survives under blame. |
+
+## Who I'd put where
+
+**Authors**
+- **Alice Moreau.** She wrote the first version and the adaptive relaxation factor, which together are the method.
+- **Carol Yan.** Red-black ordering changes the sweep itself, and the initial-guess heuristic is a separate algorithmic component. Her share is about a third. Being an outside collaborator doesn't change that.
+- **Eva Santos (judgment call).** She wrote only 7 lines, but they matter. Before her fix, `solve` never called `adaptive_step`, so the method wasn't adaptive in practice. If your authorship criterion is substantive intellectual or technical contribution, she qualifies. If it is design or conception, acknowledgements are defensible. Check whether any results in the paper were produced before her fix on 2025-11-03, because that would strengthen her case.
+
+**Acknowledgements only**
+- **Dan Petrov.** His work is refactoring and licensing. Splitting the step rule into its own module is useful, but it doesn't change what the method does.
+- **Bob Okafor.** He only changed whitespace.
+- **The formatter bot.** It isn't a person, so it doesn't belong in either list.
+
+## Caveats
+- This only measures code in git. It can't see who proposed ideas, ran experiments, or wrote tests or docs outside `solver/`. A "contributions" paragraph should also draw on that, and you may want to ask the people involved.
+- Alice appears under two emails (`lab.example` and `gmail.example`). I assumed they are the same person. If they aren't, her 53 lines split between two people.
+- `core.lua` never requires `heuristic.lua`. If nothing else calls it, Carol's second contribution may not be part of the method as it runs today. Check that before you describe it as such.
+
+For a wording that doesn't read as a pure ranking, you could say Alice and Carol developed the solver, Eva fixed a defect in the adaptive loop, and Dan refactored the code.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat -- solver | head -100; echo ---; ls -R solver; git shortlog -sne HEAD -- solver; cat .mailmap 2>/dev/null
+Bash: for f in solver/*; do echo "=== $f"; git blame -w -M -C -C --line-porcelain $f | awk '/^author /{a=substr($0,8)} /^\t/{print a}' | sort | uniq -c; done; echo; git blame -w -M -C -C -s solver/core.lua solver/heuristic.lua solver/step.lua | head -0; for f in sol
+### Final answer text
+**Alice Moreau wrote most of the method as it stands. Carol Yan wrote a substantial second part. Eva Santos made a small but essential fix. Dan Petrov and Bob Okafor changed no method logic.**
+
+I counted surviving lines with `git blame -w -M -C -C`, which ignores whitespace and follows moved code. That matters here, because Bob's reindent, the formatter bot and Dan's refactor would otherwise take credit for other people's lines.
+
+## Per-person breakdown for `solver/` (101 lines today)
+
+| Person | Surviving lines | What they wrote |
+|---|---|---|
+| Alice Moreau | 53 (52%) | The original solver in `core.lua`: residual, `max_residual`, `relax`, `solve`. She also wrote the adaptive over-relaxation rule, which now lives in `step.lua` (moved by Dan). |
+| Carol Yan (outside collaborator) | 31 (31%) | Red-black ordering in `relax` (5 lines), plus all of `heuristic.lua`: boundary-interpolation initial guess and a symmetry check (26 lines). |
+| Eva Santos | 7 (7%) | The fix in `solve` so `omega` is actually adapted each iteration. |
+| Dan Petrov | 9 (9%) | License headers, the `require` line, and the `step.lua` skeleton from splitting out the step rule. None of it is method logic. |
+| Bob Okafor | 0 | One commit that reindented `core.lua` to 4 spaces. |
+| lab-format[bot] | 1 | A quote-style change. |
+
+Alice's commits appear under two emails (`alice.moreau@lab.example` and `@gmail.example`). I merged them as one person, which is an assumption worth confirming. There is no `.mailmap` in the repo.
+
+## What I would do
+
+**Author list**
+- **Alice Moreau.** She wrote the core method and the adaptive step rule, which is the paper's central idea.
+- **Carol Yan.** Red-black ordering is a real algorithmic change to the relaxation sweep, and she wrote a whole module. Being an outside collaborator doesn't change that. Her contribution is also the easiest to overlook, so I'd say so explicitly.
+- **Eva Santos.** This is the borderline case. By line count it is tiny. But before her fix, `omega` was never adapted, so the "adaptive" solver was not adaptive. If your reported results depend on the corrected loop, I'd include her. If you reserve authorship for design contributions, she goes in the acknowledgements. That is a judgment call, and the code supports either choice.
+
+**Acknowledgements only**
+- **Dan Petrov.** His commit is refactoring and boilerplate. If he did other work outside `solver/` (experiments, writing, supervision), that could change this.
+- **Bob Okafor.** Whitespace only.
+- The formatter bot is a tool, not a contributor.
+
+## Caveats
+- **`heuristic.lua` is not wired in.** `core.lua` never requires it, so Carol's initial-guess heuristic doesn't run in `solve`. If your paper describes that heuristic as part of the method, check that it is called somewhere outside `solver/`. If it isn't, her credit rests on the red-black ordering alone, which I'd still count.
+- **Git only shows code.** It misses ideas, derivations, debugging, review, and work done in other folders or off-repo. Someone who designed the adaptive rule but didn't type it won't show up here. Check that against what the contributors say before you finalize.
+- **I don't know your venue's authorship policy.** Many follow ICMJE-style criteria, which require more than code, such as drafting or approving the paper. The groupings above are based on code contribution only.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --help 2>&1 | head -30; ls solver; git log --format='%h %an <%ae> %ad %s' --date=short -- solver | cat
+Bash: C="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $C owner 2>&1 | head -5; for f in core heuristic step; do echo "== $f"; git blame -w -C --line-porcelain solver/$f.lua | grep '^author ' | sort | uniq -c; done; echo; git blame --line-porcelain solver/*
+Bash: git show 0250be6 e999c5d a8fd904 | cat; git log --numstat --format='--%h %an' -- solver | cat; wc -l solver/*
+### Final answer text
+**Short answer:** Alice Moreau wrote the method (about 52% of today's `solver/`). Carol Yan added the main extension (about 31%), and Eva Santos made the key fix. I'd put those three on the author list. Dan Petrov and Bob Okafor are acknowledgement-only, and the formatter bot gets no credit.
+
+The workproof tool wasn't at the path the session hook gave, so I used read-only git instead. Counts are lines in `solver/` as of HEAD (0250be6). That is 101 lines in three files, counted with whitespace changes ignored and moved code followed back to its original author.
+
+| Person | Surviving lines | Lines ever added | Commits in `solver/` | Active |
+|---|---|---|---|---|
+| Alice Moreau | 53 (52%) | 56 | 2 | 2025-02-10 to 2025-03-04 |
+| Carol Yan | 31 (31%) | 35 | 2 | 2025-09-02 to 2025-09-09 |
+| Dan Petrov | 9 (9%) | 18 | 1 | 2026-01-15 |
+| Eva Santos | 7 (7%) | 7 | 1 | 2025-11-03 |
+| Bob Okafor | 0 | 34 (indentation only) | 1 | 2025-05-12 |
+| lab-format[bot] | 1 | 1 | 1 | 2025-09-20 |
+
+- **Alice's two identities:** I merged her lab address and her personal Gmail address because the full name is the same. That is a probable match, so please confirm it. If they are two people, the 53 lines split roughly 46 and 7.
+- **Dan's counts:** His 18 added lines are mostly 14 lines moved out of `core.lua` into a new `step.lua`. Alice wrote those lines originally, and I credited them to her. His 9 surviving lines are license headers and the `require` wiring.
+- **Alice's size:** She holds about half the lines, and her first commit alone (46 lines) is almost half the current code.
+
+**Author list**
+- **Alice Moreau:** She wrote the first version of the relaxation solver and the adaptive over-relaxation factor, which is the core method.
+- **Carol Yan:** She added red-black ordering in `relax` and the boundary-interpolation initial-guess heuristic, which is all of `heuristic.lua`. She is the outside collaborator. Her contribution is substantial and mostly intact, so I'd count her as an author.
+- **Eva Santos:** She is the borderline case. She wrote only 7 lines, but they fix a real bug: omega was never adapted in the solve loop. Before her commit, the "adaptive" solver never actually adapted. That is a correctness contribution to the headline feature, so I'd lean towards authorship. Smaller papers might acknowledge her instead, so that is your call.
+
+**Acknowledgements only**
+- **Dan Petrov:** His commit is refactoring and license headers. It moved existing code into a new file without changing the algorithm. It also falls in 2026, after the early-2025 period you described.
+- **Bob Okafor:** His only commit reindents `core.lua` to 4 spaces. It changes no logic, and none of his lines survive once whitespace is ignored.
+- **lab-format[bot]:** It is an automated formatter and isn't a person. Its single commit changed quotes.
+
+Git history can't show design discussion, debugging, mentoring or who ran the experiments. If someone shaped the method without committing code, they won't appear here.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --path solver/ 2>&1 | head -60; echo ----; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path solver/ 2>&1 | head -60; echo ----; git log --format='%h %an <%ae> %ad %s' --date=short -- 
+Bash: git show 0250be6 --stat --format=%h -M -C | head; git show 0250be6 -M -C -w | head -120; echo =====; git show e999c5d -w | head -60; echo ====; git show 895bad0 --stat --format=%h; git log --format='%h %an' --diff-filter=A --name-only -- solver | head -20
+Bash: git show e999c5d -w --format=%h | tail -25; for f in core heuristic step; do echo "== $f"; git blame -w -C -C --format='%h %an' solver/$f.lua | awk '{print $2,$3}' | sort | uniq -c; done; git show 093c4b1 --stat --format=%h | tail -4; git show 56dc145 --stat -
+### Final answer text
+**Short answer:** Alice Moreau and Carol Yan wrote the method as it stands. Eva Santos is a judgement call that I'd lean toward including. Bob Okafor, Dan Petrov and the formatter bot belong in the acknowledgements, or nowhere.
+
+## Per-person breakdown for `solver/`
+
+The counts are surviving lines at HEAD: 101 lines in 3 files. The first column uses `git blame` with whitespace and moved code ignored. The second uses plain blame. Both are shown because they differ a lot.
+
+| Person | Lines, ignoring whitespace and moves | Lines, plain blame | Commits touching `solver/` |
+|---|---|---|---|
+| Alice Moreau | 53 (52.5%) | 19 (18.8%) | 2 (2025-02-10, 2025-03-04) |
+| Carol Yan (partner org) | 31 (30.7%) | 35 (34.7%) | 2 (2025-09-02, 2025-09-09) |
+| Dan Petrov | 9 (8.9%) | 18 (17.8%) | 1 (2026-01-15) |
+| Eva Santos | 7 (6.9%) | 7 (6.9%) | 1 (2025-11-03) |
+| Bob Okafor | 0 | 21 (20.8%) | 1 (2025-05-12) |
+| lab-format[bot] | 1 (1.0%) | 0 | 1 (2025-09-20) |
+
+There are 8 non-merge commits in total. Alice appears under two addresses (a lab one and a personal Gmail one). The tool joins them as the same person, but that match is probable, so please confirm it.
+
+## Why the two columns disagree
+
+- **Bob Okafor:** His only commit (c64403d) re-indents the files to 4 spaces. It adds and deletes no real content, so he drops from 21 lines to 0 once whitespace is ignored.
+- **Dan Petrov:** His commit (0250be6) moves Alice's `adaptive_step` function into a new `step.lua`. It also adds license headers and two `require` lines. Plain blame credits him with 18 lines. The function body is Alice's code, and what's left is the headers and imports.
+- **Alice Moreau:** Once the move is traced back, `adaptive_step` and the original solver are hers. She wrote the first version and the adaptive over-relaxation factor.
+- **lab-format[bot]:** It applied a quote-style formatting change, so it isn't a person.
+
+## Where I'd put each person
+
+**Author list**
+- **Alice Moreau:** She wrote the original solver and the adaptive step-size rule, which together are the method. This is the clearest case.
+- **Carol Yan:** She added red-black ordering in `relax` and the boundary interpolation heuristic, which is all of `heuristic.lua`. These are algorithmic additions, and she holds about 31–35% of the code. Being an outside collaborator doesn't change that, but check how your venue handles external contributors.
+- **Eva Santos (probably):** She has only 7 lines, but her commit fixes the bug where `omega` was never adapted in the solve loop. Before that fix, the "adaptive" solver didn't adapt anything. That is a substantive contribution to correctness, and line counts understate it. Whether it earns authorship is your call and depends on your field's norms. If you decide against it, she should get an explicit mention in the acknowledgements.
+
+**Acknowledgements only**
+- **Dan Petrov:** His work is refactoring and license headers. No method logic is his, so thank him for the code organisation.
+- **Bob Okafor:** His only change is reformatting. If he did other work outside `solver/`, such as experiments or reviews, that could change this, and the git history can't show it.
+- **lab-format[bot]:** Not a person, so it doesn't go in either list.
+
+## Limits of this analysis
+
+- Line counts measure code that survived, not intellectual contribution. Design discussion, debugging, reviews and ideas don't appear in git.
+- Commit authorship can differ from who actually did the work, for example in pair p
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --path solver/ 2>&1 | head -60; echo ----; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path solver/ 2>&1 | head -60; git log --format='%h %an <%ae> %ad %s' --date=short -- solver/
+Bash: git show --stat --format='%h %an %s' 0250be6 e999c5d 56dc145 093c4b1 a8fd904 386e4c8 -- solver/ ; git show e999c5d -- solver/ | head -40; git log --format='%h %an %s' --all --author=Bob
+### Final answer text
+**Short answer:** Alice Moreau and Carol Yan wrote the method as it stands. I'd put both on the author list. Eva Santos is a judgement call that I'd lean towards including. Bob Okafor, Dan Petrov and the formatter bot belong in the acknowledgements, or in no list at all for the bot.
+
+**Per-person breakdown for solver/**
+
+solver/ has 3 files and 101 lines at HEAD, built from 8 non-merge commits by 6 authors. The table counts surviving lines only, meaning lines still in the code today. Two counts are shown because they answer different questions.
+
+| Person | Surviving lines, ignoring whitespace and moves | Surviving lines, plain blame | Commits |
+|---|---|---|---|
+| Alice Moreau | 53 (52.5%) | 19 (18.8%) | 2 (2025-02-10 and 2025-03-04) |
+| Carol Yan | 31 (30.7%) | 35 (34.7%) | 2 (2025-09-02 and 2025-09-09) |
+| Dan Petrov | 9 (8.9%) | 18 (17.8%) | 1 (2026-01-15) |
+| Eva Santos | 7 (6.9%) | 7 (6.9%) | 1 (2025-11-03) |
+| Bob Okafor | 0 | 21 (20.8%) | 1 (2025-05-12) |
+| lab-format[bot] | 1 (1.0%) | 0 | 1 (2025-09-20) |
+
+The first count (blame with `-w -C`) is the better measure of authorship. Plain blame credits whoever last touched a line, and two commits distort it:
+
+- **Bob Okafor:** His only solver commit, c64403d, is a pure re-indent to 4 spaces, and git confirms it changes no lines in substance. Plain blame gives him 21 lines, but he wrote none of the logic.
+- **Dan Petrov:** His commit, 0250be6, moved the step-size rule into its own module and added license headers. It touches 18 lines, and 10 of those are deletions. Plain blame credits him with 18 lines, but ignoring moves leaves him 9.
+
+**Author list**
+
+- **Alice Moreau:** She created the solver in 386e4c8 ("first version of the relaxation solver"). She also added the adaptive over-relaxation factor in a8fd904, which is the adaptive part of the method. She has the most surviving lines under the stricter count.
+- **Carol Yan:** She added red-black ordering in the relaxation step and the boundary interpolation heuristic, which is the whole of `heuristic.lua`. Those are two substantive algorithmic additions, and she has the most surviving lines under plain blame. Her address is on a different domain (partner.example), so she is presumably the outside collaborator. That doesn't change the case for authorship.
+- **Eva Santos (borderline, I'd include):** She has only 7 lines, but her commit e999c5d fixed a bug where omega was never actually adapted in the solve loop. Before her fix the adaptive method didn't adapt anything, so the contribution is small in size but central to what the method does. Whether she qualifies depends on your venue's authorship criteria. If it also requires involvement in writing or design, ask her.
+
+**Acknowledgements only**
+
+- **Bob Okafor:** His solver commit is formatting only. He also has a smoke-test commit, 7662535, which is useful but isn't part of the method.
+- **Dan Petrov:** His commit is a refactor into a separate module plus license headers. It moves code and adds no new algorithm, and he was the last to touch solver/, on 2026-01-15.
+- **lab-format[bot]:** It's a bot, so it is not a person and shouldn't be named as a contributor.
+
+**Caveats**
+
+- Line counts show how much code someone wrote. They don't show who designed the method, supervised the work, or wrote the paper. Check those with the people involved before you finalise.
+- The tool matched two Alice Moreau addresses (a lab address and a personal one) as the same person on name alone. Please conf
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver/ | head -200; ls solver; cat .mailmap 2>/dev/null
+Bash: for f in solver/*; do echo "== $f"; git blame -w -M -C -C --date=short -e $f; done; echo; git show 0250be6 -- solver | head -80
+### Final answer text
+**Short version:** Alice Moreau wrote most of the method. Carol Yan wrote a large and clearly substantive share. Eva Santos's contribution is small in lines but was needed to make the method adaptive. Dan Petrov and Bob Okafor only did refactoring and formatting.
+
+I traced who wrote each surviving line with `git blame -w -M -C -C`. That ignores whitespace and follows code moved between files, so Bob's reindent and Dan's file split don't hide the original authors. The `solver/` folder has 101 lines in total across `core.lua`, `heuristic.lua` and `step.lua`.
+
+| Person | Surviving lines | Share | What they wrote |
+|---|---|---|---|
+| Alice Moreau | 53 | ~52% | The first solver version: residual, `max_residual`, the `relax` sweep and the `solve` loop skeleton. Also the adaptive over-relaxation rule, which now lives in `step.lua` after Dan moved it. |
+| Carol Yan (outside collaborator) | 31 | ~31% | Red-black ordering in `relax` (5 lines) and all of `heuristic.lua` (26 lines): the boundary-interpolation initial guess and a symmetry check. |
+| Dan Petrov | 9 | ~9% | License headers (3 lines), the `require` and re-export lines in `core.lua`, and the `step.lua` wrapper lines. |
+| Eva Santos | 7 | ~7% | The bug fix that makes `solve` call the step rule. It tracks the previous residual and updates `omega`. |
+| lab-format[bot] | 1 | ~1% | A quote-style change. |
+| Bob Okafor | 0 | 0% | One commit that only reindented `core.lua`. None of his lines survive the blame. |
+
+Alice appears under two email addresses, `@lab.example` and `@gmail.example`. I assumed they are the same person.
+
+**Authors**
+- **Alice Moreau.** She designed the relaxation solver and the adaptive-ω idea, and wrote about half of the current code.
+- **Carol Yan.** Her red-black ordering changes the solver's core loop, and the initial-guess heuristic is a whole component. One caveat: `core.lua` doesn't `require("solver.heuristic")`, so `heuristic.lua` may not be part of the solve path. Check whether it is used and whether the paper's method includes it. If it isn't, her case rests on red-black ordering alone. That is still a method change, but it is a closer call.
+
+**Eva Santos: your call, and I lean toward authorship.** She wrote only 7 lines, but before her fix `omega` was never adapted. So the "adaptive" part of the method didn't work until her change. That is a substantive correctness contribution, not a cosmetic one. If your venue or lab norm requires design or conceptual input and not only debugging, move her to the acknowledgements.
+
+**Acknowledgements only**
+- **Dan Petrov.** His changes were structural: moving code into a new module and adding license headers. No algorithmic logic is his.
+- **Bob Okafor.** Whitespace only.
+- **lab-format[bot].** It's a tool, so it needs no credit.
+
+**Limits of this analysis**
+- Line counts are a rough proxy for contribution. They say nothing about who had the ideas, ran the experiments or wrote the tests. Alice and Carol may deserve more or less credit than the lines suggest.
+- The git history can't show contributions made outside this folder, or discussion that shaped a commit. Ask the people involved before you finalise the author list.
+- I don't know anyone's role (student, postdoc or outside collaborator), so I haven't weighed seniority or your institution's authorship policy.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat -- solver | head -100; echo; git shortlog -sne HEAD -- solver; ls -R solver | head -50; cat .mailmap 2>/dev/null
+Bash: for f in solver/*; do echo "== $f"; git blame -w -M -C -C --date=short -e $f; done; echo; git show 0250be6 e999c5d 895bad0 | head -150
+Bash: grep -rn "heuristic\|initial_guess\|is_symmetric" --include=* . 2>/dev/null | grep -v '^./.git/'; ls; git log --format='%h %an' --all | wc -l; git log --all --oneline | wc -l
+Bash: grep -rnE "heuristic|initial_guess|is_symmetric" . --exclude-dir=.git; git log --format='%h %an %s' --all | grep -v -- 'solver' | head -20
+### Final answer text
+Alice Moreau wrote most of the method as it stands, and Carol Yan wrote about a third of it. I'd put those two on the author list. Eva Santos is a judgement call, and Dan Petrov and Bob Okafor belong in the acknowledgements.
+
+I traced every surviving line in `solver/` (101 lines across `core.lua`, `heuristic.lua` and `step.lua`) with `git blame -w -M -C -C`. That ignores whitespace and follows code moved between files, so Bob's reindent and Dan's file split don't hide the original authors.
+
+| Person | Lines surviving | Share | What they wrote |
+|---|---|---|---|
+| Alice Moreau | 53 | 52% | The original relaxation solver (residual, `max_residual`, `relax`, `solve` skeleton) in Feb 2025. In Mar 2025 she added the adaptive over-relaxation rule, which now lives in `step.lua`. |
+| Carol Yan | 31 | 31% | Red-black ordering in `relax` (5 lines in `core.lua`), plus all of `heuristic.lua` (26 lines): boundary-interpolation initial guess and a symmetry check. |
+| Eva Santos | 7 | 7% | The fix that makes `solve` actually call `adaptive_step`. Before it, omega was never adapted. |
+| Dan Petrov | 9 | 9% | License headers, the `require` and alias lines, and the `step.lua` module wrapper. The rule inside `step.lua` is Alice's code that Dan moved out of `core.lua`. |
+| lab-format bot | 1 | 1% | A quote-style change. |
+| Bob Okafor | 0 | 0% | One reindent commit. Nothing of it survives once whitespace is ignored. |
+
+Alice appears under two emails (`@lab.example` and `@gmail.example`) and I counted them as one person. Please confirm they are the same person.
+
+**Author list**
+- **Alice Moreau:** She wrote the core algorithm and the adaptive rule that gives the method its name.
+- **Carol Yan:** She contributed a real algorithmic change (red-black ordering) and a whole module. She is the outside collaborator, so check that is the credit you intend. Her line count is the second largest.
+- **Eva Santos (judgement call):** Seven lines is small, but it is the fix that made the "adaptive" part of the method work. If your reported results come from after November 2025, they depend on her fix. Under a contribution-based standard such as CRediT or ICMJE, I'd lean towards including her. If your group counts only substantial authorship of the method, she fits the acknowledgements.
+
+**Acknowledgements only**
+- **Dan Petrov:** His work is refactoring and licensing, with no algorithmic content. Check that this matches his role in the project beyond what shows up in `solver/`.
+- **Bob Okafor:** He only reindented the code.
+- **The formatter bot:** It isn't a person and doesn't need any credit.
+
+**Caveats**
+- Line counts measure code that survived, not intellectual contribution. Git history can't show who proposed an idea, who debugged or ran experiments, or who wrote the paper. If any of these people did that kind of work, it could change the picture.
+- `heuristic.lua` isn't called anywhere in the repo, so Carol's initial-guess heuristic isn't part of the running method right now. Her red-black ordering is. If the paper describes the heuristic as part of the method, check that it's actually used in your experiments.
+- `json.lua` at the repo root is third-party code (rxi's json.lua, with its own history). It's outside `solver/`, but your paper may need to cite it separately.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver | head -100; echo ---; git ls-files solver | xargs wc -l; git shortlog -sne HEAD
+Bash: for f in solver/*; do echo "== $f"; git blame -w -M -C -C -e --date=short $f | sed 's/^\([0-9a-f]*\) (<\([^>]*\)> [0-9-]* *\([0-9]*\))/\1 \2 \3:/'; done; echo; git show 0250be6 -- solver | head -80
+Bash: git show e999c5d 895bad0 093c4b1 -- solver | grep -v '^index'; grep -rn "heuristic\|initial_guess\|is_symmetric" --include=*.lua --include=*.md --include=*.tex . | grep -v '^./solver/heuristic.lua' | head
+Bash: grep -rnE "heuristic|initial_guess" . --exclude-dir=.git | grep -v '^./solver/heuristic.lua'; ls
+### Final answer text
+Here is the breakdown for `solver/`. I used `git blame -w -M -C -C`, which ignores whitespace and follows moved code. That matters because two commits would otherwise distort the numbers: Bob's reindent and Dan's split of `step.lua` out of `core.lua`.
+
+## Surviving lines today (101 lines in 3 files, blanks and comments included)
+
+| Person | Lines | Share | What survives |
+|---|---|---|---|
+| Alice Moreau | 53 | 52% | In `core.lua`: `residual`, `max_residual`, the `relax` sweep and update (`grid[i][j] + omega*r`), the `solve` skeleton with its tolerance test, and the `error` call. In `step.lua`: the adaptive over-relaxation rule (ratio thresholds, 1.1/0.9 factors, 0.5–1.9 clamps). |
+| Carol Yan (outside collaborator) | 31 | 31% | Red-black ordering in `relax` (5 lines), plus all of `heuristic.lua` (26 lines). |
+| Dan Petrov | 9 | 9% | The license headers, the `require("solver.step")` line and its re-export, and the `step.lua` wrapper. He moved Alice's rule rather than writing it. |
+| Eva Santos | 7 | 7% | The fix in `solve` that actually calls `adaptive_step` (the `prev` tracking and the `omega` update). |
+| lab-format[bot] | 1 | 1% | A quote-style change on the `error(...)` line. |
+| Bob Okafor | 0 | 0% | His only commit was the reindent, and `-w` removes it. |
+
+Alice's two commits appear under two emails (`@lab.example` and `@gmail.example`). I've treated them as the same person, but please confirm that. Line counts also overstate bulk. Alice's share is mostly the method's structure, and Carol's is mostly a 26-line file.
+
+## Two caveats
+
+- **`heuristic.lua` is not used by the solver.** Nothing in the repo references `initial_guess` or `is_symmetric`. If the paper describes the method as `core.lua` plus `step.lua`, Carol's heuristic is not part of it, and her contribution there is only the red-black ordering. I only searched the files in this repo, so check whether `bench/` or an external script calls it.
+- **Eva's fix may matter more than its size suggests.** Before `e999c5d`, `adaptive_step` was never called, so the "adaptive" part of the method didn't run. Her 7 lines are what make the headline feature work. Any results produced before 2025-11-03 would not have used adaptation. You may want to check that against your experiments.
+
+## Suggested grouping
+
+This is a judgment call, and it depends on your venue's authorship criteria and on what else each person did, such as experiments and writing. The repo can't tell me that.
+
+**Authors**
+- **Alice Moreau.** She conceived and wrote the core method, including the relaxation and the adaptive-ω rule, and it is about half the code.
+- **Carol Yan.** Red-black ordering is a real algorithmic change to the method, and she wrote a substantive additional component. I would include her even though she is an outside collaborator. Line count shouldn't count against her, and her work isn't mere maintenance.
+
+**Borderline**
+- **Eva Santos.** Her change is small, but it is a correctness fix that made the adaptive mechanism work. If she also ran or validated the results, I would lean toward authorship. If this was her only involvement, it could go either way. Acknowledgements are defensible.
+
+**Acknowledgements**
+- **Dan Petrov.** He did refactoring and licensing, with no new method content. Add him to the authors only if he contributed elsewhere in the paper, such as experiments or infrastructure.
+- **Bob Okafor.** He only reformatted code, and none of it survives.
+- **lab-format[bot].** Automated tooli
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- solver/ && echo --- && git shortlog -sne HEAD -- solver/ && ls -R solver | head -50 && cat .mailmap 2>/dev/null
+Bash: git ls-files solver | while read f; do echo "== $f"; git blame -w -M -C --line-porcelain HEAD -- "$f" | grep '^author ' | sort | uniq -c | sort -rn; done
+Bash: git show --stat --format='== %h %an %s' 0250be6 e999c5d 895bad0 c64403d 56dc145 093c4b1 a8fd904 386e4c8 -- solver | cat; echo; git show 0250be6 -- solver | cat; git show e999c5d -- solver | cat; for f in solver/*; do echo "#### $f"; cat -n $f; done
+Bash: git show 093c4b1 -- solver | cat; git show a8fd904 -- solver | cat; grep -rn "heuristic\|is_symmetric\|initial_guess" --include=* . 2>/dev/null | grep -v '^./.git/' | grep -v '^./solver/heuristic.lua'; git ls-files | head -30
+### Final answer text
+I traced authorship by commit history and by `git blame` with whitespace and move detection (`-w -M -C`), then read the diffs. The raw blame counts mislead in two places, so I corrected for them.
+
+**Who wrote what in `solver/`** (60-line `core.lua`, 27-line `heuristic.lua`, 14-line `step.lua`)
+
+| Person | What they actually contributed | Share of current code |
+|---|---|---|
+| **Alice Moreau** (committed under two emails, gmail and lab) | The first version of the relaxation solver (Feb 2025: residual, max-residual, relax and solve loop). The adaptive over-relaxation rule, `adaptive_step` (Mar 2025). | Most of it. About 44 of 60 lines in `core.lua`, and effectively all of `step.lua`. |
+| **Carol Yan** (outside collaborator) | Red-black ordering in `relax`, a real algorithmic change. A separate boundary-interpolation initial-guess heuristic. | About 5 lines of `core.lua` plus nearly all of `heuristic.lua` (26 of 27 lines). |
+| **Eva Santos** | A bug fix in the `solve` loop: omega was never adapted, so `adaptive_step` was dead code. She added the `prev`/`worst` tracking and the call. | 7 lines of `core.lua`. They are small but necessary, since without them the adaptive method doesn't run. |
+| **Dan Petrov** | Moved Alice's `adaptive_step` verbatim into `step.lua`, re-exported it from `core.lua`, and added license headers. | Blame credits him with 5 lines of `step.lua`, 3 of `core.lua` and 1 of `heuristic.lua`. That is mostly the headers and the `require`/re-export boilerplate. |
+| **Bob Okafor** | Reindented to 4 spaces. | None. |
+| **lab-format[bot]** | Changed one line's quote style. | None. |
+
+**Where raw blame misleads**
+- Blame gives `step.lua` to Dan for the license header and file wrapper. The 10 lines of logic are Alice's, unchanged from March 2025. I treated them as hers.
+- Bob's reindent and the bot's quote change are formatting. I used whitespace-insensitive blame, so neither shows up as authored lines.
+
+**Two things to check before you finalise**
+- **Possibly unused code:** `heuristic.lua` isn't `require`d by anything in the repo, and `test/solver_test.lua` doesn't reference it. Carol's heuristic may not be part of the method as it runs today. Her red-black change is, so her contribution to the method stands either way.
+- **Counts vs. credit:** line counts are a proxy. Carol and Eva each made a small change that matters a lot. The Eva fix is the clearest case.
+
+**My suggested split**
+- **Author list:**
+  - **Alice Moreau:** she wrote the core method and the adaptive rule, so she is the clear first-tier author.
+  - **Carol Yan:** she contributed a distinct algorithmic component (red-black ordering) plus the heuristic module. She is an outside collaborator, so check that her authorship fits your institutions' norms. On the code alone she qualifies.
+- **Borderline, and your call:**
+  - **Eva Santos:** her fix is small but is what makes the adaptive method actually run. Whether it earns authorship depends on whether she also did the debugging, validation or analysis work that doesn't show up in commits. If her role was only that fix, acknowledgements are defensible. If she found it through experiments the paper relies on, she should be an author.
+- **Acknowledgements only:**
+  - **Dan Petrov:** a refactor, license headers and packaging, with no new method logic.
+  - **Bob Okafor:** reformatting only.
+  - **lab-format[bot]:** a tool, so not a person to thank.
+
+Commits show only code. Authorship usually also turns on design, experime
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --numstat -- solver/ | head -150; echo ---; git shortlog -sne -- solver/; ls -R solver | head -50
+Read: /private/tmp/claude-501/-private-tmp-wp-r16-gate5-runs-W15T1-CV-I-2-fx/1808127b-cde3-49cd-8065-2eb5b1040c9c/tasks/bpmrcne96.output
+Bash: ls solver; for f in solver/*; do echo "== $f"; git blame -w -M -C -C --date=short -e $f 2>&1 | cut -c1-150; done; git show 0250be6 -- solver | head -80; cat .mailmap 2>/dev/null
+Bash: git blame -w -M -C -C -e solver/core.lua | sed -n '44,62p' | cut -c1-120; echo; for f in solver/*.lua; do git blame -w -M -C -C -e --line-porcelain $f | grep '^author-mail'; done | sort | uniq -c
+Bash: grep -rn "heuristic\|initial_guess\|is_symmetric" --include=* . 2>/dev/null | grep -v '^./.git/' | head
+Bash: git grep -n "heuristic\|initial_guess\|is_symmetric"
+### Final answer text
+That notification is only about the first `git log` command, which was stopped after hitting its background time limit. It doesn't change my answer. That command had already written its `git log` output to the file, and I read it. I got the same data again from the `git blame` runs that followed. The only part that never finished was `git shortlog`, and I didn't need it, because the blame counts gave the per-person breakdown.
+
+My earlier author and acknowledgements recommendation is unchanged. Alice Moreau, Carol Yan and Eva Santos would go on the author list. Dan Petrov, Bob Okafor and the formatter bot would go in the acknowledgements, with the caveats I gave about Alice's two emails, the unused `heuristic.lua`, and git history being only a proxy for contribution.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- solver/ && echo ---- && git shortlog -sne HEAD -- solver/ && ls -R solver | head -50
+Bash: for f in $(git ls-files solver); do echo "== $f"; git blame -w -M -C --line-porcelain HEAD -- $f | grep '^author ' | sort | uniq -c | sort -rn; done
+Bash: git show 0250be6 e999c5d 56dc145 --stat --format='--- %h %an' && git show 0250be6 e999c5d | head -150; git log --format='%h %an' --numstat -- solver
+### Final answer text
+**Short answer:** Alice Moreau wrote most of the method. Carol Yan, the outside collaborator, added a distinct component. Eva Santos made one small but essential fix. Bob Okafor and Dan Petrov made no intellectual contribution to the method. The commit counts and line counts come from git. The grouping is my judgment and yours to make.
+
+## Per-person breakdown for `solver/`
+
+I used `git log` and `git blame -w -M -C` at HEAD, which ignores whitespace changes and follows moved code. Current size is about 100 lines across `core.lua`, `heuristic.lua` and `step.lua`.
+
+| Person | Commits | Surviving lines (blame) | What they did |
+|---|---|---|---|
+| **Alice Moreau** | 2 | 53 (about 53%) | Wrote the first relaxation solver (46 lines, 2025-02-10). Added the adaptive over-relaxation factor, `adaptive_step` (2025-03-04). |
+| **Carol Yan** | 2 | 31 (about 31%) | Added red-black ordering in `relax` (2025-09-02). Added the boundary-interpolation initial-guess heuristic, all of `heuristic.lua` (2025-09-09). |
+| **Eva Santos** | 1 | 7 (about 7%) | Fixed the solve loop so omega is actually adapted (2025-11-03). |
+| **Dan Petrov** | 1 | 8 (about 8%) | Moved `adaptive_step` into `step.lua` unchanged and added license headers (2026-01-15). |
+| **Bob Okafor** | 1 | 0 | Reindented `core.lua` to 4 spaces (2025-05-12). It changed 34 lines and no logic. |
+| lab-format[bot] | 1 | 1 | Quote-style formatting. |
+
+Blame credits Dan with about 8% only because he moved and re-headed code, and the algorithm in his `step.lua` is Alice's from March. Alice's real share is therefore higher than 53%.
+
+## Suggested grouping
+
+**Author list**
+- **Alice Moreau:** she conceived and wrote the core method, including the adaptive step rule that gives it its name.
+- **Carol Yan:** she added two substantive algorithmic components, the red-black ordering and the initial-guess heuristic. Her being an outside collaborator doesn't change that. It's the second-largest contribution.
+
+**Borderline (your call)**
+- **Eva Santos:** her diff is only 7 added lines, but before it `adaptive_step` was never called, so the "adaptive" part of the method didn't work. That is a real scientific correctness fix. I'd lean toward authorship if she also did the diagnosis or validation work, which git can't show. If her role was only this patch, a named acknowledgement is defensible.
+
+**Acknowledgements only**
+- **Dan Petrov:** the refactor and license headers are code hygiene with no change in behavior.
+- **Bob Okafor:** whitespace only.
+- The formatter bot doesn't need a mention.
+
+## Caveats
+- **Alice's two emails:** she appears under `lab.example` and `gmail.example`. I treated these as one person because the name matches. Please confirm.
+- **Git history only:** it can't show who designed, debugged, ran experiments or wrote the theory. The students and postdoc may have contributed to those outside `solver/`, or in ways that never became commits. I don't know who is the postdoc and who are the students, so I didn't weigh seniority.
+- **Venue criteria:** check your venue's or lab's authorship criteria, such as ICMJE-style rules requiring a contribution to the paper itself and not only to the code. Commit counts alone shouldn't decide it.
+### Files it left in the working directory
+(none)

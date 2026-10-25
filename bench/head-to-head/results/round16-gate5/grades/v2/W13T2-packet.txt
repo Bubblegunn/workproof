@@ -1,0 +1,724 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ae|%ad|%cn|%s' --date=iso-strict --date=iso | head -100; echo; git log --format='%an' | sort | uniq -c
+Bash: git log --format='%h|%an|%ad|%s' --date=iso --stat -- internal/store | head -150
+### Final answer text
+**Overall read:** the history supports a lead or primary-implementer role, but not sole ownership. "Led the migration" is a reasonable summary of the code, but the history doesn't show who made the decisions.
+
+**What the history shows**
+- **Volume:** Priya authored 12 of the 15 commits that touch `internal/store`, plus a docs commit on rollout phases. Tom Becker has 2 store commits and Lena Ortiz has 1.
+- **Core pieces:** she wrote the store interface, the sqlite backend, ported writes, the batch writer and the backfill tool. She also wrote dual-write mode and the cutover flag, and the cutover tests.
+- **Shipping it:** she authored the commit that switched the default to the new store (12 Mar). After the revert she re-landed it with the nil-cursor fix and a regression test (31 Mar, 19:30 and 21:00 Pacific). She also removed the legacy code on 2 Apr.
+- **Others' work:**
+  - Tom wrote the migration plan doc (18 Dec), the metrics hooks and the runbook update.
+  - Lena ported reads, the one big piece Priya didn't write, and merged PR #52 (`priya/store-cutover`).
+  - Tom made the revert on 14 Mar.
+
+**Caveats**
+- **Timing (Pacific, 1 Jan–31 Mar):**
+  - Her first commit, the store interface, is dated 31 Dec 2025, 20:30 Pacific. That's 1 Jan in UTC, so it only falls inside Q1 if you count in UTC. By your calendar it's just before Q1.
+  - The legacy-code removal on 2 Apr is after Q1.
+  - The rest of her work, including the cutover and the re-land (both 31 Mar Pacific), falls inside Q1.
+- **The first cutover failed.** Her default switch was reverted two days after it landed. The nil-cursor fix and test came 17 days later. It's a normal bug-and-fix sequence, but the CV doesn't mention it.
+- **Planning credit:** Tom's plan doc predates her work. The history doesn't show who decided the approach. Her own docs commit only adds rollout phases to that plan. Ask her or the references about who designed it.
+- **Data quirks:**
+  - One of her commits, "add batch writer" (`f8115ac`), has a 1970-01-01 timestamp. Its place in the history suggests early-to-mid Feb 2026. It looks like a clock or tooling error rather than anything suspicious.
+  - She commits under two emails: `priya.raman@example.com` up to Feb, then `praman@corp.example.invalid`. That is probably an identity change, but I can't confirm it from git alone.
+- **Limits of the evidence:** git doesn't show reviews, design discussions, or who made the decisions, so "led" can't be proven or disproven from it. I also didn't read the code or check whether the migration worked.
+
+**Fair framing:** "Primary implementer of the store migration, including the cutover" is well supported. "Led" is plausible, because she owned the cutover end to end, but it's a claim to check in the interview or with Tom and Lena.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --date=iso --format='%h|%an|%ae|%cn|%ad|%cd|%s' && echo && git log --all --format='%h' --stat --format='--%h %an %s' -- internal/store | head -80
+Bash: git log --graph --format='%h %an %s' 29a0ed3 | head -30; git show f8115ac --format='%H%nA:%an %ad%nC:%cn %cd' --stat | head; git show 2c54334 761b0d0 --stat --format='%h %an %s' | head -20; git show 0d76c5e d3151e5 1ed1df7 -p --format='--- %h %s%n%b' -- intern
+### Final answer text
+**Short answer:** the history supports a large, central role for Priya. It doesn't show that she led the migration. Her own commits contain no evidence of leadership.
+
+**What the history shows**
+- **Most of the code is hers.** In `internal/store` she wrote about 211 of roughly 246 added lines. That's 13 of the 16 commits touching it. Tom Becker has 2 commits (metrics hooks, and the revert). Lena Ortiz has 1 (read path).
+- **She built the main stages.** In order: the store interface, the sqlite backend, the write path, a batch writer, the backfill tool, dual-write mode, the cutover flag and the cutover tests. That is the usual sequence for a migration like this.
+- **She did the final cutover and the follow-up.** She switched the default to the new store (12 Mar) and removed the legacy code (2 Apr, after Q1).
+- **The first cutover failed.** Tom reverted it on 14 Mar after an incident where readers saw a nil cursor under load. Priya re-landed it with a fix and a regression test on 31 Mar. That is in her favour: she owned the fix and finished the job. It also means the cutover wasn't clean.
+- **She didn't write all of it.** Lena ported the reads. Tom wrote the original migration plan on 18 Dec 2025 and the cutover runbook, and he added the metrics hooks.
+- **Her pull request was merged by someone else.** Lena merged PR #52 (cutover flag and tests).
+
+**Your date window (Pacific, 1 Jan – 31 Mar 2026)**
+- **Her first commit falls outside Q1.** The store interface (`ce8adfc`) is dated 31 Dec 2025, 8:30 pm Pacific. It would count as Q1 only in UTC. The rest of her work is inside Q1 except the 2 Apr cleanup.
+- **One commit has a bad timestamp.** The batch writer (`f8115ac`) is dated 1 Jan 1970. Its position in the history puts it between 3 Feb and 12 Feb, so it was probably made in Q1 and the date was altered or broken. I'd treat that date as unreliable, not as a sign of anything.
+- **Her author email changed.** Her early commits use `priya.raman@example.com` and her later ones (from the cutover work on) use `praman@corp.example.invalid`. That's probably just a config change, but a bare email mismatch could be misread.
+
+**My read**
+- **Fair to say:** she was the main implementer and drove the work through cutover, including recovering from the failed first attempt.
+- **Not shown by git:** that she led it. Git can't show who assigned the work, planned it, made decisions or coordinated the team. The plan came from Tom, and Lena handled the merge. Her only docs commit adds the rollout phases to Tom's plan.
+- **Wording:** "Led" is plausible but unproven. "Primary engineer on" or "implemented most of" is what the evidence supports. I'd ask her or her references who owned the plan, and about the 14 Mar incident.
+- **Small caveats:** `cutover.go` is only a list of string constants. Commit counts and line counts don't measure difficulty, and I haven't looked at code quality.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ad|%cd|%s' --date=iso | cat; echo; git log --all --format='%h' -- internal/store | wc -l; git shortlog -sne --all -- internal/store
+Bash: git log --format='--- %h %an %s' --numstat 761b0d0^..29a0ed3 | cat; echo; git log --format='%h %p %s' c332078 -1; git show d3151e5 --format=%B -s; git show 1ed1df7 --format=%B -s; git branch -a; git log -1 --format=%B f8115ac; git show f8115ac --stat --format=
+### Final answer text
+Git supports a large hands-on role for Priya, but not the word "led". The history can't tell us who owned or directed the project.
+
+**Scope.** I counted the migration from the plan doc (2025-12-18) to the legacy-code removal (2026-04-02). Of the 15 commits that touch `internal/store`, 12 are hers.
+
+**What she did**
+- She wrote about 211 of the roughly 245 lines added under `internal/store`, about 86%. That count includes the 3-line cutover switch that was later reverted.
+- Her work covers the core pieces of the migration:
+  - the store interface
+  - the sqlite backend
+  - the write path
+  - the batch writer
+  - the backfill tool
+  - dual-write mode
+  - the cutover flag
+  - the cutover tests
+  - the legacy cleanup
+- She added the rollout phases to the migration plan.
+- She did the cutover and the follow-up work after it:
+  - **Cutover:** she opened PR #52 (`priya/store-cutover`), merged on 2026-03-10, and made the first default switch on 03-12.
+  - **Incident:** on 03-14 Tom Becker reverted that switch after readers saw a nil cursor under load.
+  - **Re-land:** she re-landed the switch on 03-31 with a fix and a regression test.
+
+**What others did**
+- Tom Becker wrote the original migration plan, the metrics hooks and the runbook update. He also made the revert.
+- Lena Ortiz ported the read path and merged PR #52.
+- Priya's cutover on 03-12 caused an incident that someone else had to revert. She fixed it and tested the fix, but that is part of the record too.
+
+**Dates against your Q1 (1 Jan to 31 Mar 2026, Pacific)**
+- Almost all of her work falls inside Q1, including the final re-land and test on 03-31 at 19:30 and 21:00 Pacific.
+- The store interface commit is 2025-12-31 20:30 Pacific. That is before Q1 on your calendar, though it would be 2026-01-01 in UTC.
+- The legacy-code removal is 2026-04-02, after Q1.
+- One commit, the batch writer, carries an author and commit date of 1970-01-01. That is a clock or tooling error. Its place in the history puts it between 02-03 and 02-12, but the timestamp itself is unreliable.
+- Her commits use two emails: `priya.raman@example.com` up to the batch writer, and `praman@corp.example.invalid` after that. The name is identical and the switch looks like a change of account, but git alone doesn't prove it.
+
+**Overall read.** Priya was clearly the main engineer on the migration. She wrote most of the code and carried the cutover through a revert to completion within Q1. "Led" is plausible for the technical lead, but it's a claim about role, and the history can't confirm it. Tom wrote the plan and Lena did the review and merge, so they may have set direction or assigned the work. I'd confirm that with a reference, or by asking her who made the decisions and who she coordinated. I'd also let her explain the 03-14 revert, since a fair reading includes both the incident and her fix.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: W="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $W figures --person "Priya Raman" --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles; echo ----; $W owner --path internal/store --claim "Priya Raman"; echo ----; $W reviews 2>&1 | head -40; 
+Bash: ls /private/tmp/wp-r16/arms/ 2>&1 | head; ls /private/tmp/wp-r16/arms/ours19/dist/src 2>&1 | head
+Bash: git log --format='%h %an | %s' --numstat --no-merges --since=2025-12-01 -- internal/store | grep -v '^$' | head -80; echo ---; git log --format='%an %ae' | sort | uniq -c; echo ---; git branch -a; git log --format='%h %p' -n 20 | head -20; git log -1 --format=
+Bash: ls /private/tmp/wp-r16/arms/ours19/dist/src | grep -i cli; git log --format='%h %an <%ae> | %ad' --date=iso -- internal/store | grep -i priya | awk -F'|' '{print $1}'; echo; git show --stat --format='%h %an %s%n%b' f8115ac 6d472f2 ce8adfc 493ed1e | head -40; g
+Bash: C=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $C figures --person "Priya Raman" --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles; echo -----; node $C owner --path internal/store --claim "Priya Raman"; echo -----; node $C reviews 2>&1 | 
+Bash: C=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; for a in praman@corp.example.invalid priya.raman@example.com; do echo "=== $a"; node $C figures --author $a --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles | grep -E '^(authored non-merge commit
+### Final answer text
+Her commits fit "did most of the implementation". They don't show whether she "led" the migration. That depends on one identity question, set out below.
+
+**Identity (please confirm)**
+- Her commits sit under two addresses with the same name: a personal-looking one and a corporate one.
+- The first was used through 3 February and the second from 20 February, which looks like one person changing setup. History can't prove that.
+- The figures below assume both addresses are her. Separately, they are 10 commits (7 corporate, 3 personal).
+
+**Q1 (1 Jan–31 Mar 2026, Pacific time)**
+- She authored 10 of 16 non-merge commits, or 62.5%.
+- She wrote 183 of 230 lines added, or 79.6%. After removing work that was reverted, her line count is 180.
+- The store interface commit on 31 Dec, 20:30 Pacific, falls just outside Q1 by your calendar. It is 1 Jan in UTC.
+- Her commit "migrate: add batch writer" has an author date of 1970-01-01. I couldn't place it in the window, so it is not in the 10. Its content is genuine and it sits between commits from 3 and 12 February.
+
+**What she did**
+- She created `internal/store` with the store interface, SQLite backend, write path and batch writer.
+- She wrote the backfill tool, dual-write mode, cutover flag and cutover tests.
+- She flipped the default to the new store on 12 March.
+- At HEAD she owns 208 of 243 surviving lines in `internal/store`, or 85.6%. Lena Ortiz has 25 lines (she ported the reads on 20 January) and Tom Becker has 10 (metrics hooks).
+- She also added rollout phases to the migration plan on 5 January. Tom Becker wrote the original plan on 18 December.
+
+**Things that cut against a simple "led" story**
+- Tom Becker reverted her default switch on 14 March because readers saw a nil cursor under load. The commit message says "Incident".
+- She re-landed it with a fix and a regression test on 31 March, at 19:30 and 21:00 Pacific. That is inside Q1 on your calendar. In UTC it would be 1 April.
+- Removing the legacy store code is dated 2 April, which is after Q1. The migration was therefore not complete within the quarter, as far as this history shows.
+- The default switch itself is only a few lines. The weight of her work is in the earlier groundwork.
+- Tom Becker's contributions were the plan document, metrics hooks, the runbook update on 6 March, and the revert. Lena Ortiz did the read port.
+
+**Not verifiable here**
+- Whether she was the lead: who decided, planned, assigned work or answered for the outcome.
+- Whether anyone reviewed her work. None of the 150 commits in scope has a review trailer, so that is a gap in the record, not a finding against her.
+- Whether the two addresses are the same person.
+
+**My read**
+The history supports "was the primary implementer of the migration". She wrote most of the code and carried it from the interface through to cutover. It also shows a failed first cutover that she fixed.
+
+It can't confirm "led" in the sense of directing the project, and the plan came from Tom Becker. I'd treat the claim as plausible and not contradicted, but unproven. Ask her directly about scope and decisions, and ask Tom Becker and Lena Ortiz how the work was split. I'd also ask her about the March incident, since how a candidate handles that is useful to know.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T2-OURS-2/fx; W="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $W figures --person "Priya Raman" --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles; echo ----; $W people --since 2026-01-01 --until 2026-
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T2-OURS-2/fx; ls /private/tmp/wp-r16/arms/ours19/dist/src/ 2>&1 | head; ls /private/tmp/wp-r16/arms/ 2>&1
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T2-OURS-2/fx; C=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $C figures --person "Priya Raman" --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles; echo ----; node $C people --since 2026-01-01 --until 20
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T2-OURS-2/fx; git log --no-merges --author="Priya" --format='%h %ad %ae %s' --date=short -- . | sed -E 's/ [^ @]*@/ @/' | head -30; git log -1 --format=%b d3151e5; git log --format='%h %ad %s' --date=short --author=Tom 35bc
+### Final answer text
+**Bottom line:** The history supports a large, central role for a "Priya Raman" in the migration. It does not show she led it, and I can't say whether both Priya Ramans are the candidate.
+
+**An identity problem comes first.** The history has two authors named Priya Raman, using different organisational email domains. The tool kept them apart because the same name at unrelated organisations isn't proof of one person. I haven't merged them.
+- **Identity A (corp domain):** 7 commits in your Q1 window (1 Jan to 31 Mar 2026, Pacific time), 98 lines added.
+  - Backfill tool (20 Feb).
+  - Dual-write mode (2 Mar).
+  - Cutover flag (5 Mar) and cutover tests (8 Mar).
+  - The default switch (12 Mar).
+  - The re-land with the nil-cursor fix and its regression test (both 31 Mar, evening).
+  - One more commit dated 2 Apr, removing the legacy store code. That is just outside Q1, so I haven't counted it in the window.
+- **Identity B (example.com):** 3 commits in the window, 85 lines added.
+  - Store interface (31 Dec 2025, 8:30 pm Pacific). It falls in Q1 only if you count it in UTC, which would be 1 Jan. By your Pacific calendar it is just before Q1.
+  - A migration-plan docs commit (5 Jan).
+  - SQLite backend (12 Jan).
+  - Port writes (3 Feb).
+  - A "batch writer" commit with an impossible author date of 1 Jan 1970. I can't place it in time, so I left it out of the dated counts.
+- Identity B wrote the early foundation and A wrote the later cutover, so together they would read as one person's continuous work. That is plausible but unproven. Ask the candidate which address was theirs, or ask Tom Becker or Lena Ortiz.
+
+**What the history shows, assuming both are her:**
+- She wrote about 85.6% of the lines that survive in `internal/store`, and 12 of the 15 commits touching it. She also created the directory.
+- Tom Becker wrote the migration plan (18 Dec 2025), the metrics hooks, and the runbook update. He also made the revert.
+- Lena Ortiz wrote the read-port commit (20 Jan), 25 surviving lines.
+- Reads were therefore ported by someone else.
+
+**Cautions, for fairness:**
+- **The cutover was reverted.**
+  - Tom reverted her default switch on 14 Mar. The revert's commit body says "readers saw a nil cursor under load."
+  - She re-landed it with a fix and a regression test on 31 Mar.
+  - A production incident followed by her own repair is a normal part of leading a migration, and it counts both ways. I wouldn't hold it against her unfairly.
+- **Review and design aren't visible.** No commit in the repository has a review trailer. Who decided what, who planned it, and who owned the project all fall outside git. "Led" is a claim about those things, so I can't verify it here.
+- **Line counts measure code, not leadership.** The window totals are small, and the migration was a team effort. Tom's plan commit predates her work.
+
+**My read:** "Led the migration" is not contradicted. She was the main implementer and she finished the cutover, which supports "led the engineering". "Led" in the sense of owning planning and decisions is not verifiable from git. The plan was authored by Tom, though she extended it with rollout phases. A fair interview question would be how she decided on the dual-write and cutover-flag approach, and what she learned from the nil-cursor incident.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: CLI=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $CLI figures --person "Priya Raman" --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles; echo ----; node $CLI owner --path internal/store --claim "Priya Raman"; echo ----; node $CLI reviews -
+Bash: git log --all --date=iso --format='%h %an | A:%ad | C:%cd | %cn | %s' --numstat -- internal/store | head -120
+Bash: git log --format='%h %an <%ae> | %cn <%ce> | %ad | %s' --date=iso | grep -i -E 'priya' ; echo; git log --format='%ae' | sort | uniq -c; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js reviews --path internal/store 2>&1 | head -30
+Bash: CLI=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; for a in praman@corp.example.invalid priya.raman@example.com; do echo "=== $a"; node $CLI figures --author $a --since 2026-01-01 --until 2026-03-31 --tz America/Los_Angeles | cut -c1-260 | grep -E '^(authore
+### Final answer text
+The history supports a strong contributor role in the migration, and probably more. It can't show whether she "led" it, because git doesn't record who was assigned the work or who made the design calls.
+
+**What holds**
+- **Ownership of the code:** Of the 243 lines now in `internal/store`, 208 (85.6%) are hers, and the figure is the same with or without whitespace and moves ignored. Lena Ortiz has 25 (the read path) and Tom Becker has 10 (metrics hooks).
+- **She started it:** She created the package with the store interface, committed on 31 Dec 2025 at 20:30 Pacific. That is just before Q1 on your calendar.
+- **Her commits in Q1 (Pacific):** Counting both of her addresses, she has 10 authored commits of the 16 in the window. Five authors appear in the window, one of them a bot.
+- **Pieces she wrote:** The SQLite backend, the write path, the backfill tool, dual-write mode, the cutover flag and the cutover tests.
+- **The cutover:** She switched the default to the new store on 12 Mar. Tom Becker reverted it on 14 Mar after an incident where readers saw a nil cursor under load. She re-landed it with a fix and added a regression test on 31 Mar, at 19:30 and 21:00 Pacific. Those timestamps are 1 Apr in UTC, but they fall inside Q1 on your calendar.
+- **Legacy removal:** She removed the legacy store code on 2 Apr, which is just outside Q1.
+- **Lines written in Q1:** Under the `praman@…` address she wrote 98 lines, or 95 with the reverted commit removed. Under the `priya.raman@example.com` address she wrote 85 lines. The tool did not combine the two.
+
+**Caveats**
+- **Not all hers:** Lena Ortiz wrote the read path (`f29b538`, 20 Jan), Tom Becker added the metrics hooks and reverted the first cutover, and Lena merged the cutover PR #52 on 10 Mar. The work was shared, though she wrote most of it.
+- **Two addresses:** Her commits come from `priya.raman@example.com` (Dec–Feb) and `praman@corp.example.invalid` (Feb–Apr). The tool treats them as possibly unrelated people with the same name, so please confirm they are the same person. I read them as one person who changed address, because the second address picks up where the first leaves off and the branch is named `priya/store-cutover`. That is an inference, not proof.
+- **One bad date:** The "add batch writer" commit (`f8115ac`) is dated 1970-01-01, so it is left out of the dated counts.
+- **Reviews:** None of the 15 commits touching the package has a review trailer. That means "not verifiable here", not that no review happened.
+- **The revert:** Her first cutover was backed out within two days. She fixed it herself, which counts in her favour, but it does mean the cutover wasn't clean the first time.
+
+**My read:** The CV's claim holds as far as git can show. She wrote most of the new store, designed its structure, and carried the cutover through an incident to completion. "Led" is plausible but unproven. Ask her referees, or Lena and Tom, whether she set the plan and made the calls. The docs commit `2c54334` (5 Jan, "add rollout phases to the migration plan") suggests she did some of the planning, but a commit message isn't proof of that.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an <%ae>|%cn|%ad|%cd|%s' --date=iso | cat; echo; git shortlog -sne --all; ls internal/store 2>&1 | head; git log --all --format='%h %an' --follow -- internal/store | head -50
+Bash: git log --all --format='%h|%an|%ad|%s' --date=iso | wc -l; git shortlog -sn --all; echo ---; git log --all --since=2025-12-01 --until=2026-04-10 --format='%h|%an|%ad|%s' --date=format:'%Y-%m-%d %H:%M %z' -- internal/store | cat; echo; git log --all --diff-filt
+Bash: git log --all --format='%h|%an|%ad|%cd|%s' --date=iso -- internal/store | cat; echo; git show -s --format='%B' d3151e5 f8115ac 1ed1df7; git show --stat --format='%h %s' f8115ac ce8adfc c332078 | cat; git branch -a | cat; git log --first-parent --format='%h %s'
+### Final answer text
+**Overall read:** the history supports "she did most of the migration work". It does not by itself support "led", and it doesn't show who decided to do the migration.
+
+I did not generate a receipts report. That skill summarises your own Claude Code usage and can't answer this. I read `git log` for `internal/store` directly.
+
+**What the history shows (Pacific time, Q1 = 1 Jan – 31 Mar 2026)**
+- **Share of the work:** 12 of the 15 commits touching `internal/store` are hers. Lena Ortiz has one, Tom Becker has two. By lines she added about 211, against 25 for Lena and 10 for Tom.
+- **What she built, in order:**
+  - sqlite backend (12 Jan)
+  - port writes (3 Feb)
+  - backfill tool (20 Feb)
+  - dual-write mode (2 Mar)
+  - cutover flag (5 Mar)
+  - cutover tests (8 Mar)
+  - the default switch (12 Mar)
+  - the nil-cursor fix and re-land (31 Mar)
+  - a regression test (31 Mar)
+- **Cutover PR:** she opened PR #52 (`priya/store-cutover`). Lena Ortiz merged it on 10 Mar.
+- **Other people's parts:** Lena Ortiz did the "port reads" commit (20 Jan), so the read side wasn't hers. Tom Becker added the metrics hooks and the cutover runbook.
+- **The default switch failed once:** her 12 Mar switch was reverted on 14 Mar by Tom Becker. The revert message says "Incident: readers saw a nil cursor under load." She re-landed it on 31 Mar with a fix and a regression test. That is a real production hiccup, and she did resolve it.
+
+**Where the CV's claim doesn't line up exactly**
+- **Two commits fall outside Q1:**
+  - "add store interface" is dated 31 Dec 2025 at 20:30 Pacific. That is already 1 Jan in UTC, so a UTC-based count would wrongly put it in Q1.
+  - "remove legacy store code" is dated 2 Apr, after the quarter.
+- **Cutover finished at the very end of the quarter:** the final regression test landed at 21:00 Pacific on 31 Mar. That is already 1 Apr in UTC, but it is still inside Q1 on your calendar.
+- **One commit can't be placed:** "add batch writer" (`f8115ac`) has a timestamp of 1970-01-01. Its author date is wrong or was reset, so I can't say when it happened.
+- **"Led" is not visible in git:** commits don't show who set the plan, assigned work or owned the decision. Her having the most commits and the cutover PR fits leading it, but you'd need a reference or the project lead to confirm it.
+
+**Caveats**
+- Author dates can be edited, and this is one repo's history. Work done elsewhere (design docs, review, coordination) wouldn't show up here.
+
+**Fair summary to carry into the interview:** she was the main implementer of the migration, and she owned the cutover through an incident and recovery. Ask her about the revert and what she changed in the re-land, and ask who made the plan.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --date=iso --format='%h|%an <%ae>|%cn|%ad|%cd|%s' | head -100; echo; git log --all --format='%an' | sort | uniq -c; ls internal/store 2>&1 | head; git log --all --oneline -- internal/store | wc -l
+Bash: git log --reverse --format='--- %h %an %ad %s' --date=iso --numstat 761b0d0^..HEAD -- internal/store docs | grep -v '^$'; echo; git show d3151e5 --format='%B' --stat | head -20; git show f8115ac --stat --format='%h %ad %cd %s' | head; git log --format='%h %p' 
+### Final answer text
+**Short read:** the history backs up that Priya was the main implementer of the new store. It doesn't show that she led it. The plan came from Tom Becker, and the history can't show who directed the work. Her record also includes a reverted cutover.
+
+**Facts, with Q1 as 1 Jan–31 Mar 2026 Pacific:**
+- **Scope:** `internal/store` has 15 commits in total. Priya has 13 of them, Tom Becker 2 and Lena Ortiz 1 (the other 2 commits, which add up to 18, are docs-only).
+- **Code in the window:** about 218 lines were added to `internal/store`, and Priya wrote about 183 of them (roughly 80%).
+  - She wrote the SQLite backend (12 Jan), the write path (3 Feb), the backfill tool (20 Feb), dual-write mode (2 Mar), the cutover flag (5 Mar) and the cutover tests (8 Mar).
+  - Lena Ortiz wrote the read path (20 Jan). Tom wrote the metrics hooks (12 Feb).
+  - Line counts are rough, because they are all small additions.
+- **Planning:** Tom wrote the migration plan on 18 Dec 2025, before the window. Priya added the rollout phases on 5 Jan. She didn't originate the plan.
+- **Merge:** PR #52 (`priya/store-cutover`) was merged by Lena on 10 Mar, so her work went through someone else's review.
+- **The cutover:**
+  - Priya switched the default to the new store on 12 Mar.
+  - Tom reverted it on 14 Mar, citing an incident where readers saw a nil cursor under load.
+  - She re-landed it with a nil-cursor fix at 19:30 on 31 Mar and added a regression test at 21:00 that night, so it did ship inside Q1, but on the last day.
+  - The history shows the incident and the fix, but not who was responsible for the original bug.
+- **Outside Q1:**
+  - Her `store.go` interface commit is at 20:30 on 31 Dec 2025 Pacific. It is already 1 Jan in UTC, so a UTC-based count would wrongly put it in Q1.
+  - The legacy-code removal on 2 Apr is also outside Q1.
+
+**Caveats:**
+- One of her commits, "add batch writer" (`f8115ac`), is dated 1 Jan 1970. By its position in the history it sits between 3 and 12 Feb, so it probably falls in Q1, but the date can't be verified. If I drop it, her share is about 77%.
+- Her early commits use `priya.raman@example.com` and her later ones use `praman@corp.example.invalid`. Same name, so probably the same person, but git doesn't confirm it.
+- The history shows who wrote what, not who decided what. Whether she "led" depends on things like the ticket owner and who ran the cutover, which you'd have to check with her references or Tom and Lena.
+
+**Overall:** "Led the migration" is a fair description if she owned delivery. If the CV means she designed it, the history doesn't support that, since Tom wrote the plan. The revert is a mark against her, but she fixed the bug and added a regression test within the quarter. I'd ask her in interview about the nil-cursor incident and who set the rollout plan.
+
+I didn't run the receipts script, since it only reports your own Claude Code usage and has no way to attribute work to Priya.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --date=iso --format='%h|%an <%ae>|%cn|%ad|%cd|%s' --numstat -- internal/store | head -150; echo ----; git log --all --date=iso --format='%h|%an|%ad|%s' | head -60
+Bash: git log --format='%h %p | %an | %s' --graph -n 28 | head -40; git show -s --format='%h %an %ae %cn %ce %ad' c332078 f8115ac; git shortlog -sne HEAD -- internal/store; git log -1 --format=%H f8115ac --date=iso; git log --format='%h %ad' --date=iso --topo-order 
+### Final answer text
+**Short version:** the git history backs up the claim that Priya did most of the hands-on work on the new store in Q1 2026. It doesn't show whether she "led" it. It also includes a reverted cutover that the CV leaves out.
+
+I didn't use the receipts skill's report. It summarises the user's own Claude Code usage, so it doesn't fit a question about a candidate. I read `git log` for `internal/store` instead.
+
+**Window:** 1 Jan 2026 00:00 PST to 31 Mar 2026 23:59 PDT.
+
+**What the history shows**
+- **Most of the code is hers.** Of the 14 commits touching `internal/store`, Priya authored 11. That is about 210 of roughly 245 added lines (~85%).
+  - Inside Q1 she has 10 commits and about 183 added lines:
+    - the SQLite backend (12 Jan)
+    - the write path (3 Feb)
+    - the batch writer
+    - the backfill tool (20 Feb)
+    - dual-write mode (2 Mar)
+    - the cutover flag and tests (5–8 Mar)
+    - the default switch (12 Mar)
+    - the fix and regression test (31 Mar)
+  - She also added the rollout phases to the migration plan on 5 Jan.
+- **Others contributed.**
+  - Lena Ortiz wrote the read path (20 Jan) and merged Priya's cutover PR #52.
+  - Tom Becker wrote the original migration plan (18 Dec), the metrics hooks (12 Feb) and the runbook update.
+- **The cutover was reverted.** Priya switched the default to the new store on 12 Mar. Tom reverted it on 14 Mar. On 31 Mar she re-landed it with a nil-cursor fix, plus a regression test about 90 minutes later.
+  - Her first cutover evidently had a bug. She owned the fix quickly.
+  - The CV's "led the migration" glosses over the revert.
+
+**Things that don't line up with the CV's dates**
+- Her first commit, the store interface (`ce8adfc`), is dated 31 Dec 2025 at 8:30pm Pacific. That is before Q1 on your calendar, though it falls on 1 Jan in UTC.
+- The legacy-code removal (`29a0ed3`) is dated 2 Apr. That is after Q1, so the migration was only finished after the quarter ended. In Q1 she got the default switched over.
+- The 31 Mar 9pm commit counts as Q1 in Pacific time but would be 1 April in UTC.
+- Commit `f8115ac` (the batch writer) has a 1970 timestamp, so its date is unreliable. By its position in history it sits between 3 and 12 Feb.
+- She appears under two emails, `priya.raman@example.com` for the early commits and `praman@corp.example.invalid` for the later ones. They have the same name, and a change of address is plausible. Git can't confirm it's the same person, so check with her or HR.
+
+**My read**
+- The evidence fits "primary implementer, and the person who drove it through cutover".
+- It doesn't show who set the direction, made design calls or coordinated the team. Tom's plan predates her work, and Lena reviewed and merged the cutover PR.
+- "Led" may be fair, but git can't show it. Ask her referees, or ask her in the interview about the plan, the dual-write design and what went wrong in the first cutover.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --date=iso --format='%h|%an <%ae>|author:%ad|commit:%cd|%cn|%s' --numstat -- internal/store | head -150; echo ---; git log --all --format='%an|%ae' | sort | uniq -c; git branch -a
+Bash: git log --all --date=iso --format='%h|%an|%ad|%cd|%s' | cat; ls; git log -1 --format=%B 1ed1df7 d3151e5
+Bash: git log --format='%h %p | %s' -12 --topo-order main | cat; echo; git show --stat --format='%h %an %ad%n%B' c332078 f8115ac 2c54334 761b0d0 35bc97d | cat; ls docs; git show d3151e5 | cat; git show 0d76c5e 1ed1df7 | cat; git config --get-regexp 'user|mailmap'; l
+Bash: git log --format='%h %p %ad %s' --topo-order --date=short ce8adfc^..352c6e4 | cat; git branch -a --contains f8115ac
+### Final answer text
+I didn't use the cv-builder skills. This was a git-history check, not a CV rewrite, review or tailoring job.
+
+**Bottom line:** The history supports a major, hands-on role. It supports "led the engineering" better than "led the migration." Nothing in git shows who owned the project or its schedule.
+
+**What the history shows for `internal/store`**
+- Priya Raman wrote 12 of the 17 commits under `internal/store` that I counted, about 85% of the lines added (roughly 211 of 246).
+- The rest is Lena Ortiz (port reads, 25 lines) and Tom Becker (metrics hooks, 10 lines).
+- Priya wrote the core pieces:
+  - the store interface
+  - the sqlite backend
+  - the port of writes
+  - the batch writer
+  - the backfill tool
+  - dual-write mode
+  - the cutover flag and cutover tests
+  - the nil-cursor fix
+  - the regression test
+  - the legacy-code removal
+- She also added the rollout phases to Tom's migration plan (2 Jan–5 Jan).
+- She opened PR #52 (store-cutover), which Lena merged on 10 Mar.
+
+**Timing, using Pacific time and 1 Jan–31 Mar 2026**
+- The store interface commit is dated 31 Dec 2025, 8:30 pm PST. That is before Q1 in Pacific time. In UTC it would look like 1 Jan.
+- The final cutover re-land (7:30 pm) and its regression test (9:00 pm) are both on 31 Mar Pacific. They fall in Q1 on your calendar, but in UTC they would be 1 Apr.
+- Removal of the legacy code is 2 Apr, which is after Q1.
+- So the Q1 work is real, but it started a day early and the clean-up ended two days late.
+
+**Points that cut against "led"**
+- Tom Becker wrote the original migration plan (18 Dec), the runbook update and the metrics hooks. He also made the 14 Mar revert.
+- Lena Ortiz did the read-path port and merged Priya's PR.
+- The default switch was her own commit (12 Mar). It caused a production incident ("readers saw a nil cursor under load"), and Tom reverted it two days later.
+- She then fixed the bug and re-landed the switch on 31 Mar, the last day of the quarter.
+- That is a point for her: she owned the bug and fixed it. But the migration was not finished cleanly inside Q1.
+
+**Caveats**
+- The batch writer commit has a bogus author date of 1 Jan 1970. By commit order it sits between 3 Feb and 12 Feb, so it was probably made in Q1. Its date can't be verified.
+- Priya appears under two email addresses (`priya.raman@example.com` and `praman@corp.example.invalid`). The commits are consistent, so it is probably one person, but I haven't confirmed that.
+- Most of what I saw in the cutover files is one-line constants, so line counts are a weak measure of effort.
+- Git can't show who was the project lead, who set priorities, or who ran the work with other teams. A reference check with Tom or Lena would settle that.
+
+**Fair phrasing for the CV**
+"Primary implementer of the new store migration (Q1 2026): designed the store interface, built the sqlite backend, write path, backfill and dual-write, and drove cutover. That included fixing the nil-cursor bug behind the 14 Mar rollback and re-landing the switch."
+
+I'd ask her to explain "led" in an interview before accepting it as written.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h | %an <%ae> | author %aI | commit %cI | %s' --date=iso && echo ---- && git shortlog -sne --all && echo ---- && git log --format='%h' --follow -- internal/store | wc -l && git branch -a && git tag
+Bash: git log --format='%h|%an|%aI|%s' | wc -l; git shortlog -sn --all; echo ---; git log --format='%h|%an|%aI|%s' -- internal/store | head -80; echo ---; git log --reverse --format='%h|%an|%aI|%s' | head -60
+Bash: for c in ce8adfc 6d472f2 f29b538 493ed1e f8115ac 352c6e4 d69528f e59a44b 655172a 35bc97d e5942fd c332078 0d76c5e d3151e5 1ed1df7 39b8dc2 29a0ed3 2115746; do echo "=== $c"; git show --stat --format='%h %an <%ae> | A:%aI | C:%cn %cI%n%s%n%b' $c | head -25; done;
+Bash: git show --stat --format='%h %an <%ae> | %aI%n%s%n%b' 761b0d0 2c54334 | head -30; ls docs; git show 0d76c5e 1ed1df7 --format='--- %h' -- internal/store/cutover.go | grep -v '^index'; grep -rn -i "priya\|owner\|lead" docs 2>/dev/null | head
+### Final answer text
+**Overall read:** the history supports "drove most of the migration". It does not clearly support "led" in the sense of owning it or being accountable for it. It also shows a failed first cutover that she later fixed.
+
+**What the history shows**
+- **Her share:** Priya authored 13 of the 17 commits on the migration and cutover (the store code, plus two docs commits I counted in the 17). She wrote about 211 of the roughly 246 lines in `internal/store`. Her work covers:
+  - the store interface and the sqlite backend
+  - the write port, the batch writer and the backfill tool
+  - dual-write mode, the cutover flag and the cutover tests
+  - the default switch, the nil-cursor fix and its regression test
+  - the cleanup commit that removed the legacy code
+- **Others' parts:**
+  - Tom Becker wrote the migration plan (18 Dec 2025), the metrics hooks and the runbook update. He also reverted her first default switch.
+  - Lena Ortiz ported the reads (20 Jan) and merged her PR #52.
+  - Priya did add the rollout phases to the plan on 5 Jan.
+- **Cutover timeline:**
+  - She switched the default to the new store on 12 Mar.
+  - Tom reverted it on 14 Mar after an incident: "readers saw a nil cursor under load."
+  - She re-landed it with a fix on 31 Mar and added a regression test.
+  - So the cutover went live only after a rollback.
+  - The cleanup came on 2 Apr.
+
+**Q1 boundary (Pacific, 1 Jan to 31 Mar 2026)**
+- Her first commit, the store interface, is dated 31 Dec 2025 at 20:30 PST. That is 1 Jan in UTC but still 2025 on your calendar.
+- Her last two cutover commits are on 31 Mar at 19:30 and 21:00 PDT. They are inside Q1 for you, but would read as 1 Apr in UTC.
+- The legacy-code removal on 2 Apr is outside Q1.
+- Nearly all of her work falls in Q1 on your calendar. The start and end are fuzzy, and the final cleanup is just outside.
+
+**Caveats to be fair and careful**
+- Commit `f8115ac` (batch writer) has a 1970 epoch timestamp. It is probably a tooling or rebase artifact. By its position in history it falls between 3 and 12 Feb.
+- She committed under two email addresses, `priya.raman@example.com` and `praman@corp.example.invalid`. The name matches and the switch is chronological, so it is probably one person. Confirm that with HR or the identity records.
+- Git shows who wrote code. It does not show who was assigned the lead, who made the decisions, or who coordinated. Tom wrote the plan, and Lena approved the merge. Reviews, tickets and the team's own account would show who actually led.
+
+**Suggested wording:** "Primary implementer of the new store migration (Jan to Mar 2026), including the dual-write, backfill and cutover. Re-landed the default switch with a fix after a rollback." Use "led" only if her manager or the plan's owner confirms it.
+
+I didn't run any of the cv-builder skills. There was no resume to tailor or rewrite, and the question was about verifying a claim.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an <%ae>|%cn|%ad|%cd|%s' --date=iso | cat; echo; git log --all --stat --format='--- %h %an %ad %s' --date=iso -- internal/store | head -80
+Bash: git log --all --format='%h|%an|%ad|%s' --date=format:'%Y-%m-%d %H:%M %z' | sed -n '12,200p'; echo; git shortlog -sn --all; echo; git log --all --numstat --format='C %h %an' -- internal/store | awk '/^C/{a=$3" "$2;next} NF==3{add[$3?a:a]+=$1;del[a]+=$2} END{for
+Bash: git show --stat --format='%h %an | author %ad | commit %cd%n%B' --date=iso f8115ac 29a0ed3 d3151e5 1ed1df7 c332078 f29b538 | cat; git log --graph --oneline -20 | cat; git branch -a | cat
+### Final answer text
+The git history supports "did most of the work on the migration". It doesn't show that she led it, and "led" is a claim about role and decisions that commits can't confirm. Her first cutover attempt was also reverted in Q1.
+
+**What she did**
+- She wrote 13 of the 22 commits that touch the migration, and almost all of the new-store code in `internal/store`. I counted every commit on `main`, which is the only branch.
+- Her work covers the whole arc:
+  - the store interface and the sqlite backend
+  - port writes, the batch writer and the backfill tool
+  - dual-write mode, then the cutover flag and tests (PR #52)
+  - the default switch, its fix and a regression test
+- She wrote the rollout-phases addition to the migration plan (`2c54334`, 5 Jan).
+- After the first cutover was reverted on 14 March, she re-landed it with a nil-cursor fix and a regression test on 31 March (19:30 and 21:00 Pacific). That's good evidence of ownership.
+
+**What others did**
+- Tom Becker wrote the original migration plan (18 Dec 2025), the metrics hooks and the runbook update. He also made the revert on 14 March.
+- Lena Ortiz ported reads to the new store (`f29b538`, 20 Jan). She also merged PR #52 on 10 March.
+- Tom's plan predates her involvement, and the history doesn't show who assigned the work or who set the direction.
+
+**Timing against your Q1 definition (1 Jan to 31 Mar 2026, Pacific)**
+- Nearly all of her work falls inside Q1. Her last commit, "remove legacy store code" (`29a0ed3`, 2 April), falls just outside it.
+- The store interface (`ce8adfc`) is stamped 31 Dec 2025, 20:30 Pacific. That's 1 Jan in UTC but still 2025 on your calendar, so it's just outside Q1.
+- `f8115ac` (batch writer) has an author date of 1970-01-01, which is clearly bogus. I can't place it in time from the history. By its position in the commit sequence it sits between 3 and 12 February, so it's probably in Q1.
+
+**Things that cut against the CV**
+- The default switch went live on 12 March and was reverted two days later after an incident ("readers saw a nil cursor under load"). The migration wasn't complete and stable until her fix on 31 March, the last day of Q1. That's the final day of the quarter, so "led the migration" is fair only if the CV doesn't imply it went smoothly.
+- `29a0ed3` is titled "remove legacy store code" but only adds 8 lines (`cleanup.go`) and deletes nothing. Legacy removal isn't actually shown in the history.
+
+**My read**
+"Led the migration" is defensible as "was the primary engineer who built and landed it". She owned the implementation, and she recovered from the revert. The history can't establish formal leadership, such as scoping, prioritising or coordinating others. Tom authored the plan, and Lena and Tom did meaningful parts of the work.
+
+To be fair to her without overstating it, a more defensible wording would be "Built the new store implementation and drove its cutover (Jan–Mar 2026), including fixing the issue that forced a rollback". Ask her or her manager who directed the project and whether she coordinated the others.
+
+I didn't run the cv-builder skills. This was a verification question, and none of them fit it.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%aI|%cI|%s' | head -100; echo; git shortlog -sne --all
+Bash: git log --reverse --since=2025-12-01 --format='== %h %an %s' --numstat -- . | grep -v '^$'; echo; git show d3151e5 --format=%B -s; git show c332078 --format='%P%n%B' -s; git branch -a; git log --graph --oneline -15; git ls-files internal/store | head -30; git 
+Bash: git log --reverse --format='== %h %an %s' --numstat 761b0d0^..f29b538 -- . | grep -v '^$'; git log --format=%h --reverse -3 f8115ac; git show 761b0d0 --stat --format=%B | head; git log -1 --format='%h parent order' f8115ac; git log --format='%h %ad' --date=iso
+### Final answer text
+**Short version:** the history supports a large, central role for Priya Raman. It doesn't show sole ownership, and the cutover had a rough patch. "Led" is a judgment call that git can't settle. "Was the main implementer and drove it to completion" is well supported.
+
+**Priya's commits**
+- She has 13 commits to `internal/store` and the migration docs, under two author emails: `priya.raman@example.com` and `praman@corp.example.invalid`. Both are plausibly hers, since the name is the same and the later address looks like a corporate one. I haven't verified identity beyond that.
+- **In Q1 (Pacific time):** 11 commits, from 5 Jan to 31 Mar.
+  - Rollout phases in the migration plan.
+  - The SQLite backend.
+  - Write porting and the batch writer.
+  - The backfill tool.
+  - Dual-write mode.
+  - The cutover flag and its tests.
+  - The re-landed default switch and the nil-cursor regression test.
+- **Just outside Q1:**
+  - The store interface, on 31 Dec 2025 at 8:30 pm Pacific. That's already 1 Jan in UTC, but it's before Q1 on your calendar.
+  - The "remove legacy store code" commit, on 2 Apr.
+- **Caveat on the batch writer:** commit `f8115ac` carries a 1970-01-01 timestamp, so its date is unreliable. Its position in the history puts it between 3 and 12 Feb, so I counted it as Q1.
+
+**What others did**
+- **Tom Becker** wrote the original migration plan (18 Dec 2025). He also added the metrics hooks and the runbook update, and he reverted Priya's first default switch.
+- **Lena Ortiz** wrote "port reads to the new store" (20 Jan). That is a core piece of the migration and it isn't Priya's. Lena also merged PR #52, which holds Priya's cutover flag and tests.
+- Priya wrote most of the store code, but she didn't design or plan the migration alone.
+
+**The cutover**
+- Priya switched the default to the new store on 12 Mar. Tom reverted it on 14 Mar with the message "Incident: readers saw a nil cursor under load."
+- Priya re-landed the switch with a fix on 31 Mar and added a regression test about 90 minutes later.
+- So her first cutover caused a production incident. She did own the fix and the test, and the incident was resolved inside Q1.
+
+**Limits of what git shows**
+- Git can't show who decided to migrate, who set priorities, who managed people or stakeholders, or who handled the incident response. Those are the things "led" usually implies. The history also says nothing about review quality. I only saw that Lena merged one PR.
+- The commits are small (about 3–40 lines each), so volume alone says little.
+
+**Overall read:** her authorship fits "drove the implementation and cutover" better than "led the migration." Tom's plan and revert and Lena's reads port show it was a team effort. I'd treat "led" as plausible but unverified. I'd ask her what she decided and who she coordinated with, and I'd ask Tom and Lena about her role. I'd also ask her about the 12 Mar incident, because how she tells it is useful signal.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an <%ae>|%cn|%ad|%cd|%s' --date=iso-local --all | cat; echo; git log --all --format='%h' -- internal/store | wc -l; git shortlog -sne --all
+Bash: export TZ=America/Los_Angeles; git log --all --date=format-local:'%Y-%m-%d %H:%M %Z' --format='%h|%an|%ad|%s' | cat | head -80; echo; git log --all --format='%an' | sort | uniq -c; git log --all --since=2025-12-01 --format=%h | wc -l; echo ---; git log --rever
+Bash: export TZ=America/Los_Angeles; git log --reverse --format='%h %an' --numstat 761b0d0^..HEAD | grep -v '^$' | head -120; echo ---; git show -s --format='%H%n%an %ad%nAuthorDate:%ai CommitDate:%ci%n%B' f8115ac c332078 d3151e5 1ed1df7; git log --graph --oneline 7
+### Final answer text
+The history supports a substantial, central role for Priya. It doesn't show who made the decisions or who was formally in charge, so "led" is only partly confirmed.
+
+I converted all timestamps to US Pacific. The commits are stored with mixed UTC offsets, and this matters for the dates.
+
+**What the history shows**
+- **Most of the code is hers.** She wrote 13 of the 20 commits from the migration plan through the cleanup. Excluding the legacy-code removal and the pre-Q1 interface commit, she wrote about 183 of about 218 lines in `internal/store`, roughly 84%.
+  - **Her part:** the store interface, the sqlite backend, writes, the batch writer, the backfill tool, dual-write mode, the cutover flag and tests, and the default switch.
+  - **Others' part:** Lena Ortiz ported reads (25 lines). Tom Becker added metrics hooks and the revert.
+- **The sequence is a coherent migration plan.** It runs interface, backend, reads and writes, backfill, dual-write, cutover flag, cutover tests, then default switch. She also added the "rollout phases" section to the plan (5 Jan).
+- **The first cutover failed.** She switched the default on 12 Mar. Tom reverted it on 14 Mar after an incident: "readers saw a nil cursor under load."
+- **She fixed it herself.** On 31 Mar she re-landed the switch with a nil-cursor fix and added a regression test. That is a point in her favour, and the CV leaves out the revert.
+- **The other people's roles are visible.** Tom wrote the migration plan and the runbook. Lena merged her PR #52 on 10 Mar. That suggests peer review, but I can't see the PR discussion.
+
+**Dates**
+- **The re-land is inside Q1.** It is 31 Mar, 19:30 PDT. It looks like 1 April in the stored +0300 offset, but on your Pacific calendar it falls in Q1.
+- **The legacy removal is outside Q1.** It is 2 Apr, 10:00 PDT. So the migration was finished after Q1, though the default only became stable on the last day of the quarter.
+- **The first commit predates Q1.** The store interface commit is 31 Dec 2025, 20:30 PST.
+
+**Caveats**
+- **One commit has a bad date.** The batch writer commit (`f8115ac`) is dated 1 Jan 1970. It sits between 3 Feb and 12 Feb in the history, so I'd treat that as a clock or tooling error. It is unlikely to be anything worse.
+- **Git can't show leadership.** It doesn't show who made the architecture or timing decisions, who set the scope, or who coordinated the work. Tom owning the plan and runbook leaves open whether she or he directed the effort.
+- **The commits are small.** They run from 3 to 40 lines each, so the code doesn't show how hard the work was.
+
+**My read:** She was clearly the primary implementer and the person who saw the cutover through, including recovering from a failed first attempt. "Led the migration" is plausible but not proven. A fairer reading is "did most of the implementation and drove the cutover." I'd ask her what she decided, and ask Tom or Lena how the work was directed. I'd also ask about the March incident, since how she handled it is probably the most informative part.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --date=iso --format='%h|%an|%ae|%cn|%ad|%cd|%s' | head -100; echo; git log --all --format='%an' | sort | uniq -c
+Bash: git log --reverse --format='--- %h %an %s' --shortstat 761b0d0^..HEAD; git log --graph --oneline -25 --format='%h %p | %s' | head -30; git show d3151e5 --format='%B' -s; git show c332078 --format='%B%P' -s; git show 1ed1df7 39b8dc2 -s --format='%h %B'; git bra
+Bash: git log --reverse --format='%h %an' --name-only 761b0d0^..HEAD | grep -v '^$' | paste -sd' ' | sed 's/ \([0-9a-f]\{7\} \)/\n\1/g'; git blame --line-porcelain -- internal/store | grep '^author ' | sort | uniq -c
+Bash: git log --reverse --format='== %h %an' --name-status 761b0d0^..HEAD | grep -v '^$'; ls; git ls-files | grep -i -E 'store|migrat|docs' 
+### Final answer text
+**Short read:** the history supports a large, central role for Priya, but not "led" as a sole or clearly established fact. It shows her as the main implementer. It doesn't show who owned the project.
+
+**What the history shows (Pacific time, Q1 = 1 Jan to 31 Mar 2026)**
+- **Plan:** Tom Becker wrote the migration plan on 18 Dec 2025, before Q1. Priya later added the rollout phases (5 Jan).
+- **Her share of `internal/store`:**
+  - She authored 8 of the 11 files that make up the new store: the interface, sqlite backend, writes, batch writer, backfill tool, dual-write mode, cutover flag and cutover tests.
+  - By lines added in the migration commits, that is roughly 210 of about 250. Lines are a crude measure.
+  - The other files are reads (Lena Ortiz, 20 Jan) and metrics hooks (Tom, 12 Feb).
+- **Cutover mechanics:** She built the dual-write, backfill and cutover-flag steps. Lena merged her PR #52 (`store-cutover`) on 10 Mar, so someone else reviewed or approved it.
+- **The default switch:**
+  - She switched the default to the new store on 12 Mar.
+  - Tom reverted it on 14 Mar after an incident where readers saw a nil cursor under load.
+  - She re-landed it with a fix on 31 Mar at 19:30, plus a regression test at 21:00.
+  - Both of those commits are inside Q1 on your calendar. They fall on 1 April in UTC, so a UTC-based view would put them outside it.
+- **Legacy removal:** Her `migrate: remove legacy store code` commit is dated 2 Apr, just after Q1. It only adds a file (`cleanup.go`, 8 lines), so it doesn't show a deletion of legacy code.
+
+**Caveats**
+- **The failed first cutover is real.** Her first cutover caused an incident and was reverted. She fixed it and added a test, which is a point in her favour, but "led" shouldn't gloss over the revert.
+- **Her first commit predates Q1.** The store interface is dated 31 Dec 2025 at 20:30 PST, which is 1 Jan in UTC. On your Pacific calendar it is just before Q1. This is minor, since most of her work falls inside the quarter.
+- **One commit has a bad timestamp.** `f8115ac` (batch writer) is dated 1970-01-01. Its position in the history puts it between 3 and 12 Feb, so it is probably a clock or tooling error, but the date itself can't be trusted.
+- **Her commits carry two email addresses.** Her early commits use `priya.raman@example.com` and later ones use `praman@corp.example.invalid`. That is probably a config change, but I can't confirm both are the same person.
+- **Git can't show ownership.** It shows who wrote code, not who made decisions, planned, coordinated or was accountable. Tom's plan, Lena's review and the incident handling may all have involved leadership that never shows up in commits.
+
+**Overall:** the claim that she did the bulk of the implementation and drove the cutover through a rocky rollout is well supported. The claim that she led it is plausible but unproven. I'd ask her or Tom or Lena what her role was: who set scope, who made the go/no-go calls, and how she handled the March incident.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ae|%cn|%ad|%cd|%s' --date=iso --date-format-unused 2>/dev/null || git log --format='%h|%an <%ae>|committer %cn|%ad|%s' --date=iso; echo; git log --format='%h' | wc -l; git shortlog -sne --all
+Bash: git log --all --format='%h|%an|%ad|%s' --date=iso -- internal/store | cat; ls internal/store 2>&1; git branch -a; git tag
+Bash: git log --no-merges --format='@%h %an %s' --numstat -- internal/store | grep -v '^$' | awk '/^@/{h=$0;next}{a[h]+=$1;d[h]+=$2}END{for(k in a)print k,"+"a[k],"-"d[k]}' | sort; echo; git show --stat --format='%h %an author:%ad commit:%cd' f8115ac | head; git sho
+### Final answer text
+**Read:** The history supports a strong claim that Priya was the main implementer and drove the migration to completion. It doesn't show that she was the formal lead, and it doesn't show the cutover went smoothly.
+
+This repo is the google/uuid history with the migration work added on top. I counted only the `internal/store` commits.
+
+**What the history shows**
+- **Share of the work:** She wrote 10 of the 15 commits that touch `internal/store`, about 169 of about 227 added lines. Tom Becker has 2 commits (metrics hooks, and the revert). Lena Ortiz has 1 (the read port, 25 lines). The rest of the 15 are Priya's.
+- **Her pieces:** She wrote the store interface, the sqlite backend, the write port, the batch writer, the backfill tool, dual-write mode, the cutover flag and the cutover tests. She also did the final default switch and the legacy-code removal.
+- **Sequence:** She did the interface, the sqlite backend, the write port, the backfill, dual-write and the cutover flag in that order. That is the order a staged migration would follow, and it fits the claim of driving it.
+- **Planning:** Tom wrote the original migration plan on 18 Dec 2025. She added the rollout-phases section on 5 Jan 2026. So the plan wasn't hers alone.
+- **The first switch failed:** She switched the default to the new store on 12 Mar. Tom reverted it on 14 Mar, with the message "Incident: readers saw a nil cursor under load."
+- **She fixed it:** On 31 Mar she re-landed the switch with a nil-cursor fix (19:30 PDT) and added a regression test (21:00 PDT). That is reasonable evidence she took ownership of the failure. Whether the fix really resolved the incident isn't visible in git.
+- **Lena Ortiz:** Lena merged PR #52 ("priya/store-cutover") on 10 Mar. So Priya's cutover branch went through someone else's review.
+
+**Caveats on dates and attribution**
+- **Q1 boundaries (Pacific):**
+  - **Store interface:** It is stamped 31 Dec 2025 20:30 -0800, so it falls just outside Q1 on your calendar. That's the foundation commit, but it's one commit.
+  - **Final switch and test:** Both are on 31 Mar evening Pacific, so they are inside Q1. In UTC they would read as 1 April, so don't be misled by a UTC view.
+  - **Legacy removal:** It is dated 2 Apr, which is after Q1.
+  - **Net effect:** The new store was only the default for the last day of the quarter. Almost all the work is in Q1, but the "migration done" milestone sits at its very end.
+- **Odd timestamp:** The batch-writer commit (`f8115ac`) is dated 1 Jan 1970, which is a zero timestamp. The authoring tool or a rewrite probably caused it. It doesn't change the picture, but it shows the history may have been rewritten, or at least not produced by a normal workflow.
+- **Two emails:** Her early commits use `priya.raman@example.com` and her later ones use `praman@corp.example.invalid`. They're the same name and plausibly the same person, but git alone can't confirm that. Check it with her or with IT.
+- **Line counts:** They are small and are not a measure of effort or quality.
+
+**Not visible in git**
+- Whether she was formally designated lead.
+- Who made the design decisions.
+- Who handled the incident or coordinated the rollout.
+- How much review or pairing happened.
+
+Ask her references, such as Tom and Lena, about those points, and ask Priya herself what she owned versus what the team did.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --date=iso --format='%h|%an|%ae|%ad|%cn|%cd|%s' && git log --all --format='%an' | sort | uniq -c
+Bash: for c in 761b0d0 ce8adfc 2c54334 6d472f2 f29b538 493ed1e f8115ac 352c6e4 d69528f e59a44b 655172a 35bc97d e5942fd c332078 0d76c5e d3151e5 1ed1df7 39b8dc2 29a0ed3; do echo "== $c"; git show --stat --format='%h %s%n%b' $c | head -15; done; git log --format='%h %P
+### Final answer text
+**Short version:** git supports "main implementer of the new store" for Priya. It doesn't show that she led the migration, because history records code, not roles.
+
+**What the history shows**
+- **Share of the code:** Priya wrote 11 of the 15 commits that touch `internal/store`, about 211 of 246 added lines (roughly 86%). Lena Ortiz wrote the reads port (`read.go`, 25 lines). Tom Becker wrote the metrics hooks (10 lines).
+- **What she built:**
+  - the store interface
+  - the sqlite backend
+  - the write port
+  - the batch writer
+  - the backfill tool
+  - dual-write mode
+  - the cutover flag and its tests
+  - the default switch
+  - the legacy-code removal
+- **Sequence:** her pieces form the whole path, from interface to backfill to dual-write to cutover. That looks like someone owning the end-to-end rollout.
+- **Planning:** Tom authored the migration plan on 18 Dec 2025. Priya added the rollout phases on 5 Jan. Tom also updated the runbook, so the plan and runbook were not hers alone.
+- **The cutover went badly at first:**
+  - Her default switch landed on 12 Mar.
+  - Tom reverted it on 14 Mar after an incident ("readers saw a nil cursor under load").
+  - She re-landed it on 31 Mar with a fix and added a regression test.
+  - She owned both the fault and the repair. The reads path was Lena's, so I can't say from git whose code actually caused the nil cursor.
+- **Review:** Lena merged her cutover PR (#52) on 10 Mar. That tells you someone else reviewed or approved it, but not how closely.
+
+**Timing, using Pacific time and 1 Jan–31 Mar**
+- Her last two cutover commits were on 31 Mar at 19:30 and 21:00 Pacific. Those are 1 Apr in UTC, but they are inside Q1 on your calendar.
+- Two of her commits fall outside Q1:
+  - the store interface, on 31 Dec at 20:30 Pacific, which is the start of the work;
+  - the legacy-code removal, on 2 Apr.
+- The migration was therefore not fully finished within Q1. The default switch only stuck on 31 Mar, and cleanup came after.
+
+**Caveats**
+- **Bad timestamp:** the batch-writer commit (`f8115ac`) is dated 1 Jan 1970. By its position in the history it falls between 3 and 12 Feb, but the date itself can't be trusted.
+- **Two emails:** she used `priya.raman@example.com` early on and `praman@corp.example.invalid` later. The name is the same, and I take it to be one person, but you may want to confirm.
+- **Lines of code:** line counts are a rough measure of effort.
+- **Assigned role:** git can't show whether she was the designated lead, who made the design decisions, or how much coordination she did. For that, check the tickets or PR threads, or ask her references.
+
+**Overall read:** "led" is plausible and mostly fair, since she wrote most of the code and drove the cutover through a revert. It slightly overstates things in three ways:
+- She wasn't the only contributor.
+- The plan wasn't hers alone.
+- The cutover wasn't clean or fully complete inside Q1.
+
+I'd treat it as a strong engineering-owner claim that still needs her to explain her role, and to explain the incident in particular.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an <%ae>|%ad|%cn|%s' --date=iso-strict --numstat -- internal/store | head -150; echo ----; git log --all --format='%h|%an|%ad|%s' --date=iso-strict | head -80
+Bash: git log --format='%h|%an|%cn|%cd|%P|%s' --date=iso-strict 761b0d0^..HEAD | head -30; git show d3151e5 --format=%B -s; git show 761b0d0 2c54334 --stat --format='%h %an %s%n%b' | head -30; git show c332078 --format='%B' -s; git shortlog -sne --all -- internal/st
+### Final answer text
+**Short version:** the history supports a large, central role for Priya Raman in the migration. It does not by itself show that she "led" it, and a few details need care.
+
+**What the history shows (internal/store, Pacific time)**
+- She wrote 12 of the 15 commits that touch `internal/store`. That is about 220 of roughly 280 added lines.
+- She did the foundation work:
+  - the store interface (31 Dec 2025, 8:30pm Pacific, so a few hours before Q1 began);
+  - the sqlite backend (12 Jan);
+  - the write path (3 Feb);
+  - the batch writer (see the date caveat below);
+  - the backfill tool (20 Feb).
+- She did the cutover mechanics:
+  - dual-write mode (2 Mar);
+  - the cutover flag (5 Mar);
+  - cutover tests (8 Mar);
+  - the PR `priya/store-cutover` (#52), which Lena Ortiz merged;
+  - the default switch (12 Mar).
+- She added rollout phases to the migration plan doc on 5 Jan.
+- After the revert she re-landed the default switch with a nil-cursor fix and a regression test on 31 Mar. That was the evening of 31 Mar, still inside Q1 on a Pacific calendar. The commits are timestamped 7:30pm and 9:00pm, which is after 1 April in UTC. A UTC-based check would wrongly put them in Q2.
+
+**Where the record is less flattering or doesn't support "led"**
+- **The first cutover failed.** Her 12 Mar default switch caused an incident, "readers saw a nil cursor under load". Tom Becker reverted it on 14 Mar. She then fixed it and re-landed it. She owned the fix, but the CV doesn't mention the failure.
+- **Others contributed.**
+  - Tom Becker wrote the original migration plan (18 Dec 2025, before the work began), the metrics hooks, and the cutover runbook update.
+  - Lena Ortiz ported the read path, which is half of the data path, and merged the cutover PR.
+  - So the design and plan came from Tom, not her.
+- **Git can't show leadership.** It records who wrote code, not who assigned work, set priorities or made decisions. Calling the sequence of her commits "leading" is an inference. It is plausible, because she did most of the work in the right order, but it is not proven.
+
+**Data-quality caveats**
+- **The batch writer date is wrong.** Its commit (f8115ac) is dated 1970-01-01. It sits between commits from 3 Feb and 12 Feb, so it was probably made around then. Its timestamp is a clock or rebase artifact, and I wouldn't read anything into it.
+- **Two author emails.** Her commits use `priya.raman@example.com` (4) and `praman@corp.example.invalid` (8). It's almost certainly the same person with two configurations: the name matches, and the later cutover work all uses the corp address. Git can't confirm that, though. If you want to be certain, check it against your HR or identity records.
+- **Out of scope.** The commit that removes the legacy store code (2 Apr) is hers but falls after Q1. I didn't count it toward the quarter. It does support that she finished the migration.
+
+**My read:** the CV claim is fair as a summary of the engineering. She was the main implementer and the person who drove the migration through cutover, including recovering from a failed first attempt. "Led" is a defensible word for that, but only if you read it as technical lead on the implementation. It overstates things if it implies she owned the plan or ran the whole effort alone, since Tom wrote the plan and Lena did half the data path. I'd ask her directly about the nil-cursor incident, who decided the rollout sequence, and how work was divided with Tom and Lena. Her answers on those points shou
+### Files it left in the working directory
+(none)

@@ -1,0 +1,15 @@
+# w13: five tasks for "check a CV claim against repository history"
+
+All facts below were measured by running the scripts (build twice, same HEAD, truth.py output equal to truth.txt); nothing is from memory. Synthetic commits sit on top of a pinned public commit; authors use example/invalid domains.
+
+t1 (Python, pypa/sampleproject, pin 621e497...): "author of the caching layer" for src/cache. Hazards: one person with three addresses and two name spellings, whole-file quote reformat commit that moves blame, squash merge with a Co-authored-by trailer, ci-bot header lines, original eviction rewritten by someone else. Conventions: surviving lines by blame with the reformat commit skipped, identities merged, squash lines reported as a shared bucket, bot excluded. Answer in chat.
+
+t2 (Go, google/uuid, pin 2d3c2a9...): "led the migration" in Q1 2026, US Pacific stated in the prompt. Hazards: two addresses (job change), a 1970 clock commit, evening commits that cross the quarter edge in UTC, PR merged by a colleague, cutover reverted by a colleague then re-landed, dependabot, plan started by someone else. Conventions: non-merge commits touching internal/store, author date converted to Pacific, bad-clock commit placed by position, merge and bot commits not counted. Answer in chat.
+
+t3 (JavaScript, lukeed/kleur, pin fa34544...): "top contributor in 2025". Hazards: vendored library, dist output and generated shrinkwrap committed by the candidate, reformat commit, renovate bot, repository .mailmap (two people with two addresses), a 2025-12-31 21:00 -08:00 commit, 2026 commits. Conventions: 2025 in UTC, vendored/generated paths and reformat excluded, mailmap respected; both surviving lines and substantive commits rank the candidate below Sam Okoye. Answer in chat.
+
+t4 (Rust, dtolnay/itoa, pin 758499d...): three CV claims with different verbs, written to CLAIMS.md. Hazards: commits rebased and merged by the maintainer (author Noor, committer Eli), pure rename of the harness file, squash with Co-authored-by and prototype credit, rework landed by the maintainer with only Reviewed-by, two addresses. Conventions: author field and blame for authorship, trailers reported as separate kinds of credit, history followed across the rename. Expected verdicts: supported / partly / not supported as written.
+
+t5 (Ruby, sinatra/mustermann, pin 573cd31...): "contributor since January 2025" and "rate limiter within the first month", UTC, written to TIMELINE.md. Hazards: another person named Alex Kim (third address, a January 8 commit), drafts authored in January but rebased and landed in March, first draft on Jan 1 at +09:00 (Dec 31 in UTC), branch merged by the maintainer, final feature squashed under the maintainer's name with a co-author trailer, address change. Conventions: candidate = the two addresses in the prompt; author date and landing date both reported; first landing 2025-03-06, limiter merged 2025-03-24, complete 2025-04-02 (27 days from first landing, 91 from first draft).
+
+Files per task: prompt.txt, build-fixture.sh, truth.py, truth.txt, criteria.md. Build times 5 to 9 seconds each.

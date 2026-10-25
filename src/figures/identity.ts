@@ -80,7 +80,7 @@ const GENERIC_LOCAL = new Set(["dev", "admin", "info", "me", "git", "hello", "ma
 
 /** The GitHub login inside `12345+login@users.noreply.github.com`, or the older form. */
 export const githubLogin = (mail: string): string | null => {
-  const m = /^(?:\d+\+)?([^@+]+)@users\.noreply\.github\.com$/i.exec(mail);
+  const m = /^(?:\d+\+)?([^@+]+)@users\.noreply\.[a-z0-9.-]+$/i.exec(mail);
   return m ? m[1]!.toLowerCase() : null;
 };
 

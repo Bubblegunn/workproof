@@ -1,0 +1,851 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Release v0.0.22 of go-isatty is about to go out and I'm writing the announcement from the git history since the commit "Release v0.0.21". Before I do, tell me what was backed out in that stretch and so must not be announced: for each one say what it was, who wrote it, and which commit backed it out. Also flag anything that was only partly backed out (and what still ships), anything that was backed out but ended up in anyway, and anything with "Revert" in the title that does not actually undo anything. Reply here in chat."
+Ground truth: RELEASE COMMIT e635536
+FULLY BACKED OUT, do not announce (3)
+   e68bdb7 Add IsPlan9Console  [Quan Qiu, dated 2025-04-05]  backed out by 248e81f (Revert "Add IsPlan9Console"; dated 2025-04-01)
+   b14cc05 Add NetBSD support  [Ravi Rao, dated 2025-03-27]  backed out by 45176f0 (Back out NetBSD support, it breaks the build on 1.12; dated 2025-03-28)
+   ef2216e Merge pull request #77 from uli/x-sys  [Uli Uzun, dated 2025-04-06]  backed out by 42f4394 (Revert "Merge pull request #77 from uli/x-sys"; dated 2025-04-08)
+PARTLY BACKED OUT (1)
+   b8b3759 Add IsTerminalFd helper and docs  [Pia Paz]  files restored: ['doc.go']; still shipped: ['isatty_others.go']; by 57b4558 (doc.go: drop the signal-handler claim, it is not true on Windows)
+BACKED OUT THEN RE-LANDED, still ships (1)
+   1c1a1dd Fix solaris TCGETA detection  [Tomas Teixeira]  backed out, then re-landed identically by 7ba3f53 (Fix solaris TCGETA detection, take two); net: SHIPPED, announce once
+TITLE SAYS REVERT BUT IT IS A NEW CHANGE (1)
+   39435a5 Revert to sorted order of build constraints  [Vera Voss]  NOT a revert: it adds a new change, announce if user-visible
+OTHER CHANGES THAT STAND (not reverted)
+   640cd0a Add IsMSYS2Terminal for MSYS2 ptys  [Ola Berg]
+   e5619c8 Add DragonFly BSD terminal check  [Wes Wolfe]
+Hazards: revert dated before its own original (author clock ahead), revert with abbreviated sha, hand-written back-out with no trailer, revert of a merge (-m 1) undoing two commits, partial back-out of a two-file commit, revert followed by identical re-landing, a "Revert to ..." title that is a new change. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The answer names exactly the three fully backed-out changes of truth.txt (IsPlan9Console, NetBSD support, the x/sys pull request #77 with both of its commits) as not to be announced, each with the correct author (Quan Qiu, Ravi Rao, Uli Uzun) and the commit that backed it out. FAIL if one is missing, if the back-out commit named is wrong, or if any of them is said to ship.
+C2 IsPlan9Console is treated as backed out even though its commit is dated after its revert (graph order decides, not dates). FAIL if the answer says the revert came first and the feature stands, or drops it for that reason.
+C3 The partial back-out is reported: IsTerminalFd (isatty_others.go) still ships; only the doc.go sentence was removed. FAIL if IsTerminalFd is called fully backed out, or if the doc.go removal is not mentioned at all.
+C4 The solaris TCGETA fix is reported as backed out and then re-landed, so it still ships (announced once). FAIL if it is listed as backed out/not to announce, or as two separate changes.
+C5 "Revert to sorted order of build constraints" (Vera Voss) is identified as a new change that does not undo anything, and is not listed among the backed-out changes. FAIL if it is listed as a back-out. The answer must not list as backed out any change that truth.txt says stands (IsMSYS2Terminal, DragonFly check).
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --graph --format='%h %p | %an | %s' $(git log --format=%H --grep='^Release v0.0.21' -n1)..HEAD
+Bash: for c in 248e81f 9b2a62a 45176f0 b14cc05 42f4394 39435a5 7ba3f53 e68bdb7 ef2216e; do echo "=== $c"; git show --stat --format='%h %s%n%b' -m --first-parent $c | head -30; done; echo; git diff e68bdb7^ 248e81f --stat; echo ---; git diff 1c1a1dd^ 9b2a62a --stat; 
+Bash: git diff e68bdb7^ 248e81f --stat; echo --; git diff 1c1a1dd 7ba3f53; echo --nb; git diff b14cc05^ 45176f0 --stat; echo --x; git diff 7ba3f53 42f4394 --stat; git show 28e9e05 6ed3870 --stat --format=%h%n%s | cat; echo --sorted; git show 39435a5 | cat; git log -
+Bash: cat go.mod; git diff 7ba3f53 42f4394 --stat | cat; git diff 1c1a1dd 7ba3f53 --stat | cat; git show 1c1a1dd 7ba3f53 -s --format='%h %an %s%n%b'; git show 1c1a1dd | tail -8; grep -rn "Plan9\|plan9\|NetBSD\|netbsd\|TCGETA" . --exclude-dir=.git | head -20; git ls-
+Bash: grep -rn "IsTerminalFd\|MSYS2\|signal" . --exclude-dir=.git | head; git show 640cd0a b8b3759 57b4558 --stat --format='%h %s' | cat; cat isatty_plan9.go | head -20
+Bash: git show b8b3759 -- doc.go | tail -8; git show 57b4558 -- doc.go | tail -8; git log --format='%h %an' -n1 57b4558
+### Final answer text
+I compared the tree before and after each pair of commits, not just the commit titles. The range runs from "Release v0.0.21" to HEAD (`e5619c8`).
+
+## Backed out, so don't announce
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`e68bdb7`, in `isatty_plan9.go`) | Quan Qiu | `248e81f` "Revert "Add IsPlan9Console"" by Mara Linden. This is a clean, complete undo. |
+| NetBSD support (`b14cc05`, a new `isatty_netbsd.go`) | Ravi Rao | `45176f0` "Back out NetBSD support, it breaks the build on 1.12" by Mara Linden. This is a complete undo, and the file is gone. |
+| x/sys bumps to v0.1.0 (`28e9e05`) and v0.2.0 (`6ed3870`), merged as PR #77 in `ef2216e` | Uli Uzun wrote the bumps. Mara Linden merged them. | `42f4394` "Revert "Merge pull request #77 from uli/x-sys"" by Mara Linden. `go.mod` is back to `golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab`, so don't announce a dependency bump. |
+
+NetBSD does not become unsupported. `isatty_bsd.go` already lists `netbsd` in its build constraints, and that predates this range. What was backed out is only the extra `isatty_netbsd.go` file.
+
+## Partly backed out
+
+This is the doc.go claim about signal handlers.
+
+- **Where it came from:** `b8b3759` "Add IsTerminalFd helper and docs" (Pia Paz) added two things. One was the `IsTerminalFd` helper in `isatty_others.go`. The other was a doc.go line saying it is safe to call from signal handlers.
+- **How it was backed out:** `57b4558` (Mara Linden) removed only the doc.go line, because the claim isn't true on Windows. Its title doesn't say "revert".
+- **What still ships:** the `IsTerminalFd` helper, with no signal-handler claim. If you announce it, don't say it is signal-safe.
+
+## Backed out but ended up in anyway
+
+This is the Solaris TCGETA fix.
+
+- **Original:** `1c1a1dd` "Fix solaris TCGETA detection" (Tomas Teixeira).
+- **Revert:** `9b2a62a` (Mara Linden).
+- **Re-landing:** `7ba3f53` "Fix solaris TCGETA detection, take two" (Tomas Teixeira) re-adds exactly the same change. The tree after it is identical to the tree after the original.
+- **Result:** the Solaris change ships in v0.0.22. The revert is not in effect.
+- **Content:** it adds `// termioOK is true when TCGETA succeeds.` and `const termioOK = true` to `isatty_solaris.go`. It doesn't change how `IsTerminal` behaves, so I'd be cautious about calling it a "fix" in the announcement.
+
+## "Revert" in the title but undoes nothing
+
+`39435a5` "Revert to sorted order of build constraints" (Vera Voss) isn't a revert. It adds two lines to the end of `isatty_bsd.go`: a blank line and the comment `// build constraints are kept in sorted order`. It doesn't reorder any constraints and doesn't undo any commit. There's nothing to announce.
+
+## Still shipping
+
+- **`IsMSYS2Terminal`** (`640cd0a`, Ola Berg), on Windows.
+- **`IsTerminalFd`** (see above).
+- **The Solaris change** (see above).
+- **DragonFly BSD terminal check** (`e5619c8`, Wes Wolfe), a new `isatty_dragonfly.go` plus two lines in `isatty_bsd.go`.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --topo-order -n 60; echo; git log --grep='Release v0.0.21' --format='%h %s'; git tag | tail -5
+Bash: git log e635536..HEAD --format='=== %h %p | %an | %s%n%b' --stat; git log --graph --oneline e635536..HEAD
+Bash: git show 28e9e05 6ed3870 42f4394 57b4558 b8b3759 39435a5 7ba3f53 1c1a1dd -m --first-parent --format='=== %h %s' -p | grep -v '^index'; cat go.mod; git diff e635536 HEAD --stat; git show ef2216e --format=%P -s; git diff 7ba3f53 ef2216e --stat; git diff 7ba3f53 
+### Final answer text
+Five things were backed out after "Release v0.0.21" (e635536), and one of them ended up shipping anyway. I read each diff and checked it against `git diff e635536 HEAD`, rather than going by commit titles.
+
+**Backed out, so don't announce**
+
+| What it was | Written by | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (e68bdb7) | Quan Qiu | 248e81f, "Revert "Add IsPlan9Console"", by Mara Linden |
+| NetBSD support, `isatty_netbsd.go` (b14cc05) | Ravi Rao | 45176f0, "Back out NetBSD support, it breaks the build on 1.12", by Mara Linden. It isn't titled "Revert", but it deletes exactly the 6 lines that were added. |
+| x/sys bumps to v0.1.0 and v0.2.0 (28e9e05, 6ed3870, merged as PR #77 in ef2216e) | Uli Uzun; Mara Linden did the merge | 42f4394, "Revert "Merge pull request #77 from uli/x-sys"", by Mara Linden |
+
+- **Plan9 and NetBSD:** both are gone from the tree, and neither file appears in the diff against v0.0.21.
+- **x/sys:** this was fully undone. `go.mod` is back to `golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab`, so don't announce a dependency bump. The 42f4394 message says it reverses changes "made to 1a2b3c4", and that hash isn't in this history. It's only a cosmetic oddity in the message, since the content is correct.
+
+**Backed out, but in anyway**
+- **Solaris `TCGETA` detection fix:** Tomas Teixeira wrote it (1c1a1dd). Mara Linden reverted it in 9b2a62a. Tomas then re-added it in 7ba3f53, "Fix solaris TCGETA detection, take two". The diff is identical to the original. `isatty_solaris.go` gains 3 lines against v0.0.21, so it ships and you can announce it. If the first revert was meant to be permanent, someone should check that the re-add was intentional.
+
+**Only partly backed out**
+- **`IsTerminalFd`:** Pia Paz added it in b8b3759 along with a doc line saying it is "safe to call from signal handlers". Mara Linden's 57b4558 ("doc.go: drop the signal-handler claim, it is not true on Windows") removed only that doc line. The function still ships. It is defined only in `isatty_others.go`, as `IsTerminal(fd)`.
+  - Announce `IsTerminalFd` as a helper if you want to, but don't say it is signal-safe.
+  - It exists only in the non-Windows, non-Unix fallback file, so check that is what you mean to announce.
+
+**"Revert" in the title but undoes nothing**
+- **39435a5, "Revert to sorted order of build constraints"** (Vera Voss): it reverts nothing. It adds 2 lines to `isatty_bsd.go`, a blank line plus the comment `// build constraints are kept in sorted order`. It doesn't touch any build constraint, so there's nothing to announce.
+
+**Not backed out, so these are fine to announce**
+- `IsMSYS2Terminal` for MSYS2 ptys (640cd0a, Ola Berg).
+- The DragonFly BSD terminal check (e5619c8, Wes Wolfe).
+- The Solaris fix (see above).
+- `IsTerminalFd` (see above).
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T3-RCP-3/fx; git log --oneline --grep="Release v0.0.21" ; git log --graph --format='%h %p | %an | %s' $(git log --format=%h --grep="^Release v0.0.21" -1)..HEAD
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T3-RCP-3/fx; git log --reverse --stat --format='--- %h %an %s%n%b' e635536..HEAD; git ls-files; git diff e635536 HEAD --stat
+Bash: cd /private/tmp/wp-r16/gate5/runs/W14T3-RCP-3/fx; git show b8b3759 57b4558 1c1a1dd 7ba3f53 39435a5 640cd0a --format='--- %h %s' -p | grep -v '^index'; git show 28e9e05 6ed3870 42f4394 --format='--- %h' -p | grep -v '^index'; git diff e635536 HEAD -- isatty_oth
+### Final answer text
+Eight commits in the range don't ship, and one more has a misleading title. I checked each against the diff from `Release v0.0.21` (e635536) to HEAD (e5619c8). That diff touches only 5 files: `isatty_bsd.go`, `isatty_dragonfly.go`, `isatty_others.go`, `isatty_solaris.go` and `isatty_windows.go`.
+
+## Fully backed out (don't announce)
+
+| What | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (e68bdb7) | Quan Qiu | 248e81f "Revert "Add IsPlan9Console"" by Mara Linden. The diff shows no change to `isatty_plan9.go`. |
+| NetBSD support (b14cc05) | Ravi Rao | 45176f0 "Back out NetBSD support, it breaks the build on 1.12" by Mara Linden. `isatty_netbsd.go` is gone. The message doesn't say "Revert", so a title search for that word would miss it. |
+| First "Fix solaris TCGETA detection" (1c1a1dd) | Tomas Teixeira | 9b2a62a "Revert "Fix solaris TCGETA detection"" by Mara Linden. See the next section: the fix came back anyway. |
+| x/sys bumps to v0.1.0 and v0.2.0 (28e9e05, 6ed3870) | Uli Uzun | Merged as PR #77 (ef2216e). Mara Linden then reverted that merge in 42f4394. `go.mod` is back to its v0.0.21 state. |
+
+## Partly backed out
+
+- **`IsTerminalFd`** (b8b3759, Pia Paz) was only partly backed out. This commit added the function in `isatty_others.go` and a doc line in `doc.go` saying it is "safe to call from signal handlers".
+  - Mara Linden's 57b4558 removed only the doc claim, because it isn't true on Windows. It left the function in place.
+  - **Still ships:** `IsTerminalFd(fd uintptr) bool` in `isatty_others.go`, a thin wrapper around `IsTerminal`.
+  - **Doesn't ship:** the signal-handler safety claim. Don't repeat it in the announcement.
+  - Also, the function is only defined in `isatty_others.go`. If that file's build constraints exclude Windows, Solaris or the BSDs, it isn't available there. I haven't checked those constraints.
+
+## Backed out but in anyway
+
+- **Solaris TCGETA fix.** 7ba3f53 "Fix solaris TCGETA detection, take two" (Tomas Teixeira) re-adds exactly what 1c1a1dd added, after Mara Linden reverted it.
+  - The diff is identical: a `termioOK` const in `isatty_solaris.go`.
+  - **Ships in v0.0.22.** Only announce it if you're comfortable with that, since it was reverted once.
+  - The added const is unused, so it may not be the fix the title describes. That's worth confirming with Tomas.
+
+## "Revert" in the title but undoes nothing
+
+- **39435a5 "Revert to sorted order of build constraints"** (Vera Voss) isn't a revert. It adds a comment line, `// build constraints are kept in sorted order`, to `isatty_bsd.go`, and no build constraints are reordered. It reverts no earlier commit.
+  - It sits right after the x/sys revert, so it's easy to misread as part of that.
+  - Don't announce it as a revert. It's a trivial comment-only change.
+
+## Shipping unaffected
+
+- `IsMSYS2Terminal` (640cd0a, Ola Berg). It's an alias for `IsCygwinTerminal` in `isatty_windows.go`.
+- `IsTerminalFd` (see above).
+- The Solaris change (see above).
+- The DragonFly BSD terminal check (e5619c8, Wes Wolfe), which adds `isatty_dragonfly.go`.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ad|%P|%s' --date=short $(git log --format=%H --grep='^Release v0.0.21' -n1)..HEAD; git tag | tail -3
+Bash: for c in 248e81f e68bdb7 45176f0 b14cc05 9b2a62a 1c1a1dd 7ba3f53 42f4394 ef2216e 39435a5 57b4558 b8b3759; do echo "=== $c"; git show --stat --format='%h %an | %cn | %s%n%b' -m --first-parent $c | head -30; done; git log --format='%h %cn %cd' --date=short -n 20
+Bash: git status --short; git show 7ba3f53 | head -60; git show 39435a5; git diff 6ed3870 HEAD --stat; cat go.mod; grep -rn "Plan9Console\|netbsd\|NetBSD\|TCGETA" --include=*.go . | head -30
+Bash: git show b8b3759 57b4558 640cd0a | grep -v '^index'; ls; git log --oneline --grep='Release v0.0.21'; git log --format='%h %s' -S'signal' -- doc.go; git show 248e81f e68bdb7 | grep '^[+-]'; git show 1c1a1dd 9b2a62a| grep '^[+-]'; git log --format='%h %an %s' --
+Bash: git diff 7ba3f53 HEAD --stat; git show ef2216e -m --first-parent | grep '^[+-]'; git show e5619c8 | grep '^[+-]'; git diff e635536 HEAD --stat
+### Final answer text
+Here is what was backed out between "Release v0.0.21" (e635536) and HEAD (e5619c8). Authors are the commit authors, and dates are author dates. Several author dates are out of order with the actual commit order, so I went by the commit ancestry.
+
+I read the git log and diffs directly. I didn't run the workproof tool, since this is a question about which commits were undone, not a count of anyone's work.
+
+## Backed out, so don't announce
+
+| What it was | Written by | Backed out by |
+|---|---|---|
+| `IsPlan9Console` helper in `isatty_plan9.go` (e68bdb7) | Quan Qiu | 248e81f, "Revert "Add IsPlan9Console"", Mara Linden. The file is back to its pre-change state. |
+| NetBSD support, a new `isatty_netbsd.go` (b14cc05) | Ravi Rao | 45176f0, "Back out NetBSD support, it breaks the build on 1.12", Mara Linden. The file is gone. This one has no "Revert" in the title, so a title search would miss it. |
+| `golang.org/x/sys` bumps to v0.1.0 (28e9e05) and v0.2.0 (6ed3870), merged as PR #77 (ef2216e) | Uli Uzun (the merge is by Mara Linden) | 42f4394, "Revert "Merge pull request #77 from uli/x-sys"", Mara Linden. `go.mod` still pins the older x/sys. The two bump commits stay in history but have no net effect, so don't announce a dependency bump. |
+
+## Only partly backed out
+
+- **`IsTerminalFd` and its docs (b8b3759, Pia Paz).** 57b4558 (Mara Linden) removed one line, the doc.go claim "IsTerminalFd is safe to call from signal handlers", because it isn't true on Windows.
+  - Still ships: the `IsTerminalFd` function in `isatty_others.go`.
+  - Gone: the signal-safety claim. Don't repeat it in the announcement.
+  - The title doesn't say "revert" or "back out", so it is easy to miss.
+
+## Backed out but in anyway
+
+- **Solaris TCGETA detection fix.**
+  - Tomas Teixeira wrote it (1c1a1dd), and Mara Linden reverted it in 9b2a62a.
+  - Tomas then re-landed the same 3-line change as 7ba3f53, "Fix solaris TCGETA detection, take two". `isatty_solaris.go` currently contains the `termioOK` constant.
+  - It ships, so it can be announced. The revert only held for a few days.
+
+## "Revert" in the title but undoes nothing
+
+- **39435a5, "Revert to sorted order of build constraints" (Vera Voss).**
+  - It adds a comment line to `isatty_bsd.go` and reverts no commit. It is an ordinary change.
+  - It also doesn't revert 42f4394 or anything else before it.
+  - I'd leave it out of the announcement, since it is a comment-only change.
+
+## Not backed out
+
+- `IsMSYS2Terminal` (640cd0a, Ola Berg) is untouched and ships.
+- `IsDragonflyTerminal` (e5619c8, Wes Wolfe) is new and ships.
+
+Net result: v0.0.21 to HEAD adds `IsMSYS2Terminal`, `IsTerminalFd`, the Solaris `termioOK` constant and the DragonFly check, plus a comment in `isatty_bsd.go`.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --grep='Release v0.0.21' --format='%h %s' ; git log --format='%h %p | %an | %ad | %cn | %s' --date=short $(git log --grep='^Release v0.0.21' --format=%h -1)..HEAD
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5 e5619c8; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c | head -30; done; echo; git diff --stat e635536 HEAD; git status --short
+Bash: git show b14cc05 1c1a1dd 7ba3f53 e68bdb7 | head -250
+Bash: git show 39435a5 | tail -15; git show 6ed3870 28e9e05 42f4394 --format='--- %h %s' | grep -v '^index'; git diff e635536 HEAD -- isatty_others.go isatty_windows.go isatty_solaris.go; git cat-file -t 1a2b3c4 2>&1|head -1; git log --format='%h %s' -3 --diff-filte
+Bash: git show b8b3759 57b4558 -- doc.go | grep -E '^(commit|[+-][^+-])'; git ls-files | grep -E 'netbsd|plan9'
+### Final answer text
+Range checked: `e635536` (Release v0.0.21) to `HEAD`, 15 commits. I read each diff and compared the net result with `git diff e635536 HEAD`. I did not use the workproof tool, since these are questions about what was undone rather than counts.
+
+## Fully backed out: do not announce
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| NetBSD support: `isatty_netbsd.go` with `IsNetBSDTerminal`, commit `b14cc05`, 27 Mar | Ravi Rao | `45176f0` (Mara Linden, 28 Mar), "Back out NetBSD support, it breaks the build on 1.12". The title doesn't say "Revert", so searching for that word would miss it. The file is gone. |
+| `IsPlan9Console`, commit `e68bdb7` | Quan Qiu | `248e81f` (Mara Linden), a true revert. The function is gone. |
+| x/sys bumps to v0.1.0 (`28e9e05`) and v0.2.0 (`6ed3870`), merged as PR #77 in `ef2216e` | Uli Uzun wrote the bumps. Mara Linden merged them. | `42f4394` (Mara Linden), a revert of the merge. `go.mod` is back to the release state. |
+
+The `IsPlan9Console` commit carries an author date of 5 Apr, but its revert is dated 1 Apr. The author date is impossible, probably a clock or rebase artifact. It doesn't change the outcome.
+
+The x/sys bumps changed only comment lines in `go.mod`. The revert message also says "reversing changes made to 1a2b3c4", a hash that doesn't exist in this repo. Neither point changes the outcome.
+
+## Partly backed out: this ships
+
+- **`IsTerminalFd` helper and docs** (`b8b3759`, Pia Paz): Mara Linden's `57b4558` removed only the `doc.go` line claiming the helper is "safe to call from signal handlers". That claim isn't true on Windows. The function `IsTerminalFd` in `isatty_others.go` still ships.
+  - Announce the helper without the signal-handler claim.
+  - `57b4558` has no "Revert" in its title.
+
+## Backed out but ended up in anyway
+
+- **Solaris TCGETA detection fix** (Tomas Teixeira, `1c1a1dd`, 29 Mar):
+  - Mara Linden reverted it in `9b2a62a`.
+  - Tomas re-landed the identical change on 2 Apr as "take two" (`7ba3f53`).
+  - The diff is the same, adding `const termioOK = true` to `isatty_solaris.go`, and it is in the tree now.
+  - So it ships, despite the earlier revert. Nothing in the history shows why it was re-landed, so check with Mara or Tomas before listing it.
+
+## "Revert" in the title but undoes nothing
+
+- **"Revert to sorted order of build constraints"** (`39435a5`, Vera Voss, 9 Apr):
+  - It isn't a revert. It adds one comment line to `isatty_bsd.go`: `// build constraints are kept in sorted order`.
+  - It doesn't touch any build constraint, and no commit in the range is reverted by it.
+  - It ships as a comment only, so there's nothing to announce.
+
+## Ships and is not backed out
+
+- `IsMSYS2Terminal` (Ola Berg, `640cd0a`).
+- `IsTerminalFd`, minus the doc claim.
+- The DragonFly BSD terminal check (Wes Wolfe, `e5619c8`).
+- The Solaris change above.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --format='%h %an | %ad | %p | %s' --date=short --topo-order $(git log --format=%h -1 --grep='^Release v0.0.21')..HEAD; echo; git log --format='%h %s' -1 --grep='^Release v0.0.21'; git tag | tail -3
+Bash: for c in 248e81f e68bdb7 45176f0 b14cc05 9b2a62a 1c1a1dd 7ba3f53 42f4394 ef2216e 57b4558 39435a5; do echo "=== $c"; git show --stat --format='%h %an | author %ad | commit %cd%n%B' --date=short $c | head -30; done
+Bash: for p in "248e81f e68bdb7" "45176f0 b14cc05" "9b2a62a 1c1a1dd" "42f4394 ef2216e"; do set -- $p; echo "##### revert $1 of $2: diff of (revert) vs reverse of original"; git show $1 --format= > /tmp/a.diff; git show -R $2 --format= > /tmp/b.diff; diff <(grep '^[+
+Bash: git show --format='%h %s' 248e81f e68bdb7 45176f0 b14cc05 9b2a62a 1c1a1dd 7ba3f53 | grep -v '^index'; echo =====; git show --format='%h %s' 28e9e05 6ed3870 ef2216e 42f4394 39435a5 e5619c8 57b4558 640cd0a b8b3759| grep -v '^index'; echo; git cat-file -t 1a2b3c4
+Bash: git show --format='%h %s' 28e9e05 6ed3870 ef2216e 42f4394 39435a5 e5619c8 57b4558 640cd0a b8b3759| grep -v '^index'; echo; git cat-file -t 1a2b3c4; git cat-file -p ef2216e | head -5; git cat-file -p 42f4394|head -5; echo; cat go.mod; git diff e635536 HEAD --st
+### Final answer text
+Four things were fully backed out, one was only partly backed out, and one commit titled "Revert" undoes nothing. I read the diffs of every commit after `Release v0.0.21` (e635536) and compared them with the tree at HEAD. I went by commit parentage, not dates, because the dates are unreliable in one place (see the Plan9 row).
+
+## Backed out, do not announce
+
+| What it was | Written by | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`isatty_plan9.go`), e68bdb7 | Quan Qiu | 248e81f, Mara Linden, titled "Revert". |
+| NetBSD support (`isatty_netbsd.go`, `IsNetBSDTerminal`), b14cc05 | Ravi Rao | 45176f0, Mara Linden, "Back out NetBSD support, it breaks the build on 1.12". |
+| x/sys bumps to v0.1.0 (28e9e05) and v0.2.0 (6ed3870), merged as PR #77 in ef2216e | Uli Uzun wrote both bumps. Mara Linden merged them. | 42f4394, Mara Linden, a revert of the merge. |
+| `termioOK` for Solaris, first attempt (`isatty_solaris.go`), 1c1a1dd | Tomas Teixeira | 9b2a62a, Mara Linden, titled "Revert". **This one came back in; see below.** |
+
+- **Plan9 dates:** e68bdb7 is dated 5 April but its revert is dated 1 April. The revert's parent chain shows the revert did come after the original, so the author date on e68bdb7 is wrong.
+- **NetBSD:** 45176f0 doesn't say "Revert" in its title, but it deletes the file, so it is a full back-out. A search for "Revert" in titles would miss it.
+- **x/sys:** `go.mod` at HEAD is identical to v0.0.21's, so the revert is complete. The revert message cites "changes made to 1a2b3c4", and no commit with that hash exists. The merge's real parents are 7ba3f53 and 6ed3870. That doesn't change the result.
+
+## Partly backed out
+
+- **`IsTerminalFd` and its docs**, b8b3759 by Pia Paz. 57b4558 (Mara Linden, "doc.go: drop the signal-handler claim…") removed only the `doc.go` line saying it is safe to call from signal handlers.
+- The `IsTerminalFd` function itself still ships in `isatty_others.go`. You can announce the helper, but not the signal-handler claim.
+- The title has no "Revert" in it, so it is easy to miss.
+
+## Backed out but in anyway
+
+- **Solaris `termioOK`:** 9b2a62a backed it out, then 7ba3f53 ("Fix solaris TCGETA detection, take two", Tomas Teixeira) added back exactly the same 3 lines. It is in `isatty_solaris.go` at HEAD, so it ships.
+
+## "Revert" in the title but undoes nothing
+
+- **39435a5, "Revert to sorted order of build constraints"** (Vera Voss). It only adds a comment line, `// build constraints are kept in sorted order`, to `isatty_bsd.go`. It reverts no commit, and no constraints are reordered. The comment ships.
+
+## Still shipping, not backed out
+
+- `IsMSYS2Terminal` (640cd0a, Ola Berg).
+- `IsDragonflyTerminal` (e5619c8, Wes Wolfe).
+
+The net diff from v0.0.21 to HEAD touches only `isatty_bsd.go`, `isatty_dragonfly.go`, `isatty_others.go`, `isatty_solaris.go` and `isatty_windows.go`. That confirms Plan9, NetBSD, `go.mod` and the `doc.go` claim are all absent.
+
+I didn't run the workproof tool, because I didn't count any figures.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --oneline --grep='Release v0.0.21' ; echo ---; git log --format='%h %p | %an | %ad | %s' --date=short --topo-order HEAD ^$(git log --format=%H --grep='^Release v0.0.21' -1) ; echo; git tag --contains $(git log --format=%H --grep='^Release v0.0.21
+Bash: for c in e68bdb7 248e81f b14cc05 45176f0 1c1a1dd 9b2a62a 7ba3f53 28e9e05 6ed3870 ef2216e 42f4394 39435a5 e5619c8; do echo "=== $c"; git show --stat --format='%h %s%n%b' -m --first-parent $c | head -20; done
+Bash: git show 1c1a1dd 7ba3f53 | grep -E '^(commit|[+-][^+-])'; echo; git show 42f4394 ef2216e 28e9e05 6ed3870 -m --first-parent | grep -E '^(commit|[+-][^+-])'; echo; git show 39435a5 e5619c8 | grep -E '^(commit|[+-][^+-])'; echo; ls; git diff e635536 HEAD --stat; 
+Bash: git show b8b3759 | grep -E '^[+-][^+-]'; grep -rni netbsd . --include=* -l --exclude-dir=.git; cat doc.go isatty_others.go; git show 7ba3f53 --format=%B | head; git diff 1c1a1dd 7ba3f53 --stat
+Bash: grep -rli netbsd . --exclude-dir=.git; cat doc.go isatty_others.go; git diff 1c1a1dd 7ba3f53 --stat | tail -1; git log -1 --format=%B 7ba3f53
+Bash: grep -ni netbsd isatty_bsd.go; git log --format='%h %s' -S netbsd -- isatty_bsd.go
+### Final answer text
+I'm finishing the check. The receipts skill reports on session usage and has no way to read reverts, so I used `git log` and `git show` on the commits after "Release v0.0.21" (e635536). That's 13 commits.
+
+## Backed out, so don't announce
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (e68bdb7) | Quan Qiu | 248e81f, "Revert "Add IsPlan9Console"", by Mara Linden. It removes all 3 added lines. |
+| NetBSD support, a new `isatty_netbsd.go` (b14cc05) | Ravi Rao | 45176f0, "Back out NetBSD support, it breaks the build on 1.12", by Mara Linden. It removes all 6 lines and doesn't say "Revert" in the title. |
+| The x/sys bumps to v0.1.0 and v0.2.0 (28e9e05 and 6ed3870, merged as PR #77 in ef2216e) | Uli Uzun | 42f4394, "Revert "Merge pull request #77 from uli/x-sys"", by Mara Linden. It removes both `go.mod` lines. `go.mod` still pins x/sys at the pre-release version. |
+
+## Backed out but back in anyway
+- **Solaris TCGETA detection fix.** Tomas Teixeira's 1c1a1dd was reverted by Mara Linden in 9b2a62a. Tomas then re-landed it in 7ba3f53, "take two". It adds the same 3 lines (`termioOK = true`) to `isatty_solaris.go`, so it ships in v0.0.22. Announce it only if you mean to, and only as one fix.
+
+## Only partly backed out
+- **`IsTerminalFd` (Pia Paz, b8b3759).** The commit added the helper in `isatty_others.go` and a doc line in `doc.go` saying it is safe to call from signal handlers. Mara Linden's 57b4558 ("doc.go: drop the signal-handler claim, it is not true on Windows") removed only the doc line. It isn't titled as a revert.
+  - **Still ships:** the helper itself, `func IsTerminalFd(fd uintptr) bool`, which is in `isatty_others.go` (the appengine/js/nacl/wasm build).
+  - **Don't say:** that it is signal-handler safe.
+
+## "Revert" in the title but undoes nothing
+- **39435a5, "Revert to sorted order of build constraints" (Vera Voss).** It only adds a comment line to `isatty_bsd.go`: `// build constraints are kept in sorted order`. "Revert to" is plain English here, not a git revert. Nothing is backed out, so it's a tiny tidy-up.
+
+## Not backed out, so fine to announce
+- `IsMSYS2Terminal` (Ola Berg, 640cd0a).
+- DragonFly BSD terminal check (Wes Wolfe, e5619c8). It adds `isatty_dragonfly.go` with `IsDragonflyTerminal`.
+
+## Caveats
+- `isatty_bsd.go` still lists `netbsd` in its build constraint. That comes from older commits (ae0b1f8 and 3ba961d), not from the reverted work. The NetBSD file added in this stretch is gone, but I haven't checked whether NetBSD still builds through that older path.
+- Some author dates are out of order: the Plan9 add is dated Apr 5 and its revert Apr 1. The commit ancestry is clear that the add came first.
+- I didn't run the receipts miner or write any report files.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --grep='Release v0.0.21' ; echo ---; git log --format='%h %p | %an | %ad | %s' --date=short "$(git log --format=%H --grep='^Release v0.0.21' -1)"..HEAD
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5 e5619c8; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c; done; echo; git show 39435a5 42f4394 | head -150; git show 6ed3870 28e9e05 --stat --format='%h %s'
+Bash: git show 7ba3f53 1c1a1dd e68bdb7 b14cc05 | head -200; ls; git ls-files | head -50; cat go.mod
+Bash: git diff --stat e635536 HEAD; git diff e635536 HEAD -- go.mod isatty_plan9.go isatty_solaris.go isatty_netbsd.go; git show 640cd0a b8b3759 57b4558 --format='%h %an %s' | head -120; git log --format='%h %s' -S'IsPlan9Console' e635536..HEAD; git log --oneline --
+### Final answer text
+I read this from `git log` and the diffs, not from the receipts skill. That skill only builds a usage report from your session transcripts, so it can't answer this. The range is `e635536` ("Release v0.0.21") to `HEAD`. I compared the net diff against the release to confirm what ships.
+
+## Backed out, so don't announce
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`e68bdb7`) | Quan Qiu | `248e81f`, Mara Linden, a plain `Revert` commit |
+| NetBSD support, with `IsNetBSDTerminal` and `isatty_netbsd.go` (`b14cc05`) | Ravi Rao | `45176f0`, Mara Linden, "Back out NetBSD support, it breaks the build on 1.12". The message doesn't say "Revert", so a title search misses it. |
+| x/sys bumps to v0.1.0 (`28e9e05`) and v0.2.0 (`6ed3870`), merged as PR #77 (`ef2216e`) | Uli Uzun; merged by Mara Linden | `42f4394`, Mara Linden. `go.mod` is identical to the release, so no dependency bump ships. |
+
+## Only partly backed out
+
+- **`IsTerminalFd` (`b8b3759`, Pia Paz):** The function ships, in `isatty_others.go`. Mara Linden's `57b4558` removed only the `doc.go` line claiming it is safe in signal handlers, because that isn't true on Windows. That commit isn't a revert. Announce the helper if you like, but don't claim signal-handler safety.
+
+## Backed out but in anyway
+
+- **Solaris `termioOK` (`isatty_solaris.go`):** Tomas Teixeira's `1c1a1dd` was reverted by Mara Linden in `9b2a62a`. Tomas then re-landed a byte-identical change in `7ba3f53`, "take two". It is in the release diff. The revert doesn't hold, so decide whether it counts as a new item. It adds only an unexported constant, so there is nothing user-facing to announce.
+
+## "Revert" in the title but undoes nothing
+
+- **`39435a5` "Revert to sorted order of build constraints" (Vera Voss):** It adds two lines to `isatty_bsd.go`, a blank line and a comment, "build constraints are kept in sorted order". It doesn't touch any build constraints and doesn't revert any earlier commit. Don't announce it as a revert or a fix.
+
+## Not reverted, so safe to announce
+
+- `IsMSYS2Terminal` (`640cd0a`, Ola Berg) ships in `isatty_windows.go`.
+- DragonFly BSD terminal check (`e5619c8`, Wes Wolfe) ships in `isatty_dragonfly.go`.
+- `IsTerminalFd`, as described above.
+
+## Two small oddities
+
+- **Dates:** Author dates are out of order. The Plan9 revert (Apr 1) is dated before the commit it reverts (Apr 5). Topology is correct, so go by order in the log, not dates.
+- **Revert message:** The `42f4394` message mentions a base `1a2b3c4` that doesn't exist in this repo. The file diff is still correct.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --grep='Release v0.0.21' && git log --format='%h|%an|%ad|%s' --date=short --no-merges HEAD | head -40; echo; git log --format='%h|%p|%an|%s' --merges -15
+Bash: git log --graph --format='%h %p | %an | %s' e635536..HEAD; for c in 42f4394 39435a5 248e81f 9b2a62a 45176f0; do echo "=== $c"; git show --stat --format='%h %an%n%B' $c; done
+Bash: for c in e68bdb7 b14cc05 1c1a1dd 7ba3f53 28e9e05 6ed3870 ef2216e 39435a5 e5619c8; do echo "=== $c"; git show --stat --format='%h %s' $c | cat; done; echo ---; git diff e68bdb7 248e81f --stat; git diff 6ed3870~2 6ed3870 --stat; git diff e635536 HEAD --stat; git
+Bash: git show --stat --format='%h %s' b8b3759 57b4558 640cd0a | cat; git diff e635536 HEAD -- isatty_others.go isatty_windows.go isatty_solaris.go | cat; git status --short; git diff 7ba3f53 ef2216e --stat | cat
+### Final answer text
+The receipts skill doesn't fit this question. It builds a Claude Code usage report from session transcripts, and it has nothing about reverts. I ran no miner and wrote no report files. Everything below comes from `git log` and `git diff` on the range `e635536` (Release v0.0.21) to `HEAD`.
+
+## Backed out, so don't announce
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`e68bdb7`) | Quan Qiu | `248e81f` `Revert "Add IsPlan9Console"`, by Mara Linden |
+| NetBSD support (`b14cc05`) | Ravi Rao | `45176f0` "Back out NetBSD support, it breaks the build on 1.12", by Mara Linden |
+| x/sys bumps to v0.1.0 and v0.2.0 (PR #77: `28e9e05`, `6ed3870`, merged in `ef2216e`) | Uli Uzun; the merge is Mara Linden's | `42f4394` `Revert "Merge pull request #77 from uli/x-sys"`, by Mara Linden |
+
+- **Plan9 and NetBSD:** both are gone completely. `isatty_plan9.go` has no net change, and `isatty_netbsd.go` is not in the tree.
+- **NetBSD title:** its backout has no "Revert" in the title, so a search for "Revert" would miss it.
+- **x/sys bumps:** `go.mod` is identical to v0.0.21's. The go.mod diff is empty, so no dependency bump ships.
+
+## Partly backed out
+
+- **`b8b3759` "Add IsTerminalFd helper and docs" (Pia Paz):** the doc line was removed by `57b4558` "doc.go: drop the signal-handler claim, it is not true on Windows" (Mara Linden). That commit isn't a revert by title, but it removes the doc line. `doc.go` has no net change.
+- **What still ships:** the `IsTerminalFd` helper in `isatty_others.go`. It is the uintptr form of `IsTerminal`. Don't announce the doc claim.
+
+## Backed out but in anyway
+
+- **Solaris TCGETA detection:** Tomas Teixeira's `1c1a1dd` was reverted by Mara Linden in `9b2a62a`. Tomas then re-landed it in `7ba3f53` "Fix solaris TCGETA detection, take two". The re-land is byte-identical to the original. The change ships: `isatty_solaris.go` gains `const termioOK = true`. The revert and re-land cancel out, so you can announce it.
+
+## "Revert" in the title but undoes nothing
+
+- **`39435a5` "Revert to sorted order of build constraints" (Vera Voss):** it reverts no commit. It adds a comment line, `// build constraints are kept in sorted order`, to `isatty_bsd.go`. That comment ships, but it is not an announcement item. Neither is the revert.
+
+## Still shipping
+
+- `IsMSYS2Terminal` (Ola Berg)
+- `IsTerminalFd` (Pia Paz)
+- The Solaris fix
+- The DragonFly BSD terminal check (`e5619c8`, Wes Wolfe)
+
+The `IsPlan9Console` revert (`248e81f`) is dated 2025-04-01, before the add (`e68bdb7`, 04-05). The commit order in the history is correct. Only the author dates are out of sequence, so don't build a timeline from dates.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --format='%h %an %ad %s' --date=short --parents | head -50; git log --all --oneline --grep='Release v0.0.21'
+Bash: git log --graph --format='%h %p | %an | %s' e635536..HEAD; for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5; do echo "=== $c"; git show --stat --format='%h %an%n%B' $c; done
+Bash: for c in e68bdb7 248e81f b14cc05 45176f0 1c1a1dd 9b2a62a 7ba3f53 ef2216e 42f4394 39435a5; do echo "=== $c"; git show --format='%h %s' --stat $c | cat; done; echo; git diff e68bdb7^ 248e81f --stat; echo ---; git diff b14cc05^ 45176f0 --stat; echo ---; git diff 
+Bash: git show 640cd0a b8b3759 57b4558 28e9e05 6ed3870 39435a5 e5619c8 | cat; cat go.mod; git diff e635536 HEAD -- isatty_solaris.go isatty_bsd.go | cat; grep -rn "x/sys\|bump" go.mod go.sum | head; git show 7ba3f53 --format=%P -s
+### Final answer text
+Four things were backed out since "Release v0.0.21" (e635536), but one of them is back in the tree. I read the diffs and checked them against the net change from v0.0.21 to HEAD. Commit dates in this history are out of order, so I went by parentage.
+
+**Backed out and not shipping**
+- **`IsPlan9Console`** (e68bdb7, Quan Qiu): it added `IsPlan9Console` to `isatty_plan9.go`. Mara Linden reverted it in 248e81f, which undoes the whole 3-line change.
+- **NetBSD support** (b14cc05, Ravi Rao): it added `isatty_netbsd.go` with `IsNetBSDTerminal`. Mara Linden removed it in 45176f0, titled "Back out NetBSD support, it breaks the build on 1.12". The file is gone completely. This one has no "Revert" in its title, so it's easy to miss.
+- **x/sys bump (PR #77)** (6ed3870 and 28e9e05, Uli Uzun, merged in ef2216e): Mara Linden reverted the merge in 42f4394, and `go.mod` is back to its v0.0.21 state. Both bump commits only added `// bump:` comment lines. They never changed the `require` line, so no dependency version was ever bumped in this window.
+
+**Backed out but shipping anyway**
+- **Solaris TCGETA fix** (1c1a1dd, Tomas Teixeira): Mara Linden reverted it in 9b2a62a. Tomas then re-landed it as 7ba3f53, "Fix solaris TCGETA detection, take two". The diff is identical, down to the blob hash. `isatty_solaris.go` at HEAD has the `termioOK` constant, so this ships. Don't list it as backed out.
+
+**Only partly backed out**
+- **`IsTerminalFd`** (b8b3759, Pia Paz): the commit added the `IsTerminalFd` function in `isatty_others.go` and a doc.go line saying it is safe to call from signal handlers. Mara Linden's 57b4558 removed only the doc.go claim, because it isn't true on Windows. The function still ships. Announce it, but don't repeat the signal-handler claim.
+
+**"Revert" in the title but undoes nothing**
+- **39435a5**, "Revert to sorted order of build constraints" (Vera Voss): it only adds a comment line, `// build constraints are kept in sorted order`, to `isatty_bsd.go`. It doesn't reorder or revert anything. It ships, but it isn't announcement-worthy.
+
+**What does ship, from the net diff against v0.0.21**
+- `IsMSYS2Terminal` (Ola Berg, 640cd0a)
+- `IsTerminalFd` (Pia Paz, b8b3759)
+- The Solaris `termioOK` constant (Tomas Teixeira, 7ba3f53)
+- `IsDragonflyTerminal` (Wes Wolfe, e5619c8)
+- The comment-only change in `isatty_bsd.go` (39435a5)
+
+No Plan9, NetBSD or x/sys changes remain.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --all --grep="Release v0.0.21" ; git log --format='%h %an %ad %s' --date=short --graph --all | head -60
+Bash: git log e635536..HEAD --format='=== %h %an | %cn | %s%n%b' --stat; echo; git diff e635536 HEAD --stat
+Bash: git show b8b3759 57b4558 39435a5 28e9e05 6ed3870 42f4394 1c1a1dd 9b2a62a 7ba3f53 --format='=== %h %s' ; git diff e635536 HEAD -- go.mod isatty_solaris.go; git show e635536:go.mod; cat go.mod; git log e635536..HEAD --format=%h -- isatty_bsd.go
+### Final answer text
+Seven things are in play since `e635536 Release v0.0.21`. Four were backed out and must not be announced, one is a partial back-out, one is a revert that ended up shipping anyway, and one "Revert" does nothing.
+
+**Backed out completely (don't announce)**
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`e68bdb7`) | Quan Qiu | `248e81f` Revert "Add IsPlan9Console", by Mara Linden |
+| NetBSD support (`b14cc05`) | Ravi Rao | `45176f0` "Back out NetBSD support, it breaks the build on 1.12", by Mara Linden |
+| x/sys bumps to v0.1.0 (`28e9e05`) and v0.2.0 (`6ed3870`), merged as PR #77 in `ef2216e` | Uli Uzun (bumps), Mara Linden (merge) | `42f4394` Revert of the PR #77 merge, by Mara Linden |
+| The first solaris TCGETA fix (`1c1a1dd`) | Tomas Teixeira | `9b2a62a`, by Mara Linden (but see the re-land below) |
+
+- **Plan9:** the diff from the release to HEAD has no `isatty_plan9.go` change, so it's fully gone.
+- **NetBSD:** `isatty_netbsd.go` is gone from the diff, so it's fully gone.
+- **x/sys:** `go.mod` is identical to v0.0.21. Don't mention any dependency bump.
+
+**Partly backed out**
+- **`b8b3759` "Add IsTerminalFd helper and docs"** (Pia Paz) added two things. The function `IsTerminalFd` is in `isatty_others.go`. The doc line "IsTerminalFd is safe to call from signal handlers" is in `doc.go`.
+- `57b4558`, by Mara Linden, removed only the doc claim, because it isn't true on Windows.
+- **What still ships:** the `IsTerminalFd` helper, which is just `IsTerminal` under another name. Don't repeat the signal-handler claim. Also, the function is only in `isatty_others.go`, so check which platforms actually have it before you describe it.
+
+**Backed out but ended up in anyway**
+- **Solaris TCGETA detection.** `1c1a1dd` was reverted by `9b2a62a`, then `7ba3f53` "Fix solaris TCGETA detection, take two" (Tomas Teixeira) re-added it.
+- The re-land adds the same 3 lines as the original (a `termioOK` const and its comment), and the diff from the release shows them in `isatty_solaris.go`. So this one ships, and you can announce it as the take-two fix.
+
+**"Revert" in the title but undoes nothing**
+- **`39435a5` "Revert to sorted order of build constraints"** (Vera Voss). It reverts no commit. It only adds 2 lines to `isatty_bsd.go`: a blank line and the comment `// build constraints are kept in sorted order`. It's a comment-only change and nothing to announce.
+
+**Ships and isn't backed out**
+- `640cd0a` `IsMSYS2Terminal` (Ola Berg)
+- `e5619c8` DragonFly BSD terminal check (Wes Wolfe)
+
+The author dates in the log are out of order. For example, the Plan9 revert is dated 04-01 and the commit it reverts is dated 04-05. The commit order in the history is what I used, and it's consistent.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release v0.0.21" -i; git log --format='%h %p | %an | %ad | %s' --date=short --graph $(git log --grep='^Release v0.0.21' --format=%h -1)..HEAD
+Bash: R=e635536; for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c; done; echo ====; git diff --stat $R HEAD; git status --short; ls
+Bash: for c in e68bdb7 b14cc05 1c1a1dd 7ba3f53 ef2216e; do echo "=== $c"; git show --format='%h %s' -m --first-parent $c; done; echo; git diff e635536 HEAD
+Bash: git diff --stat e635536 HEAD; echo ---; git show --stat --format='%h %p' ef2216e 6ed3870 28e9e05 7ba3f53; echo ---; git show 42f4394 39435a5 e5619c8 --format='%h %s'; echo; git log --format='%h %s' e635536..HEAD --stat -- isatty_windows.go isatty_others.go isa
+Bash: git show --stat --format='%h %s%n%b' 57b4558; git diff e635536 HEAD --stat -- doc.go; git log --format='%h %s' -3 -- doc.go
+Bash: git show --format='%h %s' b8b3759 57b4558 -- doc.go; git diff e635536 HEAD -- doc.go | head
+### Final answer text
+I've finished checking the history and the net diff against `e635536` (Release v0.0.21). Here is what I found.
+
+## Backed out and must not be announced
+
+| What | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`e68bdb7`) | Quan Qiu | `248e81f` (Mara Linden), titled `Revert "Add IsPlan9Console"` |
+| NetBSD support, `IsNetBSDTerminal` (`b14cc05`) | Ravi Rao | `45176f0` (Mara Linden), "Back out NetBSD support, it breaks the build on 1.12". The title doesn't say "Revert", but it deletes the whole `isatty_netbsd.go`. |
+| x/sys bumps to v0.1.0 and v0.2.0 (`28e9e05`, `6ed3870`, merged in PR #77 as `ef2216e`) | Uli Uzun | `42f4394` (Mara Linden), `Revert "Merge pull request #77 from uli/x-sys"`. `go.mod` is back to its v0.0.21 content. |
+
+## Partly backed out
+- **`IsTerminalFd`** (`b8b3759`, Pia Paz) was added together with a doc line saying it is safe to call from signal handlers. `57b4558` (Mara Linden) removed only that doc line, because the claim is false on Windows.
+- **What still ships:** the `IsTerminalFd` function in `isatty_others.go`. You can announce the helper, but not the signal-handler claim.
+- The commit title says "doc.go: drop…", not "Revert", so a search for reverts won't find it.
+
+## Backed out but in anyway
+- **Solaris TCGETA fix.** Tomas Teixeira's `1c1a1dd` was reverted by `9b2a62a` (Mara Linden). Tomas then re-landed it as `7ba3f53`, "Fix solaris TCGETA detection, take two".
+- The re-land is the same diff as the original: it adds `termioOK = true` in `isatty_solaris.go`. The fix **does ship**.
+- It is also outside the x/sys merge, which has `7ba3f53` as its first parent. Reverting that merge therefore didn't touch it.
+
+## "Revert" in the title but undoes nothing
+- **`39435a5` "Revert to sorted order of build constraints"** (Vera Voss) isn't a revert. It only adds a comment line, `// build constraints are kept in sorted order`, to `isatty_bsd.go`. No build constraints change, so there is nothing to announce or to exclude.
+
+## Still in v0.0.22
+These were not backed out, so they can be announced:
+- `IsMSYS2Terminal` (Ola Berg, `640cd0a`)
+- `IsTerminalFd` (Pia Paz, `b8b3759`), without the signal-handler claim
+- The Solaris fix (Tomas Teixeira, `7ba3f53`)
+- DragonFly BSD terminal check, `IsDragonflyTerminal` (Wes Wolfe, `e5619c8`)
+
+Author dates are out of order in places. For example, the Plan 9 revert is dated 04-01, before the commit it reverts (04-05). I went by topological order, not dates.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep='Release v0.0.21' && git log --format='%h %p | %an | %ad | %s' --date=short $(git log --format=%H --grep='^Release v0.0.21' -1)..HEAD
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5 e68bdb7 b14cc05 1c1a1dd 7ba3f53 ef2216e 6ed3870 28e9e05 e5619c8; do echo "=== $c"; git show --stat --format='%h %s%n%b' -m --first-parent $c | head -30; done
+Bash: git show 39435a5 42f4394 9b2a62a 7ba3f53 1c1a1dd 45176f0 | head -300; echo ----; git diff e635536 HEAD --stat; cat go.mod; ls
+Bash: git show e68bdb7 248e81f | cat; echo ---; cat isatty_plan9.go; git ls-files | grep -i -e netbsd; git show 640cd0a b8b3759 57b4558 --stat --format='%h %an %s' ; git diff e635536 HEAD -- isatty_others.go isatty_windows.go doc.go isatty_bsd.go; git log --graph --
+Bash: git show b8b3759 57b4558 -- doc.go | cat
+### Final answer text
+Nothing in this range needs a fix. I read the commits and diffs from "Release v0.0.21" (`e635536`) to `HEAD` (`e5619c8`). I did not use the cv-builder skills, since they are for resumes.
+
+## Backed out completely (don't announce)
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` in `isatty_plan9.go` (`e68bdb7`) | Quan Qiu | `248e81f`, `Revert "Add IsPlan9Console"`, by Mara Linden |
+| NetBSD support: `isatty_netbsd.go` with `IsNetBSDTerminal` (`b14cc05`) | Ravi Rao | `45176f0`, "Back out NetBSD support, it breaks the build on 1.12", by Mara Linden. It deletes the file and is not titled "Revert". |
+| x/sys bumps to v0.1.0 and v0.2.0 (`28e9e05`, `6ed3870`, merged as PR #77 in `ef2216e`) | Uli Uzun (bumps); Mara Linden (merge) | `42f4394`, `Revert "Merge pull request #77 from uli/x-sys"`, by Mara Linden. `go.mod` is back to its v0.0.21 content, so no dependency change ships. |
+
+The `IsPlan9Console` revert (`248e81f`) is dated Apr 1, before the Apr 5 commit it undoes. That is only author-date skew, and the history order is correct. The file at `HEAD` has no `IsPlan9Console`.
+
+## Partly backed out
+
+- **`b8b3759`, "Add IsTerminalFd helper and docs" (Pia Paz):**
+  - **Backed out:** the doc line "IsTerminalFd is safe to call from signal handlers". `57b4558` (Mara Linden) removed it because it isn't true on Windows. That commit doesn't say "Revert".
+  - **Still ships:** `IsTerminalFd` in `isatty_others.go`. If you announce it, don't claim signal-handler safety.
+
+## Backed out but ended up in anyway
+
+- **Solaris TCGETA detection:**
+  - Tomas Teixeira's `1c1a1dd` added `termioOK` and Mara Linden's `9b2a62a` reverted it.
+  - Tomas then re-landed the identical change as `7ba3f53`, "take two".
+  - The `termioOK` constant is in `HEAD`, so a Solaris TCGETA fix does ship.
+
+## "Revert" in the title but undoes nothing
+
+- **`39435a5`, "Revert to sorted order of build constraints" (Vera Voss):**
+  - It reverts no commit. It only appends the comment `// build constraints are kept in sorted order` to `isatty_bsd.go`.
+  - No build constraints are reordered. It is a comment-only change and not announcement material.
+
+## Not reverted, and ships
+
+- `IsMSYS2Terminal` (`640cd0a`, Ola Berg)
+- `IsTerminalFd` (`b8b3759`, Pia Paz), with the caveat above
+- DragonFly BSD terminal check (`e5619c8`, Wes Wolfe)
+- Solaris `termioOK` (`7ba3f53`, Tomas Teixeira)
+
+The net diff from v0.0.21 to `HEAD` touches only `isatty_bsd.go`, `isatty_dragonfly.go`, `isatty_others.go`, `isatty_solaris.go` and `isatty_windows.go`.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release v0.0.21" ; git log --format='%h %p | %an | %ad | %s' --date=short --no-merges $(git log --format=%H --grep="Release v0.0.21" -1)..HEAD; echo; git log --graph --oneline $(git log --format=%H --grep="Release v0.0.21" -1)..HEAD
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c; done; echo; for c in 42f4394 ; do git show $c; done; echo ==== ; git show 39435a5; echo; git show 45176f0 | head -80
+Bash: echo "--- diff 'Release v0.0.21'..HEAD stat"; git diff --stat e635536 HEAD; echo; ls; grep -rn "Plan9Console\|netbsd\|NetBSD" --include=*.go --include=go.mod . | head -20; echo; cat go.mod; echo; git show 7ba3f53 1c1a1dd 9b2a62a --stat --format='%h %s'
+Bash: git diff e635536 HEAD; for c in 640cd0a b8b3759 57b4558 e68bdb7 b14cc05 1c1a1dd 7ba3f53 28e9e05 6ed3870 e5619c8; do echo "=== $c"; git show --stat --format='%h %an %s' $c | cat; done; echo; git show 248e81f e68bdb7 | grep '^[-+]' ; git show 45176f0 b14cc05 | g
+Bash: git show b8b3759 57b4558 -- doc.go | grep '^[-+]'; git log --format='%h %an %cn' -1 b14cc05; git log --format='%h author=%an committer=%cn' e635536..HEAD | head -20
+### Final answer text
+I compared `Release v0.0.21` (e635536) with HEAD, commit by commit and as a net diff. The cv-builder skills are for resumes, so I didn't use them.
+
+## Fully backed out (don't announce)
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` in `isatty_plan9.go` (e68bdb7) | Quan Qiu | 248e81f `Revert "Add IsPlan9Console"` (Mara Linden) |
+| NetBSD support, `IsNetBSDTerminal` in `isatty_netbsd.go` (b14cc05) | Ravi Rao | 45176f0 "Back out NetBSD support, it breaks the build on 1.12" (Mara Linden). It is not titled "Revert", but it deletes the file. |
+| x/sys bumps to v0.1.0 and v0.2.0 (28e9e05, 6ed3870, merged as PR #77, ef2216e) | Uli Uzun | 42f4394 `Revert "Merge pull request #77 from uli/x-sys"` (Mara Linden) |
+
+- Neither Plan9 nor NetBSD is in the net diff against v0.0.21.
+- The x/sys bumps only added `// bump:` comment lines to `go.mod`. They never changed the real dependency, which is still `x/sys v0.0.0-20220811171246-fbc7d0a398ab`.
+
+## Partly backed out
+
+- **`IsTerminalFd`** (b8b3759, Pia Paz): the function ships in `isatty_others.go`, but 57b4558 (Mara Linden) removed its `doc.go` line, "safe to call from signal handlers".
+  - That commit isn't titled "Revert", but it is a partial back-out. The commit message says the claim is false on Windows.
+  - **Announce it with no signal-safety claim.** It is also defined only in the `isatty_others.go` build, so it isn't available on every platform.
+
+## Backed out but shipped anyway
+
+- **Solaris TCGETA fix** (`termioOK` const in `isatty_solaris.go`):
+  - 1c1a1dd (Tomas Teixeira) added it.
+  - 9b2a62a (Mara Linden) reverted it.
+  - 7ba3f53 "take two" (Tomas Teixeira) added the identical 3 lines back.
+  - It **is in v0.0.22**. If you want to mention it, describe it as the re-landed fix, not as the original.
+
+## "Revert" in the title but undoes nothing
+
+- **39435a5 `Revert to sorted order of build constraints`** (Vera Voss):
+  - It reverts nothing. No earlier commit in this range reordered constraints.
+  - It only appends the comment `// build constraints are kept in sorted order` to `isatty_bsd.go`.
+  - There is nothing to announce.
+
+## Other things to know
+
+- **Not backed out:** `IsMSYS2Terminal` (Ola Berg, 640cd0a) and `IsDragonflyTerminal` (Wes Wolfe, e5619c8) both ship.
+- **Odd `42f4394` message:** it says "reversing changes made to 1a2b3c4", a hash that isn't in this history. The diff still correctly removes the two bump comments.
+- **Out-of-order dates:** the Plan9 revert is dated 2025-04-01 but the commit it reverts is dated 2025-04-05. History order is correct, so this looks like clock skew or rebasing, not a problem.
+- **Net content change since v0.0.21:** `IsMSYS2Terminal` (Windows), `IsTerminalFd` (others), `IsDragonflyTerminal` (DragonFly), the Solaris `termioOK` const, and one comment in `isatty_bsd.go`.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --oneline --grep="Release v0.0.21" ; git log --format='%h %p | %an | %ad | %s' --date=short --graph $(git log --format=%h --grep="^Release v0.0.21" -1)..HEAD
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5 57b4558 b8b3759; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c | head -20; done; echo; git diff e635536 HEAD --stat; git show ef2216e --stat --format=%s -m --first-parent | head; echo ---; git show 7
+Bash: git show b8b3759 57b4558 39435a5 e5619c8 640cd0a 42f4394 e68bdb7 b14cc05 | grep -v '^index'; git diff e635536 HEAD -- doc.go go.mod isatty_plan9.go isatty_netbsd.go | head; ls
+### Final answer text
+Five things were backed out between "Release v0.0.21" (e635536) and HEAD (e5619c8). I checked the actual diffs and the net diff against v0.0.21, not just the commit titles.
+
+## Backed out, so don't announce
+| What | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (e68bdb7) | Quan Qiu | 248e81f `Revert "Add IsPlan9Console"`, by Mara Linden. Net diff shows `isatty_plan9.go` is unchanged. |
+| NetBSD support, `IsNetBSDTerminal` (b14cc05) | Ravi Rao | 45176f0 "Back out NetBSD support, it breaks the build on 1.12", by Mara Linden. The title has no "Revert", but it deletes `isatty_netbsd.go` entirely. |
+| x/sys bumps to v0.1.0 and v0.2.0 (28e9e05, 6ed3870), merged as PR #77 (ef2216e) | Uli Uzun wrote the bumps. Mara Linden merged them. | 42f4394 `Revert "Merge pull request #77…"`, by Mara Linden. `go.mod` is identical to v0.0.21, so no dependency bump ships. |
+
+One oddity: the Plan9 revert (248e81f) is dated 2025-04-01, four days before the commit it reverts (2025-04-05). The parent order is still correct, so it's a date quirk and not a problem.
+
+## Only partly backed out
+- **`IsTerminalFd` (b8b3759, Pia Paz)**: Mara Linden's 57b4558 removed only the doc.go line claiming it is "safe to call from signal handlers". That claim isn't true on Windows. The function itself, in `isatty_others.go`, still ships. Announce the helper, but don't repeat the signal-handler claim.
+
+## Backed out but in anyway
+- **Solaris `termioOK` (TCGETA detection fix)**: Tomas Teixeira wrote 1c1a1dd, and Mara Linden reverted it in 9b2a62a. Tomas then re-landed it as 7ba3f53 "Fix solaris TCGETA detection, take two". Its diff is identical to the original, with the same blob hash. It ships, so `isatty_solaris.go` gains `termioOK = true`. Note that nothing in the diff changes behavior, because it is only a constant. If Mara's revert was meant to hold, that is worth checking before you announce it.
+
+## "Revert" in the title but undoes nothing
+- **39435a5 "Revert to sorted order of build constraints" (Vera Voss)**: this reverts no commit. It adds a comment line, `// build constraints are kept in sorted order`, to `isatty_bsd.go`. It reads like a revert of the x/sys work, but the actual revert is 42f4394. Don't list it as a revert, and it isn't announcement-worthy.
+
+## Still ships
+- `IsMSYS2Terminal` (Ola Berg, 640cd0a)
+- `IsTerminalFd` (Pia Paz, b8b3759), without the signal-handler claim
+- The Solaris `termioOK` constant (Tomas Teixeira, 7ba3f53)
+- `IsDragonflyTerminal` (Wes Wolfe, e5619c8)
+- The build-constraint comment in `isatty_bsd.go` (Vera Voss, 39435a5)
+
+The net diff vs v0.0.21 touches only `isatty_bsd.go`, `isatty_dragonfly.go`, `isatty_others.go`, `isatty_solaris.go` and `isatty_windows.go`.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release v0.0.21" ; git log --format='%h %an %ad %s' --date=short --no-merges -n 40; echo; git log --graph --oneline -n 25
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5 e5619c8; do echo "=== $c"; git show --stat --format='%h %an %s%n%b' $c; done; echo; git diff e635536 HEAD --stat; echo; git show 39435a5 e5619c8 | head -150
+Bash: git diff e635536 HEAD -- isatty_others.go isatty_solaris.go isatty_windows.go; for c in 640cd0a b8b3759 57b4558 e68bdb7 b14cc05 1c1a1dd 7ba3f53 28e9e05 6ed3870 ef2216e; do echo "=== $c"; git show --format='%h %an %s' --stat $c | head -12; done; git show 42f439
+Bash: git show b8b3759 57b4558 -- doc.go | grep -E '^(commit|[+-])'; git ls-files | grep -E 'netbsd|plan9'
+### Final answer text
+I checked each commit's diff, and compared the tree at `e635536` (Release v0.0.21) with HEAD. Seven commits in the range have the word "revert" or "back out" in their titles. They break down as follows.
+
+## Backed out and must not be announced
+
+1. **`IsPlan9Console`**
+   - It added `IsPlan9Console(fd)` in `isatty_plan9.go`.
+   - Quan Qiu wrote it in `e68bdb7`.
+   - Mara Linden reverted it in `248e81f`.
+   - It's gone completely. The reverted commit's date (Apr 5) is later than the revert's (Apr 1), but the revert comes after it in history.
+
+2. **NetBSD support**
+   - It added `isatty_netbsd.go`.
+   - Ravi Rao wrote it in `b14cc05`.
+   - Mara Linden removed it in `45176f0`, titled "Back out NetBSD support, it breaks the build on 1.12". That title doesn't contain the word "Revert", so a search for "Revert" would miss it.
+   - The file is gone.
+
+3. **x/sys bumps to v0.1.0 and v0.2.0 (PR #77)**
+   - It added two `go.mod` lines through `28e9e05` and `6ed3870`, merged in `ef2216e`.
+   - Uli Uzun wrote the bumps. Mara Linden merged them.
+   - Mara Linden reverted the merge in `42f4394`.
+   - `go.mod` is identical to v0.0.21, so there's no dependency change to announce.
+   - That revert's message says it reverses changes "made to 1a2b3c4", which isn't a commit in this history. The file contents are still correct.
+
+## Partly backed out
+
+- **`IsTerminalFd` helper (`b8b3759`, Pia Paz)**
+  - The commit made two changes: the function in `isatty_others.go` and a doc line in `doc.go`.
+  - Mara Linden's `57b4558` removed the doc line, which claimed the function is safe to call from signal handlers. Her message says that's not true on Windows.
+  - **The function still ships**, but only in `isatty_others.go`. It isn't defined for Windows or the other platform files.
+  - Announce it without the signal-safety claim.
+
+## Backed out but in anyway
+
+- **Solaris TCGETA detection**
+  - Tomas Teixeira added `termioOK` in `1c1a1dd`. Mara Linden reverted it in `9b2a62a`. Tomas then re-added the same 3 lines in `7ba3f53`, "take two".
+  - **It ships.** HEAD's `isatty_solaris.go` has `const termioOK = true`.
+  - I didn't check whether the constant is used anywhere.
+  - Decide whether to announce it. It is in the release, but it went in, out and back in.
+
+## "Revert" in the title, but it undoes nothing
+
+- **`39435a5` "Revert to sorted order of build constraints"** (Vera Voss)
+  - It undoes nothing. It's an additive commit that only appends the comment `// build constraints are kept in sorted order` to `isatty_bsd.go`.
+  - The title uses "revert to" in the ordinary sense, not as a git revert. Nothing is reordered.
+  - There's nothing to announce from it.
+
+## Not reverted, and ships
+
+- `IsMSYS2Terminal` (Ola Berg, `640cd0a`), which is added in `isatty_windows.go`.
+- `IsDragonflyTerminal` (Wes Wolfe, `e5619c8`), which is added in a new `isatty_dragonfly.go`. It just returns `true` for any fd, so check that is what you want to announce.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release v0.0.21" -i; git log --format='%h %p | %an | %ad | %s' --date=short --graph $(git log --format=%h -1 --grep="^Release v0.0.21")..HEAD
+Bash: for c in e68bdb7 248e81f b14cc05 45176f0 1c1a1dd 9b2a62a 7ba3f53 ef2216e 42f4394 39435a5 e5619c8 57b4558; do echo "=== $c"; git show --stat --format='%h %s%n%b' -m --first-parent $c | head -30; done; echo; git diff e635536 HEAD --stat
+Bash: git diff e635536 HEAD; echo ======; git show 640cd0a b8b3759 57b4558 7ba3f53 1c1a1dd 39435a5 | cat; echo =====; git diff e635536 HEAD -- go.mod go.sum; git show 6ed3870 28e9e05 --stat --format=%h%n%s; git diff 7ba3f53 ef2216e --stat; cat go.mod
+Bash: git diff 1c1a1dd^ 1c1a1dd | tail -8; git diff 7ba3f53^ 7ba3f53 | tail -8; echo; git diff 1c1a1dd 7ba3f53 --stat; echo ---; git show 6ed3870 28e9e05 --format='%h %s' | cat; echo ---; git diff e635536 HEAD -- go.mod go.sum doc.go isatty_plan9.go isatty_netbsd.go
+Bash: git show b8b3759 -- doc.go | tail -8; git show 57b4558 -- doc.go | tail -8
+### Final answer text
+I've checked every commit since Release v0.0.21 (e635536) against the net diff to HEAD. Here's what I found.
+
+## Fully backed out: don't announce
+
+| What it was | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (e68bdb7) | Quan Qiu | 248e81f, "Revert "Add IsPlan9Console"" by Mara Linden |
+| NetBSD support (b14cc05) | Ravi Rao | 45176f0, "Back out NetBSD support, it breaks the build on 1.12" by Mara Linden. The title has no "Revert", but it deletes all of `isatty_netbsd.go`. |
+| The x/sys bumps to v0.1.0 and v0.2.0 (28e9e05 and 6ed3870, merged as PR #77 in ef2216e) | Uli Uzun (the merge is by Mara Linden) | 42f4394, "Revert "Merge pull request #77 from uli/x-sys"" by Mara Linden |
+
+- **Plan 9:** no Plan 9 change ships.
+- **NetBSD:** no NetBSD support ships.
+- **x/sys:** `go.mod` is identical to v0.0.21, still on the 2022 x/sys pseudo-version. The bumps were only `// bump:` comment lines anyway.
+
+## Partly backed out
+
+- **`IsTerminalFd` (b8b3759, Pia Paz, "Add IsTerminalFd helper and docs"):**
+  - The `IsTerminalFd` helper still ships, but only in `isatty_others.go`.
+  - The doc line was removed by 57b4558 (Mara Linden), which isn't titled as a revert. The line said "IsTerminalFd is safe to call from signal handlers", and it isn't true on Windows.
+  - Announce the helper at most. Don't claim anything about signal-handler safety.
+  - The helper is defined in `isatty_others.go`, so you may want to check that it exists on every platform before you announce it.
+
+## Backed out but ended up in anyway
+
+- **Solaris TCGETA fix (Tomas Teixeira):**
+  - 1c1a1dd, "Fix solaris TCGETA detection", was reverted by 9b2a62a (Mara Linden).
+  - 7ba3f53, "Fix solaris TCGETA detection, take two", then re-added the same change, byte for byte.
+  - It ships, adding `const termioOK = true` to `isatty_solaris.go`. It's a constant that nothing uses, though, so it doesn't change Solaris behaviour. I'd be careful about announcing it as a real fix.
+
+## "Revert" in the title, but nothing is undone
+
+- **39435a5, "Revert to sorted order of build constraints" (Vera Voss):**
+  - This isn't a revert of any commit. It only appends the comment `// build constraints are kept in sorted order` to `isatty_bsd.go`.
+  - It doesn't reorder or change any build constraint. There's nothing to announce.
+
+## Other changes that ship
+
+You didn't ask about these, but they're the rest of the net diff:
+
+- `IsMSYS2Terminal` (640cd0a, Ola Berg), an alias for `IsCygwinTerminal` on Windows.
+- `IsDragonflyTerminal` (e5619c8, Wes Wolfe), which returns `true` unconditionally. It doesn't check anything, so I wouldn't call it a terminal check in the announcement.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release v0.0.21" -n3; git log --format='%h %an %ad %s' --date=short --graph --all | head -60
+Bash: for c in 248e81f 45176f0 9b2a62a 42f4394 39435a5; do echo "=== $c"; git show --stat --format='%h %an | %cn %cd%n%B' $c; done; echo; git log --format='%h %p | %s' e635536..HEAD; echo; git diff --stat e635536 HEAD
+Bash: git show --format='== %h %an %s' e68bdb7 b14cc05 1c1a1dd 7ba3f53 28e9e05 6ed3870 ef2216e 42f4394 39435a5 e5619c8 | grep -v '^index'; echo ======NET; git diff e635536 HEAD
+### Final answer text
+Nothing in v0.0.22 was only partly backed out, and the history from `e635536` (Release v0.0.21) to `e5619c8` is linear. Three items were fully backed out and should stay out of the announcement. One item was backed out but is back in, and one "Revert" commit undoes nothing.
+
+**Backed out and not shipping**
+
+| What | Author | Backed out by |
+|---|---|---|
+| `IsPlan9Console` (`e68bdb7`), a new function in `isatty_plan9.go` | Quan Qiu | `248e81f` `Revert "Add IsPlan9Console"` by Mara Linden |
+| NetBSD support (`b14cc05`), a new `isatty_netbsd.go` with `IsNetBSDTerminal` | Ravi Rao | `45176f0` "Back out NetBSD support, it breaks the build on 1.12" by Mara Linden |
+| x/sys bumps to v0.1.0 (`28e9e05`) and v0.2.0 (`6ed3870`), merged as PR #77 (`ef2216e`) | Uli Uzun wrote the bumps; Mara Linden did the merge | `42f4394` `Revert "Merge pull request #77 from uli/x-sys"` by Mara Linden |
+
+- **`IsPlan9Console`:** The revert's author date (Apr 1) is earlier than the add's (Apr 5). In the actual commit order, the revert comes right after the add. The net diff has no `isatty_plan9.go` change, so it is fully gone.
+- **NetBSD:** The add touched only that one file, and the back-out deletes it, so nothing is left.
+- **x/sys bumps:** Both bumps and the merge are reversed. `go.mod` is back to its v0.0.21 content.
+- The x/sys revert message says it reverses changes "made to 1a2b3c4". That hash isn't in this history, so the message looks sloppy, but the diff itself is correct.
+
+**Partly backed out:** none. Each revert removes everything its original commit added.
+
+**Backed out but in anyway:** the Solaris TCGETA fix.
+- Tomas Teixeira's `1c1a1dd` "Fix solaris TCGETA detection" was reverted by Mara Linden in `9b2a62a`.
+- Tomas then re-landed it as `7ba3f53` "…take two". The diff is identical: it adds `const termioOK = true` to `isatty_solaris.go`.
+- So the change ships, and the net diff against v0.0.21 includes it. It's fair to announce, but don't describe it as reverted or pulled.
+
+**"Revert" in the title but undoes nothing:** `39435a5` "Revert to sorted order of build constraints" by Vera Voss.
+- It isn't a revert of any commit. It adds a comment line, `// build constraints are kept in sorted order`, to the end of `isatty_bsd.go`.
+- No earlier commit in this range unsorted any constraints, so there's nothing for it to restore. It ships as a comment-only change.
+
+**Also shipping, so you don't mistake it for a revert:**
+- Net changes to `isatty_bsd.go`, `isatty_dragonfly.go` (new, `e5619c8` by Wes Wolfe), `isatty_others.go`, `isatty_solaris.go` and `isatty_windows.go`.
+- The MSYS2 helper (`640cd0a`, Ola Berg) and `IsTerminalFd` (`b8b3759`, Pia Paz) were never reverted.
+### Files it left in the working directory
+(none)

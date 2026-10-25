@@ -94,7 +94,7 @@ test("the UserPromptSubmit hook has a timeout", () => {
 });
 
 test("the rules live in core-rules.md only: the hint carries their keywords and SKILL.md rule 9 is a pointer", () => {
-  const keywords = ["please confirm", "listed apart", "whitespace", "holds with an exception", "committer date", "purpose the user states", "unrelated organisations", "not verifiable here"];
+  const keywords = ["please confirm", "listed apart", "whitespace", "holds with an exception", "committer date", "purpose the user states", "namesake caution", "not verifiable here"];
   const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
   const skill = readFileSync(join(root, "skills", "workproof", "SKILL.md"), "utf8");
   const ctx = JSON.parse(run(hook, gitDir, phrasings.claim_check[0]).stdout).hookSpecificOutput.additionalContext;
@@ -166,7 +166,7 @@ test("core-rules.md carries each rule inside its numbered line", () => {
   const checks = {
     1: [/Not computed is not zero/i, /state both/i],
     2: [/purpose the user states picks the headline/i, /other reading goes beside it in one line/i, /UTC unless the user names one/i, /impossible author dates/i, /merged people beside proven-only/i, /Never pick a convention the user did not ask for/i],
-    3: [/`people`/, /figures --person NAME/, /please confirm/i, /unrelated organisations stays a separate person/i],
+    3: [/`people`/, /figures --person NAME/, /please confirm/i, /another organisation is joined too, with a namesake caution and the proven-only figure beside it/i],
     4: [/Listed apart with the reason/i, /vendored/i, /reverted work/i],
     5: [/Write only the file the user asked for/i, /Addresses stay out of documents/i],
     6: [/holds with an exception/i, /not verifiable here/i, /committer alone is not the author/i],

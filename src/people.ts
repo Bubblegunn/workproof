@@ -194,7 +194,7 @@ export function renderPeople(r: PeopleResult): string {
   }
   if (r.hidden) out.push(`person | ${r.hidden} more | not listed here (raise --max) |`);
   if (r.inactive.length) out.push(`no commits in the window | ${r.inactive.join(", ")} | appear in the history only outside the window; not contributors of this window |`);
-  for (const n of r.namesakes) out.push(`namesake | ${n.name} | ${n.reason} |`);
+  for (const n of r.namesakes) out.push(`caution, namesake possible | ${n.name} | ${n.reason} |`);
   for (const b of r.bots) out.push(`bot | ${b.name} | ${b.commits} non-merge commits in the window; not a person |`);
   for (const n of r.notes) out.push(`note | ${n} |`);
   return out.join("\n") + "\n";
@@ -284,7 +284,7 @@ async function runPeopleBrief(opts: PeopleOptions, out: { write(s: string): unkn
     for (const p of r.people) lines.push(`${p.name}: ${p.commits} commits${p.commitsProvenOnly !== p.commits ? ` (${p.commitsProvenOnly} proven-only)` : ""}, co-authored ${p.coAuthored}, own merges ${p.ownMerges}, reverted by anyone ${p.revertedByAnyone}, ${p.first} to ${p.last}${p.mergedBy.length ? `; joined: ${p.mergedBy.join("; ")}` : ""}`);
     if (r.hidden) lines.push(`(+${r.hidden} more people)`);
     if (r.inactive.length) lines.push(`no commits in the window (not contributors of this window): ${r.inactive.join(", ")}`);
-    for (const n of r.namesakes) lines.push(`namesake kept apart: ${n.name}: ${n.reason}`);
+    for (const n of r.namesakes) lines.push(`caution, namesake possible: ${n.name}: ${n.reason}`);
     if (r.bots.length) lines.push(`bots (not people): ${r.bots.map((b) => `${b.name} ${b.commits}`).join(", ")}`);
     return lines.join("\n").replace(/\S*@\S*/g, "[address removed]");
   };

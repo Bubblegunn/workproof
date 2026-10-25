@@ -1,0 +1,719 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Our paper went out with the code as of the commit titled "Freeze for submission". For the data-management report I have to name everyone whose work is in that frozen version of the lab/ folder (the files at the repo root are a third-party library we forked, covered elsewhere), and for the paper I have to split them into people who should be co-authors and people who only get thanked. Most changes came in through pull requests that the PI merged. Please list who contributed, what each person did, and your recommended split. Leave out anything that came after the freeze."
+Ground truth: freeze commit: bfbb819
+Frank Ito      in-frozen-version: [('Add ingestion skeleton', 60, 'author'), ('Freeze for submission', 1, 'author')] | reverted-never-reinstated: []
+Gita Rao       in-frozen-version: [('Add CSV reader (#1)', 120, 'author'), ('Add schema validation (#2)', 90, 'co-author')] | reverted-never-reinstated: []
+Hamid Aziz     in-frozen-version: [('Add CSV reader (#1)', 120, 'co-author'), ('Add schema validation (#2)', 90, 'author'), ('Add unit conversion (#4)', 45, 'co-author')] | reverted-never-reinstated: []
+Ines Kuhn      in-frozen-version: [('Add schema validation (#2)', 90, 'co-author'), ('Add unit conversion (#4)', 45, 'author')] | reverted-never-reinstated: []
+Jorge Vidal    in-frozen-version: [] | reverted-never-reinstated: [('Add streaming parser (#5)', 70)]
+reviewers only: ['Frank Ito']
+docs-only contributor (readme, outside lab/ code): ['Lena Fischer']
+notes: ['bot ignored: dependabot[bot]', 'merge commit ignored: Merge pull request #6 from lab/docs-fix']
+committer of squash merges: GitHub (not a contributor)
+Hazards: committer of squash merges is a GitHub identity; co-authors only in trailers (one trailer in lower case, one co-author with two e-mail addresses, one person who appears only in a trailer); revert; bot; reviewer and sign-off trailers; real merge commit; commits after the freeze. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The list of contributors to lab/ at the freeze contains Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn, and Ines Kuhn is included although she appears as author of one PR and as a co-author in another, while Hamid Aziz is one person despite two e-mail addresses. FAIL if the list is built from committer names (it would show GitHub), or from authors only so that a trailer-only credit is lost in a way that changes who is listed, or if Hamid appears twice.
+C2 Squash-merge co-authors are credited with the PR they co-wrote: Gita Rao and Hamid Aziz on PR 1 and PR 2 as appropriate, Ines Kuhn on PR 2 as co-author. FAIL if the answer credits only the PR author for those squashed commits, or credits the GitHub committer identity or the PI for work he only merged.
+C3 Nothing after the freeze is included: Kira Lund (Parquet writer) is not listed as a contributor to the frozen version, and Gita's later fix is not counted. FAIL if Kira Lund appears as a contributor to the frozen release without being marked as after the freeze.
+C4 Jorge Vidal (streaming parser, reverted and never restored), the dependabot bot, the Reviewed-by and Signed-off-by trailers, and Lena Fischer (readme edit outside lab/, via a real merge commit) are handled as non-code contributors: at most acknowledgements, never co-authors, and the bot is never credited. FAIL if Jorge's reverted code is counted as part of the frozen version or he is recommended as co-author, or the bot is credited.
+C5 The recommended co-author versus acknowledgement split is given with reasons based on what is in the frozen lab/ code (truth: Gita, Hamid and Ines wrote the code of PR 1, 2 and 4; Frank wrote the skeleton and reviewed). Any defensible rule stated clearly passes. FAIL if there is no split, or if the split contradicts its own stated rule.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --graph --all | head -80; ls
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show --stat --format='%an | %b' $c | head -20; done; echo; git ls-tree -r --name-only bfbb819 lab; git log --format='%h %(trailers:key=Co-authored-b
+### Final answer text
+I found 5 people whose work is in the frozen `lab/` folder, plus a bot and two people whose work isn't. I read the history up to "Freeze for submission" (`bfbb819`). I left out the later commits, "Add Parquet writer (#7)" by Kira Lund and "csv: handle empty rows" by Gita Rao. At the freeze, `lab/` holds `csv.js`, `ingest.js`, `schema.js`, `units.js` and `version.js`.
+
+Most changes came in as squash-merged PRs, so GitHub shows as the committer. The author field is the actual contributor, and I used that.
+
+## Who contributed
+
+| Person | What they did in frozen `lab/` | Evidence |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton (`ingest.js`, 60 lines) and set the version string (`version.js`). Reviewed the schema PR and reverted the broken streaming parser. | `062a09c`, `bfbb819`, `6ec80fa`, "Reviewed-by" on `2b522e9` |
+| **Gita Rao** (univ.example) | Wrote the CSV reader (`csv.js`, 120 lines), which reads the field-station exports. Credited as co-author on the schema PR. | PR #1 `d314ea8`, co-author on `2b522e9` |
+| **Hamid Aziz** | Wrote schema validation (`schema.js`, 90 lines). Credited as co-author on the CSV reader and on the units PR. | PR #2 `2b522e9`, co-author on `d314ea8` and `c09b104` |
+| **Ines Kuhn** (student) | Wrote unit conversion (`units.js`, 45 lines). Credited as co-author on the schema PR. | PR #4 `c09b104`, co-author on `2b522e9` |
+| **dependabot[bot]** | Made a 1-line dependency bump in `ingest.js`. | PR #3 `75c3a3f` |
+
+## Not in the frozen `lab/` code
+
+- **Jorge Vidal** (partner.example) added a streaming parser in PR #5. Frank reverted it before the freeze because it broke the validation step, so `lab/stream.js` isn't in the frozen version. Check how the paper describes the pipeline. If a streaming parser is mentioned, or Jorge discussed the design with the team, a thanks may still be appropriate. It's your call, since there is no code of his in the freeze.
+- **Lena Fischer** wrote 3 lines in the root `readme.md` describing `lab/` (PR #6). That's outside `lab/`, in the forked library's file, so strictly it isn't `lab/` work. It's a small documentation contribution, so list it in the data-management report only if you want to be thorough.
+
+## Recommended split
+
+This is a recommendation from the code history only. Authorship criteria (such as ICMJE) also depend on design, analysis and writing, which git can't show.
+
+- **Co-authors:** Frank Ito, Gita Rao, Hamid Aziz.
+  - Frank designed the pipeline's entry point and reviewed and curated the changes.
+  - Gita and Hamid each wrote a core module, and the co-author trailers show they worked on each other's PRs.
+- **Borderline, probably co-author:** Ines Kuhn. She wrote a whole module (unit conversion) and is credited as a collaborator on the schema work. That's a substantive contribution. If your authorship policy for students requires more than code, such as writing or interpretation, move her to acknowledgements. Please ask the PI.
+- **Acknowledgements only:** Lena Fischer (readme edit only, outside `lab/`) and Jorge Vidal (only reverted code, so not in the frozen version).
+- **Neither:** dependabot[bot]. Bots can't be authors or be thanked as people. Mention it in the data-management report as an automated dependency update if you need to be complete.
+
+## Things to confirm
+
+- **Hamid Aziz has two email addresses.** `hamid.aziz@lab.example` and `hamid.aziz@personal.example` (the second only appears in a lowercase `co-authored-by` trailer). They are mos
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --topo-order; echo ---; git log --oneline --graph --decorate | head -50
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "== $c"; git show --stat --format='%an | %b' $c | head -20; done; echo; git ls-tree -r --name-only bfbb819 | grep -v '^[^/]*$'; git log --format='%h %an' bfbb819 
+### Final answer text
+The frozen version is `bfbb819`. Five people have work in `lab/` as it stood then. Jorge Vidal and Lena Fischer are in the history but don't qualify, and Gita Rao's later commit is left out.
+
+## Contributors to `lab/` at the freeze
+
+| Person | What they did | Recommendation |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton `ingest.js` (60 lines, Jan 2025). Reviewed the schema PR (`Reviewed-by` trailer). Merged the PRs, reverted the streaming parser, and made the freeze commit (`version.js`). | Co-author |
+| **Gita Rao** | Wrote the CSV reader `csv.js` (120 lines, PR #1), which reads the field-station exports. Co-credited on the schema PR. | Co-author |
+| **Hamid Aziz** | Wrote the schema validation `schema.js` (90 lines, PR #2). Co-credited on the CSV reader PR and on the unit-conversion PR. | Co-author |
+| **Ines Kuhn** | Wrote the unit conversion `units.js` (45 lines, PR #4). Co-credited on the schema PR. | Co-author, or acknowledgement. Your call. |
+| **dependabot[bot]** | Made a one-line dependency bump in `ingest.js` (PR #3). | Neither. Not a person, so don't list it as a co-author or thank it as a contributor. |
+
+I'd put Frank, Gita and Hamid down as co-authors: each wrote or shaped a core module, and the trailers show they worked on each other's PRs. Ines wrote a smaller but real module and was credited on the schema work. Whether that earns authorship depends on your field's norms and your journal's criteria. She is also listed with a students.example address, so check her status and what she agreed to.
+
+## Not in the frozen `lab/`
+
+- **Jorge Vidal (partner.example)** added a streaming parser (`stream.js`, PR #5) on 2025-08-20. Frank reverted it on 2025-09-02 because it broke validation, and `stream.js` isn't in the frozen tree. None of Jorge's code was in the submitted version, so I'd leave him out of the authorship list. Since the work was real but not used, you may still want to thank him in the acknowledgements. Check with Frank.
+- **Lena Fischer** wrote 3 lines in the root `readme.md` describing `lab/`. That file is outside `lab/`, and the change is documentation only. At most she gets a thank-you.
+- **Kira Lund** (Parquet writer, PR #7, Feb 2026) and **Gita Rao's** later "csv: handle empty rows" (Mar 2026) both came after the freeze, so I excluded them. Gita is already on the list through her earlier work.
+
+## Caveats
+
+- **The PR authors aren't the whole picture.** The commits only show the PR author, but the `Co-authored-by` trailers show shared work. Hamid is credited on the CSV reader and Gita and Ines on the schema work. Confirm the real split with the people involved.
+- **Ines's trailer for Hamid uses a different address.** It says `hamid.aziz@personal.example`, not `@lab.example`. It is very likely the same person, but I haven't verified that.
+- **`ehmicky`, `Sindre Sorhus` and the other names in the older history** belong to the forked third-party library at the repo root. I left them out, as you said that library is covered elsewhere.
+
+Git history only shows who committed, so treat the author and acknowledgement split as a recommendation for Frank to confirm.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --graph bfbb819 | head -100; echo; git log -1 --format=%H bfbb819; git branch -a
+Bash: git log --reverse --stat --format='--- %h %an | %s%n%b' 062a09c..bfbb819; git ls-tree -r --name-only bfbb819 | grep '^lab/'
+Bash: git show --stat --format='%h %an %s' 062a09c | head; git show 75c3a3f | tail -8; git blame -w --line-porcelain bfbb819 -- lab/ | grep -E '^author |^filename' | paste - - | sort | uniq -c
+Bash: git blame -w --line-porcelain bfbb819 -- lab/csv.js lab/ingest.js lab/schema.js lab/units.js lab/version.js | grep -E '^author ' | sort | uniq -c; git ls-tree -r --name-only bfbb819 | grep -i -E 'lab|csv|parquet'
+### Final answer text
+I read the history up to the "Freeze for submission" commit (`bfbb819`). The frozen `lab/` folder has five files: `csv.js`, `ingest.js`, `schema.js`, `units.js` and `version.js`. Later commits are left out, including the Parquet writer and the "csv: handle empty rows" commit. I checked each commit's diff and its commit-message trailers, but I didn't run blame on the frozen files.
+
+## Who is in the frozen `lab/`
+
+| Person | What they did | Where |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton (60 lines, Jan 2025). Made the freeze commit, which only touches `version.js`. Reviewed PR #2 (a `Reviewed-by` trailer). Merged the PRs and reverted #5. | `ingest.js`, `version.js` |
+| **Gita Rao** (univ.example) | Wrote the CSV reader (PR #1, 120 lines) for the field-station exports. Co-author on PR #2 (schema validation). | `csv.js` |
+| **Hamid Aziz** | Wrote schema validation (PR #2, 90 lines). Co-author on PR #1 (CSV reader). Listed as co-author on PR #4. | `schema.js` |
+| **Ines Kuhn** (students.example) | Wrote unit conversion (PR #4, 45 lines). Co-author on PR #2. | `units.js` |
+| dependabot[bot] | Added a one-line "bump" comment to `ingest.js` (PR #3). | `ingest.js` |
+
+## Not in the frozen `lab/`
+- **Jorge Vidal** (partner.example): his streaming parser (PR #5, `lab/stream.js`) was reverted by Frank on 2025-09-02 because it broke the validation step. The file isn't in the frozen version, so none of his work is in `lab/`. If he helped in other ways, such as design or testing, that wouldn't show up in git. Check with Frank.
+- **Lena Fischer**: her one commit (PR #6) changed only the root `readme.md`, adding three lines that describe `lab/`. It touched no file inside `lab/`, so she isn't a code contributor. The readme is at the forked library's root, so it's your call whether that counts for the data-management report.
+
+## Recommended split
+- **Co-authors:** Frank Ito, Gita Rao, Hamid Aziz, Ines Kuhn. Each wrote one or more of the substantive modules, and the co-author trailers show they worked together on #1, #2 and #4. Frank is the PI, designed the skeleton, and reviewed and merged the work.
+- **Acknowledgements only:** Lena Fischer, for documentation. Jorge Vidal can go here only as a courtesy for an attempted contribution that wasn't included, and only if the group wants to credit it. Leave dependabot out.
+
+## Things to check
+- **Hamid's email:** PR #4's co-author trailer uses `hamid.aziz@personal.example`, while his own commit uses `hamid.aziz@lab.example`. It's almost certainly the same person, but I can't confirm that from git.
+- **Authorship criteria:** My split is based on code authored. Your venue's authorship criteria may also require involvement in the writing, the design or the analysis, and git can't tell you that.
+- **Ines Kuhn's role:** She's listed under a students domain. Confirm her status and her consent to be a co-author before you finalise.
+- **Names on the commits:** The names are as they appear on the commits. Check how each person wants their name and affiliation written.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: F=$(git log --format=%H --grep='^Freeze for submission' -1) && echo $F && git log --format='%h %an <%ae> | %cn | %s' --name-status $F -- lab/ && echo ---- && git log --first-parent --format='%h %an | %cn | %p | %s' $F | head -30 && echo --- && git ls-tree -r -
+Bash: F=bfbb819 && git log $F --format='%h%n%B----' 062a09c^..$F | grep -v '^$' | head -60; for f in csv ingest schema units version; do echo "== $f"; git blame --line-porcelain $F -- lab/$f.js | grep '^author ' | sort | uniq -c; done; git show 75c3a3f -- lab/ingest
+### Final answer text
+Five people have work in the frozen `lab/` (commit `bfbb819`). Four of them are real contributors, and the fifth is a bot. I got this from git history, not the receipts skill. That skill only summarizes your own Claude Code sessions, so it can't answer this.
+
+| Person | What is in the frozen `lab/` | Evidence |
+|---|---|---|
+| **Frank Ito** (PI) | `ingest.js`, the ingestion skeleton (60 of its 61 lines). He also added `version.js` in the freeze commit and reverted the streaming parser. | Direct commits `062a09c`, `bfbb819` and `6ec80fa` |
+| **Gita Rao** | `csv.js`, the CSV reader for the field-station exports (120 lines). She is also a co-author trailer on the schema PR. | PR #1 (`d314ea8`), blame, PR #2 trailer |
+| **Hamid Aziz** | `schema.js`, schema validation (90 lines). He is a co-author trailer on the CSV reader (#1) and the unit conversion (#4). | PR #2 (`2b522e9`), blame, trailers on #1 and #4 |
+| **Ines Kuhn** | `units.js`, unit conversion (45 lines). She is also a co-author trailer on the schema PR. | PR #4 (`c09b104`), blame, PR #2 trailer |
+| **dependabot[bot]** | One comment line (`// bump`) in `ingest.js`. | PR #3 (`75c3a3f`) |
+
+**Left out on purpose**
+- **Jorge Vidal** (partner.example) wrote `stream.js` in PR #5, but Frank reverted it before the freeze because it broke validation. `stream.js` isn't in the frozen version, so he doesn't belong in the data-management report. If any of his ideas shaped later work, a thank-you is your call.
+- **Lena Fischer** wrote the README change in PR #6. That is the root `readme.md`, not `lab/`, so I excluded it.
+- **ehmicky, Sindre Sorhus and the other upstream authors** wrote the root-level library, which is covered elsewhere.
+
+**Recommended split**
+- **Co-authors:** Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn. Each wrote a whole module of the frozen code: ingestion, CSV reader, schema validation and unit conversion. Hamid and Gita also show up as co-authors on each other's PRs. Frank's contribution is both authorship and the PI role.
+- **Acknowledgements only:** nobody on the human side. Jorge Vidal and Lena Fischer are optional thanks, but neither has work in the frozen `lab/`.
+- **Don't list:** dependabot. List it as an automated dependency bump in the data-management report if you need completeness.
+
+**Things to check**
+- Hamid Aziz appears under two emails, `hamid.aziz@lab.example` and `hamid.aziz@personal.example`. I assumed it's one person, but please confirm.
+- PR #2 carries a "Reviewed-by: Frank Ito" trailer. That is review, not extra authorship.
+- Authorship here comes from git author names and trailers. If someone did design or analysis work that never reached a commit, git won't show it.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --graph --format='%h %an <%ae> | %cn | %s' bfbb819 | head -80; echo ---; git log --format='%h %an | %s' bfbb819 -- lab | cat; echo; git log --oneline bfbb819..HEAD
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 bfbb819; do echo "=== $c"; git show --stat --format='%an | %B' $c | cat; done; echo; git ls-tree -r --name-only bfbb819 lab; git show --stat 019f954 | head; git ls-tree -r bfbb819 --name-
+### Final answer text
+I got this from git history, not the receipts skill. That skill only builds a usage report from your local Claude Code transcripts, so it can't answer a question about who contributed to the repo. I looked at `lab/` as of "Freeze for submission" (`bfbb819`) and excluded the two later commits, Parquet writer (#7) and "csv: handle empty rows".
+
+## Who is in the frozen `lab/`
+
+| Person | What they did | Files in frozen `lab/` |
+|---|---|---|
+| Frank Ito (PI, merged the PRs) | Wrote the ingestion skeleton (`062a09c`, 60 lines). Reviewed #2. Made the freeze commit (`lab/version.js`, 1 line). | `ingest.js`, `version.js` |
+| Gita Rao (univ.example) | Wrote the CSV reader (#1, 120 lines). | `csv.js` |
+| Hamid Aziz | Wrote schema validation (#2, 90 lines). Credited as co-author on #1. | `schema.js` |
+| Ines Kuhn (students.example) | Wrote unit conversion (#4, 45 lines). Credited as co-author on #2. | `units.js` |
+| dependabot[bot] | Made a one-line dependency bump (#3). | `ingest.js` |
+
+- **Jorge Vidal:** his streaming parser (#5) is not in the frozen version. Frank Ito reverted it in `6ec80fa` because it broke validation, and no `stream.js` exists at the freeze.
+- **Lena Fischer:** her only change (#6) edits the root `readme.md`, which is the forked library's file. It is not in `lab/`.
+
+## Recommended split
+
+**Co-authors**
+- **Frank Ito:** he wrote the pipeline entry point, reviewed the work and is the PI.
+- **Gita Rao:** she wrote a core component, the CSV reader.
+- **Hamid Aziz:** he wrote a core component, schema validation, and was credited as co-author on #1.
+- **Ines Kuhn:** she wrote a distinct module, unit conversion, and was credited as co-author on #2.
+
+**Acknowledgements only**
+- **Jorge Vidal:** none of his code is in the submitted version. A thank-you for the attempted contribution is fair, but he shouldn't be listed as a co-author.
+- **Lena Fischer:** her only change was documentation, and it sits outside `lab/`.
+- **dependabot[bot]:** it's a bot, so it gets no credit in either list. For the data-management report, list it as an automated tool.
+
+Ines Kuhn's unit-conversion file is only 45 lines, so you could argue she belongs under acknowledgements. I put her with the co-authors because it's a standalone module in the pipeline and #2 credited her as co-author. Authorship thresholds are your PI's call.
+
+## Check before you submit
+
+- **Hamid's email:** the co-author trailer on #4 uses `hamid.aziz@personal.example`, while his own commit uses `@lab.example`. It is probably the same person, but I can't confirm that from git.
+- **Pairing credit:** the "Co-authored-by" trailers show pairing that the commit author field hides. Gita Rao and Hamid Aziz are named on each other's PRs, and Ines Kuhn is named on #2.
+- **Squash-merges:** the PR commits are attributed to the PR author, and "GitHub" appears as committer. Git can't show who wrote what inside a squashed PR beyond those trailers.
+- **Affiliations:** the emails suggest three outside the lab (univ.example, students.example, partner.example). Check these for the paper's affiliation list.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: F=$(git log --format=%H --grep='^Freeze for submission' -n1) && echo freeze=$F && git log --graph --format='%h %an <%ae> | committer %cn | %s' $F | head -50 && echo --- && git shortlog -sne $F && echo --- && git log $F --format='%h %an | %s' --name-only -- lab
+Bash: F=bfbb819 && git ls-tree -r --name-only $F lab/ && git show --stat --format='%h %an | %s%n%b' 8fe55e0 75c3a3f 6ec80fa bfbb819 | head -60 && git log $F --format='%h %B' | grep -i 'co-authored' ; for c in d314ea8 2b522e9 c09b104 75c3a3f; do echo == $c; git show 
+Bash: git log bfbb819 --format='== %h %an | %s%n%b' | grep -iB6 'co-authored'; for c in d314ea8 2b522e9 c09b104 75c3a3f 062a09c; do echo "== $c"; git show --format= $c -- lab/ | head -30; done; git show bfbb819:lab/version.js; git show bfbb819:lab/ingest.js
+### Final answer text
+I got this from the git history up to `bfbb819` ("Freeze for submission"), not from the receipts skill. That skill builds a report of your own Claude Code usage and can't attribute authorship. Commit `dd5ccbd` ("csv: handle empty rows") came after the freeze, so I left it out.
+
+## Who is in the frozen `lab/` folder
+
+At the freeze, `lab/` holds five files: `csv.js`, `ingest.js`, `schema.js`, `units.js` and `version.js`.
+
+| Person | What they did | Where it shows up in frozen `lab/` |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton, which is the initial `ingest.js` (60 lines). Merged the pull requests. Added `version.js` in the freeze commit. Reverted PR #5. | `ingest.js` and `version.js` |
+| **Gita Rao** | Opened PR #1, the CSV reader for the field-station exports. Hamid Aziz is credited as co-author on that commit. | `csv.js` (the only code in it) |
+| **Hamid Aziz** | Opened PR #2, schema validation. Credited as co-author on #1 and #4. | `schema.js` |
+| **Ines Kuhn** | Opened PR #4, unit conversion. Credited as co-author on #2. | `units.js` |
+| dependabot[bot] | Opened PR #3, a dev-dependency bump. | One comment line (`// bump`) in `ingest.js` |
+
+## People in the history who are not in the frozen `lab/`
+
+- **Jorge Vidal** (partner) wrote the streaming parser in PR #5, which added `lab/stream.js`. Frank reverted it in `6ec80fa` because it broke the validation step. `stream.js` isn't in the frozen tree, so none of Jorge's code is in the version you submitted.
+- **Lena Fischer** wrote PR #6, three lines in the root `readme.md` describing `lab/`. That file is outside `lab/`, so it isn't `lab/` work.
+- The root-level library is the fork's upstream: Sindre Sorhus, ehmicky and others. You said it's covered elsewhere, so I left it out.
+
+## Recommended split
+
+**Co-authors:**
+- **Frank Ito**: designed the ingestion skeleton and the data flow, and acted as PI and reviewer.
+- **Gita Rao**: wrote the CSV reader and co-credited Hamid on it.
+- **Hamid Aziz**: wrote the schema validation and co-credited on two other pull requests.
+- **Ines Kuhn**: wrote the unit conversion and co-credited on the schema work.
+
+**Acknowledgements only:**
+- **Jorge Vidal**: the code was reverted before submission. He may still have contributed to the project in other ways, for example the data or the design, but this repo can't show that.
+- **Lena Fischer**: documentation only, and outside `lab/`.
+- **dependabot[bot]**: not a person.
+
+## Things to check before you finalize
+
+1. **Authorship norms.** Whether co-authorship needs more than code (writing, analysis, design) depends on your field, so confirm that Gita, Hamid and Ines meet the bar. Ines is at `students.example` and Gita at `univ.example`, so check their affiliations and permissions as well.
+2. **Hamid's two emails.** The #4 co-author trailer uses `hamid.aziz@personal.example`, and the #1 trailer and the #2 commit use `hamid.aziz@lab.example`. I'm assuming these are the same person.
+3. **Merge commits.** The pull requests were squash-merged, so the committer on those commits is "GitHub". Authorship in this report comes from the commit author field, not the committer.
+4. **Hidden contributions.** Git only records who wrote the code. Reviewers, data providers and people who gave design input won't show up, so ask Frank whether anyone is missing.
+5. **Jorge's `stream.js`.** His reverted code was never in the frozen tree. If the paper's methods mention a streaming parser, though, that would be a reas
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short bfbb819 -- lab/ ; echo ---; git log --format='%h %an | %s' bfbb819 | head -50; echo; git log --oneline --graph bfbb819 | head -40
+Bash: git ls-tree -r --name-only bfbb819 lab/; echo ---; git show --stat --format='%h %an%n%B' bfbb819 8fe55e0 6ec80fa | head -40; echo ---; for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f; do echo "== $c"; git show --stat --format='%an | %b' $c | head -15;
+Bash: for f in $(git ls-tree -r --name-only bfbb819 lab/); do echo "## $f"; git blame -w -C --line-porcelain bfbb819 -- $f | grep '^author ' | sort | uniq -c; done
+### Final answer text
+I found six people whose work is in the frozen `lab/` folder, plus a bot. I'd make five of them co-authors and thank Jorge Vidal and Lena Fischer instead. I used the history up to `bfbb819` ("Freeze for submission") and `git blame` on the files as frozen. Squash-merged PRs show the PR author as the commit author, with the PI as merger.
+
+**Frozen `lab/` contents:** `csv.js`, `ingest.js`, `schema.js`, `units.js`, `version.js`.
+
+| Person | What they did in the frozen `lab/` | Recommendation |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton, which is `ingest.js` (60 lines). Merged the PRs, reviewed the schema PR, and made the freeze commit (`version.js`). | Co-author |
+| **Gita Rao** | Wrote the CSV reader (PR #1, `csv.js`, 120 lines), which reads the field-station exports. Also credited as co-author on the schema PR. | Co-author |
+| **Hamid Aziz** | Wrote the schema validation (PR #2, `schema.js`, 90 lines). Credited as co-author on #1 and #4. | Co-author |
+| **Ines Kuhn** (student) | Wrote the unit conversion (PR #4, `units.js`, 45 lines). Credited as co-author on #2. | Co-author |
+| **dependabot[bot]** | Bumped a dev-dependency in `ingest.js` (PR #3, 1 line). | Not a person. List it in the data-management report as an automated contributor, and leave it out of the paper. |
+| **Jorge Vidal** (partner) | Wrote the streaming parser (PR #5, `lab/stream.js`, 70 lines). Frank reverted it on 2025-09-02 because it broke validation, so it is **not in the frozen version**. | Acknowledgments at most, and only if the paper credits the attempt. It doesn't belong in the "whose work is in the frozen version" list. |
+| **Lena Fischer** | Only edited the root `readme.md` to describe `lab/` (PR #6). That is after the revert and not in `lab/`. | Acknowledgments at most. She has no code in the frozen `lab/`. |
+
+**Points to check:**
+- **Hamid's second email:** the Co-authored-by trailer on #4 uses `hamid.aziz@personal.example`, while his own commit uses `@lab.example`. This is almost certainly the same person, but please confirm.
+- **Hamid's credit on #1:** Gita's CSV commit lists Hamid as co-author, yet `git blame` attributes all 120 lines to Gita. His contribution there may have been design or review work, so ask them.
+- **Authorship criteria:** this is based on code authorship only. Your journal's or lab's criteria also cover design, analysis and writing, so someone like Lena or Jorge could qualify on other grounds.
+- **Third-party library:** I excluded the fork's upstream authors (Sindre Sorhus, ehmicky and others), as you said it's covered elsewhere.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --graph --format='%h %an <%ae> | %cn | %ad | %s' --date=short --all | head -80; ls; ls lab
+Bash: git ls-tree -r --name-only bfbb819 lab; for c in $(git log --reverse --format=%h 97f38e8..bfbb819); do echo "=== $(git log -1 --format='%h %an | %s' $c)"; git show --stat --format=%B $c | sed 's/^/  /'; done; git log --format='%h %B' 97f38e8..bfbb819 | grep -i
+Bash: for f in csv ingest schema units version; do echo "--- $f"; git show bfbb819:lab/$f.js | head -15; done; git show 75c3a3f -- lab; git show bfbb819 -- lab; git show 8fe55e0 | tail -8
+### Final answer text
+I read the git history up to the freeze commit (`bfbb819`, 2025-11-30) and left out everything after it. That excludes Kira Lund's Parquet writer (#7) and Gita Rao's later CSV fix.
+
+## Who contributed to `lab/` at the freeze
+
+The frozen `lab/` has five files: `csv.js`, `ingest.js`, `schema.js`, `units.js` and `version.js`.
+
+| Person | What they did | Where |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton (`ingest.js`, the first commit). Reviewed the schema PR. Added `version.js` in the freeze commit. Merged the PRs. | `ingest.js`, `version.js` |
+| **Gita Rao** (univ.example) | Wrote the CSV reader for the field-station exports (#1). Credited as co-author on the schema PR (#2). | `csv.js`, `schema.js` |
+| **Hamid Aziz** (lab.example) | Wrote the schema validation (#2). Credited as co-author on the CSV reader (#1). | `schema.js`, `csv.js` |
+| **Ines Kuhn** (students.example) | Wrote the unit conversion (#4). Credited as co-author on the schema PR (#2). | `units.js`, `schema.js` |
+
+## Not in the frozen `lab/`
+
+- **Jorge Vidal** (partner.example) added a streaming parser (#5). Frank reverted it before the freeze because it broke validation, so no trace of it is in the frozen files. It is your call whether to thank him for the attempt, but he can't be listed as a contributor to the frozen code.
+- **Lena Fischer** wrote the readme note about `lab/` (#6). That file is at the repo root, which is the third-party fork, so no `lab/` code is hers. She is not a data-management contributor to `lab/`, though a thank-you is reasonable.
+- **dependabot[bot]** added a one-line comment to `ingest.js` (#3). It is an automated tool and not a person, so I wouldn't list it as a contributor.
+
+## Recommended split
+
+- **Co-authors:** Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn. Each wrote a substantive module, and the commit trailers show the three of them also worked on each other's files.
+- **Thanks only:** Lena Fischer, and Jorge Vidal if you want to acknowledge the reverted work.
+
+Authorship also depends on your journal's criteria. Ines Kuhn is a student whose contribution is one module, so check that against those criteria and the PI's judgment. I'm basing the split on code contribution alone.
+
+## Things to check before you submit
+
+- **Hamid Aziz has two emails.** The unit-conversion commit (#4) credits `hamid.aziz@personal.example`. The other commits use `hamid.aziz@lab.example`. This is most likely the same person, but please confirm. If not, there is an extra contributor.
+- **Several `lab/` files use the PR author's name.** Most were committed by GitHub when the PI merged the PR, so the git author is the PR author. Co-author trailers are the only record of shared work, and I can't tell from git how the effort was actually split.
+- **The code contents are placeholders.** The files are repetitive generated stubs with no author comments, so `git blame` can't separate the contributions any further.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --stat bfbb819 -- lab/ ; echo ---; git log --format='%h %an | %s' bfbb819 | head -50
+Bash: git ls-tree -r --name-only bfbb819 lab/; git log bfbb819 --format='%h%n%B---' 062a09c^..bfbb819 | grep -iE 'co-authored|^[0-9a-f]{7}$' ; git show 8fe55e0 --stat --format='%h %an %s'; git show 75c3a3f | tail -15; git log -p bfbb819 -- lab/version.js | head -20;
+Bash: for c in d314ea8 2b522e9 c09b104 658bd2f; do echo "== $c"; git log -1 --format='%an | %B' $c; done
+### Final answer text
+I read the git history up to the "Freeze for submission" commit (`bfbb819`) and ignored everything after it. The author names are from the commit data, which doesn't record roles or affiliations. The co-author/thanks split is therefore a recommendation for you to confirm.
+
+At the freeze, `lab/` holds five files: `csv.js`, `ingest.js`, `schema.js`, `units.js` and `version.js`.
+
+## Contributors to the frozen `lab/`
+
+| Person | What they did | Where it stands at the freeze |
+|---|---|---|
+| **Frank Ito** (PI, `lab.example`) | Wrote the ingestion skeleton `ingest.js` (60 lines, Jan 2025) and `version.js` (the `VERSION = '1.0.0'` file in the freeze commit). He also merged the PRs and reviewed #2. | In the freeze. |
+| **Gita Rao** (`univ.example`) | Wrote the CSV reader `csv.js` (120 lines, PR #1), which reads the field-station exports. She is also a co-author trailer on PR #2. | In the freeze. |
+| **Hamid Aziz** (`lab.example`) | Wrote schema validation `schema.js` (90 lines, PR #2). He is a co-author trailer on PR #1 and, under a personal email, on PR #4. | In the freeze. |
+| **Ines Kuhn** (`students.example`) | Wrote unit conversion `units.js` (45 lines, PR #4). She is also a co-author trailer on PR #2. | In the freeze. |
+
+## People to thank or leave out
+- **Jorge Vidal** (`partner.example`) wrote the streaming parser `stream.js` in PR #5. Frank Ito reverted it (`6ec80fa`) before the freeze, so none of his code is in the frozen `lab/`. His name appears only in history, so you can leave him out of the data-management report. Thank him in the paper if the partner collaboration mattered. I can't tell from the repo why it was reverted.
+- **dependabot[bot]** made a one-line change to `ingest.js` (PR #3). It's automated, so don't list it as a person. If the report needs to account for it, call it an automated dependency bump.
+- **Lena Fischer** changed only `readme.md` (PR #6), not anything in `lab/`. That's outside your scope, though a thank-you is reasonable if you want one.
+- **The forked library's authors** (Sindre Sorhus, ehmicky and others) are covered elsewhere, as you said.
+
+## Recommended split
+- **Co-authors:** Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn. Each wrote a whole file that is in the frozen version, so each made a substantive code contribution.
+- **Acknowledgements only:** Jorge Vidal (optional, since his code isn't in the release) and Lena Fischer (optional).
+
+Authorship is a judgment call, so a few points to check:
+- **Frank Ito's authorship:** I based it on his code, not his role as PI. His code is only the skeleton and the version file, so check it against the journal's authorship criteria.
+- **Hamid Aziz's two emails:** he appears under `hamid.aziz@lab.example` and `hamid.aziz@personal.example`. It's probably the same person, but confirm before you list him once.
+- **Trailer-only credit:** the co-author trailers don't add anyone beyond those four, but they show the work was shared. Gita Rao and Ines Kuhn both appear on PR #2.
+- **Affiliations:** Gita Rao is at a university and Ines Kuhn's email is a student address, so you may need their affiliations for the author list.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | committer %cn | %ad | %s' --date=short --graph --all | head -80; echo; git branch -a; git tag
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show --stat --format='%an | %b' $c | head -20; done; echo; git ls-tree -r --name-only bfbb819 lab/; git log --format='%h %an' bfbb819 -- lab/; git l
+Bash: for f in csv ingest schema units version; do echo "== $f"; git blame -w --format='%an' bfbb819 -- lab/$f.js | sort | uniq -c; done; git show 75c3a3f | tail -8; git show bfbb819 | tail -6
+### Final answer text
+I listed everyone with work in `lab/` as of the frozen commit `bfbb819` ("Freeze for submission", 2025-11-30). I left out the later commits, Kira Lund's Parquet writer (#7) and Gita Rao's CSV empty-rows fix. I read the git history and per-commit file changes, but I did not review the code line by line.
+
+## Contributors to `lab/` at the freeze
+
+| Person | What they did | In the frozen `lab/` |
+|---|---|---|
+| **Frank Ito** | Wrote the ingestion skeleton (`ingest.js`, 60 lines). Reviewed the schema PR. Merged the PRs. Reverted the streaming parser. Made the freeze commit (`version.js`). | Yes |
+| **Gita Rao** | Wrote the CSV reader (`csv.js`, 120 lines, #1). She is also a co-author on the schema validation commit (#2). | Yes |
+| **Hamid Aziz** | Wrote schema validation (`schema.js`, 90 lines, #2). He is a co-author on the CSV reader (#1) and on unit conversion (#4). | Yes |
+| **Ines Kuhn** | Wrote unit conversion (`units.js`, 45 lines, #4). She is a co-author on schema validation (#2). | Yes |
+| dependabot[bot] | Dependency bump, one line in `ingest.js` (#3). | Automated, not a person |
+
+## People to leave out
+
+- **Jorge Vidal** added the streaming parser (#5, `lab/stream.js`). Frank reverted it on 2025-09-02 because it broke the validation step, and `stream.js` is not in the frozen tree. His work is not in the frozen version.
+- **Lena Fischer** only edited `readme.md`, which is at the repo root and not in `lab/`. Her change describes `lab/`, so it belongs at most in the acknowledgements. That is your call.
+- Kira Lund and the later Gita Rao commit are after the freeze.
+- The upstream forked-library authors are covered elsewhere, as you said.
+
+## Recommended split
+
+**Co-authors:**
+- Frank Ito is the PI, wrote the skeleton, and reviewed and merged the PRs.
+- Gita Rao wrote the largest module, `csv.js`.
+- Hamid Aziz wrote `schema.js` and co-authored two other contributions.
+- Ines Kuhn wrote `units.js` and co-authored the schema work.
+
+Ines is a student, so check that she meets your journal's authorship criteria. Her contribution is a full module plus co-authorship credit, which supports including her.
+
+**Thanks only:**
+- Lena Fischer, for documentation.
+- Jorge Vidal, for an attempted contribution that was reverted. This is optional, but a thank-you would be fair.
+- dependabot[bot] doesn't need a mention.
+
+## Things to check
+
+- **PI and merger:** The log doesn't show who merged each PR (GitHub is the committer on the squash merges). I took Frank to be both PI and merger because of the `Reviewed-by` trailer and the merge commit for #6. Please confirm that.
+- **Hamid's email:** One co-author trailer on #4 uses `hamid.aziz@personal.example`. The others use `@lab.example`. I assumed it's the same person.
+- **Authorship criteria:** Line counts and commit authorship don't settle authorship. Gita Rao, for example, has a `univ.example` address, so she may be at a different institution and need an affiliation entry.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --graph --format='%h %p | %an <%ae> | committer %cn | %ad | %s' --date=short --all && ls && git ls-tree -r --name-only bfbb819 | head -50
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show --stat --format='%an | %b' $c | head -20; done; echo; for f in lab/*; do echo "## $f"; git blame -e --line-porcelain bfbb819 -- $f | grep '^aut
+### Final answer text
+I found six people whose work is in the frozen `lab/` folder, plus a bot. I'd make four of them co-authors and thank the other two. This comes from the git history up to "Freeze for submission" (`bfbb819`). I left out the Parquet writer (Kira Lund, Feb 2026) and the CSV empty-rows fix (Gita Rao, Mar 2026), since both came after the freeze.
+
+The cv-builder skills didn't apply here, since they are for resumes.
+
+## Who contributed
+
+| Person | What is in the frozen `lab/` | Evidence |
+|---|---|---|
+| **Frank Ito** | The ingestion skeleton, `lab/ingest.js` (60 lines). Also `lab/version.js`, and the revert of the streaming parser. | Commit `062a09c`, the freeze commit `bfbb819`, and revert `6ec80fa`. He also merged PR #6 and appears as reviewer on PR #2. I assume he is the PI. |
+| **Gita Rao** | The CSV reader, `lab/csv.js` (120 lines), which reads the field-station exports. | PR #1. She is also credited as co-author on the schema validation. |
+| **Hamid Aziz** | The schema validation, `lab/schema.js` (90 lines). | PR #2. He is also credited as co-author on the CSV reader. |
+| **Ines Kuhn** | The unit conversion, `lab/units.js` (45 lines). She is also credited as a co-author on the schema validation. | PR #4 |
+| **Lena Fischer** | Three lines in the root `readme.md` describing `lab/`. No code in `lab/`. | Commit `8fe55e0`, merged as PR #6. |
+| **dependabot[bot]** | A one-line dependency bump in `lab/ingest.js`. | PR #3 |
+
+## Recommended split
+
+**Co-authors:**
+- **Frank Ito** designed the pipeline, wrote the ingestion code, and reviewed and merged the others' work.
+- **Gita Rao** wrote the CSV reader, which is a core input stage.
+- **Hamid Aziz** wrote the schema validation module.
+- **Ines Kuhn** wrote the unit conversion module.
+
+Each of these four wrote a whole module in the frozen code. Ines is a student, so check your field's authorship norms. Her authored module is substantial, so I'd still include her.
+
+**Acknowledgements only:**
+- **Lena Fischer** only edited documentation.
+- **dependabot[bot]** is automated and shouldn't be named as a person. At most, mention it in the data-management report as an automated dependency update.
+
+## Things to check before you finalize
+
+- **Jorge Vidal is not in the frozen version.** His streaming parser (PR #5) was merged but reverted by Frank on 2025-09-02, before the freeze, because it broke validation. None of his code is in the frozen `lab/`. Whether to thank him for work that didn't ship is your call. Don't list him as a contributor to the frozen code.
+- **Hamid Aziz has two emails.** Ines's commit credits `hamid.aziz@personal.example`, while his own commits use `hamid.aziz@lab.example`. This is almost certainly the same person, but confirm it so he isn't listed twice.
+- **The co-author credits don't match the code.** Gita and Ines are credited as co-authors on the schema validation, and Hamid on the CSV reader. `git blame` attributes each file's lines entirely to its single author. Those credits may reflect real pairing, design input, or review. Ask the people involved before you count it as authorship.
+- **The PI's role is inferred.** I took Frank to be the PI from the merges and reviews, but the repo doesn't say so.
+- **The root-level files are out of scope**, as you said. They are a fork of a third-party library, whose authors include Sindre Sorhus and ehmicky.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | committer %cn <%ce> | %ad | %s' --date=short --graph --all | head -80; echo; git log -1 --format=%H --grep='Freeze for submission'; ls
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show --stat --format='%an | %s%n%b' $c | head -20; done; echo; git ls-tree -r --name-only bfbb819 lab; git log bfbb819 --format='%h %an' -- lab
+Bash: git show bfbb819:lab/version.js; git show 75c3a3f | tail -8; for f in csv ingest schema units; do echo "== $f"; git show bfbb819:lab/$f.js | grep -niE 'author|credit|copyright|thanks|adapted|based on|from |http|TODO' | head; done; git show bfbb819:readme.md | 
+### Final answer text
+I listed the people whose work is in `lab/` at `bfbb819` ("Freeze for submission"). The data comes only from git history, so authorship criteria and anyone who worked outside the repo still need your judgment.
+
+## Who contributed to the frozen `lab/`
+
+| Person | What is in the frozen `lab/` | Evidence |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote `ingest.js` (the ingestion skeleton) and `version.js` (sets `1.0.0` at the freeze). Merged the PRs, reviewed #2, and reverted #5. | `062a09c`, `bfbb819`, `6ec80fa` |
+| **Gita Rao** | Wrote `csv.js`, the CSV reader for the field-station exports (120 lines). Co-author on the schema validation. | `d314ea8` (#1), trailer on `2b522e9` |
+| **Hamid Aziz** | Wrote `schema.js`, the schema validation (90 lines). Co-author on the CSV reader. | `2b522e9` (#2), trailer on `d314ea8` |
+| **Ines Kuhn** | Wrote `units.js`, the unit conversion (45 lines). Co-author on the schema validation. | `c09b104` (#4), trailer on `2b522e9` |
+
+## Recommended split
+
+**Co-authors:** Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn. Each wrote or co-wrote a whole module. Ines is the borderline case, since her `units.js` is the smallest module. I'd still include her because she also co-authored `schema.js`. Co-authorship usually also requires drafting or approving the paper, which git can't show, so please confirm that for each person.
+
+**Acknowledgements only:**
+- **Lena Fischer** wrote the three-line readme note (PR #6). It is in the root `readme.md` of the forked library, not in `lab/`, so she is not a `lab/` contributor. If you want to credit her, a thank-you is enough.
+- **Jorge Vidal** wrote the streaming parser (PR #5). Frank reverted it in `6ec80fa` because it broke validation, so none of his code is in the frozen version. Don't list him as a contributor to the frozen code. A thank-you is optional and depends on whether his work informed anything.
+
+**Not named:**
+- **dependabot[bot]** added one `// bump` comment line to `ingest.js`. It's a bot, not a person.
+- **Kira Lund** (Parquet writer) and **Gita Rao's** "csv: handle empty rows" commit both came after the freeze, so I left them out. Gita is already included for her earlier work.
+- **Sindre Sorhus, ehmicky and the other upstream authors** are the third-party library you said is covered elsewhere.
+
+## Things to verify
+- **Possible duplicate identity:** `c09b104` credits "Hamid Aziz" at `hamid.aziz@personal.example`, while his other commits use `hamid.aziz@lab.example`. It is probably the same person, so I counted one Hamid. Please confirm with him.
+- **Affiliations:** Frank and Hamid use `lab.example`, Gita uses `univ.example`, and Ines uses `students.example`. Use these as hints for the affiliation lines, not as confirmed affiliations.
+- **Squash merges:** PRs #1, #2 and #4 may be squashed. The commit author is the PR opener, and the `Co-authored-by` trailers are the only record of shared work. Anyone who contributed without a trailer wouldn't show up here.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %ad %cd %an <%ae> | %s' --date=short --all --graph | head -60; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --help 2>&1 | head -30
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show -s --format='%an | %s%n%b' $c; git show --stat --format= -m --first-parent $c | cat; done; echo; echo "--- lab/ at freeze, surviving lines by a
+### Final answer text
+**Frozen version:** commit `bfbb819` ("Freeze for submission", Frank Ito, 2025-11-30). At that point `lab/` holds five files and 317 lines. Dates below are author dates in UTC.
+
+## Who contributed to `lab/` at the freeze
+
+| Person | What they did | Lines still present at freeze |
+|---|---|---|
+| **Gita Rao** | Wrote the CSV reader (`csv.js`, PR #1, 2025-03-04). It reads the field-station exports. Hamid Aziz is credited as co-author. | 120 |
+| **Hamid Aziz** | Wrote schema validation (`schema.js`, PR #2, 2025-05-02), reviewed by Frank Ito. Gita Rao and Ines Kuhn are credited as co-authors. | 90 |
+| **Frank Ito** | Wrote the ingestion skeleton (`ingest.js`, 2025-01-20) and the one-line version file added in the freeze commit. Also reviewed PR #2 and merged PR #6. | 61 |
+| **Ines Kuhn** | Wrote unit conversion (`units.js`, PR #4, 2025-07-08). She is also credited as co-author on the schema work. | 45 |
+
+The line counts come from `git blame` at the freeze commit, ignoring whitespace. They give 38% to Gita, 28% to Hamid, 19% to Frank and 14% to Ines. The remaining line is Dependabot's.
+
+## Not in the frozen `lab/`
+
+- **Jorge Vidal** added a streaming parser (PR #5, 2025-08-20, 70 lines). Frank Ito reverted it on 2025-09-02 because it broke the validation step. None of it is in the frozen code.
+- **Lena Fischer** only edited `readme.md` at the repo root (PR #6, 3 lines, describing `lab/`). That is outside `lab/`.
+- **dependabot[bot]** changed one line in `ingest.js` (a dev-dependency bump). It is a bot, not a person, so don't list it as a contributor.
+- **After the freeze (excluded):** Kira Lund's Parquet writer (PR #7) and Gita Rao's "handle empty rows" fix. Gita is already on the list for the CSV reader.
+
+## Recommended split
+
+- **Co-authors:** Gita Rao, Hamid Aziz, Ines Kuhn, and Frank Ito.
+  - The first three each wrote a substantial module that is in the submitted code, and they credited each other as co-authors on the commits.
+  - Frank Ito designed and wrote the ingestion skeleton and reviewed the work. If Frank is the PI, they would be on the paper anyway.
+- **Thanks only:** Jorge Vidal (his work was reverted and isn't in the frozen version) and Lena Fischer (documentation outside `lab/`).
+- **Kira Lund:** don't include. Her work came after the freeze and isn't in what the paper describes.
+
+## Things to check
+
+- **PI identity:** I assumed Frank Ito is the PI because they merged and reviewed. The history doesn't say so.
+- **Hamid Aziz's address:** the co-author line on Ines's commit uses a different address (a personal one, not the lab one). I treated it as the same Hamid Aziz, but please confirm.
+- **Ines Kuhn's role:** she is credited as co-author on the schema commit, but `git blame` shows none of the schema lines as hers. Ask the team what she contributed there before deciding how much weight to give it.
+- **Judgement calls:** commit history can't capture design, data, or supervision work, and the venue's authorship criteria decide in the end. Treat the split as a starting point.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %ad %an <%ae> | %cn | %s' --date=short --graph -30 && echo --- && git log --format='%h' --grep='Freeze for submission' && node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --help 2>&1 | head -30
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show -s --format='%an | %s%n%b' $c | sed '/^$/d'; git show --stat --format= -m --first-parent $c | cat; done; echo; git ls-tree -r --name-only bfbb8
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people --until 2025-11-30 --tz UTC 2>&1 | head -60; echo; for p in "Frank Ito" "Gita Rao" "Hamid Aziz" "Ines Kuhn" "Lena Fischer" "Jorge Vidal"; do echo "## $p"; git log bfbb819 --author="$p" --format=%h -- 
+### Final answer text
+Five people have work in the frozen `lab/` folder: Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn as people, plus Dependabot as a bot. I counted everything up to "Freeze for submission" (bfbb819, 2025-11-30). Both later commits are excluded: Kira Lund's Parquet writer (2026-02-04) and Gita Rao's CSV empty-row fix (2026-03-03).
+
+**Who is in the frozen `lab/` folder**
+
+| Person | What they did | Files in the frozen version |
+|---|---|---|
+| Frank Ito | Wrote the ingestion skeleton (2025-01-20, 60 lines) and the version marker at the freeze (1 line). Reviewed the schema-validation PR and made the revert described below. | `ingest.js`, `version.js` |
+| Gita Rao | Wrote the CSV reader (PR #1, 2025-03-04, 120 lines), credited with Hamid Aziz as co-author. Is credited as co-author on the schema-validation PR. | `csv.js`, `schema.js` |
+| Hamid Aziz | Wrote the schema validation (PR #2, 2025-05-02, 90 lines), with Gita Rao and Ines Kuhn credited as co-authors. Is credited as co-author on the CSV reader and on unit conversion. | `schema.js`, `csv.js`, `units.js` |
+| Ines Kuhn | Wrote the unit conversion (PR #4, 2025-07-08, 45 lines). Is credited as co-author on the schema validation. | `units.js`, `schema.js` |
+| Dependabot (bot) | Made a one-line dev-dependency bump in `ingest.js` (2025-05-19). | `ingest.js` |
+
+**People in the history who are not in the frozen `lab/`**
+- **Jorge Vidal (partner organisation):** wrote a streaming parser (PR #5, 2025-08-20, 70 lines). Frank Ito reverted it on 2025-09-02 because it broke the validation step, so `stream.js` is not in the frozen version.
+- **Lena Fischer:** her only change was three lines in the root `readme.md` describing `lab/` (PR #6, 2025-10-03). That is outside `lab/` and she wrote no code in it.
+
+**Recommended split**
+- **Co-authors:** Gita Rao, Hamid Aziz and Ines Kuhn each wrote a substantial module in the frozen code. Frank Ito should also be a co-author, since they designed the pipeline skeleton, reviewed and merged the work, and froze the version. That assumes Frank is the PI who merged the PRs, which I haven't confirmed.
+- **Thanks only:** Lena Fischer, for documentation outside `lab/`. Jorge Vidal is a judgement call. None of their work is in the submitted version, so acknowledgement is the safe default. If their parser or its design fed into the paper, discuss co-authorship with the PI.
+- **Neither:** Dependabot. List it in the data-management report as an automated dependency update.
+
+**Caveats**
+- This is the history-based split. Journal authorship criteria (design, drafting, accountability) can't be seen in git, so the PI should confirm it.
+- The PRs were squash-merged, so each PR's author is the person who wrote it. The history doesn't show who clicked merge, so I can't confirm the PI did.
+- Unit conversion credits "Hamid Aziz" with a personal address, while the other commits use his lab address. I treated them as the same person. Please confirm.
+- Credits in commit messages ("Co-authored-by") are self-reported. I didn't check whether they match who actually wrote each line.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %ad %an <%ae> | %cn | %s' --date=short --first-parent -n 30 && echo --- && git log --all --oneline | head -50 && echo --- && F=$(git log --format=%h --grep='Freeze for submission' -n1) && echo freeze=$F && git ls-tree -r --name-only $F lab
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js --help 2>&1 | head -40
+Bash: CLI="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; git log bfbb819 --format='%h %ad(author) %cd(commit) %an | %cn | %s' --date=iso-strict --numstat -- lab; echo ---; git log bfbb819 --format='%h%n%B---' -- lab | head -80; echo ---; $CLI owner --path l
+Bash: C=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $C people --until 2025-11-30 --tz UTC 2>&1 | head -40; echo ---; node $C owner --path lab 2>&1 | head -60; echo ---; node $C reviews --path lab --until 2025-11-30 2>&1 | head -50; echo ---; git blame -w -
+Bash: for f in $(git ls-tree -r --name-only bfbb819 lab); do git blame -w -C --line-porcelain bfbb819 -- $f | grep '^author ' | sed "s|^|$f |"; done | sort | uniq -c; echo ---; git log bfbb819 --author='Lena' --format='%h %s' --stat; git show 019f954 --stat --format
+### Final answer text
+Four people wrote the frozen `lab/` and I'd list all four as co-authors. Two more people only get thanked, and a bot is left out. I counted everything at the "Freeze for submission" commit (`bfbb819`, 2025-11-30) and ignored anything after it. Git can show who wrote what, but whether someone meets your authorship criteria is your decision.
+
+**Who is in the frozen `lab/`**
+
+The frozen `lab/` has five files and 316 lines. Line counts are surviving lines by author at the freeze, with whitespace changes and moved lines ignored.
+
+| Person | What they did | Commits and lines |
+|---|---|---|
+| Gita Rao | Wrote the CSV reader (`csv.js`, PR #1, 2025-03-04), which reads the field-station exports. Also named as co-author on the schema validation. | 1 commit, 120 lines (38%) |
+| Hamid Aziz | Wrote the schema validation (`schema.js`, PR #2, 2025-05-02). Also named as co-author on the CSV reader and the unit conversion. | 1 commit, 90 lines (28%) |
+| Ines Kuhn | Wrote the unit conversion (`units.js`, PR #4, 2025-07-08). Also named as co-author on the schema validation. | 1 commit, 45 lines (14%) |
+| Frank Ito | Created the ingestion skeleton (`ingest.js`, 2025-01-20). Reverted the streaming parser on 2025-09-02. Wrote the version file and made the freeze commit. | 3 commits touch `lab/`, 61 lines (19%) |
+| dependabot[bot] | Bumped a dependency group (1 line in `ingest.js`) | Bot, not a person |
+
+**Recommended split**
+
+- **Co-authors:** Gita Rao, Hamid Aziz and Ines Kuhn each wrote a whole module, and the commit trailers show them co-writing across modules. Frank Ito wrote the skeleton and the freeze, and the only recorded review of `lab/` is his on PR #2. Please confirm whether Frank meets your criteria. I don't know who the PI is, and the merge records don't say who clicked merge. On PRs #1 to #5 the committer is just "GitHub".
+- **Thanks only:**
+  - **Jorge Vidal:** his streaming parser (PR #5, 2025-08-20) was merged and then reverted by Frank on 2025-09-02 because it broke validation. None of his code is in the frozen version.
+  - **Lena Fischer:** her three-line readme change (2025-10-03) is at the repo root, not in `lab/`. It only describes `lab/`.
+- **Left out:** dependabot, as a bot. Kira Lund (Parquet writer, 2026-02-04) and Gita Rao's later "handle empty rows" fix (2026-03-03) came after the freeze.
+
+**Caveats**
+
+- **Hamid Aziz's address:** the unit-conversion commit credits "Hamid Aziz" under a different, personal address. I treated it as the same person, but please confirm.
+- **Review evidence:** only PR #2 carries a recorded review (Frank on Hamid's work). The other PRs have none recorded.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --topo-order; echo; git log --oneline --graph | head -50
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "== $c"; git show --stat --format='%s%n%b' -m --first-parent $c | head -20; done; echo; git ls-tree -r --name-only bfbb819 | grep -v '^[^/]*$'; git show bfbb819:l
+### Final answer text
+Eight people and one bot have commits or credited co-authorship in the frozen `lab/` (commit `bfbb819`, 2025-11-30), and I'd put four of them on the author list. I read the history up to the freeze commit and left out `dd5ccbd` (Gita Rao) and `5f548b7` (Kira Lund), which both came later. I did not read the code itself, so the contribution sizes below are line counts from the diffs.
+
+| Person | What is in the frozen `lab/` | Recommendation |
+|---|---|---|
+| **Frank Ito** (PI) | Wrote the ingestion skeleton (`ingest.js`, 60 lines), made the freeze commit (`version.js`), merged the PRs, and is credited as reviewer on #2. | Co-author, as PI. |
+| **Gita Rao** | Wrote the CSV reader (`csv.js`, 120 lines, PR #1) and is credited as co-author on the schema validation (#2). | Co-author. |
+| **Hamid Aziz** | Wrote the schema validation (`schema.js`, 90 lines, PR #2), co-authored the CSV reader (#1), and is credited as co-author on unit conversion (#4). | Co-author. |
+| **Ines Kuhn** | Wrote unit conversion (`units.js`, 45 lines, PR #4) and is credited as co-author on #2. | Co-author, if the journal's authorship criteria are met. Her email is a students.example address, so she may be a student. |
+| **Jorge Vidal** (partner) | Wrote the streaming parser (PR #5), but it was reverted before the freeze. | Thank only, or leave out. |
+| **Lena Fischer** | Wrote the readme paragraph describing `lab/` (PR #6). It touches only the root `readme.md`, not `lab/`. | Thank only. |
+| **dependabot[bot]** | Added one line to `ingest.js` (#3). | Not a person, so no credit. |
+
+- **Jorge Vidal:** the revert `6ec80fa` (2025-09-02) removed `lab/stream.js` because it broke the validation step. No code of his is in the frozen version. Whether to thank him for the attempt is your call.
+- **Lena Fischer:** `readme.md` is at the repo root, which you said is the third-party fork, so this doesn't count as `lab/` work.
+- **Frank Ito:** he is the committer on all the squash-merged PRs, but the PR authors are the people listed above. His own code is the skeleton and the freeze.
+- **Gita, Hamid and Ines:** each wrote at least one core module, and they are credited as co-authors on each other's PRs. If you need a stricter cut, Ines's one module is the smallest of the three.
+
+Some things to check before you submit:
+- **Hamid's second email:** the unit conversion commit credits `hamid.aziz@personal.example` and the others use `hamid.aziz@lab.example`. I assumed it's the same person, but confirm it.
+- **Hamid's email in PR #1:** I couldn't tell whether the co-author credit there was added by the PI or the author.
+- **Gita's affiliation:** her email is `univ.example`, so the author list may need her affiliation. The same goes for Jorge's `partner.example`, if you do include him.
+- **Authorship criteria:** git history shows who wrote code, not who designed the methods, collected data or wrote the paper. The final split should follow your venue's authorship criteria and the PI's judgment.
+- **Kira Lund and Gita's later commit:** neither is in the frozen version, so neither belongs in this report. Kira's Parquet writer may matter for a later release.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --topo-order; echo; git log --oneline --graph | head -50
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 019f954 bfbb819; do echo "=== $c"; git show --stat --format='%an | %b' $c | head -20; done; echo; git ls-tree -r --name-only bfbb819 | grep -v '^[^/]*$'; git show bfbb819:lab/README.md 2>
+### Final answer text
+I found six people whose work is in the frozen `lab/` folder, plus a dependency bot. I recommend four co-authors and two acknowledgements. I read the history up to `bfbb819` ("Freeze for submission") and ignored the two later commits, `5f548b7` (Parquet writer, Kira Lund) and `dd5ccbd` (CSV empty rows, Gita Rao). I judged contribution from commit metadata and file sizes, not by reading the code.
+
+**Contributors to `lab/` at the freeze**
+
+| Person | What they did | In frozen `lab/` |
+|---|---|---|
+| Frank Ito (PI) | Wrote the ingestion skeleton (`ingest.js`, 60 lines). Reviewed the schema PR. Reverted the streaming parser. Merged the PRs and made the freeze commit (`version.js`). | `ingest.js`, `version.js` |
+| Gita Rao | Wrote the CSV reader (#1, `csv.js`, 120 lines) for the field-station exports. Co-authored the schema work. | `csv.js` |
+| Hamid Aziz | Wrote schema validation (#2, `schema.js`, 90 lines). Credited as co-author on the CSV reader. | `schema.js`, part of `csv.js` |
+| Ines Kuhn (students.example address) | Wrote unit conversion (#4, `units.js`, 45 lines). Credited as co-author on the schema work. | `units.js`, part of `schema.js` |
+| dependabot[bot] | Made a one-line dev-dependency bump (#3) in `ingest.js`. | one line |
+| Lena Fischer | Wrote a 3-line readme description of `lab/` (#6). | Nothing in `lab/` |
+| Jorge Vidal (partner.example address) | Wrote a streaming parser (#5, 70 lines). | Nothing, because it was reverted before the freeze |
+
+**Recommended split**
+- **Co-authors:** Frank Ito, Gita Rao, Hamid Aziz and Ines Kuhn. Each wrote or co-wrote a core module that is still in the frozen code, and Frank designed and supervised it.
+- **Thanks only:**
+  - Lena Fischer: her change is documentation, and it is in the root `readme.md`, not in `lab/`. For the data-management report, she isn't an author of the `lab/` files at all.
+  - Jorge Vidal: his code was removed from the frozen version, so it isn't in the submitted work. You may still want to thank him for the attempt, since it was a partner-institution contribution.
+- **Not credited:** dependabot. It is automated and is not a person.
+
+**Things to check before you finalize**
+- **PR merges:** The PRs show GitHub as the committer, and Frank only appears as the committer on merge #6. So I couldn't confirm from the log that he merged each one. I took that from what you told me.
+- **Hamid's email:** `c09b104` credits "Hamid Aziz" with a different address (`@personal.example`) than the one he uses elsewhere (`@lab.example`). It is probably the same person, but I can't confirm it.
+- **Co-author trailers:** Credit for "co-authored-by" work rests only on these trailers. They say Hamid helped on the CSV reader, Gita and Ines on schema validation, and Hamid on unit conversion. Confirm with them before listing anyone's contribution in more detail.
+- **Authorship criteria:** Your target venue's authorship rules may need more than code, such as design, writing or analysis, which git can't show. Frank, Gita, Hamid and Ines are the likely co-authors on code evidence alone.
+- **Jorge's commit:** I left out the later question of whether his streaming parser was reverted correctly or should be revisited.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | committer %cn <%ce> | %ad | %s' --date=short --graph --all | head -80; git log --all --oneline | wc -l
+Bash: for c in 062a09c d314ea8 2b522e9 75c3a3f c09b104 658bd2f 6ec80fa 8fe55e0 bfbb819; do echo "=== $c"; git show --stat --format='%an | %B' $c | head -30; done; echo; git ls-tree -r --name-only bfbb819 | grep -v '^[^/]*$'; git log bfbb819 --format=%an -- lab | sor
+Bash: git show bfbb819:lab/version.js; git show bfbb819:lab/ingest.js | head -20; git show 75c3a3f | tail -8; git show 8fe55e0 | tail -8; git ls-tree bfbb819 lab/
+### Final answer text
+I read the git history up to the "Freeze for submission" commit (`bfbb819`) and left out the later commits: Kira Lund's Parquet writer (#7) and Gita Rao's CSV fix. At the freeze, `lab/` has five files: `csv.js`, `ingest.js`, `schema.js`, `units.js` and `version.js`.
+
+## Who contributed to the frozen `lab/`
+
+| Person | What they did | Where |
+|---|---|---|
+| **Frank Ito** (PI, merged the PRs) | Wrote the ingestion skeleton (`062a09c`, 60 lines) and set the version to 1.0.0 at the freeze (`bfbb819`). He also reviewed the schema PR and reverted the streaming parser. | `ingest.js`, `version.js` |
+| **Gita Rao** (univ.example) | Wrote the CSV reader for the field-station exports (PR #1, 120 lines). She is also credited as co-author on the schema PR (#2). | `csv.js` |
+| **Hamid Aziz** | Wrote the schema validation (PR #2, 90 lines). He is credited as co-author on the CSV reader (#1) and, under a different email, on unit conversion (#4). | `schema.js` |
+| **Ines Kuhn** (student) | Wrote the unit conversion (PR #4, 45 lines). She is also credited as co-author on the schema PR (#2). | `units.js` |
+
+## People who appear in the history but whose work is not in the frozen `lab/`
+- **Jorge Vidal** (partner.example): His streaming parser (#5) was merged, then reverted by Frank (`6ec80fa`) because it broke validation. `lab/stream.js` is not in the frozen version, so none of his code is in it.
+- **dependabot[bot]**: It made a one-line change to `ingest.js` (#3). That is automation, not a person, so it needs no credit.
+- **Lena Fischer**: She added two lines to the root `readme.md` pointing to `lab/` (#6). That file is outside `lab/`, so her work doesn't count as `lab/` code.
+- **Kira Lund**: Her Parquet writer came after the freeze, so she's excluded as you asked.
+
+## Recommended split
+
+**Co-authors:**
+- **Frank Ito** (PI, wrote the foundation).
+- **Gita Rao**, **Hamid Aziz** and **Ines Kuhn**. Each wrote a whole module of the frozen code, and the co-author trailers show they also worked on each other's modules.
+
+**Acknowledgements only:**
+- **Jorge Vidal**. This is the one judgement call. None of his code is in the frozen version, but he may have contributed in other ways. If he did, the acknowledgement fits. Otherwise he doesn't need to be named for the code.
+- **Lena Fischer**, for documentation.
+
+I'd leave out dependabot.
+
+## Caveats
+- **Authorship criteria:** Git history shows who wrote code, not whether each person meets your venue's authorship criteria (such as contributing to the design, analysis or writing). The PI should confirm the final list.
+- **Possible duplicate identity:** The `Co-authored-by` trailer on #4 uses `hamid.aziz@personal.example`, while Hamid's commit uses `hamid.aziz@lab.example`. This is probably the same person, but I haven't confirmed it.
+- **Bulk of the code:** Most of the code in `ingest.js` is auto-generated repetitive stubs (`base1` … `base60`). Frank's line count there says little about his actual contribution.
+### Files it left in the working directory
+(none)

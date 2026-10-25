@@ -212,7 +212,7 @@ if [ -n "$lc" ] && [ "$match" = 1 ]; then
     ctx="$ctx For review evidence run: $cli reviews --path <area> --since <date> --until <date> --format csv --out <file>, and build the answer from its rows and limits."
   fi
   if has 'candidate|claims?|contractor|wrote the|who wrote|written by|designed and wrote|owns? '; then
-    ctx="$ctx To check who wrote or owns a path run: $cli owner --path <path> --claim <name> and quote its rows."
+    ctx="$ctx To check who wrote or owns a path run: $cli owner --path <path> --claim <name> and quote the person rows (formatting-only commits skipped, addresses joined, Co-authored-by credit apart from direct lines) beside plain blame."
   fi
   # The brief goes before the plain-git sentence, so the sentence still ends the context as before.
   brief=$(brief_extra)

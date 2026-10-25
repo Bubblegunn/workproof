@@ -1,0 +1,813 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat --no-merges | head -150; echo ---; git shortlog -sne --all
+Bash: git log --follow --format='%h %an %s' -- benches/runner.rs; git show 8f34581 --stat -M --format=%s | tail -3; git log --format='%h %an' -- src/simd.rs src/error.rs
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-RCP_I-1/fx/CLAIMS.md
+### Final answer text
+I checked the three claims and wrote the results to `CLAIMS.md` in the repo root. The history supports one of them.
+
+I didn't use the receipts skill. It builds a Claude Code usage report from local session transcripts and can't tell who authored a commit, so I used `git log` directly.
+
+- **SIMD formatting path: not supported.** Eli Moreau authored `47a80fd`, which added all of `src/simd.rs`. Noor has no commits touching that file.
+- **Benchmark harness: supported.** Noor wrote the original harness in `a1fff92`, `ba4424b` and `2e36e72`, and later fixed the output table in `0d28639`. Eli's later commits (`8f34581`, `509c195`) only rename the file and tidy it.
+- **Error-handling rework: not supported.** Eli authored both `4d86343` and `3c38db3`. Noor has no commits touching `src/error.rs`.
+
+Noor's commits use two different emails. I counted both as her, because the name and the files match, but git can't prove it. The two "not supported" verdicts only mean the history can't show her involvement. She could have designed or reviewed that work without committing it, so it may be worth asking her about it.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims check: Noor Haddad
+
+Checked against `git log` on `main`. Noor appears under two emails (`noor.haddad@example.com` and `noor@users.noreply.example`). I treated both as her, because the name matches and the commits touch the same files. Git can't prove that they're the same person.
+
+| Claim | Verdict |
+|---|---|
+| "Designed and implemented the SIMD formatting path" | **Not supported** |
+| "Author of the benchmark harness" | **Supported** |
+| "Authored the error-handling rework" | **Not supported** |
+
+## SIMD formatting path: not supported
+- `47a80fd` "Add SIMD formatting path (#27)" added all of `src/simd.rs` (120 lines). Its author is Eli Moreau.
+- Noor has no commits touching `src/simd.rs`.
+- The history can't show who designed it. She may have reviewed or contributed to PR #27 outside git, but nothing here shows that.
+
+## Benchmark harness: supported
+- Noor wrote the original harness in `benches/harness.rs`: `a1fff92` (scaffold, 40 lines), `ba4424b` (u64 cases) and `2e36e72` (output table).
+- Eli Moreau later renamed it to `runner.rs` (`8f34581`, a pure rename) and tidied it (`509c195`, 10 lines changed). Neither commit changes what the harness does.
+- Noor's `0d28639` fixes an off-by-one in the output table.
+- She is the original and main author. Eli's later commits are a rename and a tidy-up.
+
+## Error-handling rework: not supported
+- `4d86343` "Add error enum" (`src/error.rs`, 30 lines) and `3c38db3` "Rework error handling (#33)" (40 lines) are both by Eli Moreau.
+- Noor has no commits touching `src/error.rs`.
+- As with the SIMD claim, review or design input outside git would not show up here.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -150; echo ---; git log --format='%an' | sort | uniq -c
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-RCP_I-2/fx/CLAIMS.md
+### Final answer text
+I checked all three claims against the git history and wrote the results to `CLAIMS.md` in the repo root. Only one holds up.
+
+I did not use the receipts skill's usual process. It builds a Claude Code usage report from session transcripts, so it can't check authorship, and I used `git log` instead.
+
+- **SIMD formatting path: not supported.** Eli Moreau authored `47a80fd`, which added `src/simd.rs`. Noor has no commits in `src/`.
+- **Benchmark harness: supported.** Noor wrote the initial harness in `a1fff92`, `ba4424b` and `2e36e72`, and Eli merged it in `0d39e12`. Eli later renamed and tidied the file, so "author" is fair but "sole author" is not.
+- **Error-handling rework: not supported.** Eli authored both `3c38db3` and the original error enum in `4d86343`. Noor has no commits touching `src/error.rs`.
+
+Two caveats:
+- Noor's commits appear under two different email addresses. I treated them as the same person because the name matches, which is an assumption.
+- The history can't show review, design discussion or unmerged work. It only rules out implementation commits by her on the SIMD and error-handling items.
+
+I haven't committed `CLAIMS.md`.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims for Noor Haddad vs. git history
+
+Noor has 4 commits in this repo, all under `benches/`. Two emails appear (`noor.haddad@example.com`, `noor@users.noreply.example`). I treated both as her because the name matches. That is an assumption.
+
+| Claim | Verdict |
+|---|---|
+| "Designed and implemented the SIMD formatting path" | **Not supported** |
+| "Author of the benchmark harness" | **Supported** |
+| "Authored the error-handling rework" | **Not supported** |
+
+## SIMD formatting path: not supported
+- `47a80fd` "Add SIMD formatting path (#27)" added `src/simd.rs` (120 lines). Its author is Eli Moreau.
+- Noor has no commit touching `src/simd.rs` or any other `src/` file.
+- The history cannot show design work done outside commits, such as review or discussion. It shows no implementation by her.
+
+## Benchmark harness: supported
+- She wrote the initial harness in `benches/harness.rs`:
+  - `a1fff92` scaffold, 40 lines
+  - `ba4424b` u64 cases, 30 lines
+  - `2e36e72` output table, 20 lines
+- Eli merged her branch in `0d39e12` ("Merge branch 'noor-harness'").
+- Later commits are smaller:
+  - Eli's `8f34581` (rename to `runner.rs`) and `509c195` (tidy).
+  - Noor's own `0d28639` (a one-line off-by-one fix).
+- "Author" is fair. "Sole author" would not be, since Eli later changed the file.
+
+## Error-handling rework: not supported
+- `3c38db3` "Rework error handling (#33)" (`src/error.rs`, +40) is by Eli Moreau.
+- The original error enum, `4d86343`, is also Eli's.
+- Noor has no commit touching `src/error.rs`.
+- If she contributed through PR #33 review or an unmerged branch, this history does not show it.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%h|%an <%ae>|%cn|%ad|%s' --date=short --stat --no-merges | head -150; echo; git shortlog -sne --all
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-RCP_I-3/fx/CLAIMS.md
+### Final answer text
+I wrote `CLAIMS.md` in the repo root. Only the benchmark harness claim is supported by the history.
+
+I didn't run the receipts skill's miner, because it summarises Claude Code session transcripts and says nothing about who wrote a commit. I used `git log` directly.
+
+- **SIMD formatting path: not supported.** Eli Moreau authored `47a80fd`, the only commit touching `src/simd.rs`. Noor has no commits there.
+- **Benchmark harness: supported.** Noor authored `a1fff92` (scaffold), `ba4424b` (u64 cases) and `2e36e72` (output table), about 90 lines in total. Eli later renamed and tidied it (`8f34581`, `509c195`), and Noor made a one-line fix in `0d28639`.
+- **Error-handling rework: not supported.** Eli authored both `3c38db3` (the rework) and `4d86343` (the original error enum). Noor has no commits on error handling.
+
+Noor appears under two emails, and I counted both as her because the name matches. The history can't confirm they are the same person. Git also can't show design or review input that never reached a commit, so you could ask her about the two unsupported claims in interview.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log` (authorship by commit author, all branches).
+
+| Claim | Verdict | Commits |
+|---|---|---|
+| "Designed and implemented the SIMD formatting path" | **Not supported** | `47a80fd` Add SIMD formatting path (#27), authored by Eli Moreau. It is the only commit touching `src/simd.rs`. Noor has no commits there. |
+| "Author of the benchmark harness" | **Supported** | `a1fff92` scaffold harness, `ba4424b` add u64 cases, `2e36e72` add output table. All authored by Noor (`noor.haddad@example.com`), Mar 2025, about 90 lines in `benches/harness.rs`. Later commits are maintenance: `8f34581` (rename to `runner.rs`) and `509c195` (tidy) by Eli Moreau, and `0d28639` (one-line off-by-one fix) by Noor. |
+| "Authored the error-handling rework" | **Not supported** | `3c38db3` Rework error handling (#33) is authored by Eli Moreau. Eli also wrote the original `src/error.rs` in `4d86343`. Noor has no commits touching error handling. |
+
+## Notes
+
+- Noor appears under two emails: `noor.haddad@example.com` (3 commits) and `noor@users.noreply.example` (1 commit, `0d28639`). I treated both as her because the name matches. The history cannot confirm that they are the same person.
+- Her benchmark commits list Eli Moreau as committer, so Eli applied them. Authorship is still hers.
+- Git history shows who wrote the commits, not who designed the work. Claims 1 and 3 could still reflect design or review input that never reached a commit. The history gives no sign of that, and "implemented" and "authored" are not supported. Ask her about it in interview.
+- This is a short history, and the commits are squashed PR-style. `(#27)` and `(#33)` are PR numbers that I can't inspect locally.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -150; echo; git log --all --oneline | wc -l
+Bash: git branch -a; git log --all --author=Noor --format='%h %ae %s'; git log --all --grep=-i -i --grep='noor' --format='%h %an %s'; git log -3 --format='%h %an %b' 3c38db3 47a80fd | head; git log --format='%h %an' --follow -- benches/runner.rs
+Write: 
+### Final answer text
+I've written the findings to `CLAIMS.md` in the repo root. One claim is supported, one is partly supported, and one is not. Noor's commits appear under two emails, `noor.haddad@example.com` and `noor@users.noreply.example`. I treated both as her because Eli Moreau's commit message trailers use the second one.
+
+- **SIMD formatting path: partly supported.**
+  - Commit `47a80fd` was authored by Eli Moreau. Noor is only a `Co-authored-by`.
+  - The message says it is "Based on the prototype in #19 by Noor Haddad", so she plausibly did real design work.
+  - That prototype isn't in this history, so I can't tell how much of the 120 lines in `src/simd.rs` came from her. "Designed" is plausible, but "implemented" isn't shown.
+- **Benchmark harness: supported.** Noor wrote the original harness in `a1fff92`, `ba4424b` and `2e36e72`, and Eli merged it in `0d39e12`. Eli later moved and tidied it (`8f34581`, `509c195`), and Noor fixed a bug in it afterwards (`0d28639`).
+- **Error-handling rework: not supported.** Commit `3c38db3` was authored by Eli Moreau, and Noor appears only as a `Reviewed-by`. She has no commits touching `src/error.rs`.
+
+Git history can't show work done in PR discussions or review. It would be worth asking her about the #19 prototype and her role in #33.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log` (single branch, `main`). Noor appears under two emails (`noor.haddad@example.com`, `noor@users.noreply.example`); I treated both as her because the commit trailers link them.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" is authored by Eli Moreau. Noor is only a `Co-authored-by`.
+- Its message says it is "Based on the prototype in #19 by Noor Haddad". That points to real design input from her.
+- The prototype (#19) is not in this history, so I can't see how much of the 120 lines in `src/simd.rs` came from it.
+- "Designed" is plausible. "Implemented" is not shown. Her own commits touch no SIMD code.
+
+## Benchmark harness: supported
+- Noor wrote all of the original harness: `a1fff92` (scaffold), `ba4424b` (u64 cases), `2e36e72` (output table). Eli merged it in `0d39e12`.
+- Eli later moved and tidied it (`8f34581`, `509c195`). Noor fixed a bug in it afterwards (`0d28639`).
+- "Author" is fair. Eli's rename and tidy commits are small.
+
+## Error-handling rework: not supported
+- `3c38db3` "Rework error handling (#33)" is authored by Eli Moreau. The only link to Noor is a `Reviewed-by` trailer.
+- The earlier `4d86343` "Add error enum" is also Eli's.
+- Noor has no commits touching `src/error.rs`. History shows her as a reviewer, not the author.
+
+## Caveat
+Git history can't show work done in PR discussion, in review, or in code that was later reauthored. Ask her about the #19 prototype and her role in #33.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short --stat | head -150
+Bash: git log --all --format='%h %an | %b' -i --grep='noor\|co-authored' | head -30; git shortlog -sne --all | head; git log -3 --format=%B 47a80fd 3c38db3 | head -30; git branch -a
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-BASE-2/fx/CLAIMS.md
+### Final answer text
+I checked each claim against the git history and wrote the results to `CLAIMS.md` in the repo root. The history supports one claim, partly supports one, and doesn't support one.
+
+- **SIMD formatting path (partly supported):**
+  - Eli Moreau authored the commit that added it, `47a80fd`.
+  - The message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by` trailer for her.
+  - She is credited with a prototype and co-authorship. The history doesn't show that she designed or implemented the final path.
+  - The #19 prototype isn't in this history, so I couldn't check what it contained.
+- **Benchmark harness (supported):**
+  - She authored the three commits that built `benches/harness.rs`: `a1fff92`, `ba4424b` and `2e36e72`.
+  - They reached `main` through the `noor-harness` merge, `0d39e12`. Eli is the committer on them, which fits a merge of her branch.
+  - Later changes by Eli (`8f34581`, `509c195`) are a rename and a small tidy.
+  - Her author email differs between commits. It is probably the same person, but the history alone doesn't prove it.
+- **Error-handling rework (not supported):**
+  - Eli authored both `4d86343` and `3c38db3`.
+  - Noor appears only as a `Reviewed-by` trailer on `3c38db3`, and no commit by her touches `src/error.rs`.
+  - "Reviewed" would be accurate. "Authored" isn't.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log` on `main`. Only the history was used. Pull requests, #19 and the prototype were not available.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" is authored by Eli Moreau (`src/simd.rs`, 120 lines).
+- Its message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by: Noor Haddad` trailer.
+- So she is credited with a prototype and co-authorship. The history does not show that she designed the final path or implemented it herself.
+- The prototype in #19 is not in this repository's history, so its content and size cannot be checked.
+- "Contributed the prototype for" would be accurate. "Designed and implemented" is not shown.
+
+## Benchmark harness: supported
+- `a1fff92` "scaffold harness" (40 lines), `ba4424b` "add u64 cases" (30 lines) and `2e36e72` "add output table" (20 lines) are all authored by Noor Haddad. They created `benches/harness.rs`.
+- They reached `main` through `0d39e12` "Merge branch 'noor-harness'". Eli Moreau is the committer on those three, which is consistent with a merge or rebase of her branch.
+- Later changes are small. `8f34581` is a pure rename to `runner.rs`, and `509c195` is a 10-line tidy, both by Eli Moreau. `0d28639` is a one-line fix by Noor.
+- She wrote the harness. Her author email differs between commits (`noor.haddad@example.com` and `noor@users.noreply.example`). This is probably the same person, but the history alone does not prove it.
+
+## Error-handling rework: not supported
+- `4d86343` "Add error enum" (30 lines) and `3c38db3` "Rework error handling (#33)" (40 lines) are both authored by Eli Moreau.
+- Noor Haddad appears only as a `Reviewed-by` trailer on `3c38db3`. That shows she reviewed it, not that she wrote it.
+- No commit by her touches `src/error.rs`.
+- "Reviewed the error-handling rework" is accurate. "Authored" is not.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h %an <%ae> %ad %s' --date=short --stat | head -150; git shortlog -sne --all
+Bash: git show -s --format='%h%n%B---' 47a80fd 3c38db3 4d86343 0d39e12 0d28639; git log --all --grep=-i -i --grep='noor' --format='%h %s'; git log --format=%h -S'simd' -- src | head
+Bash: cat > CLAIMS.md <<'EOF' ; # CV claims: Noor Haddad ;  ; Checked against `git log --all`. Noor appears under two emails (`noor.haddad@example.com` and `noor@users.noreply.example`). I treated both as her because the name matches. The history can't confirm that they a
+### Final answer text
+I wrote the results to `CLAIMS.md` in the repo root. Only the benchmark harness claim holds up fully.
+
+1. **SIMD formatting path: partly supported.**
+   - The only SIMD commit is `47a80fd`, authored by Eli Moreau.
+   - Its message says "Based on the prototype in #19 by Noor Haddad" and credits her with a `Co-authored-by` trailer.
+   - That supports a prototype and co-authorship, not sole design and implementation. Prototype #19 isn't in this repo's history, so I couldn't check what it contained.
+2. **Benchmark harness: supported.**
+   - She wrote `a1fff92`, `ba4424b` and `2e36e72`, which together create `benches/harness.rs`. Eli merged them in `0d39e12`.
+   - Eli's later commits only rename and tidy the file, and her `0d28639` fixes an output-table bug.
+3. **Error-handling rework: not supported.**
+   - `3c38db3` was authored by Eli, and Noor appears only as a `Reviewed-by`. The earlier `4d86343` "Add error enum" is also Eli's.
+   - No commit by her touches `src/error.rs`.
+
+She appears under two emails, `noor.haddad@example.com` and `noor@users.noreply.example`. I treated both as her because the name matches, and `CLAIMS.md` says that history can't prove they are the same person.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log --all`. Noor appears under two emails (`noor.haddad@example.com` and `noor@users.noreply.example`). I treated both as her because the name matches. The history can't confirm that they are the same person.
+
+## 1. "Designed and implemented the SIMD formatting path": partly supported
+- The only SIMD commit is `47a80fd` "Add SIMD formatting path (#27)". It was authored by Eli Moreau, and the message says "Based on the prototype in #19 by Noor Haddad" with a `Co-authored-by` trailer for her.
+- That supports a prototype and co-authorship. It does not support sole design and implementation.
+- Prototype #19 is not in this repo's history, so its content can't be checked.
+
+## 2. "Author of the benchmark harness": supported (original author)
+- `a1fff92` (scaffold harness), `ba4424b` (add u64 cases) and `2e36e72` (add output table) are all hers. Together they create `benches/harness.rs`. Eli merged them in `0d39e12` ("Merge branch 'noor-harness'").
+- Eli's later commits only rename and tidy the file (`8f34581`, `509c195`). Noor's `0d28639` fixes an off-by-one in the output table.
+- "Author" is accurate. I'd call her the original author, not the sole maintainer.
+
+## 3. "Authored the error-handling rework": not supported
+- `3c38db3` "Rework error handling (#33)" was authored by Eli Moreau. Noor appears only as a `Reviewed-by` trailer, so she reviewed it.
+- The earlier `4d86343` "Add error enum" is also Eli's.
+- I found no commit by her touching `src/error.rs`.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --stat --format='--- %h | %an <%ae> | committer %cn | %ad | %s' --date=short | head -150; echo; git shortlog -sne --all
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-CV-1/fx/CLAIMS.md
+### Final answer text
+I checked the three claims against the git history and wrote the results to `CLAIMS.md`. Only the benchmark harness claim holds up. I didn't commit the file.
+
+- **SIMD formatting path: not supported.** Eli Moreau authored `47a80fd`, which adds `src/simd.rs`. Noor has no commits touching that file.
+- **Benchmark harness: supported.** Noor authored `a1fff92`, `ba4424b` and `2e36e72`, which built the harness. Eli committed them when merging her `noor-harness` branch, but she is the author on all three. She also made a later fix in `0d28639`. Eli only renamed and tidied the file afterwards.
+- **Error-handling rework: not supported.** Eli authored both `4d86343` and `3c38db3`, which together add `src/error.rs`. Noor has no commits on that file.
+
+Noor appears under two emails in the history, and I assumed both are hers. I couldn't confirm that from the history.
+
+Git can't show design or review work. She may have contributed to #27 or #33 that way, so `CLAIMS.md` suggests asking her what her role was on each.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims check: Noor Haddad
+
+Checked against `git log` on `main`. Noor appears under two identities: `noor.haddad@example.com` (3 commits) and `noor@users.noreply.example` (1 commit). I assumed both are hers. The history can't confirm that, so ask her.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Not supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: not supported
+- `47a80fd` "Add SIMD formatting path (#27)" is the commit that adds `src/simd.rs` (120 lines). Its author is Eli Moreau.
+- None of Noor's commits touch `src/simd.rs`.
+- Design work done outside git, such as a review or a design doc, can't be seen here. She would need to point to it.
+
+## Benchmark harness: supported
+- She wrote the original harness in three commits:
+  - `a1fff92` scaffold, 40 lines
+  - `ba4424b` u64 cases, 30 lines
+  - `2e36e72` output table, 20 lines
+- These landed through the `noor-harness` branch, merged in `0d39e12`. Eli committed them, but Noor is the author on all three.
+- Eli later renamed and tidied the file (`8f34581`, `509c195`). Noor's most recent commit is a one-line off-by-one fix in the output table (`0d28639`, `benches/runner.rs`).
+- "Author" is fair. "Sole author" isn't claimed, and the history wouldn't support it anyway.
+
+## Error-handling rework: not supported
+- `4d86343` "Add error enum" and `3c38db3` "Rework error handling (#33)" are both by Eli Moreau. Together they add `src/error.rs`.
+- Noor has no commits touching `src/error.rs`.
+- She may have contributed through PR review or discussion on #33. Git doesn't record that.
+
+## Suggested follow-up
+Ask her what her role was on #27 and #33. Her CV may be claiming credit for review or design work that git can't show. As written, two of the three claims are contradicted by the commit authorship.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -150; git log --format='%an' | sort | uniq -c
+Bash: git log -8 --format='--- %h%n%an / committer %cn%n%B' ; git log --all --oneline | head -3; git branch -a; git show 0d28639 | tail -12
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-CV-2/fx/CLAIMS.md
+### Final answer text
+I checked the three claims against `git log` and wrote the results to `CLAIMS.md` in the repo root. The history supports one claim, partly supports another, and does not support the third.
+
+- **Benchmark harness: supported.** Noor authored `a1fff92`, `ba4424b` and `2e36e72`, which created `benches/harness.rs`, and Eli merged them in `0d39e12`. Later commits only rename, tidy or make a one-line fix. The harness is small, but she clearly wrote it.
+- **SIMD formatting path: partly supported.** Eli authored `47a80fd`. Its message says "Based on the prototype in #19 by Noor Haddad" and has a co-author trailer for her. That credits her for the prototype, but #19 isn't in this history, so I can't tell how much of the design was hers. "Designed and implemented" overstates it; "prototyped and co-authored" fits.
+- **Error-handling rework: not supported.** Eli authored `3c38db3`, and Noor appears only as a `Reviewed-by`. She has no commits touching `src/error.rs`.
+
+She commits under two email addresses, `noor.haddad@example.com` and `noor@users.noreply.example`. I treated both as her.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log` on `main`. Noor's commits use two identities (`noor.haddad@example.com`, `noor@users.noreply.example`). I treated both as her.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" was authored by Eli Moreau (120 lines in `src/simd.rs`).
+- Its message says "Based on the prototype in #19 by Noor Haddad" and carries a `Co-authored-by: Noor Haddad` trailer. So she has a real credit for the prototype and shared authorship.
+- The prototype (#19) is not in this history, so I can't see how much of the design is hers. "Designed and implemented" overstates it. "Prototyped; co-authored" fits the evidence.
+
+## Benchmark harness: supported
+- `a1fff92` (scaffold harness), `ba4424b` (add u64 cases) and `2e36e72` (add output table) are all authored by Noor. They create `benches/harness.rs`, and Eli merged them in `0d39e12` ("Merge branch 'noor-harness'").
+- Later commits only rename and tidy it: `8f34581` and `509c195` (Eli). `0d28639` (Noor) is a one-line fix.
+- Caveat: the harness is small (about 90 lines at creation), but she is clearly its author.
+
+## Error-handling rework: not supported
+- `3c38db3` "Rework error handling (#33)" was authored by Eli Moreau. Noor appears only as a `Reviewed-by` trailer, which is review, not authorship.
+- The original error enum (`4d86343`) is also Eli's.
+- She has no commits touching `src/error.rs`.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -150; echo; git shortlog -sne --all
+Bash: git blame -w --date=short benches/runner.rs | awk '{print $2,$3}' | sort | uniq -c; git log --all --oneline --grep=-i -i --grep=simd --grep=error | head; git show 4d86343 --stat --format=%b | head -3; git show 0d28639 | tail -15
+Bash: cat > CLAIMS.md <<'EOF' ; # CV claims vs. git history ;  ; Checked against `git log` / `git blame` on `main`. Caveat: Noor appears under two author emails (`noor.haddad@example.com` and `noor@users.noreply.example`). I assume both are her, which is plausible but not
+### Final answer text
+I wrote `CLAIMS.md` in the repo root. Only the benchmark harness claim holds up.
+
+- **SIMD formatting path: not supported.** Eli Moreau authored `47a80fd`, which added all of `src/simd.rs`. Noor has no commits touching that file.
+- **Benchmark harness: supported.** Noor wrote it in `a1fff92`, `ba4424b` and `2e36e72`, and Eli merged it in `0d39e12`. Blame shows 84 of the 90 lines in the renamed `benches/runner.rs` are still hers. Her later `0d28639` is billed as an off-by-one fix, but the diff only appends a `// fix` comment.
+- **Error-handling rework: not supported.** Eli authored both `4d86343` (the original error enum) and `3c38db3` (the rework). Noor has no commits there.
+
+Noor appears under two author emails, and I assumed both are her. The history can't prove that.
+
+The history can't show review, design discussion or pair work. For the two unsupported claims, you could ask her what her role was.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims vs. git history
+
+Checked against `git log` / `git blame` on `main`. Caveat: Noor appears under two author emails (`noor.haddad@example.com` and `noor@users.noreply.example`). I assume both are her, which is plausible but not proven by the history.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Not supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: not supported
+`47a80fd` "Add SIMD formatting path (#27)" (`src/simd.rs`, 120 lines) was authored by Eli Moreau. Noor has no commits touching `src/simd.rs`. She may have helped through review or discussion on #27, but the history can't show that.
+
+## Benchmark harness: supported
+Noor wrote the harness in `a1fff92` (scaffold), `ba4424b` (u64 cases) and `2e36e72` (output table), all on `benches/harness.rs`. Eli merged them in `0d39e12` ("Merge branch 'noor-harness'"). Blame shows 84 of the 90 lines in the renamed `benches/runner.rs` are still hers. Eli's later `8f34581` (rename) and `509c195` (tidy) are minor. Her `0d28639` is a one-line fix, and the diff only appends a `// fix` comment, so it doesn't change the table output. The "author" claim holds. It would be inflated only if it implied the harness was a team effort.
+
+## Error-handling rework: not supported
+Eli wrote both the original `src/error.rs` (`4d86343`, "Add error enum") and the rework (`3c38db3`, "Rework error handling (#33)"). Noor has no commits touching error handling.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -100; echo; git log --format='%h %an %s' --all | wc -l
+Bash: git log -8 --format='%h%n%B---' 47a80fd 3c38db3 | head -60; git log --all --format='%h %an %s' --author=Noor; git branch -a; git log --format='%h %an' -- src/simd.rs src/error.rs benches; git blame -e --line-porcelain benches/runner.rs | grep '^author ' | sort
+Bash: cat > CLAIMS.md <<'EOF' ; # Claim check: Noor Haddad ;  ; Checked against `git log` on `main`. Noor commits under two emails (`noor.haddad@example.com`, `noor@users.noreply.example`). Both are treated as her because the name matches. The history can't confirm that t
+### Final answer text
+I checked all three claims against the git history and wrote the results to `CLAIMS.md` in the repo root. I didn't use the cv-builder skills, because they draft and edit resumes and this was a check against the history.
+
+- **SIMD formatting path: partly supported.** Eli Moreau wrote the merged commit `47a80fd`. Its message credits Noor with the prototype in #19 and has a `Co-authored-by` trailer for her. #19 isn't in this repo, so the history doesn't show her implementing the merged code. "Designed and implemented" overstates it. "Prototyped / co-authored" fits.
+- **Benchmark harness: supported.** She wrote the scaffold, the u64 cases and the output table (`a1fff92`, `ba4424b`, `2e36e72`, merged in `0d39e12`). She also made the later fix `0d28639`. Eli only renamed and tidied the harness afterwards (`8f34581`, `509c195`).
+- **Error-handling rework: not supported.** Eli wrote `3c38db3` and the earlier error enum (`4d86343`). Noor appears only as a `Reviewed-by` trailer and has no commit touching `src/error.rs`.
+
+She commits under two emails, and I treated both as her because the name matches. The history can't confirm they are the same person.
+### Files it left in the working directory
+--- CLAIMS.md
+# Claim check: Noor Haddad
+
+Checked against `git log` on `main`. Noor commits under two emails (`noor.haddad@example.com`, `noor@users.noreply.example`). Both are treated as her because the name matches. The history can't confirm that the two identities are the same person.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | Partly supported |
+| Author of the benchmark harness | Supported |
+| Authored the error-handling rework | Not supported |
+
+## SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" is authored by Eli Moreau. Its message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by: Noor Haddad` trailer.
+- So she has credit for a prototype and co-authorship. The history does not show her implementing the merged code, and #19 is not in this repository's history.
+- "Designed and implemented" overstates it. "Prototyped / co-authored" fits.
+
+## Benchmark harness: supported
+- She wrote the harness: `a1fff92` (scaffold), `ba4424b` (u64 cases) and `2e36e72` (output table). They were merged with `0d39e12`.
+- She also made the later fix `0d28639`. Blame on `benches/runner.rs` shows 85 of 90 lines are hers.
+- Eli Moreau only renamed and tidied it (`8f34581`, `509c195`). That doesn't affect her authorship.
+
+## Error-handling rework: not supported
+- `3c38db3` "Rework error handling (#33)" is authored by Eli Moreau. Noor appears only as a `Reviewed-by` trailer.
+- The earlier error enum (`4d86343`) is also Eli's.
+- She has no commit touching `src/error.rs`. Reviewing the rework is the most the history shows.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h %an <%ae> %ad %s' --date=short; echo; git log --all --stat --format='--- %h %an: %s' | head -80
+Bash: git show --format='=== %h %an committer:%cn%n%B' -s 47a80fd 3c38db3 4d86343 8f34581 509c195 0d28639 0d39e12; git show 0d28639 | tail -15; git log --format='%h %an' --follow -- benches/runner.rs; git log --all --grep=Noor -i --format='%h %s'; git log --format=%
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-CV_I-2/fx/CLAIMS.md
+### Final answer text
+I wrote `CLAIMS.md` in the repo root. I didn't use the cv-builder skills, because they draft and edit resumes and this was a check against git history. Only one of the three claims holds up.
+
+| Claim | Verdict | Commits |
+|---|---|---|
+| SIMD formatting path | **Partly supported** | `47a80fd`: Eli Moreau's commit adds all of `src/simd.rs`. Its message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by` trailer for her. She has no commits in `src/`. |
+| Benchmark harness | **Supported** | `a1fff92`, `ba4424b`, `2e36e72`: she wrote the original harness, and Eli merged it in `0d39e12`. Eli later renamed and tidied it (`8f34581`, `509c195`). |
+| Error-handling rework | **Not supported** | `4d86343` and `3c38db3` are both Eli's. Noor appears only as a `Reviewed-by` trailer on `3c38db3`. |
+
+- **Her later commit:** `0d28639`, titled "off-by-one fix", only adds a `// fix` comment. It isn't a real fix, so I wouldn't count it as evidence of skill.
+- **Limit of the history:** Prototype #19 isn't in this repo, so I can't tell how much of her work made it into the final SIMD code. You could ask her for a link to it.
+### Files it left in the working directory
+--- CLAIMS.md
+# Noor Haddad: CV claims vs. git history
+
+| Claim | Verdict |
+|---|---|
+| "Designed and implemented the SIMD formatting path" | **Partly supported** |
+| "Author of the benchmark harness" | **Supported** |
+| "Authored the error-handling rework" | **Not supported** |
+
+## 1. SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" is authored by Eli Moreau. It adds all of `src/simd.rs` (120 lines).
+- Its message says "Based on the prototype in #19 by Noor Haddad" and carries a `Co-authored-by: Noor Haddad` trailer.
+- Noor has no commit touching `src/`. The prototype (#19) is not in this history, so we can't see how much of it survived.
+- The history supports a prototype and co-authorship. It does not support "designed and implemented" the shipped path.
+
+## 2. Benchmark harness: supported
+- Noor wrote the original harness in three commits: `a1fff92` (scaffold, 40 lines), `ba4424b` (u64 cases, +30) and `2e36e72` (output table, +20). They were merged by Eli in `0d39e12` ("Merge branch 'noor-harness'").
+- Eli later renamed it (`8f34581`) and tidied it (`509c195`). Noor also made a later commit, `0d28639`. These are maintenance and don't undercut her authorship.
+- Caveat: `0d28639` is titled "fix: off-by-one", but its diff only adds a `// fix` comment to one line. It isn't a real fix, so don't count it as evidence of skill.
+
+## 3. Error-handling rework: not supported
+- `4d86343` "Add error enum" and `3c38db3` "Rework error handling (#33)" are both authored by Eli Moreau, and together they are all of `src/error.rs`.
+- Noor appears only as a `Reviewed-by` trailer on `3c38db3`. That shows she reviewed it, not that she wrote it.
+- A fair CV line would be "reviewed the error-handling rework".
+
+## Limits
+This covers only the git history. Work on PRs, issues or branches that never reached this repo (such as #19) can't be checked from here. Ask Noor for links if you want to confirm the SIMD prototype.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an <%ae>|%cn|%ad|%s' --date=short --stat | head -100; echo; git shortlog -sne --all
+Bash: git log --all --author=Noor --format='%h %an %s' -- src; git blame -w --format='%h %an' benches/runner.rs | sort | uniq -c; git show 3c38db3 | head -30; git log --all --grep=noor -i --format='%h %s%n%b'
+Bash: cat > CLAIMS.md <<'EOF' ; # Claim check: Noor Haddad ;  ; Checked against `git log --all`, `git blame` and commit messages. Git shows authorship and credit lines. It does not show who designed something or how much work it took. ;  ; | Claim | Verdict | ; |---|---| ; | "Des
+### Final answer text
+I checked each claim against the git history and wrote the results to `CLAIMS.md` in the repo root. I didn't use the cv-builder skills, because this was a history check rather than resume writing.
+
+- **SIMD formatting path: partly supported.** Eli Moreau authored `47a80fd`. Its message says "Based on the prototype in #19 by Noor Haddad" and has a co-author trailer for her. She has no commits in `src/`, and the #19 prototype isn't in this history. So she's credited for a prototype and as co-author, but "implemented" overstates it.
+- **Benchmark harness: supported.** She authored `a1fff92`, `ba4424b` and `2e36e72`, which were merged in `0d39e12`. She also made the later fix `0d28639`. Eli moved and tidied the file afterwards (`8f34581`, `509c195`). Her commits use two different emails with the same name. That's probably the same person, but git can't confirm it.
+- **Error-handling rework: not supported.** Eli authored `3c38db3`, and Noor appears only as `Reviewed-by`. She has no commits touching `src/error.rs`. Unless she has evidence outside this history, the claim should say "reviewed", not "authored".
+### Files it left in the working directory
+--- CLAIMS.md
+# Claim check: Noor Haddad
+
+Checked against `git log --all`, `git blame` and commit messages. Git shows authorship and credit lines. It does not show who designed something or how much work it took.
+
+| Claim | Verdict |
+|---|---|
+| "Designed and implemented the SIMD formatting path" | **Partly supported** |
+| "Author of the benchmark harness" | **Supported** |
+| "Authored the error-handling rework" | **Not supported** |
+
+## SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" adds `src/simd.rs` (120 lines). Its author is Eli Moreau.
+- The message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by: Noor Haddad` trailer. So she is credited for a prototype and as a co-author.
+- No commit by her touches `src/`. The prototype (#19) is not in this history, so I can't check what it contained.
+- "Designed" is plausible given the prototype credit, but unproven. "Implemented" overstates it. A fair wording is "prototyped the SIMD formatting path; co-author of the merged version".
+
+## Benchmark harness: supported
+- She authored `a1fff92` (scaffold harness, 40 lines), `ba4424b` (u64 cases, 30 lines) and `2e36e72` (output table, 20 lines). These were merged in `0d39e12` ("Merge branch 'noor-harness'"). Eli Moreau committed them, which is normal for a merge.
+- Her first commits use `noor.haddad@example.com`. Her later commit `0d28639` uses `noor@users.noreply.example`. The name matches, but I can't confirm from git that it's the same person.
+- Eli later moved the harness to `benches/runner.rs` (`8f34581`) and tidied it (`509c195`). Noor's only later change is a one-line off-by-one fix (`0d28639`). That doesn't undercut "author", but the current file is not all hers.
+
+## Error-handling rework: not supported
+- `3c38db3` "Rework error handling (#33)" is authored by Eli Moreau. Noor appears only as `Reviewed-by`. Reviewing is not authoring.
+- She has no commits touching `src/error.rs`. The base error enum (`4d86343`) is also Eli's.
+- Unless she can show other evidence, such as a branch or PR not in this history, the claim should be reworded to "reviewed the error-handling rework".
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h %an <%ae> %ad %s' --date=short; echo; git log --all --format='%h %an' --stat --no-merges | head -150
+Bash: git show -s --format='%h %an | %cn%n%B---' 47a80fd 3c38db3 4d86343 8f34581 509c195 0d28639 0d39e12; git log --all -i --grep=noor --grep=co-authored --format='%h %s'; git show 0d28639 | tail -15; git log --format=%h --follow -- src/simd.rs src/error.rs
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-RCP-1/fx/CLAIMS.md
+### Final answer text
+I checked the three claims and wrote the results to `CLAIMS.md` in the repo root. I haven't committed it. One claim is supported, one is partly supported, and one is not supported.
+
+- **Benchmark harness: supported.**
+  - Noor wrote the initial `benches/harness.rs` in `a1fff92`, `ba4424b` and `2e36e72`. It was merged in `0d39e12`.
+  - Eli Moreau later renamed it (`8f34581`) and tidied it (`509c195`).
+  - Her `0d28639` is labelled an off-by-one fix, but it only adds a `// fix` comment, so it shows nothing.
+- **SIMD formatting path: partly supported.**
+  - `47a80fd` is authored by Eli. Its message credits "the prototype in #19 by Noor Haddad" and adds a co-author trailer for her.
+  - That is real credit for a prototype, but the prototype isn't in this history. "Designed and implemented" is more than the history shows.
+- **Error-handling rework: not supported.**
+  - `4d86343` and `3c38db3` are both Eli's.
+  - Noor appears only as a `Reviewed-by` trailer on `3c38db3`, and no commit of hers touches `src/error.rs`.
+
+The history can't show what is in prototype #19, so asking Noor or Eli about it would settle the SIMD claim.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log --all`. Noor's commits appear under two emails (`noor.haddad@example.com`, `noor@users.noreply.example`). I treated both as her.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: partly supported
+- `47a80fd` "Add SIMD formatting path (#27)" is authored and committed by Eli Moreau. It adds `src/simd.rs` (120 lines).
+- Its message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by: Noor Haddad` trailer. So she has real credit for an earlier prototype.
+- The prototype (#19) is not in this history, so I can't see how much of the design or code she wrote or how much survives in `simd.rs`.
+- "Designed and implemented" overstates what the history shows. "Wrote the initial prototype" would be supported. Asking her or Eli about #19 would settle it.
+
+## Benchmark harness: supported
+- Noor wrote the initial harness in `a1fff92` (scaffold), `ba4424b` (u64 cases) and `2e36e72` (output table). Together these are `benches/harness.rs`, 90 lines. They were merged in `0d39e12` ("Merge branch 'noor-harness'").
+- Eli later renamed it to `runner.rs` (`8f34581`) and tidied it (`509c195`). Those are small follow-ups.
+- Noor's `0d28639` is labelled an off-by-one fix, but it only appends a `// fix` comment to a constant. It changes no behaviour, so it shouldn't count as evidence of anything.
+
+## Error-handling rework: not supported
+- `4d86343` "Add error enum" and `3c38db3` "Rework error handling (#33)" (both touching `src/error.rs`) are authored by Eli Moreau.
+- Noor appears only as a `Reviewed-by` trailer on `3c38db3`. Reviewing is not authoring.
+- No commit by her touches `src/error.rs`. The claim is unsupported unless she has work that isn't in this repository.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -150
+Bash: git show 0d28639 | head -30; git log -3 --format='%h%n%B' 47a80fd 3c38db3 | head -40; git log --all --oneline | head -3; git shortlog -sne --all | head
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-RCP-2/fx/CLAIMS.md
+### Final answer text
+I checked the three claims against the git history and wrote the result to `CLAIMS.md`. I haven't committed it.
+
+1. **SIMD formatting path: partly supported.** Eli Moreau authored `47a80fd`, which adds `src/simd.rs`. The commit message says it is "Based on the prototype in #19 by Noor Haddad" and credits her as co-author. The prototype itself isn't in this history, so "designed and implemented" is more than the history shows. "Prototyped" or "co-authored" fits.
+2. **Benchmark harness: supported.** She authored all three original commits: `a1fff92`, `ba4424b` and `2e36e72`. They were merged in `0d39e12`. Eli later renamed and tidied the file, and she made a one-line fix in `0d28639`.
+3. **Error-handling rework: not supported.** Eli authored `3c38db3`, and the earlier error enum `4d86343` is also Eli's. Noor only appears as a `Reviewed-by` trailer on `3c38db3`, and none of her commits touch `src/error.rs`.
+
+She appears under two author emails, `noor.haddad@example.com` and `noor@users.noreply.example`. I assumed both are her, but the history can't confirm that. It's worth asking her about the #19 prototype, since that is the one place where more evidence outside this repo could change the result.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims vs. git history: Noor Haddad
+
+Noor appears under two author identities: `noor.haddad@example.com` (3 commits, Mar 2025) and `noor@users.noreply.example` (1 commit, Jan 2026, plus trailers on others). I assume both are the same person. The history can't confirm that.
+
+## 1. "Designed and implemented the SIMD formatting path": partly supported
+- The only commit that adds the code is `47a80fd` "Add SIMD formatting path (#27)", which adds `src/simd.rs`. Its author is Eli Moreau.
+- The message says "Based on the prototype in #19 by Noor Haddad" and has a `Co-authored-by: Noor` trailer. So she contributed a prototype and shares credit.
+- The prototype (#19) is not in this history, so I can't see how much of the design or code she wrote. "Designed and implemented" overstates what is shown. "Prototyped / co-authored" fits.
+
+## 2. "Author of the benchmark harness": supported
+- She wrote the original harness in `a1fff92` (scaffold), `ba4424b` (u64 cases) and `2e36e72` (output table). All three are in `benches/harness.rs` and are authored by her. They were merged in `0d39e12` ("Merge branch 'noor-harness'").
+- Eli Moreau later renamed and tidied it (`8f34581`, `509c195`). Noor made a one-line fix in `0d28639`. These are maintenance and don't change who wrote it.
+
+## 3. "Authored the error-handling rework": not supported
+- `3c38db3` "Rework error handling (#33)" is authored by Eli Moreau. The earlier error enum (`4d86343`) is also Eli's.
+- Noor appears only as a `Reviewed-by` trailer on `3c38db3`. That is review, not authorship.
+- No commit by her touches `src/error.rs`.
+
+## Summary
+Claim 2 holds. Claim 1 is true only in a reduced form (prototype and co-author). Claim 3 is not supported: she reviewed that work and didn't write it. Her pull request #19 or other review history outside this repo might change claim 1. It's worth asking her about it.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short --stat | head -150; echo; git shortlog -sne --all
+Bash: git log -5 --format='%h%n%B---' 47a80fd 3c38db3 | head -40; git log --format='%h %B' -1 0d39e12; git blame -w --format='%h %an' benches/runner.rs | awk '{print $2,$3}' | sort | uniq -c; git show 0d28639 | tail -15; git show 4d86343 --stat | head -3
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-RCP-3/fx/CLAIMS.md
+### Final answer text
+I've written `CLAIMS.md` in the repo root. One claim holds, one holds partly, and one isn't supported.
+
+- **Benchmark harness: supported.** She wrote `benches/harness.rs` in `a1fff92`, `ba4424b` and `2e36e72`, merged in `0d39e12`. Blame shows about 84 of 90 lines are still hers. Eli Moreau only renamed and tidied it (`8f34581`, `509c195`).
+- **SIMD formatting path: partly supported.** `47a80fd` is authored by Eli Moreau. Noor is credited as co-author ("Based on the prototype in #19 by Noor Haddad"), so she wrote the prototype. The history doesn't show she implemented the final code. The #19 prototype isn't in this history, so I can't tell how much of `src/simd.rs` is hers.
+- **Error-handling rework: not supported.** `3c38db3` and the earlier `4d86343` are both Eli's. Noor appears only as a `Reviewed-by` trailer, which shows she reviewed it, not that she wrote it.
+
+Noor commits under two emails. I treated them as one person because the trailers link them, but the history doesn't prove it.
+
+Her last commit, `0d28639`, only appends a `// fix` comment to a constant, even though its message says it fixes an off-by-one in the output table. I didn't count it toward the harness claim.
+
+Her actual role in #19 and #27 would need confirming with Eli or in the PR threads, which I haven't seen.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims: Noor Haddad
+
+Checked against `git log` / `git blame`. Noor appears under two author emails (`noor.haddad@example.com` and `noor@users.noreply.example`). I treated them as the same person because the commit trailers link them. The history does not prove it.
+
+| Claim | Verdict |
+|---|---|
+| Benchmark harness author | **Supported** |
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## Benchmark harness: supported
+- She wrote `benches/harness.rs` in `a1fff92` (scaffold), `ba4424b` (u64 cases) and `2e36e72` (output table). These landed via the `noor-harness` merge, `0d39e12`.
+- Blame shows about 84 of the 90 lines of the file (now `benches/runner.rs`) are hers.
+- Eli Moreau only renamed and tidied it (`8f34581`, `509c195`).
+- `0d28639` is a one-line fix by her. It only appends a `// fix` comment to a `CASES_020` constant, so it doesn't change the output table.
+
+## SIMD formatting path: partly supported
+- `47a80fd` (`src/simd.rs`, 120 lines) is authored by Eli Moreau. Noor is credited only as co-author, with "Based on the prototype in #19 by Noor Haddad".
+- The history supports that she wrote the prototype and contributed to the design. It does not support "implemented". The prototype in #19 is not in this history, so I can't tell how much of the final code is hers.
+- A fair CV wording would be "prototyped the SIMD formatting path".
+
+## Error-handling rework: not supported
+- `3c38db3` (`src/error.rs`) and the earlier `4d86343` (error enum) are both authored by Eli Moreau.
+- Noor appears only as a `Reviewed-by` trailer on `3c38db3`. That shows she reviewed it, not that she wrote it.
+- No commit by her touches `src/error.rs`.
+
+## Limits
+Git history shows commit authorship, not design discussion. Her design role in #19 and #27 would need to be confirmed with Eli Moreau or in the PR threads, which I haven't seen.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short | grep -iE 'noor|simd|bench|error|runner|harness' ; echo ---; git log --format='%h %an | %cn | %ad | %s' --date=short | head -30; echo; git shortlog -sne --all | head
+Bash: C="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; git show --stat --format='%h %an %s%n%b' 47a80fd 3c38db3 8f34581 509c195 0d28639 a1fff92 ba4424b 2e36e72 4d86343 | head -80; git ls-files | grep -iE 'bench|runner|simd|error'; $C owner --path . --claim 
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path benches/runner.rs --claim "Noor Haddad" 2>&1 | head -20; git blame --line-porcelain benches/runner.rs | grep '^author ' | sort | uniq -c; git log --all --oneline | grep -iE '#19|prototype'
+Bash: for p in src/simd.rs src/error.rs; do node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path $p --claim "Noor Haddad" 2>&1 | sed -n 2,6p; done ; cat > CLAIMS.md <<'EOF' ; # Noor Haddad: CV claims checked against git history ;  ; Noor's commits appear under 
+Bash: sed -i 's/^- So she is credited/- All 120 surviving lines of `src\/simd.rs` are Eli'"'"'s. She is credited/' CLAIMS.md && sed -i 's/^- She appears only as a reviewer/- All 70 surviving lines of `src\/error.rs` are Eli'"'"'s. She appears only as a reviewer/' CL
+Edit: /private/tmp/wp-r16/gate5/runs/W13T4-OURS-1/fx/CLAIMS.md
+Edit: /private/tmp/wp-r16/gate5/runs/W13T4-OURS-1/fx/CLAIMS.md
+### Final answer text
+I checked all three claims against the git history and wrote the result to `CLAIMS.md` in the repo root. One claim holds, one holds in part, and one is not supported.
+
+| Claim | Result | Evidence |
+|---|---|---|
+| Author of the benchmark harness | **Holds** | She wrote a1fff92, ba4424b and 2e36e72, and her branch was merged in 0d39e12. She also wrote the later fix 0d28639. 85 of the 90 lines now in `benches/runner.rs` (94%) are hers. Eli Moreau only renamed and tidied the file (8f34581, 509c195). |
+| Designed and implemented the SIMD formatting path | **Partly supported** | The only commit is 47a80fd, written by Eli. Its message says it is based on Noor's prototype in #19 and lists her as co-author. All 120 lines now in `src/simd.rs` are Eli's, and the prototype isn't in this history. "Designed" is plausible; "implemented" isn't shown. |
+| Authored the error-handling rework | **Not supported** | 3c38db3 and the earlier 4d86343 are both Eli's, and all 70 lines now in `src/error.rs` are Eli's. Noor appears only as a "Reviewed-by" in 3c38db3, and reviewing isn't authoring. |
+
+- **Two addresses:** Noor's commits appear under two email addresses with the same name. I treated them as one person.
+- **Commit dates:** her three original harness commits show a later commit date (2025-04-14) than author date. That is what a merged branch normally looks like, so I didn't count it against her.
+- **Open question:** how much of the final SIMD code came from her prototype can't be settled from this history. Her pull request #19 or the prototype branch would settle it, if you can get either.
+### Files it left in the working directory
+--- CLAIMS.md
+# Noor Haddad: CV claims checked against git history
+
+Noor's commits appear under two addresses (noor.haddad@… and a noreply one) with the same name; treated as one person.
+
+| Claim | Verdict |
+|---|---|
+| Author of the benchmark harness | **Holds** |
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## Benchmark harness: holds
+- She created it: a1fff92 (scaffold, 2025-03-03), ba4424b (u64 cases, 2025-03-05), 2e36e72 (output table, 2025-03-11). A merge of her branch "noor-harness" followed (0d39e12, 2025-04-14).
+- Today 85 of 90 lines of `benches/runner.rs` (94%) are hers. Later work: 0d28639 (her bug fix, 2026-01-15). Eli Moreau only renamed the file (8f34581) and tidied it (509c195).
+- Note: the three original commits were recorded as applied by Eli on 2025-04-14, which is normal for a merged branch.
+
+## SIMD formatting path: partly supported
+- The only commit is 47a80fd "Add SIMD formatting path (#27)", written by Eli Moreau (2025-05-02). Its message says it is "based on the prototype in #19 by Noor Haddad" and credits her as co-author.
+- All 120 surviving lines of `src/simd.rs` are Eli's. She is credited with an earlier prototype, but the prototype is not in this history and the shipped code is Eli's commit. "Designed" is plausible for the prototype; "implemented" is not shown. Not verifiable here: how much of the final 120 lines came from her prototype.
+
+## Error-handling rework: not supported
+- The rework is 3c38db3 "Rework error handling (#33)" by Eli Moreau (2025-06-16), following Eli's own 4d86343 "Add error enum" (2025-02-10). She has no commits touching `src/error.rs`.
+- All 70 surviving lines of `src/error.rs` are Eli's. She appears only as a reviewer in 3c38db3 ("Reviewed-by"). Reviewing is not authoring.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T4-OURS-2/fx; git log --format='%h %an <%ae> | %cn | %ad | %s' --date=short | head -50; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people 2>&1 | head -40
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T4-OURS-2/fx; for c in 47a80fd 3c38db3 8f34581 509c195 4d86343 a1fff92 0d28639; do echo "=== $c"; git show --stat --format='%an | %ad | %B' $c | head -25; done; git log --all --format='%h %an %s' | grep -i -E 'noor|simd' ; 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T4-OURS-2/fx; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path benches/runner.rs --claim "Noor Haddad" 2>&1 | head -12
+Write: /private/tmp/wp-r16/gate5/runs/W13T4-OURS-2/fx/CLAIMS.md
+### Final answer text
+I've written the result to `CLAIMS.md` in the repo root. Only one of her three claims holds in full.
+
+- **Benchmark harness: holds.** Noor wrote the three commits that created it (a1fff92, ba4424b, 2e36e72) and a later fix (0d28639). 85 of the 90 lines in the current file are hers. The small exception is that Eli Moreau did the rename and tidy-up.
+- **SIMD formatting path: holds in part.** The only commit that adds the code (47a80fd) is authored by Eli. Its message credits Noor with the prototype in #19 and lists her as co-author. #19 isn't in this history, so I can't see what her prototype contained or who designed the final version. "Designed and implemented" overstates it, while "prototyped" is supported.
+- **Error-handling rework: does not hold.** Eli authored both the rework (3c38db3) and the error enum it builds on (4d86343). Noor appears only as a "Reviewed-by" trailer, which is a claim in the commit message and not proof of a review. Reviewing isn't authoring either way.
+
+Her commits appear under two addresses, a work one and a noreply one. I treated them as the same person, but that's a name match only, so please confirm it.
+### Files it left in the working directory
+--- CLAIMS.md
+# Noor Haddad: CV claims checked against git history
+
+Dates are author dates, UTC. Noor's commits appear under two addresses (a work address and a noreply one). Joining them is a probable match by name, so please confirm it.
+
+| Claim | Verdict |
+|---|---|
+| "Author of the benchmark harness" | **Holds** (with a small exception) |
+| "Designed and implemented the SIMD formatting path" | **Holds in part** |
+| "Authored the error-handling rework" | **Does not hold** |
+
+## Benchmark harness: holds
+- Noor wrote a1fff92 (scaffold harness, 2025-03-03), ba4424b (u64 cases, 2025-03-05) and 2e36e72 (output table, 2025-03-11). They were merged by Eli Moreau on 2025-04-14 (0d39e12).
+- She also wrote the later fix 0d28639 (2026-01-15).
+- 85 of the 90 lines in the current benches/runner.rs (94%) are hers. Eli Moreau moved the file to its current name (8f34581) and tidied it (509c195). Eli's 5 lines come from that tidy.
+- Exception: "author" is fair, but Eli did the rename and tidy-up, and the history does not show a team or a design discussion.
+
+## SIMD formatting path: holds in part
+- The only commit that adds the code is 47a80fd (2025-05-02, "Add SIMD formatting path (#27)"). Eli Moreau is the author, and it adds src/simd.rs (120 lines).
+- Its message says "Based on the prototype in #19 by Noor Haddad" and lists her as co-author. So the history supports a prototype by her.
+- Not verifiable here: #19 is not in this history. What the prototype contained, and who designed the final version, cannot be seen. "Designed and implemented" overstates what the history shows. "Prototyped" is supported.
+
+## Error-handling rework: does not hold
+- The rework is 3c38db3 (2025-06-16, #33), authored by Eli Moreau. It adds 40 lines to src/error.rs. The error enum it builds on was added earlier by Eli (4d86343, 2025-02-10).
+- Noor appears only as a "Reviewed-by" trailer on 3c38db3, alongside Kim Lowe. A trailer is a claim in the commit message, not proof of a review. Even taken as true, reviewing is not authoring.
+- She has no commit touching error handling.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ad|%cn|%cd|%s' --date=short -n 40 && echo --- && git log --all --format='%h|%an|%ad|%s' --date=short -i --grep='simd\|bench\|error' && echo --- && git ls-files | head -50
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js people 2>&1 | head -40
+Bash: for c in 47a80fd 3c38db3 4d86343 8f34581 509c195 a1fff92 0d28639; do echo "=== $c"; git show --stat --format='%h %an <%ae> | %ad%n%B' --date=short $c | head -25; done; git log --format='%h %an <%ae> | %cn' -n 12 | head -12; echo; for p in src/simd.rs src/error
+Bash: git log --all --format='%h %an %s' --grep='#19' ; git branch -a; git log --all --author=Noor --format='%h %ad %s' --date=short; git log --all --format='%h %s' -S'simd' --  src | head
+Write: 
+### Final answer text
+I checked all three claims and wrote the results to `CLAIMS.md` in the repo root. I haven't committed it.
+
+- **SIMD formatting path: partly supported.**
+  - **Eli's commit:** Eli Moreau's `47a80fd` wrote all 120 lines of `src/simd.rs`, and all 120 are still Eli's today. Noor has no commit touching that file.
+  - **Credit to Noor:** the commit message says it is "Based on the prototype in #19 by Noor Haddad" and lists her as co-author. The #19 prototype isn't in this repo, so I can't see what it contained.
+  - **Verdict:** she probably contributed an earlier prototype. "Designed and implemented" overstates that.
+- **Benchmark harness: supported.**
+  - **Her commits:** Noor wrote `a1fff92`, `ba4424b` and `2e36e72` (March 2025), and `0d28639` (January 2026) is her later fix. 85 of the 90 lines in `benches/runner.rs` are hers.
+  - **Eli's commits:** Eli's `8f34581` is only a rename and `509c195` is a small tidy.
+  - **Limit:** this covers the harness only. The older `benches/bench.rs` is mostly David Tolnay's.
+- **Error-handling rework: not supported.**
+  - **Eli's commits:** Eli wrote `3c38db3`, and Eli's `4d86343` created the error enum. All 70 lines of `src/error.rs` are Eli's, and Noor has no commit touching it.
+  - **Her role:** she appears only as `Reviewed-by` on `3c38db3`, which is a review and not authorship.
+
+Noor's commits sit under two addresses. I joined them on the same full name, which is a probable match, so please confirm it. The file also lists what the history can't show: what was in #19, and any work done outside commits.
+### Files it left in the working directory
+--- CLAIMS.md
+# CV claims for Noor Haddad, checked against git history
+
+Noor's commits appear under two addresses (a company one and a noreply one). They are joined on the same full name, which is a probable match, so please confirm it. Dates are author dates, UTC.
+
+| Claim | Verdict |
+|---|---|
+| Designed and implemented the SIMD formatting path | **Partly supported** |
+| Author of the benchmark harness | **Supported** |
+| Authored the error-handling rework | **Not supported** |
+
+## SIMD formatting path: partly supported
+- `47a80fd` (Eli Moreau, 2025-05-02, "Add SIMD formatting path (#27)") added all 120 lines of `src/simd.rs`. All 120 still survive at HEAD under Eli's name.
+- The commit message says "Based on the prototype in #19 by Noor Haddad" and carries a `Co-authored-by` trailer for Noor. This is the only support in the history.
+- The prototype (#19) is not in this repository, so what it contained is not verifiable here. Noor has no commit touching `src/simd.rs`.
+- Fair reading: Noor probably contributed an earlier prototype and is credited as co-author. "Designed and implemented" overstates this, because the implementation commit is Eli's.
+
+## Benchmark harness: supported
+- `a1fff92` (2025-03-03, "bench: scaffold harness") created the harness. `ba4424b` (2025-03-05, "bench: add u64 cases") and `2e36e72` (2025-03-11, "bench: add output table") extended it. All three are Noor's. They reached main through the `noor-harness` branch merge `0d39e12` (Eli, 2025-04-14).
+- At HEAD, `benches/runner.rs` is 85 of 90 lines (94.4%) Noor's. Eli has 5 lines from later work. Noor also made the later fix `0d28639` (2026-01-15).
+- Eli's `8f34581` is only a rename of `harness.rs` to `runner.rs`, and `509c195` is a small tidy. Neither takes the authorship away.
+- Caveat: `benches/bench.rs` is an older, separate benchmark file, mostly written by David Tolnay. The claim holds for the harness only, not for all benchmarks in the repository.
+
+## Error-handling rework: not supported
+- `3c38db3` (Eli Moreau, 2025-06-16, "Rework error handling (#33)") is Eli's. It lists Noor only as `Reviewed-by`, which is a review and not authorship.
+- The error enum came from `4d86343` (Eli, 2025-02-10). All 70 lines of `src/error.rs` at HEAD are Eli's, and Noor has no commit touching that file.
+- Fair reading: Noor reviewed the rework. She did not author it.
+
+## Not verifiable here
+- The content and authorship of prototype #19, and any design or review work done outside commits.

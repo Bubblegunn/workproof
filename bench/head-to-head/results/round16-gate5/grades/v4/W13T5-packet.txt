@@ -1,0 +1,1107 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso-strict | while IFS='|' read h an ae cn ce a c s; do echo "$h|$an|$ae|$cn|$ce|A:$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S%z' "$(echo $a | sed 's/:\([0-9][0-9]\)$/\1/')" +%FT%TZ 2>/dev/null)|C:$(TZ=U
+Bash: export TZ=UTC; git log --all --date=format-local:'%Y-%m-%dT%H:%M:%SZ' --format='%h|A:%an <%ae>|%ad|C:%cn <%ce>|%cd|P:%p|%s' | head -20; echo ---; git log --all --author='Alex Kim' --author='akim@' --author='alex' -i --date=format-local:'%Y-%m-%dT%H:%M:%SZ' --f
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-CV_I-1/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md`. The history supports neither statement as worded. The cv-builder skills weren't needed, since this was only a git-history check.
+
+- **"Contributor since January 2025":** Not supported. The earliest commit under his two stated emails is `b19cb32`, authored 2024-12-31 23:30 UTC, which is December. It was committed on 2025-03-20, so that author date can't be confirmed. The earliest commit with matching author and commit dates is `1455b31` on 2025-03-06. His contributions are real and run from March to September 2025.
+- **"Built the rate limiter within my first month":** Not supported. The only limiter commit in the first month is the draft. The window logic (`e1b8788`) is dated 2025-02-14. The limiter was merged on 2025-03-24 (`930ee50`, PR #61), about 12 weeks after the first commit. Ines Duarte added the burst setting. Alex later fixed a reset race and wrote the guide. "Wrote the initial limiter implementation, merged March 2025" is accurate.
+- **Third email:** An "Alex Kim" also commits as `alex.kim@othercorp.example`, which he didn't list. It has a README typo fix on 2025-01-08 and a contributors update on 2025-08-20. I didn't count them. If that address is his, "since January 2025" holds, but only on that docs fix. He should confirm it.
+
+The git history can't show anything from the hosting platform (PR or issue discussion), which might show earlier involvement.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: timeline check against git history
+
+All dates are UTC (`git log --date=format-local` with `TZ=UTC`), taken from `git log --all`.
+Identities checked: `akim@oldjob.example.invalid` and `alex.kim@example.com`, as the candidate stated.
+
+## Commits relied on
+
+| Commit | Email | Author date (UTC) | Commit date (UTC) | Subject |
+|---|---|---|---|---|
+| b19cb32 | akim@oldjob | 2024-12-31 23:30 | 2025-03-20 10:00 | wip: limiter draft (adds `limiter.rb`) |
+| e1b8788 | akim@oldjob | 2025-02-14 01:00 | 2025-03-20 10:01 | wip: limiter window logic |
+| 1455b31 | akim@oldjob | 2025-03-06 10:00 | 2025-03-06 10:00 | docs: clarify pattern escaping |
+| 930ee50 | (Ines Duarte) | 2025-03-24 15:00 | 2025-03-24 15:00 | Merge pull request #61 from alex/limiter |
+| aee13ca | (Ines Duarte) | 2025-04-02 12:00 | 2025-04-02 12:00 | Limiter: add burst setting (#64) |
+| 646c29a | alex.kim@example.com | 2025-06-10 08:00 | 2025-06-10 08:00 | limiter: fix reset race |
+| 9edbadd | alex.kim@example.com | 2025-09-02 09:00 | 2025-09-02 09:00 | docs: limiter guide |
+
+## "Contributor to this project since January 2025"
+
+**Not supported as worded.**
+
+- The earliest commit under the stated identities is b19cb32, authored 2024-12-31 23:30 UTC. That is December 2024, 30 minutes before January in UTC.
+- That commit was committed on 2025-03-20, so its author date was set earlier and can't be independently confirmed. The earliest commit whose author and commit dates agree is 1455b31 on 2025-03-06. Nothing under the stated identities lands in January 2025 on a verified date.
+- Contributions are real and continuous from March 2025 to September 2025. The limiter reached the main line on 2025-03-24 (merge 930ee50, PR #61).
+
+## "Built the rate limiter within my first month"
+
+**Not supported.**
+
+- If the start is b19cb32 (2024-12-31), the first month ends around 2025-01-30. Only the initial draft falls in that window.
+- The window logic (e1b8788) is dated 2025-02-14, about 6 weeks in. It was committed 2025-03-20.
+- The limiter was merged on 2025-03-24 (930ee50), about 12 weeks after the first commit, or about 2.5 weeks after the first verified-date commit (1455b31, 2025-03-06).
+- Later limiter work is split. Ines Duarte added the burst setting (aee13ca). Alex fixed the reset race (646c29a) and wrote the guide (9edbadd).
+- "Wrote the initial limiter implementation, merged in March 2025" is supported. "Built it within the first month" is not.
+
+## Caveats
+
+- A third email, `alex.kim@othercorp.example`, is used by an author named "Alex Kim". It has 8ff4f2f (2025-01-08, README typo fix) and 954e81a (2025-08-20, contributors update). The candidate did not list it, so I did not count it. If it is also theirs, "since January 2025" would hold from 2025-01-08, but only for a trivial docs fix. The candidate should confirm.
+- Author dates in git can be set freely, and b19cb32 and e1b8788 were evidently rewritten or rebased (commit date 2025-03-20). I treated their author dates as claims, not proof.
+- This covers the git history only. PR #61 or issue discussion on the hosting platform might show earlier involvement.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | TZ=UTC cat; echo; git log --all --format='%h %ad %ae %s' --date=format-local:'%Y-%m-%d %H:%M UTC' | head -0; git log --all -i --grep=limiter --format='%h %s'; git log --all --format='%h' -S'li
+Bash: git log --all --format='%h|%an|%ae|%ce|%aI|%cI|%s' | grep -iE 'kim|alex|limiter|oldjob' ; echo ---; git branch -a; git log --all --author=-i -1 >/dev/null; for c in 8ff4f2f 1455b31 b19cb32 e1b8788 930ee50; do git show --stat --format='%h %P %s' $c | head -8; d
+Bash: cat > TIMELINE.md <<'EOF' ; # Alex Kim: timeline check (all dates UTC) ;  ; Source: `git log --all` (single branch, `main`). Identities Alex gave: `akim@oldjob.example.invalid`, `alex.kim@example.com`. Git also holds two commits by an "Alex Kim" using `alex.kim@othe
+### Final answer text
+I checked both statements against the git history in UTC and wrote the note to `TIMELINE.md` in the repo root. I didn't commit it. The cv-builder skills weren't needed for this check, so I didn't invoke them.
+
+- **"Contributor since January 2025":** The history doesn't support this under the two addresses he gave.
+  - His first commit under those addresses with a trustworthy date is `1455b31`, on 2025-03-06.
+  - The only normal January commit is `8ff4f2f`, a one-line README typo fix on 2025-01-08. It uses a third address, `alex.kim@othercorp.example`, which he didn't mention. If that address is his, January is accurate.
+  - `b19cb32` is dated 2025-01-01 08:30 +09:00, which is 2024-12-31 23:30 UTC. Its committer date is 2025-03-20, so it was rewritten or rebased and doesn't establish January.
+- **"Built the rate limiter within my first month":** This depends on where his first month starts.
+  - Counting from 2025-03-06, it holds. The limiter was merged on 2025-03-24 (`930ee50`), 18 days later.
+  - Counting from January 2025, the merge is about 2.5 months later. That makes the two CV claims inconsistent with each other.
+  - He wrote the initial implementation in two WIP commits (`b19cb32`, `e1b8788`). Ines Duarte merged it and wrote the burst setting (`aee13ca`). So "authored the initial implementation" is safer than "built the rate limiter".
+
+The note also has a suggested wording for the CV and two questions for Alex: whether the othercorp address is his, and why the WIP commits' committer dates are 2025-03-20.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: timeline check (all dates UTC)
+
+Source: `git log --all` (single branch, `main`). Identities Alex gave: `akim@oldjob.example.invalid`, `alex.kim@example.com`. Git also holds two commits by an "Alex Kim" using `alex.kim@othercorp.example`, which he did not list.
+
+## Commits relied on
+
+| Commit | Author date (UTC) | Committer date (UTC) | Email | Subject |
+|---|---|---|---|---|
+| 8ff4f2f | 2025-01-08 10:00 | same | othercorp (not claimed) | docs: fix typo in README |
+| b19cb32 | 2024-12-31 23:30 (written as 2025-01-01 08:30 +09:00) | 2025-03-20 10:00 | oldjob | wip: limiter draft |
+| e1b8788 | 2025-02-14 01:00 (written as 10:00 +09:00) | 2025-03-20 10:01 | oldjob | wip: limiter window logic |
+| 1455b31 | 2025-03-06 10:00 | same | oldjob | docs: clarify pattern escaping |
+| 930ee50 | 2025-03-24 15:00 | same | merger: Ines Duarte | Merge PR #61 from alex/limiter (adds limiter.rb, 70 lines) |
+| aee13ca | 2025-04-02 12:00 | same | Ines Duarte | Limiter: add burst setting (#64) |
+| 954e81a | 2025-08-20 10:00 | same | othercorp (not claimed) | docs: update contributors |
+| 646c29a | 2025-06-10 08:00 | same | example.com | limiter: fix reset race |
+| 9edbadd | 2025-09-02 09:00 | same | example.com | docs: limiter guide |
+
+## "Contributor to this project since January 2025"
+
+- **Supported only via an email he did not list.** The first commit under his stated addresses with a trustworthy date is 1455b31 on 2025-03-06. The only January commit with a normal date, 8ff4f2f (2025-01-08, a one-line README typo fix), uses `alex.kim@othercorp.example`. Same name, but the history cannot confirm it is him. If he confirms that address, "since January 2025" is accurate, though the first contribution is a typo fix.
+- **The only January 2025 commit under his own addresses is b19cb32**, which the history doesn't back up. Its author date is 2025-01-01 08:30 +09:00, which is 2024-12-31 23:30 UTC, so it falls in December in UTC. Its committer date is 2025-03-20, so it was rewritten or rebased. Author dates can be set freely, so it doesn't establish January.
+- He has contributed continuously since: Mar 2025 (docs, limiter), Jun 2025 (reset race fix), Sep 2025 (limiter guide).
+
+## "Built the rate limiter within my first month"
+
+- **Supported if "first month" counts from 2025-03-06 (first trustworthy commit under his stated emails).** The limiter was merged on 2025-03-24, 18 days later, and the drafts were committed on 2025-03-20. Counting from the drafts' author dates, work began 2024-12-31 UTC, which would be before his first January.
+- **Not supported if "first month" counts from January 2025** (his own CV claim). On that reading it took about 2.5 months from 2025-01-08 to the 2025-03-24 merge. The two claims in the CV are inconsistent with each other unless the start is March.
+- **"Built" is partly supported.** PR #61 (`alex/limiter`) was merged by Ines Duarte, not Alex. The 70-line `limiter.rb` came from his two WIP commits. Ines Duarte wrote the burst setting (aee13ca, 2025-04-02). Alex did the later reset race fix and guide (646c29a, 9edbadd). "Built" is fair for the initial implementation, but "the" rate limiter overstates it a little. "Authored the initial implementation" is safer.
+
+## Suggested wording
+"Contributor since March 2025 (earlier documentation fixes under another address, if confirmed); authored the initial rate limiter, merged 18 days after my first commit."
+
+## Open questions for Alex
+1. Is `alex.kim@othercorp.example` his? If so, January 2025 stands.
+2. Why were the two WIP commits' committer dates set to 2025-03-20 (rebase or history rewrite)? Is there an original PR or branch that shows when the work started?
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --date=iso-strict --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' | TZ=UTC cat; echo; git log --all --format='%h|%ae|%ad|%s' --date=format-local:'%Y-%m-%d %H:%M:%S UTC' | head -0; git log --all -i --grep='limiter' --format='%h %s'; git log --all --rever
+Bash: git log --all --format='%h|%an|%ae|%aI|%cI|%s' | TZ=UTC awk -F'|' 'BEGIN{IGNORECASE=1} $2~/kim/||$3~/kim|oldjob|example.com/' ; echo ---; git branch -a; git log --all --format='%h %p|%s' -n 12 | head -12; echo; for c in b19cb32 e1b8788 930ee50 aee13ca 646c29a 
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-CV_I-3/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md`. The git history partly supports the first claim and doesn't support the second. I didn't use the cv-builder skills, because this was a git-history check rather than a CV edit.
+
+- **"Contributor since January 2025":** partly supported.
+  - The earliest January commit is 8ff4f2f on 2025-01-08, but it uses `alex.kim@othercorp.example`, an address he didn't give us. It matches only on the name "Alex Kim".
+  - His earliest commit under either email he gave us is b19cb32, the limiter draft. Its UTC author date is 2024-12-31 23:30, just before January. It reads as 1 January only because of the stored +09:00 offset.
+  - Two of his commits, b19cb32 and e1b8788, were committed on 2025-03-20, months after their author dates, so those dates look rewritten or replayed.
+- **"Built the rate limiter within my first month":** not supported.
+  - Only the draft (b19cb32) falls in the first month. The next limiter commit, e1b8788, is dated 2025-02-14 01:00 UTC.
+  - The limiter was merged on 2025-03-24 (930ee50, PR #61), about twelve weeks after his first commit.
+  - Ines Duarte added the burst setting (aee13ca). His later limiter commits are one bug fix (646c29a) and the guide (9edbadd).
+  - The note suggests "drafted the rate limiter in my first weeks and shipped it in about three months".
+
+Ask Alex whether `alex.kim@othercorp.example` is his, because the January claim depends on it. The history also shows commits only, not reviews or issue discussion.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC. Checked against `git log --all` (single branch, `main`, 287 first-parent commits).
+Identities he gave us: `akim@oldjob.example.invalid` and `alex.kim@example.com`.
+
+## Commits relied on
+
+| Commit | Author date (UTC) | Committer date (UTC) | Email | Subject |
+|---|---|---|---|---|
+| 8ff4f2f | 2025-01-08 10:00 | same | alex.kim@othercorp.example | docs: fix typo in README |
+| b19cb32 | **2024-12-31 23:30** (stored as 2025-01-01 08:30 +09:00) | 2025-03-20 10:00 | akim@oldjob.example.invalid | wip: limiter draft |
+| e1b8788 | 2025-02-14 01:00 (stored as 10:00 +09:00) | 2025-03-20 10:01 | akim@oldjob.example.invalid | wip: limiter window logic |
+| 1455b31 | 2025-03-06 10:00 | same | akim@oldjob.example.invalid | docs: clarify pattern escaping |
+| 930ee50 | 2025-03-24 15:00 | same | ines@example.org (Ines Duarte) | Merge pull request #61 from alex/limiter |
+| aee13ca | 2025-04-02 12:00 | same | ines@example.org (Ines Duarte) | Limiter: add burst setting (#64) |
+| 646c29a | 2025-06-10 08:00 | same | alex.kim@example.com | limiter: fix reset race |
+| 954e81a | 2025-08-20 10:00 | same | alex.kim@othercorp.example | docs: update contributors |
+| 9edbadd | 2025-09-02 09:00 | same | alex.kim@example.com | docs: limiter guide |
+
+## "Contributor to this project since January 2025": partly supported
+
+- Supported: Alex Kim has commits on `main` from January 2025 onward. The earliest in January is 8ff4f2f (2025-01-08).
+- Caveat 1: that commit uses `alex.kim@othercorp.example`, an address he did not give us. It matches only on the name "Alex Kim". Ask him to confirm it is his.
+- Caveat 2: the earliest commit under either email he gave us is b19cb32. Its author date is 2024-12-31 23:30 UTC, so in UTC it falls just before January 2025. It only reads as 1 January in the +09:00 offset stored in the commit.
+- Caveat 3: b19cb32 and e1b8788 were committed on 2025-03-20, so their author dates came from an earlier local commit that was replayed or rebased. Author dates are easy to change, so they are weak evidence.
+- Caveat 4: the first Alex Kim commit under either of his stated emails with a committer date that could be checked is 1455b31 (2025-03-06). His limiter work reached `main` only through the merge at 930ee50 on 2025-03-24.
+- The wording "since January 2025" holds if 8ff4f2f is his. It cannot be shown from the two emails he gave us.
+
+## "Built the rate limiter within my first month": not supported
+
+- The start of his work is 2024-12-31 23:30 UTC at the earliest (b19cb32), or 2025-01-08 if only the first commit on `main` counts. A first month would end around 2025-01-31 to 2025-02-08.
+- By the author dates, the draft (b19cb32) is the only limiter work inside that window. The next limiter commit, e1b8788, is dated 2025-02-14 01:00 UTC, which is more than six weeks in.
+- The limiter was merged on 2025-03-24 (930ee50, PR #61), about twelve weeks after his first commit. By committer dates the work landed on 2025-03-20.
+- After the merge, Ines Duarte added the burst setting (aee13ca, 2025-04-02). Alex's later limiter commits are one bug fix (646c29a, 2025-06-10) and the guide (9edbadd, 2025-09-02).
+- What the history supports is that he started the limiter in his first weeks and was the main author of PR #61, which took about three months to land. "Built the limiter within my first month" overstates it. A more accurate wording is "drafted the rate limiter in my first weeks and shipped it in about three months".
+
+## Limits of this check
+
+- The history shows commits, not employment or involvement elsewhere (issues, reviews, discussion).
+- Git dates are self-reported by the committer's machine. Two of the commits show signs of rewriting (author date months before committer date).
+- I did not check whether `alex.kim@othercorp.example` belongs to him.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | while IFS='|' read h an ae cn ce a c s; do echo "$h|$an|$ae|$cn|$ce|A:$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S%z' "$(echo $a | sed 's/:\([0-9][0-9]\)$/\1/')" '+%Y-%m-%d %H:%M' 2>/dev/null)|C:$c|
+Bash: export TZ=UTC; git log --all --date=iso-local --format='%h|%an <%ae>|A:%ad|C:%cd|%s' --author='Alex Kim' ; echo; git log --all --format='%h %an' | grep -ci 'alex'; git log --all --date=iso-local --format='%h|%ad|%s' --since=2024-12-01 --reverse; echo; git bran
+Bash: export TZ=UTC; git show --stat --format='%h %s' b19cb32 e1b8788 | cat; git log --graph --oneline --format='%h %p %s' -9; git log -1 --format=%B 930ee50; ls TIMELINE.md 2>&1
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-BASE-1/fx/TIMELINE.md
+### Final answer text
+I've written the note to `TIMELINE.md`. I haven't committed it. The history doesn't clearly back either CV claim.
+
+- **"Contributor since January 2025":** Not cleanly supported under the two emails he gave.
+  - The earliest commit under those emails is the limiter draft `b19cb32`. Its author date is 2024-12-31 23:30 UTC, but it was committed on 2025-03-20.
+  - The earliest commit under those emails with matching author and committer dates is `1455b31` on 2025-03-06.
+  - The only January 2025 commit is `8ff4f2f` (2025-01-08), a README typo fix. It uses `alex.kim@othercorp.example`, which he didn't list. The name matches, but the history doesn't show it's the same person.
+- **"Built the rate limiter within my first month":** Not supported as written.
+  - He did write the initial limiter code (`b19cb32` and `e1b8788`). It reached `main` through PR #61, merged 2025-03-24 by Ines Duarte.
+  - Counted from 2025-01-08, that merge is about 11 weeks in. Counted from 2025-03-06, it is 18 days in, which would fit, but then "since January" is wrong.
+  - Ines Duarte added the burst setting (`aee13ca`). Alex Kim later fixed a reset race (`646c29a`, 2025-06-10) and wrote the guide (`9edbadd`, 2025-09-02).
+
+Two questions would settle it. Is the `othercorp` address his? And why do the WIP commits carry author dates weeks or months before their commit dates?
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC. Emails checked: `akim@oldjob.example.invalid` and `alex.kim@example.com`.
+
+## Commits relied on
+
+| Commit | Email | Author date | Committer date | Summary |
+|---|---|---|---|---|
+| 8ff4f2f | alex.kim@othercorp.example | 2025-01-08 | 2025-01-08 | docs: fix typo in README |
+| b19cb32 | akim@oldjob… | 2024-12-31 23:30 | 2025-03-20 10:00 | wip: limiter draft (adds `limiter.rb`, 40 lines) |
+| e1b8788 | akim@oldjob… | 2025-02-14 01:00 | 2025-03-20 10:01 | wip: limiter window logic (+30 lines) |
+| 1455b31 | akim@oldjob… | 2025-03-06 | 2025-03-06 | docs: clarify pattern escaping |
+| 930ee50 | ines@example.org | 2025-03-24 | 2025-03-24 | Merge PR #61 (`alex/limiter`), merged by Ines Duarte |
+| aee13ca | ines@example.org | 2025-04-02 | 2025-04-02 | Limiter: add burst setting (#64), by Ines Duarte |
+| 646c29a | alex.kim@example.com | 2025-06-10 | 2025-06-10 | limiter: fix reset race |
+| 954e81a | alex.kim@othercorp.example | 2025-08-20 | 2025-08-20 | docs: update contributors |
+| 9edbadd | alex.kim@example.com | 2025-09-02 | 2025-09-02 | docs: limiter guide |
+
+## "Contributor to this project since January 2025": not cleanly supported
+
+- Commits under the two emails he gave start with b19cb32. Its author date is 2024-12-31 23:30, which is before January in UTC. Its committer date is 2025-03-20.
+- Author dates can be set freely and the two WIP commits were committed on 2025-03-20, so those dates are weak evidence. The earliest commit under his stated emails with matching author and committer dates is 1455b31 on 2025-03-06.
+- The only January 2025 commit is 8ff4f2f (2025-01-08). It uses `alex.kim@othercorp.example`, which he did not list. The name matches, but the history doesn't show it's the same person. If he confirms that address, "since January 2025" holds, with a one-line typo fix as the first contribution.
+
+## "Built the rate limiter within my first month": not supported as written
+
+- Alex Kim wrote the first limiter code (b19cb32, e1b8788; 70 lines in `mustermann/lib/mustermann/limiter.rb`). It reached `main` through PR #61, merged 2025-03-24 (930ee50).
+- The timing depends on which start date is used:
+  - From 2025-01-08 (the othercorp commit): the merge came about 11 weeks in, and the second WIP commit's author date is already 2025-02-14. This is outside the first month.
+  - From 2025-03-06 (first matching-email commit with consistent dates): the merge came 18 days in, which would fit. But that contradicts "since January".
+  - From 2024-12-31 (b19cb32 author date): the draft dates to day 0, but the code wasn't committed until 2025-03-20 and merged 2025-03-24.
+- "Built" is partly supported. He wrote the initial implementation and later fixed a reset race (646c29a, 2025-06-10) and wrote the guide (9edbadd, 2025-09-02). Ines Duarte added the burst setting (aee13ca), merged the PR, and appears to have been the maintainer.
+
+## Summary
+
+The history supports Alex Kim being the author of the initial limiter implementation, merged 2025-03-24, and an ongoing contributor through 2025-09-02. It doesn't establish January 2025 as his start under the emails he gave, and it doesn't support "within my first month" unless his start is dated from March 2025. Two things would settle it: confirmation of the `othercorp` address, and the reason the WIP commits carry author dates that are weeks or months before their commit dates.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: TZ=UTC git log --all --format='%h|%an|%ae|%cn|%ce|%ad|%cd|%s' --date=format-local:'%Y-%m-%d %H:%M:%S' | head -100; git log --all --oneline | wc -l
+Bash: git log --all -i --author='kim\|alex' --format='%h %ae %s'; echo; for c in 8ff4f2f 1455b31 b19cb32 e1b8788 930ee50 aee13ca 646c29a 954e81a 9edbadd; do echo "== $c"; git show --stat --format='%h parents=%p %ad' --date=iso-strict $c | head -12; done; git branch 
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-BASE-2/fx/TIMELINE.md
+### Final answer text
+I wrote `TIMELINE.md` in the repo root. The history only partly supports "contributor since January 2025", and it doesn't support "built the limiter within my first month". I haven't committed the file.
+
+**"Contributor since January 2025": partly supported.**
+- The only clear January commit is `8ff4f2f` (2025-01-08, a README typo fix). It uses `alex.kim@othercorp.example`, which isn't either address he gave us. It matches by name only, so he needs to confirm it's his.
+- The limiter draft `b19cb32` has an author date of 2024-12-31 23:30 UTC. That falls in December 2024 in UTC, though it's 2025-01-01 in the commit's own +09:00 timezone.
+- That commit's committer date is 2025-03-20, so it was rewritten or rebased. Author dates can be set freely, so I wouldn't lean on it.
+- Using only his two stated emails, the first real commit is `1455b31` on 2025-03-06.
+
+**"Built the limiter within my first month": not supported.**
+- The limiter landed through PR #61, merged by Ines Duarte on 2025-03-24 (`930ee50`). That's 75 days after 2025-01-08.
+- Only a 40-line "wip" draft was authored in his first month. The follow-up `e1b8788` is dated 2025-02-14, which is past the first month.
+- He did write the core: the two WIP commits and PR #61. Afterwards he added a reset-race fix (`646c29a`, 2025-06-10) and a guide (`9edbadd`, 2025-09-02).
+- The burst setting (`aee13ca`) is Ines Duarte's, not his.
+
+I didn't check anything against GitHub, such as the PR #61 timeline or his account creation date. Git dates are self-reported, so those would be worth checking.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC. Checked with `git log --all` (single branch, `main`).
+Emails given by the candidate: `akim@oldjob.example.invalid`, `alex.kim@example.com`.
+
+## Commits relied on
+
+| Commit | Email | Author date (UTC) | Committer date (UTC) | What |
+|---|---|---|---|---|
+| 8ff4f2f | alex.kim@**othercorp**.example | 2025-01-08 | 2025-01-08 | docs: fix typo in README |
+| b19cb32 | akim@oldjob... | 2024-12-31 23:30 | 2025-03-20 10:00 | wip: limiter draft (adds `limiter.rb`, 40 lines) |
+| e1b8788 | akim@oldjob... | 2025-02-14 01:00 | 2025-03-20 10:01 | wip: limiter window logic (+30) |
+| 1455b31 | akim@oldjob... | 2025-03-06 | 2025-03-06 | docs: clarify pattern escaping |
+| 930ee50 | ines@example.org | 2025-03-24 | 2025-03-24 | Merge PR #61 `alex/limiter`; brings in the limiter |
+| aee13ca | ines@example.org | 2025-04-02 | 2025-04-02 | Limiter: add burst setting (#64), by Ines Duarte |
+| 646c29a | alex.kim@example.com | 2025-06-10 | 2025-06-10 | limiter: fix reset race |
+| 954e81a | alex.kim@othercorp.example | 2025-08-20 | 2025-08-20 | docs: update contributors |
+| 9edbadd | alex.kim@example.com | 2025-09-02 | 2025-09-02 | docs: limiter guide |
+
+## "Contributor to this project since January 2025": partly supported
+
+- Supported only on weak grounds. The January commit that is clearly in the project
+  (8ff4f2f, 2025-01-08) uses `alex.kim@othercorp.example`. He did not give us that
+  address. It matches by name only, so it needs confirming that it is his.
+- b19cb32 has an author date of 2024-12-31 23:30 UTC, which is 2025-01-01 in its
+  +09:00 timezone. In UTC that is December 2024, not January 2025. Its committer date is
+  2025-03-20, so the commit was rewritten or rebased. Author dates can be set freely,
+  so this date is not reliable evidence.
+- Using only the two addresses he gave us, the first commit that was actually committed
+  is 1455b31 on 2025-03-06. The earliest authored dates are 2024-12-31 and 2025-02-14,
+  but both commits were only committed on 2025-03-20.
+
+## "Built the rate limiter within my first month": not supported as written
+
+- The limiter came in through PR #61, merged by Ines Duarte on 2025-03-24 (930ee50).
+  That is 75 days after 8ff4f2f (2025-01-08). It is also over three weeks after the
+  author-date start of the draft (2025-01-01 in his local time, 2024-12-31 in UTC).
+- Only the draft was authored in his first month. b19cb32 is a 40-line "wip" file.
+  Its second commit (e1b8788) is dated 2025-02-14, which is after the first month.
+  Nothing in the history shows a finished limiter within 30 days of any start date
+  above.
+- He did contribute the limiter's core: the two `akim@oldjob` WIP commits and PR #61.
+  After the merge he also pushed a reset-race fix (646c29a, 2025-06-10) and a guide
+  (9edbadd, 2025-09-02). The burst setting (aee13ca) is Ines Duarte's work, not his.
+  "Built" is fair for the core, but not "within the first month".
+
+## Caveats
+
+- Git dates are self-reported and can be edited. The committer dates on the two WIP
+  commits show they were rewritten.
+- The othercorp attribution needs the candidate's confirmation. Nothing here has
+  been verified against GitHub (PR #61 timeline, account creation date).
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | TZ=UTC cat; echo; git log --all -i --grep='limiter' --format='%h %s'; git log --all --format='%h' -i -S'limiter' --diff-filter=A --name-status | head -30
+Bash: git log --all --author='Kim' -i --format='%h|%ae|%aI|%cI|%s' --name-status | head -60; echo ---; git log --all --format='%h %ae' | grep -i -E 'kim|alex'|wc -l; git show -s --format='%h %P %s' 930ee50; git branch -a; git log --all --format='%h %aI %s' --since=2
+Bash: cat > TIMELINE.md <<'EOF' ; # Alex Kim: CV claims vs. git history ;  ; All dates are UTC. Checked with `git log --all` (single branch, `main`). Addresses given by the candidate: `akim@oldjob.example.invalid`, `alex.kim@example.com`. ;  ; ## Commits by those addresses ;  ; |
+### Final answer text
+I wrote the note to `TIMELINE.md`. The history supports part of what the CV says, but not the timing as written.
+
+- **"Contributor since January 2025":** not supported as stated.
+  - His earliest commit from the addresses he gave us is the limiter draft, b19cb32. Its author date is 2024-12-31 23:30 UTC, so in UTC it falls before January. It only reads as 1 January in +09:00 local time.
+  - The commit date for that draft is 2025-03-20, which suggests the commits were rewritten before pushing. The first commit with an untouched date is 1455b31 on 2025-03-06.
+  - The 2025-01-08 README typo fix (8ff4f2f) is under `alex.kim@othercorp.example`, which he didn't give us. I didn't count it, and the note says so. If he confirms it's his, it would back an early-January start.
+- **"Built the rate limiter within my first month":** partly supported, depending on where you start the clock.
+  - He did write it. The limiter arrived through his PR #61, merged on 2025-03-24 (930ee50).
+  - Counting from 2025-03-06, the limiter commits and merge are 14 to 18 days later, which fits.
+  - Counting from the draft's author date of 2024-12-31, the merge is about 83 days later, which doesn't fit.
+  - The limiter also wasn't finished at merge. Ines Duarte added the burst setting on 2025-04-02, and Alex later fixed a race (2025-06-10) and wrote the guide (2025-09-02).
+
+Git dates can be set freely and nothing here is signed, so the note treats the recorded dates as claims, not proof.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC. Checked with `git log --all` (single branch, `main`). Addresses given by the candidate: `akim@oldjob.example.invalid`, `alex.kim@example.com`.
+
+## Commits by those addresses
+
+| Commit | Address | Author date (UTC) | Commit date (UTC) | Subject |
+|---|---|---|---|---|
+| b19cb32 | oldjob | 2024-12-31 23:30 (written as 2025-01-01 08:30 +09:00) | 2025-03-20 10:00 | wip: limiter draft (adds `limiter.rb`) |
+| e1b8788 | oldjob | 2025-02-14 01:00 (written as 10:00 +09:00) | 2025-03-20 10:01 | wip: limiter window logic |
+| 1455b31 | oldjob | 2025-03-06 10:00 | 2025-03-06 10:00 | docs: clarify pattern escaping |
+| 930ee50 | (Ines Duarte) | 2025-03-24 15:00 | 2025-03-24 15:00 | Merge PR #61 from alex/limiter, which brings the limiter into `main` |
+| 646c29a | example.com | 2025-06-10 08:00 | 2025-06-10 08:00 | limiter: fix reset race |
+| 9edbadd | example.com | 2025-09-02 09:00 | 2025-09-02 09:00 | docs: limiter guide |
+
+Not by the stated addresses: 8ff4f2f (2025-01-08, README typo) and 954e81a (2025-08-20, contributors list) are by "Alex Kim" at `alex.kim@othercorp.example`. That address is not one he gave us. The history can't show it is the same person, so I did not count these commits. If he confirms the address is his, 8ff4f2f would be an early-January contribution.
+
+## "Contributor to this project since January 2025"
+
+**Not supported as stated; only weakly supported at best.**
+- The earliest commit by his stated addresses is b19cb32. Its author date is 2024-12-31 23:30 UTC, which is the day before January in UTC. It only reads as 1 January in the +09:00 local time.
+- That author date was set by the committer and can't be verified. The commit date is 2025-03-20, which suggests the commits were rewritten or rebased before they were pushed.
+- The first commit with a plain, unrewritten date is 1455b31 on 2025-03-06. Nothing from his stated addresses reached `main` before the 2025-03-24 merge.
+- Calling it "since early 2025" is fair if you accept the author dates on the draft commits. "Since January 2025" is not backed by anything we can verify.
+
+## "Built the rate limiter within my first month"
+
+**Partly supported, depending on which start date you use.**
+- He did write the limiter. `limiter.rb` was added in b19cb32 and extended in e1b8788, and the work arrived via his PR #61, merged on 2025-03-24.
+- If his start is the first commit date in the history, 2025-03-06 (1455b31): the limiter commits are dated 2025-03-20 and the merge is 2025-03-24, which is 14 and 18 days later. That fits "within a month".
+- If his start is the draft's author date, 2024-12-31: the merge came about 12 weeks later (83 days). That does not fit "within a month". It fits only if "built" means the first draft, and that rests on the unverifiable author dates.
+- It wasn't finished at merge. Ines Duarte added the burst setting on 2025-04-02 (aee13ca, #64). Alex later fixed a reset race (2025-06-10, 646c29a) and wrote the guide (2025-09-02, 9edbadd).
+
+## Limits of this check
+Git author and commit dates can be set freely, and nothing here is signed. The history shows what was recorded, not when the work was done. The claims that the limiter was merged on 2025-03-24 and that he wrote it are the best supported parts. The "January" and "first month" timing both rest on author dates that were rewritten on 2025-03-20.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | while IFS='|' read h an ae cn ce ad cd s; do echo "$h|$an|$ae|$cn|$ce|A:$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S%z' "$(echo $ad|sed 's/\([+-][0-9][0-9]\):\([0-9][0-9]\)$/\1\2/')" '+%Y-%m-%dT%H:%
+Bash: export TZ=UTC; git log --all --author='Alex Kim' --author='akim@' --author='alex' -i --date=format-local:'%Y-%m-%d %H:%M' --format='%h|%ae|author %ad|commit %cd|%s' --date=format-local:'%Y-%m-%d %H:%M' | head -30; echo; git log --all --reverse --date=format-lo
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-RCP_I-1/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md`. Neither CV claim holds up cleanly on the two emails Alex gave us. I didn't use the receipts skill's report, because it summarizes Claude Code usage and doesn't answer this question. I checked the history directly, in UTC.
+
+- **"Contributor since January 2025": only weakly supported.**
+  - By commit date, the earliest commit on the two claimed emails is 2025-03-06 (`1455b31`).
+  - The one thing pointing at January is `b19cb32`, "wip: limiter draft". Its author date is 2024-12-31 23:30 UTC, but it was committed on 2025-03-20, so it was rewritten after it was first written. The note says an author date shows what the commit claims, not when it reached the project.
+  - A third address, `alex.kim@othercorp.example`, has a same-name commit on 2025-01-08 (`8ff4f2f`). Alex didn't give us that address, so I didn't count it. If Alex confirms it's theirs, January is supported.
+- **"Built the rate limiter within my first month": not supported as written.**
+  - The limiter first appears on 2025-03-20 as two "wip" commits (`b19cb32`, `e1b8788`) and was merged on 2025-03-24 (`930ee50`, committed by Ines Duarte).
+  - Counting from 2025-03-06, the merge is 18 days later, so it fits. Counting from January, it doesn't.
+  - Alex can't have both a January start and a limiter built in the first month.
+  - "Built" is also generous. Ines Duarte merged it and added the burst setting (`aee13ca`, 2025-04-02). Alex's later work was a race fix (`646c29a`, 2025-06-10) and a guide (`9edbadd`, 2025-09-02).
+
+The merge title mentions a branch named `alex/limiter`, but that branch isn't in this repo and I didn't check GitHub.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC. Checked with `git log --all` on `main` (the only branch). Identities provided: `akim@oldjob.example.invalid`, `alex.kim@example.com`.
+
+## Commits found
+
+| Commit | Email | Author date | Commit date | Subject |
+|---|---|---|---|---|
+| b19cb32 | akim@oldjob | 2024-12-31 23:30 | 2025-03-20 10:00 | wip: limiter draft |
+| e1b8788 | akim@oldjob | 2025-02-14 01:00 | 2025-03-20 10:01 | wip: limiter window logic |
+| 1455b31 | akim@oldjob | 2025-03-06 10:00 | 2025-03-06 10:00 | docs: clarify pattern escaping |
+| 930ee50 | ines@example.org | n/a | 2025-03-24 15:00 | Merge pull request #61 from alex/limiter (adds `limiter.rb`, 70 lines) |
+| aee13ca | ines@example.org | n/a | 2025-04-02 12:00 | Limiter: add burst setting (#64) |
+| 646c29a | alex.kim@example.com | n/a | 2025-06-10 08:00 | limiter: fix reset race |
+| 9edbadd | alex.kim@example.com | n/a | 2025-09-02 09:00 | docs: limiter guide |
+
+Where the author date column says "n/a", the author date equals the commit date.
+
+## "Contributor to this project since January 2025": only partly supported
+
+- The two claimed emails have no commit dated in January 2025 by commit date. Their earliest commit date is 2025-03-06 (1455b31).
+- The only link to January is an author date. b19cb32 has an author date of 2024-12-31 23:30 UTC, which is 1 Jan in any timezone east of UTC. It was committed on 2025-03-20, so it was rewritten or rebased after it was first authored. Author dates can be set freely, so this shows when the commit claims to have been written. It doesn't show when it reached the project.
+- A third address, `alex.kim@othercorp.example`, has a same-name commit on 2025-01-08 (8ff4f2f, README typo) and one on 2025-08-20 (954e81a, contributors list). It is not one of the two addresses Alex gave us, so I did not count it. If Alex confirms it is theirs, January 2025 would be supported by 8ff4f2f. Ask them.
+- Contributions are sporadic after March 2025 (June and September), so "since January 2025" is accurate at most as "first involved", not continuous.
+
+## "Built the rate limiter within my first month": not supported as stated
+
+- The limiter first appeared in the project's history on 2025-03-20 (b19cb32 and e1b8788, both "wip") and was merged on 2025-03-24 (930ee50, committed by Ines Duarte). Alex Kim's authorship of those two commits is clear.
+- If the first contribution is 2025-03-06 (the earliest claimed-email commit date), the merge came 18 days later, which fits "first month".
+- If the first contribution is January 2025, as the CV says, the claim fails. The merge came about 2.7 months after 2025-01-01, and the draft commit's own author date (2024-12-31) is almost 3 months before the merge.
+- The CV's two claims can't both hold on the same dates: January start plus "limiter within the first month" is not supported by anything on the two claimed emails.
+- "Built" is also a stretch. Alex wrote the initial implementation (two wip commits). Ines Duarte merged it and added the burst setting (aee13ca, 2025-04-02). Alex later fixed a reset race (646c29a) and wrote a guide (9edbadd).
+
+## Caveats
+
+- Matching by email shows who committed under those addresses, not who the person is. The two claimed addresses are consistent with Alex's account.
+- The merge title says `alex/limiter`, so PR #61 came from a branch named for Alex. The branch is not in this repo, and I did not look at GitHub.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso-strict | TZ=UTC cat; echo; git log --all --format='%h %ad %an <%ae> %s' --date=format-local:'%Y-%m-%d %H:%M:%S UTC' | head -0; TZ=UTC git log --all --date=format-local:'%Y-%m-%d %H:%M UTC' --for
+Bash: git log --all --format='%h|%an|%ae|%aI|%cI|%s' | grep -i -E 'kim|akim|limiter' ; echo ---; git log --all --author='Kim' --format='%h %ae' | wc -l; echo; for c in b19cb32 e1b8788 646c29a 954e81a 9edbadd 8ff4f2f 1455b31; do echo "== $c"; git show --stat --format
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-RCP_I-2/fx/TIMELINE.md
+Bash: python3 - <<'E' ; p='TIMELINE.md';s=open(p).read() ; s=s.replace("2025-02-13 01:00 (+09:00 stamp is 02-14 10:00)","2025-02-14 01:00 (written as 02-14 10:00 +09:00)") ; i=s.index("Note on e1b8788");j=s.index("## \"Contributor") ; s=s[:i]+s[j:] ; open(p,'w').write(s) ; E ; gi
+### Final answer text
+I wrote the note to `TIMELINE.md` (not committed). I didn't run the receipts skill. It builds a Claude Code usage report from local session transcripts, which can't check a candidate's claims. I checked the git history directly instead.
+
+- **"Contributor since January 2025": only partly supported.**
+  - The earliest commit under his two stated emails is b19cb32. It is stamped 2025-01-01 08:30 +09:00, which is **2024-12-31 23:30 UTC**.
+  - That commit was rewritten on 2025-03-20 (committer date), so the January date rests on metadata alone.
+  - The first plain January 2025 UTC commit is 8ff4f2f (2025-01-08). It uses a third address, alex.kim@othercorp.example, which he didn't list. The history only shows the same name, so he should confirm it's his.
+  - He keeps committing through 2025-09-02.
+- **"Built the rate limiter within my first month": not supported.**
+  - The first month has only the 40-line draft.
+  - The window logic (e1b8788) is dated 2025-02-14 UTC.
+  - The limiter reached `main` on 2025-03-24, when Ines Duarte merged PR #61 (930ee50).
+  - Alex wrote the original code, then later fixed a race (646c29a) and wrote the guide (9edbadd). The burst setting (aee13ca) is Ines's.
+
+Author dates can be edited, so the note also lists what the history can't show. That includes whether the old-job commits were written before they were re-committed, and any work outside this repo.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC, taken from `git log --all` (single branch, `main`). "Author date" is when the commit says it was written. "Committer date" is when it was last rewritten or applied. Both can be edited, so neither is proof.
+
+Identities checked: `akim@oldjob.example.invalid` and `alex.kim@example.com`, as the candidate gave them. One more address, `alex.kim@othercorp.example`, uses the same name and is covered below.
+
+## Commits relied on
+
+| Commit | Email | Author date (UTC) | Committer date (UTC) | What |
+|---|---|---|---|---|
+| b19cb32 | akim@oldjob | 2024-12-31 23:30 (written as 2025-01-01 08:30 +09:00) | 2025-03-20 10:00 | wip: limiter draft (new `limiter.rb`, 40 lines) |
+| e1b8788 | akim@oldjob | 2025-02-14 01:00 (written as 02-14 10:00 +09:00) | 2025-03-20 10:01 | wip: limiter window logic (+30 lines) |
+| 1455b31 | akim@oldjob | 2025-03-06 10:00 | 2025-03-06 10:00 | docs: clarify pattern escaping |
+| 930ee50 | ines@example.org | 2025-03-24 15:00 | same | Merge PR #61 `alex/limiter`; the limiter lands on main here |
+| aee13ca | ines@example.org | 2025-04-02 12:00 | same | Limiter: add burst setting (#64), by a different author |
+| 646c29a | alex.kim@example.com | 2025-06-10 08:00 | same | limiter: fix reset race |
+| 9edbadd | alex.kim@example.com | 2025-09-02 09:00 | same | docs: limiter guide |
+| 8ff4f2f | alex.kim@othercorp (not claimed) | 2025-01-08 10:00 | same | docs: fix README typo |
+| 954e81a | alex.kim@othercorp (not claimed) | 2025-08-20 10:00 | same | docs: update contributors |
+
+## "Contributor to this project since January 2025"
+
+**Partly supported, and the answer depends on the timezone.**
+- The earliest commit under either claimed address is b19cb32. It is dated 2025-01-01 08:30 in +09:00 but **2024-12-31 23:30 in UTC**. By the UTC rule that is a December 2024 date, not January.
+- Its committer date is 2025-03-20. The commit was rewritten or rebased then, so the January author date comes from the commit's own metadata and nothing else corroborates it.
+- The first commit that is plainly in January 2025 UTC is 8ff4f2f (2025-01-08). It uses `alex.kim@othercorp.example`, which the candidate did not list. The history only shows it is the same name. Ask the candidate to confirm it is theirs.
+- On the two claimed addresses alone, the first commit with a committer date in 2025 is 2025-03-06 (1455b31), and the committer dates on the limiter drafts are 2025-03-20.
+- Contributions are then continuous through 2025-09-02.
+
+## "Built the rate limiter within my first month"
+
+**Not supported.**
+- Counting from the earliest plausible start (2024-12-31 UTC, or 2025-01-08 if the othercorp identity is theirs), the first month ends around 2025-01-31 or 2025-02-08.
+- In that window the history has only the 40-line draft (b19cb32). The window logic (e1b8788) is 2025-02-14 UTC, which is after the month ends. The limiter reaches `main` on **2025-03-24** (930ee50), about three months after the first commit.
+- The claim is only reachable if you read the author-date stamps as the real writing dates. Both drafts were committed on 2025-03-20, four days before the merge, which fits work done earlier and then rewritten. The history can't show the work happened in January.
+- Alex wrote the original code (+70 lines across b19cb32 and e1b8788) and later fixed a race (646c29a) and wrote the guide (9edbadd). The burst setting (aee13ca) is Ines Duarte's. "Built" is fair as shorthand for authoring the initial version. It overstates things if it implies sole ownership of the finished feature.
+
+## What the history can't tell us
+- Whether the two oldjob wip commits were written before the author-date stamps or only back-dated. The committer dates of 2025-03-20 show they were rewritten.
+- Whether `alex.kim@othercorp.example` is the same person.
+- Anything outside this repo, such as private forks or earlier PR branches that were never pushed here.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --date=iso-strict --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' | TZ=UTC cat; echo; git log --all --format='%h %ad %cd' --date=format-local:'%Y-%m-%d %H:%M UTC' | head -0; git shortlog -sne --all; ls
+Bash: git log --all --format='%h|%an|%ae|%ce|A:%aI|C:%cI|%s' --date=iso-strict -i --author='kim' ; echo ---; git log --all --format='%h|%an|%ae|%aI|%s' -i --grep=limiter; echo ---; git log --all --format='%h %aI %s' -- '*limit*'; echo; git show --stat --format='%h %
+Bash: git log --format='%h %p | %aI | %cI | %an | %s' 8ff4f2f^..930ee50 | head -20; echo; git log --format='%h %aI %an %s' --diff-filter=A -- mustermann/lib/mustermann/limiter.rb; git show -s --format='%h %P %B' 930ee50; git log --format=%h --reverse --author='Alex 
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-RCP_I-3/fx/TIMELINE.md
+Edit: /private/tmp/wp-r16/gate5/runs/W13T5-RCP_I-3/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md` in the repo root. I did not run the receipts skill's miner. That skill makes a Claude Code usage report, which doesn't check CV claims, so I used `git log` directly. I haven't committed the file.
+
+- **"Contributor since January 2025":** only partly supported.
+  - The earliest commit under his name is `8ff4f2f` on 2025-01-08. It uses `alex.kim@othercorp.example`, which isn't either address he gave you, so only the name links it to him.
+  - Under his two stated emails, `b19cb32` ("limiter draft") has an author date of 2024-12-31 23:30 UTC. Its committer date is 2025-03-20, so the commit was rewritten or rebased, and the author date is only what the commit claims.
+  - Nothing from his stated emails reached `main` before the PR #61 merge on 2025-03-24.
+- **"Built the rate limiter within my first month":** not supported as written.
+  - He wrote the initial draft (`b19cb32`) and the window logic (`e1b8788`, author date 2025-02-14). Both are marked "wip", and both were committed on 2025-03-20.
+  - They landed in `main` through the merge on 2025-03-24, about 11 weeks after his earliest commit.
+  - Ines Duarte merged the PR and added the burst setting (`aee13ca`, 2025-04-02). He later fixed a race (`646c29a`, 2025-06-10) and wrote the guide (`9edbadd`, 2025-09-02).
+- **Third email:** `alex.kim@othercorp.example` is on two commits (`8ff4f2f`, `954e81a`) and he didn't mention it. It's worth asking him about.
+
+Git can't prove who wrote the code, because names, emails and dates can all be set by the committer. The note suggests confirming with the PR #61 review thread or with Ines Duarte.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs git history
+
+All dates are UTC. Source: `git log --all` (421 commits, single branch `main`). Alex gave two commit emails: `akim@oldjob.example.invalid` and `alex.kim@example.com`.
+
+## Commits by "Alex Kim"
+
+| Commit | Author date (UTC) | Committer date (UTC) | Email | What |
+|---|---|---|---|---|
+| 8ff4f2f | 2025-01-08 | 2025-01-08 | alex.kim@othercorp.example | docs: fix typo in README |
+| b19cb32 | **2024-12-31 23:30** (written as 2025-01-01 08:30+09:00) | 2025-03-20 10:00 | akim@oldjob | wip: limiter draft (creates `limiter.rb`, 40 lines) |
+| e1b8788 | 2025-02-14 01:00 (written as 10:00+09:00) | 2025-03-20 10:01 | akim@oldjob | wip: limiter window logic (30 lines) |
+| 1455b31 | 2025-03-06 | 2025-03-06 | akim@oldjob | docs: clarify pattern escaping |
+| 930ee50 | 2025-03-24 | 2025-03-24 | (Ines Duarte) | Merge PR #61 `alex/limiter` into main |
+| 646c29a | 2025-06-10 | 2025-06-10 | alex.kim@example.com | limiter: fix reset race (+6 lines) |
+| 954e81a | 2025-08-20 | 2025-08-20 | alex.kim@othercorp.example | docs: update contributors |
+| 9edbadd | 2025-09-02 | 2025-09-02 | alex.kim@example.com | docs: limiter guide |
+
+Other limiter work: aee13ca (2025-04-02, Ines Duarte), "Limiter: add burst setting (#64)".
+
+## "Contributor to this project since January 2025"
+
+**Partly supported, with caveats.**
+- The earliest commit under his name is 8ff4f2f on 2025-01-08 (January 2025). It uses `alex.kim@othercorp.example`, which is neither address he gave us. Only the name ties it to him.
+- Of the commits under his stated emails, the earliest author date is b19cb32 at 2024-12-31 23:30 UTC. That is just before January in UTC, and January 1 only in the +09:00 offset it was written in. Its committer date is 2025-03-20, so the commit was rewritten or rebased then. The January/February author dates are therefore self-reported timestamps, not proof of when the work was done.
+- Nothing from his stated emails reached `main` before the PR #61 merge on 2025-03-24. The first non-WIP commit under `akim@oldjob` is 1455b31 on 2025-03-06.
+- Verdict: he was contributing by January 2025 only if 8ff4f2f is his. If you count only his stated emails and dates the history can verify, "since March 2025" is the safe reading.
+
+## "Built the rate limiter within my first month"
+
+**Not supported as written.**
+- The limiter file first appears in b19cb32, a draft he authored. It is a real contribution.
+- The draft is labelled "wip", and so is the next commit. Both were committed on 2025-03-20, and the work only landed in `main` via the merge on 2025-03-24. That is about 11 weeks after 8ff4f2f (his earliest commit) and about 12 weeks after the nominal 2025-01-01 draft date.
+- Even by author dates alone, the second limiter commit is 2025-02-14. That is more than a month after both 2025-01-01 and 2025-01-08.
+- It was not his work alone. Ines Duarte merged it and added the burst setting (aee13ca, 2025-04-02). He later fixed a race (646c29a, 2025-06-10) and wrote the guide (9edbadd, 2025-09-02).
+- Verdict: the history supports "wrote the initial limiter draft and window logic, merged 2025-03-24". It does not support "built it within the first month".
+
+## Other points
+- `alex.kim@othercorp.example` appears on 2 commits (8ff4f2f, 954e81a) but was not in his list. Ask him whether it is his.
+- Git cannot show who wrote the code, only who the commit claims to be from. Author and committer dates and emails are all settable, so confirm with PR #61's review thread or with Ines Duarte.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-1/fx; CLI=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $CLI figures --person "Alex Kim" 2>&1 | head -60; echo ----; git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=format:'%Y-%m-%d %H:%M UTC' --date-o
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-1/fx; for c in b19cb32 e1b8788 1455b31 646c29a 9edbadd 930ee50 aee13ca; do echo "== $c"; git show --stat --format='%h %an <%ae> A:%aI C:%cI P:%p%n%s' $c | head -12; done; git log --format='%h %an %aI' --first-parent
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-OURS-1/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md`. The history only partly supports the CV: the project's own dates back "since January 2025" only if you trust author dates on commits that were rewritten in March. The tool's figures summary wouldn't give per-person counts here, because it found three people called Alex Kim. I used git directly for the dates and commits below.
+
+**"Contributor since January 2025": holds, with an exception.**
+- Alex's earliest commit is b19cb32, the limiter draft. Its author date is 2025-01-01 08:30 at +09:00, which is 2024-12-31 23:30 UTC.
+- That commit was rewritten or replayed on 2025-03-20, so its author date can't be checked.
+- The first Alex commit recorded on its own date is 1455b31 on 2025-03-06. Ines Duarte merged the limiter on 2025-03-24 (930ee50).
+
+**"Built the rate limiter within my first month": doesn't hold on author dates.**
+- The second limiter commit, e1b8788, is authored 2025-02-14 01:00 UTC. That is 45 days after the first commit, so the work ran past a month.
+- On committer dates the span is 2025-03-06 to the 2025-03-24 merge, 18 days. But both limiter commits were replayed on 2025-03-20, so those dates show when they were applied, not when the work was done.
+- Alex wrote 76 of the 88 lines in the limiter file. Ines added the burst setting (aee13ca, 2025-04-02), so Alex wasn't the only author.
+
+**Left out:** a third "Alex Kim" appears under an unrelated organisation's address (8ff4f2f and 954e81a). Alex didn't claim it and nothing links it to them. Neither address is in the note.
+
+To settle the author dates, ask Alex for the original branch, pull request or ticket dates from before the March rewrite.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims checked against the git history
+
+All dates are UTC. Alex named two commit addresses: the old-employer one and the example.com one. Both were checked. A third "Alex Kim" appears under an unrelated organisation's address (commits 8ff4f2f, 2025-01-08, and 954e81a, 2025-08-20). Alex did not claim it and nothing links it to them, so it is left out.
+
+## Claim 1: "contributor to this project since January 2025"
+
+**Holds with an exception.**
+
+- The earliest commit written by Alex is b19cb32, "wip: limiter draft". Its author date is 2025-01-01 08:30 at +09:00, which is **2024-12-31 23:30 UTC**. In local time it is January 2025. In UTC it is the day before.
+- That commit did not reach the project in January. Its committer date is 2025-03-20, so it was rewritten or replayed then. The author date is whatever was recorded at the time and can't be checked from here.
+- The first Alex commit that was actually recorded on its own date is 1455b31, "docs: clarify pattern escaping", on **2025-03-06**.
+- The limiter work was merged by Ines Duarte on **2025-03-24** (merge 930ee50, PR #61).
+- So the history fully supports contributing from March 2025. January 2025 rests only on the author dates of commits replayed in March.
+
+## Claim 2: "built the rate limiter within my first month"
+
+**Does not hold on author dates. Holds only on committer dates. Not verifiable here.**
+
+- Alex's limiter commits:
+  - b19cb32, draft, 40 lines, authored 2024-12-31 UTC.
+  - e1b8788, window logic, 30 lines, authored 2025-02-14 01:00 UTC. This is 45 days after the first commit, so it falls outside a first month counted from that date.
+  - 646c29a, "fix reset race", 6 lines, 2025-06-10.
+  - 9edbadd, limiter guide (docs), 25 lines, 2025-09-02.
+- Measured from the author dates, the build took about six weeks and did not fit in a month.
+- Measured from the committer dates, the first Alex commit is 2025-03-06 and the merge is 2025-03-24, which is 18 days. That fits within a month, but both limiter commits were replayed on 2025-03-20, so those dates reflect when they were applied, not when the work was done.
+- Ines Duarte, not Alex, added the burst setting (aee13ca, 2025-04-02, 12 lines). Alex wrote 76 of the 88 lines in the limiter file, so "built" is broadly fair. It was not the sole work on the file.
+
+## What history can't decide
+
+Whether the author dates are real. The dates before March 2025 all come from commits that were rewritten on 2025-03-20. Asking Alex for the original branch, pull request or ticket dates would settle it.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-2/fx; W="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $W figures --person "Alex Kim" 2>&1 | head -60; echo ----; git log --all --format='%h|%an|%ae|%aI|%cI|%s' -i --author='kim' --author='akim'; echo ----;
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-2/fx; ls /private/tmp/wp-r16/arms/ours19/dist/src/ 2>&1 | head; which node; git show --stat --format='%h %an <%ae> A:%aI C:%cI %s' b19cb32 e1b8788 646c29a 9edbadd 930ee50 | cat; git log -3 --format='%h %p %s' 930ee5
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-2/fx; W=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $W figures --person "Alex Kim" 2>&1 | head -50; node $W owner --path mustermann/lib/mustermann/limiter.rb --claim "Alex Kim" 2>&1 | head -20; git show 8f
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-2/fx; W=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; for a in akim@oldjob.example.invalid alex.kim@example.com; do echo "== $a"; node $W figures --author $a 2>&1 | grep -E '^(authored non-merge commits \||first 
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-OURS-2/fx/TIMELINE.md
+### Final answer text
+I've written `TIMELINE.md`. Neither CV statement holds cleanly against the history.
+
+- **"Contributor since January 2025":** it doesn't hold as written. His earliest commit under the two addresses he gave us is b19cb32. Its author date is 2025-01-01 08:30 at +09:00, which is 2024-12-31 23:30 UTC. That commit was only recorded in the repository on 2025-03-20, so the author date may have been rewritten, and the history can't say whether it's true. By recorded (committer) date his earliest commit is 1455b31 on 2025-03-06. A third "Alex Kim" address has a 2025-01-08 README commit (8ff4f2f). I didn't count it because he didn't give us that address. If it is his, it would support January.
+- **"Built the rate limiter within my first month":** this holds in part. He wrote 76 of the 88 surviving lines in `limiter.rb` (86.4%), so "built" is fair. On author dates the work runs from 2024-12-31 to 2025-02-14, then merges on 2025-03-24 (930ee50). That is more than a month. It only fits if his start is counted as 2025-03-06. The limiter was also not finished then: Ines Duarte added the burst setting on 2025-04-02 (aee13ca), and he fixed a reset race on 2025-06-10 (646c29a).
+
+The figures tool wouldn't give totals for "Alex Kim" by name, because three authors in the history share that name. I ran it once per address he gave us. The note has no email addresses in it.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims checked against the git history
+
+All dates are UTC. Commits are matched on the two addresses Alex gave us (the old-employer one and the example.com one). Together they hold 5 non-merge commits, none merged or reverted by anyone.
+
+## "Contributor to this project since January 2025": does not hold as written, with an exception
+
+- Earliest commit under the two addresses: b19cb32 "wip: limiter draft". Its author date is 2025-01-01 08:30 at +09:00, which is **2024-12-31 23:30 UTC**. In UTC the first date is December 2024, not January 2025.
+- That date is only what the commit says. The commit was recorded in the repository on 2025-03-20 (committer date), so it was rebased or replayed; the history cannot show whether the author date is true or was backdated.
+- On committer dates, the earliest is 1455b31 "docs: clarify pattern escaping" on 2025-03-06 (author and committer date agree). On that basis he contributed from March 2025.
+- Not verifiable here: 8ff4f2f "docs: fix typo in README" (2025-01-08) is by an Alex Kim using a third address, at an unrelated organisation. He did not give us that address, so we have not counted it. If it is his, it would support "January 2025". He would need to confirm it.
+
+## "Built the rate limiter within my first month": holds in part
+
+Supported:
+- Alex wrote most of it. Of the 88 lines in `limiter.rb` today, 76 (86.4%) are his and 12 (13.6%) are Ines Duarte's. The file was created by his b19cb32.
+- Draft b19cb32 (40 lines) and window logic e1b8788 (30 lines) went in through PR #61, merged by Ines Duarte in 930ee50 on 2025-03-24.
+
+Not supported:
+- On author dates the work spans more than a month: draft 2024-12-31, window logic e1b8788 on 2025-02-14 (01:00 UTC), which is 45 days later. Merge was 2025-03-24. The "first month" fits only if his first day is counted as 2025-03-06 (committer date), because both limiter commits were recorded on 2025-03-20 and merged on 2025-03-24.
+- It was not finished in that window. Ines Duarte's aee13ca "Limiter: add burst setting (#64)" on 2025-04-02 added 12 lines, with Alex credited as co-author. His own later work is the reset-race fix 646c29a (2025-06-10, 6 lines) and the guide 9edbadd (2025-09-02, 25 lines).
+- "Built" is fair for the core; "built within the first month" depends on which date you trust, and the history cannot settle that. His own explanation of the 2025-03-20 recording would.
+
+## Other notes
+- 954e81a "docs: update contributors" (2025-08-20) is also under the othercorp Alex Kim address, so it is not counted for him.
+- Counts: old-employer address 3 commits (2024-12-31 to 2025-03-06, 71 lines); example.com address 2 commits (2025-06-10 to 2025-09-02, 31 lines).
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-3/fx; W="node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js"; $W figures --person "Alex Kim" 2>&1 | head -60; echo ----; git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=format-local:%Y-%m-%d --date=iso-stric
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-3/fx; ls /private/tmp/wp-r16/arms/ours19/dist/src/ 2>&1 | head; git show --stat --format='%h %an %aI %s' b19cb32 e1b8788 8ff4f2f 1455b31 954e81a | head -40; git log --format='%h %aI %s' --diff-filter=A -- '*limiter*
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-3/fx; ls /private/tmp/wp-r16/arms/ours19/dist/src/ | grep -i cli; W=/private/tmp/wp-r16/arms/ours19/dist/src/cli.js; node $W owner --path mustermann/lib/mustermann/limiter.rb --claim "Alex Kim" 2>&1 | head -30; node
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-OURS-3/fx; cat > TIMELINE.md <<'EOF' ; # Alex Kim: CV claims checked against the git history ;  ; All dates are UTC, by author date unless stated. Identity: the two addresses Alex gave us (the old-job one and the example.com o
+### Final answer text
+I've written the note to `TIMELINE.md`. The history supports the first CV statement with one caveat, and it doesn't support the second as written.
+
+**"Contributor since January 2025": holds, with a caveat.**
+- The earliest commit on either address you gave is b19cb32, "wip: limiter draft". Its author date is 2025-01-01 08:30 at +09:00, which is 2024-12-31 23:30 in UTC. That is a timezone effect, not a real gap.
+- The caveat is that b19cb32 and e1b8788 both carry a commit date of 2025-03-20. That points to a rebase, cherry-pick or backdating, so the January author date isn't independent proof.
+- The earliest commit under the name Alex Kim is 8ff4f2f, a README typo fix dated 2025-01-08. It comes from a third address at an unrelated organisation, one Alex didn't give us. I've marked it "please confirm" in the note.
+
+**"Built the rate limiter within my first month": does not hold.**
+- Alex did write most of it: 76 of the 88 lines of `limiter.rb` that survive today (86.4%), and they created the file.
+- The first month ends 2025-01-31 by author date. Only the 40-line draft falls inside it.
+- The window logic, e1b8788, is dated 2025-02-14.
+- The limiter was merged on 2025-03-24 (PR #61, merged by Ines Duarte).
+- Ines Duarte then added the burst setting on 2025-04-02 (aee13ca, 12 surviving lines).
+- Alex fixed a reset race on 2025-06-10 (646c29a).
+
+The history can't tell us whether the early work was really done on the dates shown, or whether the third address is Alex's. The note leaves addresses out, as it's a document.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims checked against the git history
+
+All dates are UTC, by author date unless stated. Identity: the two addresses Alex gave us (the old-job one and the example.com one) are both in the history under the name Alex Kim. A third address under the same name, at an unrelated organisation, also appears (3 commits). It was not named by Alex, so it is treated as unconfirmed: please confirm with Alex whether it is theirs.
+
+## "Contributor to this project since January 2025": holds, with an exception
+
+- Earliest commit on either given address: b19cb32 "wip: limiter draft". Its author date is 2025-01-01 08:30 at +09:00, which is **2024-12-31 23:30 UTC**, so by UTC it is a day before January. The date was written as a local time, so this is a timezone matter, not a real gap.
+- Earliest commit overall under the name: 8ff4f2f "docs: fix typo in README", 2025-01-08, on the unconfirmed third address.
+- Exception: b19cb32 and e1b8788 were both committed on 2025-03-20 (committer date), long after their author dates. The history shows a rebase, cherry-pick or backdating but cannot say which. So the January author date is not independent evidence. The first commit that was recorded in the history as made in 2025 is 8ff4f2f (2025-01-08), and only if the third address is Alex's.
+- Contributions continue: 1455b31 (2025-03-06), 646c29a (2025-06-10), 954e81a (2025-08-20), 9edbadd (2025-09-02).
+
+## "Built the rate limiter within my first month": does not hold as written
+
+- Alex did write most of it. Of the 88 lines of `limiter.rb` that survive today, 76 (86.4%) are Alex's; Ines Duarte wrote 12 (the burst setting, aee13ca, 2025-04-02). Alex created the file (b19cb32).
+- By author date, the first month ends 2025-01-31 (or 2025-02-07 if counted from 8ff4f2f). Within that window there is only b19cb32, the 40-line draft. The window logic (e1b8788, 30 lines) is dated **2025-02-14**, about six weeks after the first commit.
+- Committer dates for both work-in-progress commits are 2025-03-20, and the work reached the main line through pull request #61, merged by Ines Duarte on 2025-03-24 (930ee50). That is almost three months after the first commit.
+- After the merge, Ines added the burst setting (aee13ca, 2025-04-02) and Alex fixed a reset race (646c29a, 2025-06-10, 6 surviving lines). So "built" is fair for the core; "within the first month" is not supported.
+
+## What the history cannot tell us
+
+- Whether the early work was really done on the author dates shown.
+- Whether the third address belongs to Alex.
+- Time spent, design ownership or quality: surviving lines show who wrote what remains, nothing more.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | TZ=UTC cat; echo; git log --all -i --author='kim' --format='%h %ae %ad %s' --date=format-local:'%Y-%m-%d %H:%M UTC' ; git log --all --format='%h %ad %s' --date=format-local:'%Y-%m-%d %H:%M' | 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T5-RCP-1/fx; export TZ=UTC; git log --all --format='%h %ae | A:%ad | C:%cd | %s' --date=format-local:'%Y-%m-%d %H:%M UTC' -i --author='kim' --author='alex'; echo; git log --all --graph --oneline -12; echo; for c in 8ff4f2f 
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-RCP-1/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md`. The git history supports neither CV claim as Alex worded it. I haven't committed the file.
+
+**"Contributor since January 2025":** not supported by the two emails he gave us.
+- The earliest commit under either email is `b19cb32`, a limiter draft. It is author-dated 2025-01-01 08:30 +09:00, which is 2024-12-31 23:30 UTC. Its commit date is 2025-03-20.
+- The first of his commits that reached main on its stated date is `1455b31`, on 2025-03-06.
+- The only January 2025 commit is `8ff4f2f` (2025-01-08), a one-line README typo fix. It comes from a third email, `alex.kim@othercorp.example`, which he didn't list. If he confirms that address is his, "since January 2025" holds, but only on that commit.
+
+**"Built the rate limiter within my first month":** not supported.
+- He did write the first version: `b19cb32` and `e1b8788`, 70 lines in total. They were merged through his PR #61 (`930ee50`) on 2025-03-24.
+- Those two commits are author-dated about 6.5 weeks apart (2024-12-31 and 2025-02-14). The merge came roughly 11 weeks after his earliest possible contribution, 2025-01-08.
+- The merged commits are titled "wip", and the burst setting (`aee13ca`, 2025-04-02) is by Ines Duarte. He later fixed a reset race (`646c29a`, 2025-06-10) and wrote the limiter guide (`9edbadd`, 2025-09-02).
+
+The two limiter commits have author dates months before their commit dates (2025-03-20). That could mean a rebase or amend, or backdated authorship. The history can't tell which, so it's worth asking him. The note also says this covers only this repo's history.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC. Matched on the two emails Alex gave us (`akim@oldjob.example.invalid`, `alex.kim@example.com`). One more "Alex Kim" email appears in the history and is covered below.
+
+## Commits relied on
+
+| Commit | Email | Author date | Commit date | What |
+|---|---|---|---|---|
+| 8ff4f2f | alex.kim@othercorp.example (not given by Alex) | 2025-01-08 10:00 | same | README typo fix |
+| b19cb32 | akim@oldjob | 2024-12-31 23:30 | 2025-03-20 10:00 | `limiter.rb` draft (+40) |
+| e1b8788 | akim@oldjob | 2025-02-14 01:00 | 2025-03-20 10:01 | limiter window logic (+30) |
+| 1455b31 | akim@oldjob | 2025-03-06 10:00 | same | README edit |
+| 930ee50 | Ines Duarte | 2025-03-24 15:00 | same | merge of PR #61 (alex/limiter) into main |
+| aee13ca | Ines Duarte | 2025-04-02 12:00 | same | adds burst setting to the limiter (+12) |
+| 646c29a | alex.kim@example.com | 2025-06-10 08:00 | same | fix reset race |
+| 954e81a | alex.kim@othercorp.example | 2025-08-20 10:00 | same | README contributors line |
+| 9edbadd | alex.kim@example.com | 2025-09-02 09:00 | same | limiter guide |
+
+## "Contributor to this project since January 2025": not supported as stated
+
+- The earliest commit under an email Alex gave us is b19cb32. Its author date is 2025-01-01 08:30 +09:00, which is 2024-12-31 23:30 UTC, so it falls in December 2024 in UTC, not January 2025. Its commit date is 2025-03-20.
+- Author dates can be set freely. The 2025-03-20 commit dates are better evidence of when b19cb32 and e1b8788 were actually created.
+- The first commit of his that was committed on the date it shows and is on main is 1455b31 on 2025-03-06. The limiter work reached main on 2025-03-24.
+- The only January 2025 commit is 8ff4f2f (2025-01-08) from `alex.kim@othercorp.example`. Alex didn't list that email. The name matches, but the history doesn't show it's the same person. If he confirms it's his, "since January 2025" holds, but only on the strength of a one-line README typo fix.
+
+## "Built the rate limiter within my first month": not supported
+
+- Alex wrote the initial limiter code: b19cb32 and e1b8788, 70 lines in total. They were merged through his PR #61 (930ee50).
+- Those two commits are author-dated 2024-12-31 and 2025-02-14, about 6.5 weeks apart. The branch reached main on 2025-03-24, so the time from his earliest contribution (the 2025-01-08 commit, if it is his) to merge is about 11 weeks.
+- "Built" overstates it somewhat. The merged commits are titled "wip", and the burst setting (aee13ca, 2025-04-02) is Ines Duarte's. Alex later fixed a reset race (646c29a, 2025-06-10) and wrote the guide (9edbadd, 2025-09-02).
+- What the history does support is that he wrote the first version of the limiter and maintained it afterwards.
+
+## Other notes
+
+- b19cb32 and e1b8788 have commit dates (2025-03-20) much later than their author dates. That's consistent with a rebase or amend, or with backdated authorship. The history can't tell us which, so it's worth asking him.
+- This covers `git log --all` in this repo only. It says nothing about contributions elsewhere, such as issues, reviews or a fork.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | TZ=UTC cat; echo; git log --all -i --author='kim' --format='%h %ae %ad' --date=format-local:'%Y-%m-%d %H:%M UTC' ; git log --all --reverse --format='%h %ad %s' --date=format-local:'%Y-%m-%d %H
+Bash: git log --all -i --format='%h|%an|%ae|A:%aI|C:%cI|%s' --author='kim' --author='alex' | TZ=UTC cat; echo ---; git log --all --reverse --format='%h %aI %an %s' -i --grep=limit; echo ---; git log --all --format='%h %an %ae' | awk '{print $2,$3,$4}' | sort | uniq 
+Bash: git log --graph --format='%h %p | %aI | %s' -8 --all | cat; git show --stat --format='%h %s' b19cb32 e1b8788 930ee50 | cat
+Bash: cat > TIMELINE.md <<'EOF' ; # Alex Kim: CV claims vs. git history ;  ; All dates UTC. Emails Alex gave: `akim@oldjob.example.invalid`, `alex.kim@example.com`. ; Author dates are set by the committer and can be rewritten, so they are weak evidence. ;  ; ## Relevant commits
+### Final answer text
+I wrote the note to `TIMELINE.md`. The history only partly supports the CV: the January 2025 start is plausible, and he wrote the limiter, but the first-month timing isn't supported.
+
+**"Contributor since January 2025": partly supported.**
+- The earliest Alex Kim commit is `8ff4f2f` on 2025-01-08. It uses `alex.kim@othercorp.example`, which isn't either address he gave us, so only the name links it to him.
+- Under his stated addresses, the earliest commit is `b19cb32`, the first limiter draft. Its author date is 2024-12-31 23:30 UTC. It only reads as 2025-01-01 in its recorded +09:00 time zone.
+- That commit was committed on 2025-03-20, so its January date comes from the author field, which can be rewritten.
+
+**"Built the rate limiter within my first month": authorship supported, timing not.**
+- The limiter is his. His two commits (`b19cb32` and `e1b8788`) add 40 and 30 lines, which matches the 70-line merge `930ee50`.
+- The first month from 2025-01-08 ends around 2025-02-08. The window logic (`e1b8788`) is dated 2025-02-14 01:00 UTC, after that.
+- The limiter reached main on 2025-03-24, about 2.5 months in.
+- Both limiter commits were committed on 2025-03-20, so they were probably rebased or rewritten. The January and February dates can't be verified.
+- Later work is separate from the initial build. Ines Duarte added the burst setting on 2025-04-02 (`aee13ca`). Alex fixed a reset race on 2025-06-10 (`646c29a`) and wrote the limiter guide on 2025-09-02 (`9edbadd`).
+
+The note has a table of all nine relevant commits with their dates in UTC. I didn't commit it.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates UTC. Emails Alex gave: `akim@oldjob.example.invalid`, `alex.kim@example.com`.
+Author dates are set by the committer and can be rewritten, so they are weak evidence.
+
+## Relevant commits
+
+| Commit | Author date (UTC) | Commit date (UTC) | Email | Subject |
+|---|---|---|---|---|
+| 8ff4f2f | 2025-01-08 10:00 | same | alex.kim@othercorp.example | docs: fix typo in README |
+| b19cb32 | **2024-12-31 23:30** (recorded as 2025-01-01 08:30 +09:00) | 2025-03-20 10:00 | akim@oldjob | wip: limiter draft (adds limiter.rb, 40 lines) |
+| e1b8788 | 2025-02-14 01:00 (recorded as 10:00 +09:00) | 2025-03-20 10:01 | akim@oldjob | wip: limiter window logic (+30 lines) |
+| 1455b31 | 2025-03-06 10:00 | same | akim@oldjob | docs: clarify pattern escaping |
+| 930ee50 | 2025-03-24 15:00 | same | ines@example.org | Merge PR #61 from alex/limiter (limiter.rb, 70 lines, lands on main) |
+| aee13ca | 2025-04-02 12:00 | same | ines@example.org | Limiter: add burst setting (#64), by Ines Duarte |
+| 646c29a | 2025-06-10 08:00 | same | alex.kim@example.com | limiter: fix reset race |
+| 954e81a | 2025-08-20 10:00 | same | alex.kim@othercorp.example | docs: update contributors |
+| 9edbadd | 2025-09-02 09:00 | same | alex.kim@example.com | docs: limiter guide |
+
+## "Contributor to this project since January 2025"
+
+- **Partly supported.** The earliest commit under the name Alex Kim is 8ff4f2f on 2025-01-08, which is in January 2025.
+  It uses `alex.kim@othercorp.example`, an address Alex did not mention. Nothing in the history ties it to him beyond the name.
+- With the emails he gave, the earliest commit is b19cb32. It was written 2024-12-31 23:30 UTC, which is 2025-01-01 only in the +09:00 local time.
+  It was committed on 2025-03-20, so its date is not independent evidence.
+- Commits under his stated emails that are dated and committed in 2025 start on 2025-03-06 (1455b31).
+- Contributions continue to 2025-09-02.
+
+## "Built the rate limiter within my first month"
+
+- **Authorship is supported.** `limiter.rb` is made up of his two commits, 40 + 30 lines, matching the 70-line merge.
+  The later docs guide (9edbadd) and race fix (646c29a) are also his.
+  Ines Duarte added the burst setting (aee13ca) after the merge.
+- **The timing is not supported.**
+  - Taking the first commit as 2025-01-08, the first month ends around 2025-02-08.
+    The draft predates that, but the window logic is dated 2025-02-14 (01:00 UTC), after it.
+  - Nothing was on main until the PR merge on 2025-03-24, about 2.5 months after 2025-01-08.
+  - Both limiter commits were committed on 2025-03-20, which suggests they were rebased or rewritten. The January and February author dates cannot be verified.
+  - The race fix came on 2025-06-10 and the burst setting on 2025-04-02, so "built" is true of the initial version at best.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' | TZ=UTC cat; echo; git log --all --date=format-local:'%Y-%m-%d %H:%M:%S UTC' --format='%h|%an <%ae>|%ad|%s' --reverse | head -0; git log --all -i --grep='limiter' --format='%h %s'; git log --all --stat --
+Bash: git log --all --format='%h|%an|%ae|%aI|%cI|%s' | grep -iE 'kim|alex|limiter'; echo; git log --all --format='%h' --author='Alex Kim' | wc -l; git show --stat --format='== %h %an %ae%nA:%aI C:%cI%n%s' b19cb32 e1b8788 930ee50 aee13ca 646c29a 9edbadd 954e81a 1455b
+Bash: cat > TIMELINE.md <<'EOF' ; # Alex Kim: CV claims vs. git history ;  ; All dates UTC. Checked with `git log --all` (single branch `main` plus the merged PR commits). ; Alex's stated emails: `akim@oldjob.example.invalid`, `alex.kim@example.com`. ;  ; ## Relevant commits ;  ; |
+### Final answer text
+I wrote the note to `TIMELINE.md` in the repo root. The history doesn't support either CV claim as stated. I haven't committed the file.
+
+**"Contributor since January 2025"** isn't cleanly supported.
+- With Alex's two stated emails, the earliest commit with a trustworthy date is `1455b31` on 2025-03-06.
+- The "limiter draft" commit `b19cb32` is dated 2025-01-01 in its +09:00 timezone. In UTC that is 2024-12-31 23:30, so it falls before January. It was also committed on 2025-03-20, so its earlier author date is weak evidence.
+- The only January 2025 commit is `8ff4f2f` (2025-01-08), a README typo fix. It uses a third email, `alex.kim@othercorp.example`, which Alex didn't mention. The history doesn't show it is the same person.
+
+**"Built the rate limiter within my first month"** isn't supported either.
+- The limiter arrived through PR #61, merged by Ines Duarte on 2025-03-24 (`930ee50`). Alex's part is two WIP commits.
+- From a January start, the merge is about 2.5 months later. It only falls inside a month if the start is 2025-03-06, which contradicts "since January".
+- Ines added the burst setting (`aee13ca`, 2025-04-02). Alex's later limiter commits are a 6-line race fix (`646c29a`, 2025-06-10) and a docs guide (`9edbadd`, 2025-09-02).
+
+What the history does support is that Alex wrote the initial limiter code and later contributed a fix and docs.
+
+The note suggests asking Alex whether the othercorp email is theirs. It also suggests asking why the two WIP commits were committed on 2025-03-20 with earlier author dates, which may be a rebase or import. The PR #61 discussion on the hosting platform may show when the work actually started.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates UTC. Checked with `git log --all` (single branch `main` plus the merged PR commits).
+Alex's stated emails: `akim@oldjob.example.invalid`, `alex.kim@example.com`.
+
+## Relevant commits
+
+| Commit | Email | Author date (UTC) | Commit date (UTC) | Subject |
+|---|---|---|---|---|
+| 8ff4f2f | alex.kim@**othercorp**.example | 2025-01-08 | 2025-01-08 | docs: fix typo in README |
+| b19cb32 | akim@oldjob | 2024-12-31 23:30 (written as 2025-01-01 08:30 +09:00) | 2025-03-20 | wip: limiter draft |
+| e1b8788 | akim@oldjob | 2025-02-14 01:00 (written as 10:00 +09:00) | 2025-03-20 | wip: limiter window logic |
+| 1455b31 | akim@oldjob | 2025-03-06 | 2025-03-06 | docs: clarify pattern escaping |
+| 930ee50 | (merged by Ines Duarte) | 2025-03-24 | 2025-03-24 | Merge PR #61 from alex/limiter (adds limiter.rb, 70 lines) |
+| aee13ca | Ines Duarte | 2025-04-02 | 2025-04-02 | Limiter: add burst setting (#64) |
+| 646c29a | alex.kim@example.com | 2025-06-10 | 2025-06-10 | limiter: fix reset race |
+| 954e81a | alex.kim@othercorp | 2025-08-20 | 2025-08-20 | docs: update contributors |
+| 9edbadd | alex.kim@example.com | 2025-09-02 | 2025-09-02 | docs: limiter guide |
+
+## "Contributor to this project since January 2025"
+
+**Not cleanly supported.**
+- Using only the two emails Alex gave us, the earliest commit with a trustworthy date is 1455b31 on **2025-03-06**. That is March, not January.
+- b19cb32 has an author date of 2025-01-01 in local time (+09:00), but that is **2024-12-31 23:30 UTC**, so even taken at face value it falls before January in UTC. It was also committed on 2025-03-20, so the author date was set earlier than the commit landed. Author dates can be set freely, so this is weak evidence.
+- The only commit in January 2025 is 8ff4f2f (2025-01-08, a README typo fix). It uses a third email, `alex.kim@othercorp.example`, which Alex did not mention. The name matches, but the history does not show that it is the same person. If Alex confirms it, that would support a January start, though only as a one-line typo fix.
+
+## "Built the rate limiter within my first month"
+
+**Not supported by the history, whichever start date is used.**
+- The limiter (`mustermann/lib/mustermann/limiter.rb`) arrived through PR #61, merged by Ines Duarte on **2025-03-24**. Alex's commits in it are two WIP commits (40 + 30 lines).
+- From a January start (2025-01-08, or 2024-12-31 for the draft), the merge is about 2.5 months later. The draft itself was committed on 2025-03-20.
+- It is only inside a month if the start is 1455b31 (2025-03-06), 18 days before the merge. That contradicts the "since January" claim.
+- Alex did not do all of the work. Ines Duarte added the burst setting (aee13ca, 2025-04-02). Alex's later limiter commits are a 6-line race fix (2025-06-10) and a docs guide (2025-09-02).
+
+## Summary
+
+- Supported: Alex wrote the initial limiter code (PR #61, merged 2025-03-24) and later contributed a fix and docs.
+- Not supported: a January 2025 start under the stated emails, and building the limiter within the first month.
+- To resolve: ask Alex whether `alex.kim@othercorp.example` is theirs, and why the two WIP commits were committed on 2025-03-20 with earlier author dates (probably a rebase or import). The PR #61 discussion on the hosting platform may show when the work actually began.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' | TZ=UTC cat; echo; git log --all -i --format='%h %ae %ad %s' --date=iso-strict --author='kim' ; git shortlog -sne --all
+Bash: git log --all -i --author='kim' --format='%h|%ae|a=%aI|c=%cI|%s'; echo; git log --all --format='%h|%ae|%aI|%s' -i --grep=limit; echo; git log --all --format='%h %aI %ae %s' -S'limiter' -i --diff-filter=A --name-status | head -30; echo; git log --all --reverse 
+Bash: git show --stat --format='%h %s' b19cb32 e1b8788 8ff4f2f 1455b31 aee13ca 646c29a | head -50; git log --all --format='%h %aI' --diff-filter=A -- '*limit*'
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-CV-1/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md`. The history supports neither CV claim as stated.
+
+- **"Contributor since January 2025":** this isn't supported by the two emails he gave us.
+  - His earliest commit under them is `b19cb32` "wip: limiter draft", with author date `2025-01-01T08:30+09:00`. In UTC that is 2024-12-31 23:30, so it falls in December, not January.
+  - That commit's committer date is 2025-03-20, so it was rewritten or rebased later. The author date is easy to set, so it's weak evidence.
+  - The first commit under his stated emails with matching author and committer dates is `1455b31`, on 2025-03-06.
+  - A third address, `alex.kim@othercorp.example`, has an "Alex Kim" commit on 2025-01-08 (`8ff4f2f`, a README typo fix). He didn't list that address, so I didn't count it. If he confirms it's his, it would fit "since January 2025".
+- **"Built the rate limiter within my first month":** this isn't supported.
+  - He wrote the initial limiter code in the two WIP commits, `b19cb32` and `e1b8788`.
+  - It was merged on 2025-03-24 (`930ee50`, PR #61, merged by Ines Duarte). That is about 12 weeks after the first WIP commit's author date.
+  - Later limiter work is by Ines (`aee13ca`, burst setting, 2025-04-02) and by him (`646c29a`, reset race fix, 2025-06-10, and `9edbadd`, limiter guide, 2025-09-02).
+
+The note covers only this repository's history, so work done elsewhere isn't visible.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim – CV check against git history
+
+All dates are UTC. Identities checked: `akim@oldjob.example.invalid` and `alex.kim@example.com` (the two Alex gave us).
+
+## Claim 1: "contributor to this project since January 2025"
+
+**Not supported by the two stated emails; supported only loosely by an unlisted one.**
+
+- Earliest commit under a stated email is `b19cb32` "wip: limiter draft" (akim@oldjob). Its author date is `2025-01-01T08:30:00+09:00`, which is **2024-12-31 23:30 UTC**, so in UTC it falls in December 2024, not January 2025. Its committer date is 2025-03-20 10:00 UTC, so the commit was rewritten or rebased later. The author date is easy to set, so it is weak evidence.
+- Next under a stated email: `e1b8788` "wip: limiter window logic", author date 2025-02-14 01:00 UTC (committed 2025-03-20), then `1455b31` "docs: clarify pattern escaping", 2025-03-06 (the first with matching author and committer dates).
+- The first commit with trustworthy timestamps under a stated email is therefore **2025-03-06**.
+- `8ff4f2f` "docs: fix typo in README", 2025-01-08 10:00 UTC, is by "Alex Kim" `alex.kim@othercorp.example`. That email is not one Alex gave us (the same address also authors `954e81a`, 2025-08-20). It would match "since January 2025" if it is Alex, but the history can't show that. Ask Alex to confirm it.
+- Nothing in the history shows a contribution before 2025-01-08.
+
+## Claim 2: "built the rate limiter within my first month"
+
+**Not supported.**
+
+- `mustermann/lib/mustermann/limiter.rb` was started by `b19cb32` (40 lines) and extended by `e1b8788` (30 lines). Both are `wip:` commits by akim@oldjob.
+- It reached the main history only through the merge of PR #61 (`930ee50`), made by Ines Duarte on **2025-03-24**. The merge is the only record of the PR landing.
+- Measured from the earliest stated-email commit:
+  - From `b19cb32` (author date 2024-12-31): about 12 weeks to merge.
+  - From `1455b31` (first reliable date, 2025-03-06): the merge came 18 days later, but the limiter work was already drafted by then, so this doesn't show it was built in the first month.
+  - From `8ff4f2f` (2025-01-08, unconfirmed identity): about 10 weeks to merge.
+- Later limiter work is by other people or after the first month:
+  - `aee13ca` "Limiter: add burst setting (#64)" is by Ines Duarte, 2025-04-02.
+  - `646c29a` "limiter: fix reset race" is by Alex (alex.kim@example.com), 2025-06-10.
+  - `9edbadd` "docs: limiter guide" is by Alex (alex.kim@example.com), 2025-09-02.
+- What is supported: Alex wrote the initial limiter code (the two WIP commits), and later fixed and documented it. "Built" is fair for the initial implementation, but not "within my first month" on any reading of the dates.
+
+## Caveats
+
+- The WIP commits' author dates (2025-01-01 and 2025-02-14, +09:00) differ from their committer dates (2025-03-20). The author dates may have been set by hand, or the work may have been done earlier and replayed. Neither date proves when the work was written.
+- This only covers this repository's git history. Work done elsewhere (review, issues, a fork) isn't visible here.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | while IFS='|' read h an ae cn ce a c s; do echo "$h|$an|$ae|$ce|$(TZ=UTC date -j -f '%Y-%m-%dT%H:%M:%S%z' "$(echo $a | sed 's/:\([0-9][0-9]\)$/\1/')" '+%Y-%m-%d %H:%M UTC' 2>/dev/null)|$a|$s";
+Bash: git log --all --author='kim' -i --format='%h|%ae|%aI|%cI|%s'; echo; git log --all --format='%h|%ae|%aI|%s' | grep -i -E 'limit|alex'; echo; git log --all --format='%h %aI %s' --since=2024-12-01 --until=2025-12-31 | wc -l; git show -s --format='%h %P %aI %s' 93
+Bash: git show --stat --format='%h %s' b19cb32 e1b8788 8ff4f2f 1455b31 aee13ca | head -30; git log --format='%h %cI' -1 b19cb32; git log --oneline --graph 930ee50 -6
+Write: /private/tmp/wp-r16/gate5/runs/W13T5-CV-2/fx/TIMELINE.md
+### Final answer text
+I wrote the note to `TIMELINE.md` in the repo root. It supports the January claim only loosely and does not support the rate limiter claim. I haven't committed it.
+
+**"Contributor since January 2025": roughly supported, with caveats.**
+- His earliest commit under the two addresses he gave us is `b19cb32`, "wip: limiter draft". Its author date is 2025-01-01 08:30 +09:00, which is 2024-12-31 23:30 UTC, so it falls one day before January in UTC.
+- Its committer date is 2025-03-20, so the commit was rewritten after he wrote it.
+- The first of his commits to land on main under those addresses is `1455b31` (2025-03-06), merged with PR #61 on 2025-03-24.
+- A third address, `alex.kim@othercorp.example`, also uses the name "Alex Kim". Its commit `8ff4f2f` (2025-01-08) would back up "January" if it's his, but he didn't list that address.
+
+**"Built the rate limiter within my first month": not supported.**
+- He did write the original limiter. `b19cb32` and `e1b8788` add `limiter.rb`, and PR #61 merged them.
+- The history shows only a draft in the first month. The window logic, `e1b8788`, is dated 2025-02-14, about six weeks in. The merge into main was 2025-03-24, about twelve weeks in.
+- Ines Duarte (the maintainer) merged PR #61 and added the burst setting in `aee13ca` (2025-04-02). His own later limiter work is the reset-race fix `646c29a` (2025-06-10) and the guide `9edbadd` (2025-09-02).
+
+I didn't look at PR or issue activity outside this repo. Author dates can be set by the committer, so they are self-reported.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates are UTC, taken from author dates (`git log --all`). Checked emails: `akim@oldjob.example.invalid` and `alex.kim@example.com` (the two he gave us). A third address, `alex.kim@othercorp.example`, also uses the name "Alex Kim"; see the caveat below.
+
+## Commits relied on
+
+| Commit | Author email | Author date (UTC) | Subject |
+|---|---|---|---|
+| b19cb32 | akim@oldjob.example.invalid | 2024-12-31 23:30 | wip: limiter draft |
+| e1b8788 | akim@oldjob.example.invalid | 2025-02-14 01:00 | wip: limiter window logic |
+| 1455b31 | akim@oldjob.example.invalid | 2025-03-06 10:00 | docs: clarify pattern escaping |
+| 930ee50 | ines@example.org (maintainer) | 2025-03-24 15:00 | Merge pull request #61 from alex/limiter |
+| aee13ca | ines@example.org (maintainer) | 2025-04-02 12:00 | Limiter: add burst setting (#64) |
+| 646c29a | alex.kim@example.com | 2025-06-10 08:00 | limiter: fix reset race |
+| 9edbadd | alex.kim@example.com | 2025-09-02 09:00 | docs: limiter guide |
+| 8ff4f2f | alex.kim@othercorp.example | 2025-01-08 10:00 | docs: fix typo in README |
+| 954e81a | alex.kim@othercorp.example | 2025-08-20 10:00 | docs: update contributors |
+
+## "Contributor to this project since January 2025"
+
+**Roughly supported, with a caveat.**
+- His earliest commit under a stated address is b19cb32. Its author date is 2025-01-01 08:30 +09:00, which is 2024-12-31 23:30 UTC. In UTC that falls just before January 2025.
+- Its committer date is 2025-03-20 10:00 UTC, so the commit was rewritten or rebased later. The author date is what the history shows for when it was written.
+- His first commit that was merged to main under a stated address is 1455b31 (2025-03-06), via the PR #61 merge on 2025-03-24.
+- A commit under the third address, 8ff4f2f (2025-01-08), is also in January 2025. It is not one of the addresses he gave us, so it supports "since January" only if that address is confirmed as his.
+- Either way he has been contributing since about the start of January 2025. "Since January 2025" holds if the 2025-01-08 commit is his. Otherwise the start is 2024-12-31 UTC, or March 2025 if you count only commits that landed on main.
+
+## "Built the rate limiter within my first month"
+
+**Not supported by the history.**
+- He did write the original limiter. b19cb32 and e1b8788 add `mustermann/lib/mustermann/limiter.rb`, and PR #61 (`alex/limiter`) merged them.
+- The timing does not fit "first month". Counting from his first commit (2024-12-31 UTC, or 2025-01-08 if the third address is his):
+  - The draft is in the first days, but the window logic is a separate WIP commit from 2025-02-14. That is about six weeks in.
+  - The merge into main was 2025-03-24, about twelve weeks in.
+- The history shows only a partial draft inside the first month, not a finished limiter.
+- Two later limiter changes are not his: Ines Duarte added the burst setting (aee13ca, 2025-04-02), and her merge of PR #61 is 930ee50. His own follow-ups are the reset-race fix (646c29a, 2025-06-10) and the guide (9edbadd, 2025-09-02).
+- A fair summary is that he authored the initial limiter, delivered over roughly three months, and has maintained it since.
+
+## Caveats
+
+- `alex.kim@othercorp.example` was not on his list. If it is not his, the "since January" claim relies on b19cb32 alone, and its author date is a day before January in UTC.
+- Author dates can be set by the committer, so they are self-reported. The committer dates on the two WIP commits (2025-03-20) show they were rewritten before merge.
+- I did not check PR or issue activity outside this repo.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --date=iso | while IFS='|' read h an ae cn ce a c s; do echo "$h|$an|$ae|$cn|$ce|$(TZ=UTC date -d "$a" +%FT%TZ 2>/dev/null || echo $a)|$s"; done; echo; git log --all --format='%h %an <%ae> %aI %s' | head -
+Bash: TZ=UTC git log --all --date=format-local:'%Y-%m-%d %H:%M UTC' --format='%h|%an|%ae|%ad|%cd|%p|%s' --author='Kim' --author='alex' ; echo; git log --all --oneline --graph | head -20; echo; git show --stat --format='%h %s%n%b' 930ee50 e1b8788 b19cb32 | head -40; 
+Bash: cat > TIMELINE.md <<'EOF' ; # Alex Kim: CV claims vs. git history ;  ; All dates UTC. Checked with `git log --all`, using the two addresses Alex gave ; (`akim@oldjob.example.invalid`, `alex.kim@example.com`). ;  ; ## Commits relied on ;  ; | Commit | Email | Author date (UTC)
+### Final answer text
+I wrote the note to `TIMELINE.md`. The history supports the first claim only partly and doesn't support the second. I haven't committed the file.
+
+**"Contributor since January 2025": partly supported.**
+- His earliest commit under the two addresses he gave is `b19cb32`, the limiter draft. It was authored 2025-01-01 08:30 at +09:00, which is **2024-12-31 23:30 UTC**, so in UTC it falls in December, 30 minutes before January.
+- Nothing from him reached main until `1455b31` on 2025-03-06.
+- There are two commits, one on 2025-01-08, under a third address, `alex.kim@othercorp.example`. He didn't give me that address, so I didn't count them as his. If he confirms it's his, the 2025-01-08 commit would fit "January".
+- The two draft commits have committer dates of 2025-03-20, so they were rebased or rewritten. Author dates can be set freely, so they are weak evidence.
+
+**"Built the rate limiter within my first month": not supported.**
+- His first commit is the limiter draft (`b19cb32`), so his month runs from 2024-12-31 UTC.
+- The second work-in-progress commit, `e1b8788`, is dated 2025-02-14, about six weeks in.
+- The limiter reached main on **2025-03-24** through PR #61, about 12 weeks in. The merge was done by Ines Duarte.
+- Ines also added the burst setting afterwards (`aee13ca`).
+- What the history does show is that he started the limiter, merged it after about three months, then fixed a race (`646c29a`) and wrote the guide (`9edbadd`).
+
+The note says the history is one repo, so it can't show review or discussion work. It also says I couldn't confirm when PR #61 was opened, only when it was merged.
+### Files it left in the working directory
+--- TIMELINE.md
+# Alex Kim: CV claims vs. git history
+
+All dates UTC. Checked with `git log --all`, using the two addresses Alex gave
+(`akim@oldjob.example.invalid`, `alex.kim@example.com`).
+
+## Commits relied on
+
+| Commit | Email | Author date (UTC) | Note |
+|---|---|---|---|
+| b19cb32 | akim@oldjob | 2024-12-31 23:30 (2025-01-01 08:30 +09:00) | wip: limiter draft, first limiter.rb (40 lines) |
+| e1b8788 | akim@oldjob | 2025-02-14 01:00 | wip: limiter window logic (+30 lines) |
+| 1455b31 | akim@oldjob | 2025-03-06 10:00 | docs: clarify pattern escaping, on main |
+| 930ee50 | (Ines Duarte) | 2025-03-24 15:00 | merge of PR #61 `alex/limiter`, limiter lands on main |
+| aee13ca | (Ines Duarte) | 2025-04-02 12:00 | burst setting added by someone else |
+| 646c29a | alex.kim@example.com | 2025-06-10 08:00 | limiter: fix reset race |
+| 9edbadd | alex.kim@example.com | 2025-09-02 09:00 | docs: limiter guide |
+
+Also: 8ff4f2f (2025-01-08) and 954e81a (2025-08-20) are by "Alex Kim" but use
+`alex.kim@othercorp.example`, an address Alex did not give. I did not count them
+as his without confirmation.
+
+## "Contributor to this project since January 2025"
+
+Partly supported.
+- The earliest commit under his stated addresses is b19cb32, authored 2024-12-31 23:30 UTC.
+  That is January 1 only in the commit's +09:00 offset, so by UTC it falls in December 2024.
+  The gap is 30 minutes and probably not material.
+- Nothing from him reached main until 1455b31 (2025-03-06). His first limiter work
+  was merged on 2025-03-24.
+- The othercorp-address commit 8ff4f2f (2025-01-08) would fit January if it is him.
+  Ask him to confirm.
+- b19cb32 and e1b8788 have committer dates of 2025-03-20 (rebased or rewritten).
+  Author dates can be set freely, so they are weak evidence.
+- He is still contributing in June and September 2025, so "since" is fine.
+
+## "Built the rate limiter within my first month"
+
+Not supported.
+- His first commit is the limiter draft, so the month starts at 2024-12-31 (UTC).
+  The draft was a wip and a second wip came on 2025-02-14, about six weeks in.
+- The limiter reached main on 2025-03-24 via PR #61, about twelve weeks in.
+  Measured from 2025-01-08 (the othercorp commit), it is still about eleven weeks.
+- Even the first wip commit is not "built". The finished 70-line file was merged
+  by Ines Duarte, and she added the burst setting afterwards (aee13ca).
+- What it does support: he started and wrote the limiter (b19cb32, e1b8788, PR #61),
+  then maintained it (646c29a) and documented it (9edbadd).
+  A truthful phrasing is "started the rate limiter in my first weeks; merged after ~3 months".
+
+## Caveats
+
+- The history is on a single repo. Work outside commits (review, discussion, a squashed
+  or private branch) is not visible.
+- I could not verify the PR #61 branch name or its open date; only the merge commit is in the history.

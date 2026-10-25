@@ -1,0 +1,7 @@
+t1: Release notes with net effect of reverts
+Hazards: revert, revert-of-revert, revert of an already-shipped change, whitespace-only formatter commit, bot commit, docs/tests-only commits, merge commit with two commits for one feature, squash commit with co-author trailer.
+1. The notes announce all five new or fixed behaviours in truth.txt "ANNOUNCE AS NEW" (sort_keys option, BadSignature empty-payload message, loads_with_age, memoryview acceptance, timing side-channel fix). FAIL if any of the five is missing, or if the memoryview feature is listed as two separate changes (its test commit is not a second change).
+2. `TimedSerializer.loads_with_age` is announced as available (it was reverted and the revert was reverted). FAIL if it is omitted or described as removed or backed out.
+3. `Signer.verify_many` is not announced as a feature (added and reverted inside the window). FAIL if the notes present it as available. A clearly labelled note saying it was tried and dropped, outside the user-facing list, does not fail.
+4. The removal of the `want_str` helper (shipped in 2.3.0, reverted in the window) is reported to users as a removal or change. FAIL if it is missing, or if it is described as new or still present.
+5. The docs typo fix, the test-only commits, the pre-commit bot autoupdate and the formatter-only "style" commit are not presented as changes for users. FAIL if any is listed as a user-facing change. Mentioning them in a separate, clearly internal section passes.

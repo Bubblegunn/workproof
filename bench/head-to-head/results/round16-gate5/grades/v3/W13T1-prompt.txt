@@ -1,0 +1,420 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "A candidate's CV says "author of the caching layer" for this repository. The caching layer is the code under src/cache. Her name is Dana Whitfield, and she has committed under more than one e-mail address. I am not a developer. Looking at the history, how much of the caching layer as it stands today is hers, and is "author" a fair word for it? Please answer here in chat, in a few sentences with the main numbers."
+Ground truth: lines in src/cache at HEAD: 278 (bot header lines: 6 )
+per file:
+   src/cache/__init__.py {'bot': 1, 'Marcus': 5, 'shared(squash #41)': 2}
+   src/cache/backend_redis.py {'bot': 1, 'shared(squash #41)': 80}
+   src/cache/eviction.py {'bot': 1, 'Marcus': 50}
+   src/cache/metrics.py {'bot': 1, 'Dana': 25}
+   src/cache/store.py {'bot': 1, 'Dana': 80}
+   src/cache/ttl.py {'bot': 1, 'Marcus': 30}
+surviving lines, reformat skipped, bot excluded:
+  Dana                 105  (39% of 272 non-bot lines)
+  Marcus                85  (31% of 272 non-bot lines)
+  shared(squash #41)    82  (30% of 272 non-bot lines)
+Dana direct + shared squash lines (upper bound with co-author credit): 187
+naive blame (reformat not skipped): {'bot': 6, 'Marcus': 165, 'shared(squash #41)': 82, 'Dana': 25}
+squash commit ea1ff02 trailer: D. Whitfield <dana.w@users.noreply.example>
+commits that touch src/cache by person (non-bot), identities merged:
+   {'bot': 1, 'Marcus': 4, 'Dana': 4}  raw addresses of Dana: ['dana.w@users.noreply.example', 'dana.whitfield@acme-old.example', 'dwhitfield@personal.example']
+original eviction (Dana, Feb 2025) was fully replaced by Marcus on 2026-03-05: surviving Dana lines in eviction.py = 0
+verdict basis: Dana is the largest single contributor of surviving lines (105 vs 85) and co-author of the redis backend; Marcus wrote ttl, init and the current eviction; so 'principal author, not sole author'.
+Hazards: one person with three e-mail addresses and two name spellings; whole-file reformat commit that steals blame; squash merge with Co-authored-by trailer; bot header lines; her original eviction code later rewritten by someone else. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The answer counts Dana's work across all three of her addresses (acme-old, personal, noreply; names "Dana Whitfield" and "D. Whitfield") as one person. It FAILS if it reports her under one address only, or shows a Dana figure near the 25 lines that plain blame gives her (truth.txt, "naive blame").
+C2 The answer reports surviving lines (what is in src/cache today), not just commits or lines ever added, and its Dana figure is consistent with truth.txt (105 direct lines, about 39% of 272 non-bot lines; a figure within about 10 lines, or the same figure expressed as a clearly stated share, passes). It FAILS if the reformat commit "style: reformat src/cache to double quotes" is allowed to move Dana's lines to Marcus Obi (Marcus shown near 165 lines).
+C3 The answer does not hide the squash-merged "Add redis backend (#41)": it tells the reader that this commit is under Marcus's name but carries a Co-authored-by trailer for Dana (82 lines), and treats it as shared or as credited to her with that caveat. A defensible alternative that excludes it from her total but states it, passes. It FAILS if the squash lines are silently given to Marcus only, or silently counted as wholly Dana's with no mention of the trailer.
+C4 The answer does not credit Dana with the eviction code or the bot lines: it says (or its numbers imply) that her original eviction.py is gone (0 surviving lines; the current eviction is Marcus's LFU rewrite), and it does not count ci-bot's 6 header lines for anyone. It FAILS if it says Dana wrote the current eviction, or counts the bot headers as Dana's or Marcus's work.
+C5 The verdict on the word "author" matches the evidence: Dana is the largest single contributor of surviving lines and wrote the core store and the metrics, but the layer is not hers alone (Marcus wrote the TTL, the package init and the current eviction). Wording such as "principal / main author, not sole author" passes. It FAILS if it calls her the sole author, or calls the claim unsupported or false, or gives no verdict.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-CV-1/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache; echo; git shortlog -sne HEAD -- src/cache; echo; git ls-files src/cache | xargs wc -l; echo; git ls-files src/cache | while read f; do git blame 
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-CV-1/fx; git ls-files src/cache | while read f; do git blame -w -M -C --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain -- "$f" | grep -E '^author-mail'; done | sort | uniq -c; git ls-files src/cache | while rea
+### Final answer text
+Dana wrote about 105 of the 278 lines in src/cache today, roughly 38%. "Author" overstates it, but "a principal contributor" would be fair.
+
+I counted her lines across all three of her e-mail addresses. The count skips two commits that only touched formatting: Marcus's quote-style reformat and the CI bot's license headers. Without that adjustment, a plain line count credits her with only 25 lines, because the reformat commit took over the rest.
+
+| Who | Lines | Share |
+|---|---|---|
+| Dana Whitfield (3 addresses) | 105 | ~38% |
+| Marcus Obi | 167 | ~60% |
+| CI bot (license headers) | 6 | ~2% |
+
+- **Dana's 105 lines:** 60 are the original cache store, 20 are serialization added to the store, and 25 are the metrics module.
+- **Marcus's 167 lines:** he wrote the Redis backend, the TTL support, the package setup and the current eviction code, which is a rewrite of Dana's LRU eviction.
+
+Dana started the project: she wrote the first cache store and the first eviction code in February 2025. Her core `store.py` survives today, and she added metrics later. Marcus wrote most of the code that exists now, including eviction and the Redis backend. He is also the more frequent committer to the folder, with 4 commits to her 4 under various names. So she is a founding and significant contributor, but not the sole or majority author. "Co-author" or "built the initial cache store and metrics" would be more accurate.
+
+This only shows who committed the code. It can't show who designed it or who reviewed it, and it can't tell you whether she did other work that never reached this repository.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne HEAD -- src/cache; echo; ls src/cache; git ls-files src/cache | xargs wc -l
+Bash: for f in src/cache/*; do echo "== $f"; git blame -w -C -C -M --line-porcelain $f | awk '/^author-mail/{print $2}' | sort | uniq -c; done; echo TOTAL; git blame -w -C -C -M --line-porcelain src/cache/* 2>/dev/null | awk '/^author-mail/{print $2}' | sort | uniq 
+Bash: for f in src/cache/*; do git blame -w --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain $f | awk '/^author-mail/{print $2}'; done | sort | uniq -c; for f in store.py; do git blame -w --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain src/cache
+### Final answer text
+**Dana owns roughly 39% of the caching layer today, which is a minority share. "Author" overstates it. "Co-author" or "major contributor" would be accurate.**
+
+- **Her identities:** Dana used three e-mail addresses: `dana.whitfield@acme-old…`, `dwhitfield@personal…` and `dana.w@users.noreply…`. I counted all three as her. That is my inference from the matching names, and nothing in the history confirms they are the same person.
+- **What she wrote:** she made 4 of the 9 commits to `src/cache`. They were the original cache store (Feb 2025), LRU eviction, serialization, and the metrics module (Jan 2026).
+- **How much is hers now:** I ignored the style-only reformat and the license-header commit. After that, about 105 of the 272 remaining lines (39%) trace to her. Marcus Obi accounts for about 167 lines (61%). A bot added 6 license-header lines.
+- **Why a raw count misleads:** a plain line count credits nearly all of `store.py` to Marcus, but that is only because his June 2025 commit changed its quote style. The other files are in the same position, because the reformat touched every file in the folder. Looking past it, she wrote the core of `store.py` (80 lines) and all of `metrics.py` (25 lines).
+- **What she doesn't hold:** her LRU eviction was fully rewritten as LFU by Marcus in March 2026, so none of it survives. Marcus also wrote the package setup, TTL support (`ttl.py`) and the Redis backend (`backend_redis.py`).
+
+Dana started the layer and wrote its foundation, so the claim isn't baseless. But Marcus built the majority of what exists now, including the Redis backend and the current eviction logic. Ask her which parts she designed and what she did on them.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-CV-3/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne --all -- src/cache; echo; ls -R src/cache | head -30
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-CV-3/fx; for f in src/cache/*; do echo "== $f"; git blame -w -M -C --line-porcelain $f | grep '^author ' | sort | uniq -c; done; echo; git blame -w -M -C --line-porcelain src/cache/* | grep '^author ' | sort | uniq -c; g
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-CV-3/fx; for f in src/cache/*; do echo "== $f"; git blame -w -M -C --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain -- $f | grep '^author ' | sort | uniq -c; done; echo TOTAL; for f in src/cache/*; do git blame
+### Final answer text
+Dana wrote about 39% of the caching layer as it stands today, so "author" overstates it. "Co-author" or "built the initial version" would be fairer.
+
+I counted the surviving lines in `src/cache`. I ignored the quote-style reformat and the license-header commits, so they don't distort the counts. There are 272 real lines, plus 6 license-header lines added by a bot.
+
+| Contributor | Lines | Share |
+|---|---|---|
+| Dana Whitfield | 105 | about 39% |
+| Marcus Obi | 167 | about 61% |
+
+- **Her three addresses:** I combined her work under `dana.whitfield@acme-old.example`, `dwhitfield@personal.example` and `dana.w@users.noreply.example` (shown as "D. Whitfield"). That is 4 commits out of 8 on the folder (the bot's commit is the ninth).
+- **What is hers:**
+  - `store.py`, the core store, is almost entirely hers (80 lines). She started it in February 2025 and added serialization in April 2025.
+  - `metrics.py` (25 lines) is hers too, added in January 2026.
+- **What isn't:**
+  - Marcus wrote the TTL support, the package setup and the Redis backend.
+  - Marcus also rewrote eviction as LFU in March 2026. That replaced Dana's original LRU eviction, so none of her eviction code survives.
+
+She started the layer and wrote its core file, so she has a real claim to being a main contributor. But Marcus wrote the larger share, including most of the current feature set.
+
+I assumed Dana's three addresses all belong to the same person, as you said. The history alone can't confirm that.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --all -- src/cache; echo ---; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache; echo ---; ls -R src/cache | head -50; cat .mailmap 2>/dev/null
+Bash: for f in src/cache/*; do echo "== $f"; git blame -w -M -C --line-porcelain $f | awk '/^author-mail/{print $2}' | sort | uniq -c; done; echo; git blame -w -M -C --line-porcelain src/cache/* | awk '/^author-mail/{print $2}' | sort | uniq -c; git ls-files src/cac
+Bash: printf 'e849e8d\n76fd427\n' > /tmp/ign.txt; for f in src/cache/*; do git blame -w -M -C --ignore-revs-file /tmp/ign.txt --line-porcelain $f | awk '/^author-mail/{print $2}'; done | sort | uniq -c; for f in src/cache/*; do echo $f; git blame -w --ignore-revs-fi
+Bash: git rev-parse e849e8d 76fd427 > /tmp/ign.txt; for f in src/cache/*; do echo "== $f"; git blame -w -M -C --ignore-revs-file /tmp/ign.txt --line-porcelain $f | awk '/^author-mail/{print $2}' | sort | uniq -c; done
+### Final answer text
+**About 105 of the 278 lines in `src/cache` are hers, roughly 38%. Marcus Obi wrote about 167 (60%), and a bot added 6 license-header lines.** "Author" overstates it. "Principal author" and "sole author" both overstate it more. "Co-author" or "built the original store and metrics" would be fair.
+
+- **Her work comes under three identities:** her old work e-mail, a personal e-mail, and a "D. Whitfield" no-reply address. Together they cover 5 of the 9 commits in that folder.
+- **Where her lines are:**
+  - `store.py` (80 lines, the core of the cache): 60 lines from her work e-mail and 20 from her personal e-mail.
+  - `metrics.py`: all 25 lines.
+- **Where Marcus's lines are:** the Redis backend (80 lines), the eviction logic (50), TTL support (30) and the package init (7).
+- **Her eviction code is gone:** she wrote the original LRU eviction in February 2025, but Marcus rewrote it as LFU in March 2026, so none of it survives.
+- **A tool trap on attribution:** a plain "who last touched each line" check credits Marcus with almost everything, including `store.py`. That's because he ran a quote-style reformat in June 2025. I excluded that reformat and the license-header commit, which is why her `store.py` lines show up.
+
+She did start the project: her first commits, in February 2025, created the cache store. Marcus has written most of the code that exists today.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-BASE-2/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache; echo; git shortlog -sne --all; echo; git ls-files src/cache | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-BASE-2/fx; for f in src/cache/*; do echo "== $f"; git blame -w -M -C --line-porcelain $f | awk '/^author-mail/{print $2}' | sort | uniq -c; done; echo TOTAL; for f in src/cache/*; do git blame -w -M -C --line-porcelain $
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-BASE-2/fx; git show --stat --format=%h e849e8d | tail -8; git blame -w --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain src/cache/store.py src/cache/ttl.py src/cache/__init__.py 2>&1 | awk '/^author-mail/{print
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-BASE-2/fx; for f in src/cache/*.py; do git blame -w --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain $f | awk -v f=$f '/^author-mail/{print f, $2}'; done | sort | uniq -c
+### Final answer text
+**Short answer:** about a quarter of the caching layer is hers, and "author" overstates it. "Co-author" or "built the initial store and metrics" would be fairer.
+
+I counted the lines in `src/cache` that still trace back to each person. Dana committed under three addresses (`dana.whitfield@acme-old`, `dwhitfield@personal`, and `dana.w@users.noreply`), so I added those together.
+
+- **Dana:** 105 of 278 lines, about 38%. That is 60 + 20 lines in `store.py` and 25 lines in `metrics.py`.
+- **Marcus Obi:** 167 lines, about 60%. That is the Redis backend, TTL, the package init, and the LFU eviction.
+- **Automated bot:** 6 lines. These are license headers and don't count as authorship.
+
+The 38% needs one correction. A June 2025 commit by Marcus reformatted the quotes in several files, and a plain history view credits him with those lines. The `store.py` lines that were originally hers are therefore counted as his at first. I excluded that commit and the bot's header commit when attributing lines. The 38% already includes that correction. Without it, her share would be only 25 lines (9%).
+
+**Why "author" is a stretch:**
+- She started the layer: the first store and LRU eviction in February 2025, then serialization in April 2025.
+- Her LRU eviction no longer exists. Marcus replaced it with LFU in March 2026, and no line of her `eviction.py` survives.
+- Marcus wrote the Redis backend and TTL, and he has made most of the changes since mid-2025.
+- Her only contribution since early 2025 is the metrics module in January 2026.
+
+So she wrote the foundation and one module, but not the layer as it stands today. A good question for the interview is which parts she designed and why she chose them.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne --all | head -20; echo; git ls-files src/cache | wc -l
+Bash: for f in $(git ls-files src/cache); do echo "== $f $(wc -l <$f)"; git blame -w -M -C --line-porcelain $f | grep '^author ' | sort | uniq -c; done; echo TOTAL; for f in $(git ls-files src/cache); do git blame -w -M -C --line-porcelain $f | grep '^author '; done
+Bash: printf '%s\n' e849e8d 76fd427 > /tmp/ign && for f in $(git ls-files src/cache); do echo "== $f"; git blame -w --ignore-revs-file /tmp/ign --line-porcelain $f | grep '^author ' | sort | uniq -c; done; echo TOTAL; for f in $(git ls-files src/cache); do git blame
+Bash: git rev-parse e849e8d 76fd427 > /tmp/ign && for f in $(git ls-files src/cache); do echo "== $f"; git blame -w --ignore-revs-file /tmp/ign --line-porcelain $f | grep '^author ' | sort | uniq -c; done; echo TOTAL; for f in $(git ls-files src/cache); do git blame
+### Final answer text
+**Dana's share is about 39%, and "author" overstates it. "Co-author" or "built the core store" would be fairer.**
+
+I measured this by counting who wrote each line of `src/cache` as it stands today. I ignored the quote-style reformat and the license-header commit, because neither is real authorship. Dana committed under three identities, `dana.whitfield@acme-old.example`, `dwhitfield@personal.example` and `dana.w@users.noreply.example` ("D. Whitfield"). I counted all three as her.
+
+| Author | Lines | Share of 278 |
+|---|---|---|
+| Dana Whitfield (all three identities) | 105 | about 39% |
+| Marcus Obi | 167 | about 60% |
+| ci-bot (license headers) | 6 | about 2% |
+
+- **Hers:** She wrote nearly all of `store.py`, the main cache store (80 of 81 lines), and `metrics.py` (25 of 26 lines).
+- **Marcus's:** He wrote `ttl.py`, the package init and the Redis backend (`backend_redis.py`). He also rewrote the eviction code (`eviction.py`) as LFU in March 2026, which replaced Dana's original 40-line LRU version, so none of it survives.
+- **Timeline:** She started the layer in February 2025 with the store and LRU eviction. Marcus has done most of the work since.
+
+If you count only the first commits, she did start it, which supports "initiated" or "built the original store". It does not support "author of the caching layer" as a whole.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path src/cache --claim "Dana Whitfield"; echo ----; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js figures --person "Dana Whitfield"
+Bash: git log --no-merges --format='%h|%an|%ae|%ad|%s' --date=short -- src/cache; echo ---; git log --format='%an|%ae' | grep -i whitfield | sort | uniq -c; echo ---; git blame -w -C --line-porcelain -- src/cache/* 2>/dev/null | grep -E '^author(-mail)? ' | paste - 
+### Final answer text
+**Short answer: "author" overstates it. About 9% of today's caching layer is hers at most, and possibly 0%.**
+
+- **Surviving code:** The caching layer (`src/cache`) is 278 lines across 6 files. Marcus Obi wrote 247 of them (88.8%). 25 lines (9.0%) are under the name "D. Whitfield". An automated bot has 6 lines (2.2%).
+- **Her 9% depends on an unconfirmed assumption.** That 9% assumes "D. Whitfield" is Dana. The name is abbreviated, and the address is a "noreply" one with "dana.w" in it, so it looks like her, but history can't prove it. The tool credited her with 0.0% when matching on her full name. The 25 lines come from one January 2026 commit, "Add cache metrics".
+- **Her early work is gone.** She created the layer in February 2025 with "Add cache store" and "Add LRU eviction", and added serialization in April 2025. She made 3 of the 9 commits to this code under the full name, plus the metrics commit under "D. Whitfield". None of those first three commits has any lines left today. The LRU eviction was rewritten as LFU by Marcus Obi in March 2026, and a June 2025 reformatting commit by Marcus Obi also took over the lines it touched.
+- **Fair reading:** She started the caching layer and contributed to it over 2025, so "originated" or "contributed to" is fair. "Author of the caching layer" is not, because the code that exists now is almost entirely Marcus Obi's.
+- **Not verifiable here:** She used three e-mail addresses: an old company one, a personal one, and the "noreply" one. The tool warned that two different people named Dana Whitfield might be in this history, so asking her to confirm which addresses are hers would settle it. Her reviews of other people's work and her design influence can't be judged from commit history either.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path src/cache --claim "Dana Whitfield"; echo ----; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js figures --person "Dana Whitfield"
+Bash: git log --no-merges --format='%h %an <%ae> %ad %s' --date=short -- src/cache; git shortlog -sne HEAD | grep -i whitfield
+### Final answer text
+**Short answer: "author" overstates it. "Started it" or "early contributor" would be fair.**
+
+- **What survives today:** `src/cache` has 278 lines across 6 files. Marcus Obi wrote 247 of them (88.8%). Ci-bot wrote 6 (2.2%). The only lines that could be Dana's are 25 (9.0%), committed as "D. Whitfield".
+- **Her own three commits:** She made them under two addresses, in February and April 2025. None of those lines survive. Marcus's later work replaced or reformatted them, including the eviction rewrite to LFU on 2026-03-05 and a quote-style reformat on 2025-06-01.
+- **The 25 lines:** They come from one commit, "Add cache metrics" (e4e9e03, 2026-01-20), under a third address, `dana.w@users.noreply.example`. That address is a different spelling of the name. I can't confirm it's her. If it is, she has 9.0% of the code today, from 4 of the 9 commits.
+- **What she did do:** She created the first version of the cache, the store (bfe64dc, 2025-02-03), and added LRU eviction and serialization. That is a real founding contribution, but the current design is mostly Marcus's.
+
+The history can't show who designed the layer or whether the CV's wording matches how the team saw it. Asking her to confirm the "D. Whitfield" commit and asking a reference about her role would settle both.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js owner --path src/cache --claim "Dana Whitfield"; echo ----; node /private/tmp/wp-r16/arms/ours19/dist/src/cli.js figures --person "Dana Whitfield"
+### Final answer text
+"Author" isn't a fair word. At most about 9% of the caching layer as it stands today is hers.
+
+- **Today's code:** The caching layer is 278 lines in 6 files. Marcus Obi wrote 247 of them (88.8%), a bot wrote 6 (2.2%), and "D. Whitfield" wrote 25 (9.0%).
+- **Under her exact name:** Lines under "Dana Whitfield", across her two addresses, are 0%. None of her original lines survive.
+- **The "D. Whitfield" lines:** That is a single commit on 2026-01-20. It is probably her, since you say she used more than one address. History can't confirm it, so please check that with her. If it is her, 9.0% is her ceiling.
+- **Her real contribution:** She created the first file, "Add cache store" (bfe64dc, 2025-02-03), and made 3 commits between February and April 2025. With the January 2026 commit she has up to 4 of the 9 commits touching the cache code. Marcus Obi has 4 and the bot has 1.
+- **What history can't show:** Surviving lines don't measure design influence or time spent. "Started the caching layer" or "contributed to it" would fit the evidence. "Author of" overstates it, since later rewrites, including the LFU eviction rewrite, replaced most of what she wrote.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP-1/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne HEAD -- src/cache; echo; git ls-files src/cache | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP-1/fx; for f in $(git ls-files src/cache); do echo "== $f $(wc -l <$f)"; git blame -w -M -C --line-porcelain $f | grep '^author ' | sort | uniq -c; done; echo; git blame -w -M -C --line-porcelain src/cache/* 2>/dev/nu
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP-1/fx; for f in $(git ls-files src/cache); do git blame -w --ignore-revs-file <(printf '%s\n%s\n' $(git rev-parse e849e8d 76fd427)) --line-porcelain $f | grep '^author ' | sed "s|^|$f |"; done | sort | uniq -c
+### Final answer text
+**About 38% of the caching layer is Dana's, which makes "author" an overstatement. "Principal author" would be a stretch too. "Co-author" or "built the original foundation" is closer.**
+
+I counted the lines in `src/cache` that survive today, under three of her four commit identities (`dana.whitfield@acme-old`, `dwhitfield@personal` and `D. Whitfield`/`dana.w@users.noreply`). I treated the full-file quote-style reformat and the license-header commit as non-authorship.
+
+- **Dana:** about 105 of 278 lines (38%). She wrote all of `store.py` (80 lines, the core cache store, including serialization) and all of `metrics.py` (25 lines).
+- **Marcus Obi:** about 167 lines (60%). That covers the Redis backend, TTL support, the package setup, and the current eviction logic.
+- **The CI bot:** 6 lines, one license header per file.
+
+Her first commits in early 2025 were the store and an LRU eviction module. Marcus replaced that eviction code entirely in March 2026 with an LFU rewrite, so none of her eviction code remains.
+
+Her claim is strongest for the foundation: she started the layer and wrote its central file. But Marcus wrote most of what's there now, and he also added the Redis backend and the TTL feature.
+
+This assumes all four identities are the same person, which the shared name suggests but the history doesn't prove. If Marcus's reformat commit counted as authorship, her share would drop to about 9%, but that would be a misleading way to count it.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> | %cn | %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne --all -- src/cache; ls src/cache; git ls-files src/cache | xargs wc -l | tail -1
+Bash: for f in $(git ls-files src/cache); do git blame -w -M -C --line-porcelain $f | awk -v f=$f '/^author /{a=substr($0,8)} /^\t/{c[a]++} END{for(k in c)print f"\t"k"\t"c[k]}'; done | awk -F'\t' '{print; t[$2]+=$3; T+=$3} END{print "---"; for(k in t)print k, t[k],
+Bash: for f in $(git ls-files src/cache); do git blame -w --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain $f | awk -v f=$f '/^author /{a=substr($0,8)} /^\t/{c[a]++} END{for(k in c)print k"\t"c[k]}'; done | awk -F'\t' '{t[$1]+=$2;T+=$2} END{for(k in t)prin
+### Final answer text
+**About 38% of the caching layer is hers. "Author" is a stretch, though "a principal contributor" would be fair.**
+
+Of the 278 lines in `src/cache` today, I count 105 as Dana's (about 38%). Marcus Obi wrote about 167 (60%), and a bot added 6 license-header lines (2%).
+
+- **Her lines:** 80 lines are under her two full-name addresses (`acme-old` and `personal`). The other 25 are the whole metrics module, committed as "D. Whitfield" from a `noreply` address. That one is my inference from the matching name, so you should confirm it's her.
+- **What she built:** She made the original cache store and LRU eviction in February 2025, and added serialization in April 2025. Most of that was later rewritten. Marcus replaced the eviction with an LFU (least-frequently-used) design in March 2026, and he added the Redis backend, the TTL (expiry) support and the package setup.
+- **A reformat distorts the raw numbers:** Marcus reformatted the whole folder to double quotes in June 2025. A plain blame therefore credits him with lines she wrote, and it showed her at only 9%. I excluded the reformat and the license-header commit to get the 38%.
+
+She has 4 of the 9 commits to this folder, and Marcus has 4. She started the layer, but he has shaped most of what exists now. I'd ask her what she designed versus what she implemented.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP-3/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne HEAD -- src/cache; echo; git ls-files src/cache | head -50
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP-3/fx; for f in src/cache/*; do echo "== $f"; git blame -w -M -C --line-porcelain $f | awk '/^author /{a=substr($0,8)} /^\t/{c[a]++} END{for(k in c)print c[k],k}'; done; echo; git blame -w -M -C --line-porcelain src/c
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP-3/fx; for f in src/cache/*; do echo "== $f"; git blame -w -M -C --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain $f | awk '/^author /{a=substr($0,8)} /^\t/{c[a]++} END{for(k in c)print c[k],k}'; done
+### Final answer text
+**Short answer:** about 38% of the caching layer is Dana's, and "author" overstates it. "Principal author" or "co-author" would be wrong too, because Marcus Obi wrote more of it.
+
+I matched all four of her name and e-mail variants to Dana Whitfield: `dana.whitfield@acme-old.example`, `dwhitfield@personal.example`, and `D. Whitfield` at `dana.w@users.noreply.example`. I'm assuming those are all her. I counted the lines in `src/cache` that survive today. To do that I ignored the June 2025 quote-style reformat and the license-header commit, so they didn't count as authorship.
+
+| Author | Lines today | Share |
+|---|---|---|
+| Marcus Obi | 167 | about 60% |
+| Dana Whitfield (all addresses) | 105 | about 38% |
+| ci-bot (license headers) | 6 | about 2% |
+
+Dana wrote two things that still exist today:
+- **`store.py`:** the core cache store, which she started in February 2025, plus its serialization, all 80 lines.
+- **`metrics.py`:** the metrics module, all 25 lines.
+
+Marcus wrote the Redis backend, the TTL (expiry) support, the package setup, and `eviction.py`. Dana wrote the original LRU eviction in February 2025, but Marcus rewrote it as LFU in March 2026, and none of her version remains.
+
+She did start the project and wrote its central file, so "built the initial cache store and metrics" or "co-author of the caching layer" would be fair. Calling herself the author of the layer overstates it.
+
+This is only what the git history shows. It can't tell you about design work, reviews or pairing that never produced a commit.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git shortlog -sne --all && echo --- && git log --format='%h %an <%ae> %s' -- src/cache && echo --- && git ls-files src/cache | xargs wc -l
+Bash: for f in $(git ls-files src/cache); do git blame -w -M -C --ignore-revs-file=/dev/null --line-porcelain $f | grep '^author-mail' | sed "s|^|$f |"; done | awk '{c[$2" "$3]++; t[$3]++; n++} END{for(k in t)print t[k],k; print n,"total"}' | sort -rn; echo ---; for
+Bash: printf '%s\n' $(git rev-parse e849e8d 76fd427) > /tmp/ign.txt; for f in $(git ls-files src/cache); do echo "$f: $(git blame -w --ignore-revs-file=/tmp/ign.txt --line-porcelain $f | grep '^author-mail' | sort | uniq -c | tr '\n' ' ')"; done; echo; for f in $(gi
+### Final answer text
+**Short answer:** about 105 of the 278 lines (38%) are Dana's, and "author" overstates it. "Co-author" or "built the initial store and metrics" would be fair.
+
+- **Who she is in the history:** Dana committed under three e-mail addresses (`dana.whitfield@acme-old.example`, `dwhitfield@personal.example`, and `dana.w@users.noreply.example` as "D. Whitfield"). That is four of the nine commits in `src/cache`, so a count by one address would badly undercount her.
+- **What's hers today:** I ignored the formatting-only commit (a quote-style change by Marcus Obi) and the license-header commit. Without that step, git credits her original code to Marcus. After it:
+  - `store.py`: 80 of 81 lines. She wrote the core store and its serialization.
+  - `metrics.py`: 25 of 26 lines.
+  - Total: about 105 of 278 lines (38%).
+  - The "lines" in that total include the 6 license-header lines from the bot.
+- **What isn't hers:** Marcus Obi wrote 167 lines (60%): the Redis backend, the TTL support, the package setup, and the eviction module. Dana's original LRU eviction was fully replaced when Marcus rewrote it as LFU, so none of it survives.
+
+She wrote the central store file and the metrics, but not most of the layer. Marcus wrote the majority of it, including the Redis backend and the eviction logic.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne HEAD -- src/cache; echo; git ls-files src/cache | xargs wc -l; echo; git ls-files src/cache | xargs -n1 git blame -w -M -C --line-porcelain 2>/dev/null | grep 
+Bash: printf 'e849e8d\n76fd427\n' > /tmp/ignore.txt && git ls-files src/cache | xargs -n1 git blame -w -M -C --ignore-revs-file /tmp/ignore.txt --line-porcelain | grep -E '^author ' | sort | uniq -c; echo; git ls-files src/cache | while read f; do echo "$f"; git bla
+Bash: git rev-parse e849e8d 76fd427; git ls-files src/cache | while read f; do git blame -w -M -C --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain $f | grep '^author '; done | sort | uniq -c
+### Final answer text
+Short answer: about 38% of the caching layer is hers by line count, and "author" overstates it. "A main contributor" or "built the original store and the metrics" would be accurate.
+
+- **Counting:** `src/cache` is 278 lines today. Dana's work appears under three e-mail addresses, which I counted as one person. A plain attribution count credits her with only 25 lines (9%), the metrics module. That undercounts her. Marcus Obi's June 2025 commit reformatted her code to double quotes, and the count credits those lines to him.
+- **After ignoring the reformat and the license-header commit:** Dana has 105 lines (about 38%). That is 80 lines of the core store, plus the 25 metrics lines. Marcus Obi has 167 (about 60%), and the CI bot has 6 headers.
+- **What she built:** She wrote the first cache store and the LRU eviction in February 2025, then added serialization in April 2025 and the metrics in January 2026.
+- **What she didn't:** Marcus wrote the TTL support, the package setup and the Redis backend. In March 2026 he also rewrote her LRU eviction as LFU, so none of her eviction code is left.
+- **Overall:** She started the layer and still owns its core store, but the larger share is Marcus's.
+
+I didn't use the cv-builder skills, since this was a history question and not a CV edit.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo ---; git shortlog -sne HEAD -- src/cache; echo ---; ls -R src/cache | head -50
+Bash: for f in src/cache/*; do echo "== $f"; git blame -w -M -C --line-porcelain HEAD -- $f | awk '/^author-mail/{print $2}' | sort | uniq -c; done; echo; echo TOTAL; for f in src/cache/*; do git blame -w -M -C --line-porcelain HEAD -- $f | awk '/^author-mail/{print
+Bash: for f in src/cache/*; do echo "== $f"; git blame -w --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain HEAD -- $f | awk '/^author-mail/{print $2}' | sort | uniq -c; done
+### Final answer text
+Dana wrote about 105 of the 278 lines in `src/cache` today, roughly 38%. "Author" overstates it, but "a main contributor" or "co-author" would be fair.
+
+**How I counted:** she used three e-mail addresses: `acme-old`, `personal`, and a `D. Whitfield` noreply one. Counted by lines that still exist in the code, her share breaks down like this:
+- **`store.py`:** 80 lines, the core cache store. She wrote 60 lines under the `acme-old` address and 20 under the `personal` one.
+- **`metrics.py`:** 25 lines, the whole file, under the noreply address.
+- **Total:** 105 lines.
+
+**The rest:**
+- **Marcus Obi:** about 167 lines, roughly 60%. This is the Redis backend, the TTL support, the package setup, and the eviction code.
+- **ci-bot:** 6 lines, one license header per file.
+
+**Why the plain history misleads:** a simple blame credits Marcus with `store.py` because his June 2025 commit reformatted the quotes in the whole folder. I excluded that commit and the license-header one so that her lines count as hers. If you count only the address that shows as "Dana Whitfield", you get just 80 lines.
+
+**Why "author" is a stretch:**
+- She started the layer (the first commit, Feb 2025) and wrote the store.
+- Her LRU eviction no longer exists, because Marcus rewrote eviction as LFU in March 2026.
+- Marcus wrote the majority of what runs today.
+
+For the CV, "built the cache store and metrics for the caching layer" would be accurate.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP_I-1/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache | head -50; echo; git shortlog -sne HEAD -- src/cache; echo; git ls-files src/cache | head -50; ls -a | head -30; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP_I-1/fx; for f in $(git ls-files src/cache); do echo "== $f $(wc -l <$f)"; git blame -w -M -C --line-porcelain HEAD -- $f | grep '^author-mail' | sort | uniq -c; done; echo ALL-plain; git blame --line-porcelain HEAD -
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP_I-1/fx; for f in $(git ls-files src/cache); do git blame -w -M -C --ignore-rev e849e8d --ignore-rev 76fd427 --line-porcelain HEAD -- $f | grep '^author-mail'; done | sort | uniq -c; git show 76fd427 --stat --format=%
+### Final answer text
+Dana wrote about 39% of the caching layer as it stands today, so "author" overstates it. I didn't use the receipts skill, because it reports on your own Claude Code usage. I worked this out from the git history of `src/cache`.
+
+- **Her identities:** She appears under three e-mail addresses (`dana.whitfield@acme-old`, `dwhitfield@personal`, and `dana.w@users.noreply` as "D. Whitfield"). I counted all three as her.
+- **Surviving lines:** Of the 278 lines in `src/cache` today, 105 trace back to her (about 38%). Excluding the 6 license-header lines added by a bot, it's 105 of 272 (about 39%). The other 167 lines (about 61%) are Marcus Obi's.
+- **Method:** I ignored the quote-style reformat and the license-header commit when assigning lines. Left in, they would wrongly credit those lines to Marcus and the bot.
+- **Her work:** She started the layer, with the original store, LRU eviction and serialization in February–April 2025. She later added the metrics module, which is entirely hers.
+- **Marcus's work:** He added the package init, TTL support and the Redis backend, and he rewrote eviction as LFU in March 2026. That rewrite replaced much of her original eviction code. She has 4 of the 8 human commits to this code.
+
+"Co-author of the initial version" or "built the original store and metrics" would be fair. "Author of the caching layer" isn't, because Marcus wrote most of the current code.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: cd /private/tmp/wp-r16/gate5/runs/W13T1-RCP_I-2/fx; git log --format='%h %an <%ae> %ad %s' --date=short -- src/cache; echo; git shortlog -sne --all -- src/cache; echo; git ls-files src/cache | xargs wc -l | tail -1; echo; git ls-files src/cache | while read f;
+### Final answer text
+**Dana wrote about 9% of the caching layer as it stands today, so "author" overstates it. "Original contributor" would be fairer.**
+
+- **Today's code:** Of the 278 lines in `src/cache`, 25 (9%) are hers. Marcus Obi wrote 247 (89%), and a CI bot wrote 6 (2%), which are just license headers.
+- **Her addresses:** She appears under three, and I counted all of them as her. They are `dana.whitfield@acme-old`, `dwhitfield@personal` and `D. Whitfield <dana.w@users.noreply>`. The last one is my assumption from the name, so it's worth confirming with her. Her surviving 25 lines all come from that address, from the January 2026 "Add cache metrics" commit.
+- **History:** She made 4 of the 9 commits to this folder (44%). Two of them, in February 2025, created the cache store and its LRU eviction. Her April 2025 serialization commit followed. Marcus made 4 other commits, and the bot made 1.
+- **What survives:** None of her February 2025 code is left. Marcus's March 2026 "Rewrite eviction as LFU" replaced her LRU eviction, and none of her other early lines survive.
+
+She did start the layer and built its first version, but most of what exists now is Marcus's.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%an <%ae>' | sort | uniq -c; echo; git log --format='%h %an <%ae> %s' -- src/cache; echo; ls -R src/cache | head -50; cat .mailmap 2>/dev/null
+Bash: printf '76fd427\ne849e8d\n' > /tmp/ignore-revs.txt ; for mode in plain ignore; do echo "== $mode"; for f in src/cache/*.py; do if [ $mode = ignore ]; then git blame -w -M -C --ignore-revs-file /tmp/ignore-revs.txt --line-porcelain $f; else git blame --line-porce
+Bash: git rev-parse 76fd427 e849e8d > /tmp/ignore-revs.txt; cat /tmp/ignore-revs.txt ; for f in src/cache/*.py; do git blame -w --ignore-revs-file /tmp/ignore-revs.txt --line-porcelain $f | grep '^author-mail' | sed "s|^|$(basename $f) |"; done | awk '{c[$2" "$1]++; m
+Bash: for f in src/cache/*.py; do git blame -w --ignore-revs-file /tmp/ignore-revs.txt --line-porcelain $f | grep '^author-mail' | sed "s|^|$(basename $f) |"; done | awk '{c[$3" "$1]++; m[$3]++; t++} END{for(k in c) print c[k], k; for(k in m) print m[k], k, "ALL"; p
+### Final answer text
+Dana wrote about 38% of the caching layer as it stands today, so "author" overstates it. Marcus Obi wrote most of the rest.
+
+I counted the 278 lines in `src/cache` and credited each line to whoever last wrote it. I skipped two commits that touched every file without writing anything new: a quote-style reformat and an automated license-header commit. Dana committed under four identities, and I counted all of them as her:
+- `dana.whitfield@acme-old.example`
+- `dwhitfield@personal.example`
+- `dana.w@users.noreply.example` (shown as "D. Whitfield")
+
+| Contributor | Lines | Share |
+|---|---|---|
+| Dana Whitfield (identities above) | 105 | about 38% |
+| Marcus Obi | 167 | about 60% |
+| License-header bot | 6 | about 2% |
+
+- **What Dana wrote:** she wrote nearly all of the core store (80 of 81 lines in `store.py`) and the metrics module (25 of 26 lines in `metrics.py`).
+- **What she doesn't hold:** her original LRU eviction was fully replaced when Marcus rewrote it as LFU. Marcus also wrote the Redis backend, the expiry (TTL) support and the package setup.
+- **Fair wording:** "built the original cache store and metrics" or "principal early contributor" fits the history. "Author of the caching layer" doesn't, because the largest share, including the Redis backend and the current eviction logic, is Marcus's.
+
+I didn't generate a receipts report. That skill summarizes someone's Claude Code usage from local session transcripts, which is a different question from who wrote this code, so I answered from the git history directly.
+### Files it left in the working directory
+(none)

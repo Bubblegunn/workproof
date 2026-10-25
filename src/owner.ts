@@ -2,6 +2,9 @@ import { execFile } from "node:child_process";
 import { posix } from "node:path";
 import { PINNED_CONFIG } from "./git.js";
 import { foldIdentity } from "./figures/identity.js";
+import { readLog } from "./figures.js";
+import { groupPeople } from "./figures/people.js";
+import { formattingOnlyCommits } from "./figures/format.js";
 
 /**
  * `workproof owner`: checks a claim that one person wrote or owns a file or directory, from its
@@ -200,21 +203,22 @@ export function hasGeneratedMarker(text: string): boolean {
 interface BlameLine {
   name: string;
   mail: string;
+  sha: string;
 }
 
 /** Blames one file at HEAD. Blame applies .mailmap itself, so names are the resolved ones. */
-async function blameLines(top: string, file: string, ws: boolean): Promise<BlameLine[]> {
-  const args = ["blame", ...(ws ? ["-w", "-C"] : []), "--line-porcelain", "HEAD", "--", file];
+async function blameLines(top: string, file: string, ws: boolean, ignore: string[] = []): Promise<BlameLine[]> {
+  const args = ["blame", ...(ws ? ["-w", "-C"] : []), ...ignore.flatMap((r) => ["--ignore-rev", r]), "--line-porcelain", "HEAD", "--", file];
   const out = await run(args, top);
   const lines: BlameLine[] = [];
-  let cur: { name?: string; mail?: string } | undefined;
+  let cur: { name?: string; mail?: string; sha?: string } | undefined;
   for (const line of out.split("\n")) {
-    if (/^[0-9a-f]{40,64} \d+ \d+/.test(line)) cur = {};
+    if (/^[0-9a-f]{40,64} \d+ \d+/.test(line)) cur = { sha: line.slice(0, line.indexOf(" ")) };
     else if (!cur) continue;
     else if (line.startsWith("author ")) cur.name = line.slice(7);
     else if (line.startsWith("author-mail ")) cur.mail = line.slice(12).replace(/^<|>$/g, "");
     else if (line.startsWith("\t")) {
-      lines.push({ name: cur.name ?? "", mail: cur.mail ?? "" });
+      lines.push({ name: cur.name ?? "", mail: cur.mail ?? "", sha: cur.sha ?? "" });
       cur = undefined;
     }
   }
@@ -448,6 +452,72 @@ export async function computeOwner(opts: OwnerOptions): Promise<OwnerReport> {
     for (const n of multiName.slice(0, LIST)) rows.push({ label: `  ${n.name}`, value: plural(n.addrs.size, "address", "addresses"), basis: "" });
     rows.push({ label: "addresses sharing a name", value: multiAddr.length ? `${plural(multiAddr.length, "address", "addresses")} with more than one name` : "none", basis: "%aE with %aN (mailmap applied); addresses are counted, not printed" });
     for (const [i, names] of multiAddr.slice(0, LIST).entries()) rows.push({ label: `  address ${i + 1}`, value: [...names.values()].join(", "), basis: "" });
+  }
+
+  // (7b) People: addresses joined by evidence, formatting-only commits skipped, co-author credit. Computed on its own.
+  const peopleView = await attempt(async () => {
+    const { commits: log } = await readLog(top);
+    const grouped = groupPeople(log.map((c) => ({ sha: c.sha, email: c.email, name: c.name, body: c.body, parents: c.parents, committerEmail: c.committerEmail })));
+    const personOf = new Map<string, number>();
+    grouped.people.forEach((p, i) => p.emails.forEach((e) => personOf.set(e, i)));
+    const botMail = new Set(grouped.bots.flatMap((b) => b.emails));
+    const formatting = await formattingOnlyCommits(top);
+    const ignore = formatting.map((f) => f.sha);
+    const perFile: BlameLine[][] = [];
+    for (const f of readFiles) perFile.push(await blameLines(top, f, true, ignore));
+    const coOf = new Map(log.map((c) => [c.sha, c] as const));
+    return { grouped, personOf, botMail, formatting, perFile, coOf };
+  });
+  if (!peopleView.ok) {
+    rows.push({ label: "surviving lines by person, formatting-only commits skipped", value: notComputed(peopleView.reason), basis: "git blame -w -C --ignore-rev; people grouped by evidence" });
+  } else {
+    const { grouped, personOf, botMail, formatting, perFile, coOf } = peopleView.value;
+    rows.push({
+      label: "formatting-only commits (skipped in the next rows)",
+      value: formatting.length ? `${formatting.length}` : "none",
+      basis: "commits whose added lines equal their removed lines after whitespace, quote characters and trailing commas are ignored (git blame -w ignores whitespace only); passed to git blame --ignore-rev",
+    });
+    for (const f of formatting.slice(0, LIST)) rows.push({ label: `  ${sha7(f.sha)}`, value: `${f.lines} lines in ${plural(f.files, "file")} "${show(f.subject, SUBJECT_CAP)}"`, basis: "" });
+    const lines = perFile.flat();
+    const bot = lines.filter((l) => botMail.has(l.mail.toLowerCase())).length;
+    const human = lines.filter((l) => !botMail.has(l.mail.toLowerCase()));
+    const byPerson = new Map<number, number>();
+    const unknown = new Map<string, number>();
+    for (const l of human) {
+      const i = personOf.get(l.mail.toLowerCase());
+      if (i === undefined) unknown.set(show(l.name), (unknown.get(show(l.name)) ?? 0) + 1);
+      else byPerson.set(i, (byPerson.get(i) ?? 0) + 1);
+    }
+    const ranked = [...byPerson].map(([i, n]) => ({ name: show(grouped.people[i]!.name), n, joined: grouped.people[i]!.emails.length })).concat([...unknown].map(([name, n]) => ({ name, n, joined: 1 }))).sort((a, b) => b.n - a.n || a.name.localeCompare(b.name));
+    const humanTotal = human.length;
+    rows.push({
+      label: "surviving lines by person, formatting-only commits skipped, addresses joined by evidence",
+      value: `${plural(humanTotal, "line")} not by a bot (${bot} bot ${bot === 1 ? "line" : "lines"} left out)`,
+      basis: "git blame -w -C --ignore-rev at HEAD; bots by name or noreply bot address; people joined as in workproof people (proven and probable joins)",
+    });
+    for (const r of ranked.slice(0, LIST)) rows.push({ label: `  ${r.name}`, value: `${plural(r.n, "line")} (${share(r.n, humanTotal)})${r.joined > 1 ? `, ${r.joined} addresses joined` : ""}`, basis: "" });
+    if (claim !== undefined) {
+      const key = foldIdentity(claim);
+      const idx = grouped.people.findIndex((p) => p.emails.some((e) => foldIdentity(e) === key) || p.names.some((n) => foldIdentity(n) === key));
+      if (idx < 0) rows.push({ label: `claim person: ${show(claim)}`, value: "no person in this history has that name or address", basis: "people grouping by evidence" });
+      else {
+        const p = grouped.people[idx]!;
+        const mine = new Set(p.emails);
+        const names = new Set(p.names.map(foldIdentity));
+        const direct = human.filter((l) => mine.has(l.mail.toLowerCase())).length;
+        const shared = human.filter((l) => {
+          if (mine.has(l.mail.toLowerCase())) return false;
+          const c = coOf.get(l.sha);
+          return !!c && (c.coAuthors.some((e) => mine.has(e)) || c.coAuthorNames.some((n) => names.has(foldIdentity(n))));
+        });
+        const sharedCommits = new Set(shared.map((l) => l.sha));
+        rows.push({
+          label: `claim person: ${show(p.name)}`,
+          value: `direct surviving lines ${direct} (${share(direct, humanTotal)} of ${humanTotal} not by a bot); lines in commits under another name that credit ${show(p.name)} as Co-authored-by ${shared.length} in ${plural(sharedCommits.size, "commit")}, upper bound with that credit ${direct + shared.length} (${share(direct + shared.length, humanTotal)})`,
+          basis: `${p.emails.length} ${p.emails.length === 1 ? "address" : "addresses"} joined${p.emails.length > 1 ? " (" + [...new Set(grouped.merges.filter((m) => mine.has(m.a) && mine.has(m.b)).map((m) => `${m.rule}, ${m.strength}`))].join("; ") + ")" : ""}; formatting-only commits skipped; the address is never printed`,
+        });
+      }
+    }
   }
 
   // (8) claim: each part is computed on its own, so one failed git call does not hide the others.

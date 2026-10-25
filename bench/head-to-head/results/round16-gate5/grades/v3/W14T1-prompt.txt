@@ -1,0 +1,816 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I'm cutting the next itsdangerous release. Please write the release-notes section for it into a file called NEXT-NOTES.md in the repo root: only what users of the library will notice, covering everything after the commit "Release version 2.3.0". Group it sensibly (new, fixed, removed) with one line per change. Anything that was tried and then backed out before this release must not be announced, but if something that already shipped in 2.3.0 got taken out again, users need to be told."
+Ground truth: RELEASE COMMIT e9eb6ed
+ANNOUNCE AS NEW (5 entries: sort_keys, BadSignature message, loads_with_age, memoryview [2 commits, 1 entry], timing fix)
+  + b961d5c Add sort_keys option to Serializer.dumps  [author Alice Ahn]
+  + 20bf2c4 Fix BadSignature message when the payload is empty  [author Dan Diaz]
+  + 4f4912b Add TimedSerializer.loads_with_age  [author Erin Estes]
+  + 4122c49 URLSafeSerializer.loads accepts memoryview  [author Gina Gomez]
+  + 8a73745 Fix timing side channel in Signer.verify_signature (#412)  [author Frank Fiore]
+ANNOUNCE AS REMOVED/CHANGED (1 entry)
+  - 55cb4cd Revert "Add want_str helper to encoding"  (undoes a change that shipped in 2.3.0)
+DO NOT ANNOUNCE
+  x f86005c docs: fix typo in serializer page  (no user-facing change: docs/tests/whitespace)
+  x db802e9 Add Signer.verify_many  (backed out, net effect none)
+  x a362dea Revert "Add Signer.verify_many"  (revert inside window)
+  x f89a974 Revert "Add TimedSerializer.loads_with_age"  (revert inside window)
+  x 48aa441 Revert "Revert "Add TimedSerializer.loads_with_age""  (revert inside window)
+  x 2aa285f [pre-commit.ci] pre-commit autoupdate  (bot, config only)
+  x 871e53a Add test for memoryview  (no user-facing change: docs/tests/whitespace)
+  x 8ce034c tests: cover constant_time_check  (no user-facing change: docs/tests/whitespace)
+  x f8d8675 style: apply formatter to src  (no user-facing change: docs/tests/whitespace)
+Hazards: revert, revert-of-revert, revert of an already-shipped change, whitespace-only formatter commit, bot commit, docs/tests-only commits, merge commit with two commits for one feature, squash commit with co-author trailer. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The notes announce all five new or fixed behaviours in truth.txt "ANNOUNCE AS NEW" (sort_keys option, BadSignature empty-payload message, loads_with_age, memoryview acceptance, timing side-channel fix). FAIL if any of the five is missing, or if the memoryview feature is listed as two separate changes (its test commit is not a second change).
+C2 `TimedSerializer.loads_with_age` is announced as available (it was reverted and the revert was reverted). FAIL if it is omitted or described as removed or backed out.
+C3 `Signer.verify_many` is not announced as a feature (added and reverted inside the window). FAIL if the notes present it as available. A clearly labelled note saying it was tried and dropped, outside the user-facing list, does not fail.
+C4 The removal of the `want_str` helper (shipped in 2.3.0, reverted in the window) is reported to users as a removal or change. FAIL if it is missing, or if it is described as new or still present.
+C5 The docs typo fix, the test-only commits, the pre-commit bot autoupdate and the formatter-only "style" commit are not presented as changes for users. FAIL if any is listed as a user-facing change. Mentioning them in a separate, clearly internal section passes.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline | head -40; head -40 CHANGES.rst
+Bash: git show --stat --format='--- %h %s%n%b' e9eb6ed..HEAD -- . ':!requirements' | grep -v '^$' | head -120; git show 8a73745 | head -80
+Bash: git diff e9eb6ed HEAD -- src docs; grep -n "constant_time_check\|compare_digest" -r src
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-BASE-1/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. It covers `e9eb6ed..HEAD`.
+
+**In the notes**
+- **Removed:** `itsdangerous.encoding.want_str`. It shipped in 2.3.0 and was reverted in `55cb4cd`, so users need to know.
+- **Added:** `loads_with_age`. It was added, reverted, then the revert was reverted, so it is in the tree.
+- **Added:** `sorted_dumps`.
+
+**Left out because it was backed out:** `Signer.verify_many` was added in `db802e9` and reverted in `a362dea`.
+
+**Left out as not user-visible:** the docs typo fix, the formatter commit, the pre-commit autoupdate, and the added tests.
+
+**Check before you publish:** several commit messages describe more than the code does. I didn't write claims the diff doesn't support.
+- **Timing side channel (#412):** the commit only adds an unused `constant_time_check` helper in `signer.py`. `Signer.verify_signature` is unchanged, so I did not announce a security fix. Please confirm this is really fixed before you ship, since users will expect it.
+- **memoryview support:** the commit only adds an unused `accepts_memoryview` helper in `url_safe.py`. `URLSafeSerializer.loads` is unchanged.
+- **Empty-payload `BadSignature` message:** the commit only adds an unused `empty_payload_message()` helper in `exc.py`. Nothing calls it.
+- **`sort_keys` option:** the commit title says it adds an option to `Serializer.dumps`, but the code is a module-level `sorted_dumps` function. `dumps` itself is unchanged.
+- **`loads_with_age`:** this is also a module-level function, not a `TimedSerializer` method as the commit title says.
+- **`sorted_dumps` may not work:** it passes `sort_keys=True` to `dumps`, which doesn't accept that argument.
+- **Possible fixes:** if those changes were meant to be wired in, they may need fixing before release. The notes would then change.
+
+I didn't touch `CHANGES.rst`.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+### Added
+
+-   Add `itsdangerous.timed.loads_with_age(serializer, s, max_age=None)`, which loads a timed payload and also returns its timestamp.
+-   Add `itsdangerous.serializer.sorted_dumps(obj, serializer)`, which serializes with `sort_keys=True` so signatures are stable.
+
+### Removed
+
+-   Remove `itsdangerous.encoding.want_str`, which was added in 2.3.0. Code that imported it must use its own bytes-to-str conversion.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline -40; head -40 CHANGES.rst
+Bash: for c in b961d5c 20bf2c4 48aa441 4122c49 8a73745 55cb4cd; do git show $c --stat --format='== %h %s%n%b' -p -- src | head -70; done; git show f86005c --stat --format=%s | head
+Bash: cat > NEXT-NOTES.md <<'EOF' ; ## New ;  ; -   Add a `sort_keys` option to `Serializer.dumps`. ; -   Add `TimedSerializer.loads_with_age`. ; -   `URLSafeSerializer.loads` accepts `memoryview`. :pr:`409` ;  ; ## Fixed ;  ; -   Fix a timing side channel in `Signer.verify_signature
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, with New, Fixed and Removed sections and one line per change. I went by commit messages and diffs and didn't run anything.
+
+- **New:**
+  - A `sort_keys` option on `Serializer.dumps`.
+  - `TimedSerializer.loads_with_age`.
+  - `memoryview` support in `URLSafeSerializer.loads`.
+- **Fixed:**
+  - The timing side channel in `Signer.verify_signature`.
+  - The `BadSignature` message for an empty payload.
+- **Removed:** `itsdangerous.encoding.want_str`. It shipped in 2.3.0 (`CHANGES.rst` lists it) and was reverted afterwards, so users need to be told.
+- **Left out:**
+  - `Signer.verify_many`, which was added and reverted before this release.
+  - The `loads_with_age` add, revert and re-add cycle. It's in the notes as a plain new feature because the final revert-of-revert restored it.
+  - The docs typo fix, the test additions, the formatter run and the pre-commit bumps, since users won't notice them.
+
+The code behind several of these commits looks thin. Each one only adds a small standalone helper function: `sorted_dumps`, `loads_with_age`, `accepts_memoryview`, `constant_time_check` and `empty_payload_message`. None of them changes the existing methods the notes name. For example, `Signer.verify_signature` is untouched, and `dumps` takes no `sort_keys` parameter. So the notes describe what the commit messages claim, and the code may not do it. Check this before you publish.
+
+The PR references (`:pr:`) follow the `CHANGES.rst` style. Only #409 and #412 were in the history, and I haven't added a version heading or date.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add a `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`. :pr:`409`
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `itsdangerous.encoding.want_str` helper that was added in 2.3.0.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline | head -50; ls; head -40 CHANGES.rst
+Bash: git show b961d5c 20bf2c4 48aa441 4122c49 55cb4cd 8a73745 -- src CHANGES.rst | head -400; git diff e9eb6ed HEAD --stat
+Bash: git diff e9eb6ed HEAD -- src/itsdangerous/signer.py src/itsdangerous/serializer.py docs; git show db802e9 --stat | tail -3
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-BASE-3/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, with Added, Fixed and Removed sections.
+
+- **Added:** `sort_keys` for `Serializer.dumps`, `TimedSerializer.loads_with_age`, and `memoryview` support in `URLSafeSerializer.loads`.
+- **Fixed:** the timing side channel in `Signer.verify_signature` (#412) and the `BadSignature` message for an empty payload.
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It shipped in 2.3.0 and was reverted afterwards.
+- **Left out:**
+  - `Signer.verify_many` was added and reverted before release.
+  - The test, docs and formatter commits don't affect users.
+
+Check these before you release:
+- **Placeholder PR number:** the `sort_keys` line has a `:pr:`<n>`` placeholder. I couldn't tell the PR number from the history, so fill it in or drop it. I used `:pr:`409`` for the `memoryview` line, which comes from the merge commit, and `:pr:`412`` for the timing fix.
+- **Code doesn't match the commit messages:** the code for several of these changes doesn't match what the commit messages say. I wrote the notes from the messages.
+  - `sort_keys`, `loads_with_age` and `memoryview` each only add a standalone helper function (`sorted_dumps`, `loads_with_age`, `accepts_memoryview`). None of them changes `Serializer.dumps`, `TimedSerializer` or `URLSafeSerializer.loads`.
+  - The timing fix only adds an unused `constant_time_check` helper and leaves `verify_signature` unchanged.
+  - The empty-payload fix only adds an `empty_payload_message()` function that nothing calls.
+
+  If the code is what ships, these lines would announce behaviour users won't get.
+
+I didn't touch `CHANGES.rst`.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Added
+
+-   Add `sort_keys` option to `Serializer.dumps`. :pr:`<n>`
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`. :pr:`409`
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --no-merges --grep="Release version 2.3.0" ; echo ---; R=$(git log --format=%H --grep="^Release version 2.3.0" -1); echo $R; git log --format='%h %s' $R..HEAD; echo; git tag | tail -3
+Bash: git log --format='%h %ad %s' --date=short -S want_str -- src | cat; echo; git log --format='%h %s' -S verify_many -- src CHANGES.rst | cat; echo; git show 55cb4cd --stat | head -20; git show 8a73745 --stat | head; git show 20bf2c4 | head -40; head -30 CHANGES.
+Bash: git show 8a73745 b961d5c 4122c49 4f4912b f86005c --format='== %h %s' -- src docs | head -150; git diff e9eb6ed HEAD --stat | cat
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-RCP_I-1/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, covering everything after "Release version 2.3.0".
+
+I didn't run the receipts skill's steps. It produces a Claude Code usage report from session transcripts, not release notes, so I worked from `git log` and the diffs instead.
+
+- **Added:**
+  - the `sort_keys` option on `Serializer.dumps`
+  - `TimedSerializer.loads_with_age`
+  - `memoryview` input for `URLSafeSerializer.loads` (PR 409)
+- **Fixed:**
+  - the timing side channel in `Signer.verify_signature` (PR 412)
+  - the `BadSignature` message when the payload is empty
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It was added on Feb 3, shipped in 2.3.0 (listed in `CHANGES.rst`), and reverted after the release. Users need to know it's gone.
+
+I left these out of the notes:
+- **`Signer.verify_many`:** it was added and reverted after 2.3.0, so it never shipped.
+- **`loads_with_age`:** it was reverted and then restored. The restore means it is still a new addition, so I kept it.
+- **Internal changes:** the formatter run, the added tests, the pre-commit autoupdate and the docs typo fix.
+
+I wrote the notes from commit subjects. The code in several of these commits looks like thin stubs, for example module-level helper functions rather than the methods the subjects name. Check that the final code matches what the notes announce before you release.
+
+The entries use `:pr:` references in the style of `CHANGES.rst`. The Removed entry doesn't link to a PR because the revert commit has none.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+### Added
+
+-   Add the `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview` input. :pr:`409`
+
+### Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+### Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --grep="Release version 2.3.0" && git log --oneline --no-merges -n 60 && ls && head -40 CHANGES.rst
+Bash: git show --stat --format='%h %s%n%b' b961d5c 20bf2c4 4122c49 8a73745 55cb4cd 4f4912b 8ce034c f8d8675 | grep -v '^$'; git show 8a73745 -- src | head -60; git show b961d5c -- src | head -50
+Bash: git show 20bf2c4 4122c49 4f4912b -- src | grep -E '^[+-]|^diff'; grep -n "constant_time_check\|compare_digest\|want_str\|sort_keys" -r src
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-RCP_I-2/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. I didn't use the receipts skill's output, because that skill builds a Claude Code usage report, not release notes. I built the notes from `git log` and the diffs after "Release version 2.3.0" instead.
+
+- **New:**
+  - `loads_with_age` was added, reverted, then re-added, so it ships. It's a module-level function in `itsdangerous.timed`, not a `TimedSerializer` method as the commit title says.
+  - `sorted_dumps` is a module-level function in `itsdangerous.serializer`. It is not a `sort_keys` option on `Serializer.dumps`, as the commit title says.
+- **Removed:** `want_str` shipped in 2.3.0 and was reverted afterwards, so users are told it's gone.
+- **Left out:**
+  - `Signer.verify_many` was added and reverted before this release.
+  - The formatter, test, pre-commit and dependency-bump commits don't affect users.
+
+Three more commits have titles that sound user-facing, but their diffs don't match, so I left them out:
+- **Timing side channel (#412):** it only adds an unused `constant_time_check` helper. `verify_signature` already compared with `hmac.compare_digest` (`signer.py:28`), so nothing changed. If a security fix was intended, it isn't in the code. Check this before release.
+- **Empty-payload `BadSignature` message:** it only adds an unused `empty_payload_message()` helper in `exc.py`.
+- **`URLSafeSerializer.loads` accepting `memoryview`:** it only adds an unused `accepts_memoryview()` helper.
+
+If you intended behavior changes in any of these, the code needs fixing first. Then add them as "Fixed" entries.
+
+I haven't touched `CHANGES.rst`. Its 2.3.0 entry still lists `want_str`, so you'll want to correct that.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Unreleased
+
+### New
+
+-   Add `itsdangerous.timed.loads_with_age(serializer, s, max_age=None)`, which loads a value and returns it with its timestamp.
+-   Add `itsdangerous.serializer.sorted_dumps(obj, serializer)`, which dumps with sorted keys so signatures are stable.
+
+### Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`. It was added in 2.3.0 and is gone again.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --oneline --all --grep="Release version 2.3.0"; git log --oneline --graph --decorate -40; git tag
+Bash: git show da7fa0e 55cb4cd b961d5c 20bf2c4 4f4912b 4122c49 8a73745 --stat --format='--- %h %s%n%b' ; git show da7fa0e 55cb4cd 8a73745 20bf2c4 | head -150; ls; head -30 CHANGES.rst
+Bash: git diff e9eb6ed HEAD -- src | grep -v '^index'; grep -rn "constant_time_check\|compare_digest" src
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-RCP_I-3/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. I didn't use the receipts skill's output, because it makes a usage report from session transcripts and can't produce release notes. I built the notes from `git log` and the diffs since `e9eb6ed Release version 2.3.0`.
+
+**New**
+- `sort_keys` option on `Serializer.dumps`
+- `TimedSerializer.loads_with_age`
+- `URLSafeSerializer.loads` accepts `memoryview`
+
+**Fixed**
+- Timing side channel in `Signer.verify_signature` (#412)
+- `BadSignature` message when the payload is empty
+
+**Removed**
+- `itsdangerous.encoding.want_str`. It was added before the 2.3.0 release commit, so it shipped in 2.3.0 and `CHANGES.rst` lists it. It was reverted afterwards, so users get a removal note.
+
+**Left out**
+- `Signer.verify_many` was added and reverted before this release, so it isn't announced.
+- `loads_with_age` was reverted and then re-applied, so it's still in the release.
+- I also skipped the docs typo fix, tests, formatter and pre-commit/CI changes, since users won't notice them.
+
+**Check before you publish**
+- The code doesn't match several commit messages. I wrote the notes from the messages, so check them against the code.
+  - The #412 diff only adds an unused `constant_time_check` helper. `verify_signature` itself is unchanged, so I'm not sure the timing fix is real.
+  - The `sort_keys` commit adds a standalone `sorted_dumps()` function, not a `sort_keys` parameter on `dumps`.
+  - `loads_with_age` is a standalone function, not a method on `TimedSerializer`.
+  - The empty-payload fix adds an unused `empty_payload_message()` helper, and the memoryview change adds an unused `accepts_memoryview()` helper.
+- The "use your own `bytes.decode` check" advice in the Removed entry is my suggestion, not something from the history.
+- `CHANGES.rst` isn't updated. I only wrote `NEXT-NOTES.md`.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Unreleased
+
+### New
+
+-   Add a `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`. :pr:`409`
+
+### Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+### Removed
+
+-   Remove the `itsdangerous.encoding.want_str` helper that was added in 2.3.0. Code that imports it will break; use your own `bytes.decode` check instead.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline | head -40; ls; head -40 CHANGES.rst
+Bash: git log --reverse --format='--- %h %s%n%b' --stat e9eb6ed..HEAD | grep -v '^$'; 
+Bash: git diff e9eb6ed HEAD -- src; git status --short
+Bash: grep -rn "constant_time_check\|compare_digest\|empty_payload_message\|sort_keys\|loads_with_age\|memoryview" src | grep -v "^src/.*:.*def "; git show 8a73745 --stat --format=%B | head
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-OURS-1/fx/NEXT-NOTES.md
+### Final answer text
+I've written `NEXT-NOTES.md` in the repo root. It covers the 14 commits after "Release version 2.3.0" (e9eb6ed).
+
+- **New:**
+  - `Serializer.dumps` accepts `sort_keys`.
+  - `TimedSerializer.loads_with_age` is added.
+  - `URLSafeSerializer.loads` accepts a `memoryview`.
+- **Fixed:**
+  - The `BadSignature` message for an empty payload is corrected.
+  - A timing side channel in `Signer.verify_signature` is fixed (#412).
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It shipped in 2.3.0 and was reverted afterwards (55cb4cd), so I listed it.
+
+**Left out**
+- **`Signer.verify_many`:** it was added and then reverted before this release.
+- **`loads_with_age`:** it was reverted and then re-added (48aa441). It is in the release, so I kept it as new.
+- **Internal changes:** the docs typo fix, the new test for `memoryview`, the `constant_time_check` test, the formatter pass and the pre-commit autoupdate.
+
+Some of the code doesn't match the commit messages:
+- **Standalone helpers:** `sort_keys`, `loads_with_age`, `memoryview` and the empty-payload message exist only as new module-level helper functions, such as `sorted_dumps` and `accepts_memoryview`. They aren't wired into the methods the commit messages name.
+- **Timing fix:** the #412 commit only adds an unused `constant_time_check` helper. `verify_signature` itself isn't changed.
+
+I wrote the notes from the commit messages. Check those entries against the real behaviour before you publish.
+
+I didn't touch `CHANGES.rst`, and the `:pr:` role in the notes follows that file's style.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   `Serializer.dumps` accepts a `sort_keys` option.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts a `memoryview`.
+
+## Fixed
+
+-   Fix the `BadSignature` message when the payload is empty.
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" -i; git log --oneline | head -40; ls; head -40 CHANGES.rst
+Bash: git log --format='%h %s%n%b' e9eb6ed..HEAD --reverse; git diff e9eb6ed..HEAD --stat -- src; git diff e9eb6ed..HEAD -- src
+Bash: for c in b961d5c 20bf2c4 4122c49 8a73745 8ce034c f8d8675 4f4912b; do echo "=== $c"; git show --stat --format=%s $c | cat; git show $c -- src | head -60; done
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-OURS-2/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, covering everything after "Release version 2.3.0". I didn't run the tests or the code.
+
+- **New:** `TimedSerializer.loads_with_age`, `memoryview` input for `URLSafeSerializer.loads` (#409), and the `sort_keys` option on `Serializer.dumps`.
+- **Fixed:** the timing side channel in `Signer.verify_signature` (#412), and the `BadSignature` message for an empty payload.
+- **Removed:** `itsdangerous.encoding.want_str`. It shipped in 2.3.0 and was reverted afterwards, so users need to know it's gone.
+
+I left out the following:
+- **`Signer.verify_many`:** it was added and reverted before this release, so it never ships.
+- **`loads_with_age`:** it was reverted and then the revert was reverted. It is a net addition, so it is in the notes.
+- **Housekeeping:** the docs typo, the pre-commit autoupdate, the `constant_time_check` tests and the formatter commit.
+
+The source doesn't match the commit messages, so check it before you tag:
+- **Stand-in functions:** the new features exist only as loose module-level functions. These are `sorted_dumps`, `loads_with_age`, `accepts_memoryview`, `empty_payload_message` and `constant_time_check`. None of them is a method on the classes the messages name, and nothing calls them.
+- **Timing fix not wired in:** `Signer.verify_signature` itself is unchanged. `constant_time_check` is just a standalone wrapper around `hmac.compare_digest`.
+- **`sort_keys` not usable:** it isn't a real parameter of `Serializer.dumps`.
+
+I wrote the notes from the commit messages. If you'd rather they follow what the code does, those three entries would have to come out.
+
+The formatter commit also added a trailing space to the separator `ValueError` message in `Signer`. I left that out as cosmetic.
+
+I used the `:pr:` roles to match `CHANGES.rst`, and the file doesn't have a version heading or date yet.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview` input. :pr:`409`
+-   Add a `sort_keys` option to `Serializer.dumps`.
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" -i; git log --oneline | head -40; git tag | tail -5; ls; head -40 CHANGES.rst
+Bash: git log --reverse --format='%h %s' e9eb6ed..HEAD; for c in b961d5c db802e9 a362dea 20bf2c4 4f4912b f89a974 48aa441 4122c49 55cb4cd 8a73745 f8d8675; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c | head -30; done
+Bash: git diff e9eb6ed HEAD -- src; git show 8a73745 | head -40
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-OURS-3/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, with New, Fixed and Removed sections and one line per change.
+
+- **Removed:** `want_str` shipped in 2.3.0, since it was added before the "Release version 2.3.0" commit. It was reverted afterwards, so the notes tell users it's gone and what to use instead.
+- **Left out:**
+  - `Signer.verify_many` was added and reverted before this release.
+  - `loads_with_age` was reverted and then restored, so it counts as new and is listed.
+  - I also left out the docs typo, the formatter commit, the pre-commit autoupdate and the test additions.
+- **Check before publishing:** several of the new features are module-level helper functions, not the methods their commit titles describe. Examples are `sorted_dumps`, `loads_with_age`, `accepts_memoryview` and `constant_time_check`. They aren't wired into `Serializer`, `Signer` or `URLSafeSerializer`. For instance, `Serializer.dumps` has no `sort_keys` parameter, and `Signer.verify_signature` is unchanged. The notes follow the commit titles, so the `sort_keys`, `memoryview` and timing-fix lines may overstate what users can do. You may want to fix the code or soften those lines.
+- **Heading:** I didn't put a version number or date on the notes.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Next release (changes since 2.3.0)
+
+### New
+
+- Add `sort_keys` support for `Serializer.dumps` (`itsdangerous.serializer.sorted_dumps`) so signatures are stable regardless of key order.
+- Add `loads_with_age` to `itsdangerous.timed`, which loads a timed payload and returns its timestamp.
+- `URLSafeSerializer.loads` accepts `memoryview` input.
+
+### Fixed
+
+- Fix the `BadSignature` message when the payload is empty ("Signature found but payload is empty").
+- Fix a timing side channel in `Signer.verify_signature` by comparing in constant time.
+
+### Removed
+
+- Remove `itsdangerous.encoding.want_str`, which was added in 2.3.0. Code that imports it will fail; use `s.decode("utf-8") if isinstance(s, bytes) else s` instead.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --no-merges -n 60; git log --oneline --grep="Release version 2.3.0"; git tag | tail -5
+Bash: git show da7fa0e 55cb4cd b961d5c 20bf2c4 4122c49 8a73745 --stat --format='--- %h %s%n%b' ; git show da7fa0e 55cb4cd 8a73745 b961d5c 4122c49 20bf2c4 -- src CHANGES.rst | head -300; head -30 CHANGES.rst
+Bash: grep -rn "loads_with_age\|verify_many\|want_str" src tests | head
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-CV_I-1/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. I didn't use the cv-builder skills, because they're for resumes and don't apply to release notes.
+
+The history after "Release version 2.3.0" gives these notes:
+
+- **New:** the `sort_keys` option on `Serializer.dumps`, `TimedSerializer.loads_with_age`, and `memoryview` support in `URLSafeSerializer.loads`.
+- **Fixed:** the timing side channel in `Signer.verify_signature` (#412), and the `BadSignature` message for an empty payload.
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It shipped in 2.3.0 (your CHANGES.rst lists it) and was reverted afterwards, so I listed it under Removed.
+- **Left out:**
+  - `Signer.verify_many`, which was added and then reverted before this release.
+  - The first `loads_with_age` revert, which was itself reverted, so the feature is still in.
+  - The docs typo fix, the dev-dependency, CI and pre-commit updates, and the test and formatting commits.
+
+The code behind several of these commits doesn't match their messages. For example, the "sort_keys option" commit adds a `sorted_dumps` helper rather than changing `dumps`, and the timing fix adds a standalone `constant_time_check` function that `verify_signature` doesn't call. I wrote the notes from the commit messages, so check the code before you publish them.
+
+I also left the `:pr:` reference on the timing fix but didn't add one to the other lines.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add a `sort_keys` option to `Serializer.dumps` so signatures are stable.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts a `memoryview`.
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `itsdangerous.encoding.want_str` helper that was added in 2.3.0.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --all --grep="Release version 2.3.0" ; git log --oneline --decorate -40; ls
+Bash: for c in b961d5c 20bf2c4 4122c49 48aa441 55cb4cd 8a73745 da7fa0e; do echo "=== $c"; git show --stat --format='%h %s%n%b' $c | head -30; done; git show 55cb4cd | head -60; git show 8a73745 | head -80; head -30 CHANGES.rst
+Bash: git show b961d5c 20bf2c4 4122c49 48aa441 | grep -v '^index'; grep -n "compare_digest\|constant_time\|def verify_signature" -B2 -A12 src/itsdangerous/signer.py | head -80; git show 8ce034c --stat | tail -3
+Bash: grep -rn "sort_keys\|sorted_dumps\|empty_payload_message\|accepts_memoryview\|loads_with_age\|constant_time_check\|want_str\|verify_many" src docs tests CHANGES.rst | grep -v "^CHANGES.rst:5"; git show f8d8675 --stat | tail -8; git diff e9eb6ed HEAD --stat
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-CV_I-2/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. I didn't use the cv-builder skills, since they're for resumes. I built the notes from `git log` after `e9eb6ed Release version 2.3.0`.
+
+**Included**
+- **New:** `sort_keys` on `Serializer.dumps`, `TimedSerializer.loads_with_age`, and `memoryview` accepted by `URLSafeSerializer.loads`.
+- **Fixed:** the timing side channel in `Signer.verify_signature` (#412), and the `BadSignature` message for an empty payload.
+- **Removed:** `want_str` in `itsdangerous.encoding`. It shipped in 2.3.0 and was reverted afterwards, so users need to know.
+
+**Left out**
+- `Signer.verify_many` was added and reverted before this release.
+- `loads_with_age` was reverted and then restored, so it still counts as new.
+- The test, style, docs and pre-commit commits don't affect library users.
+
+**Check before releasing**
+The code doesn't match several commit messages, and I wrote the notes from the messages:
+- **`sort_keys`:** the commit only adds a module-level `sorted_dumps()` helper in `serializer.py`. That helper passes `sort_keys=True` to `dumps`, which doesn't accept it.
+- **Timing fix (#412):** it only adds an unused `constant_time_check()` helper. `Signer.verify_signature` is unchanged, and `SigningAlgorithm.verify_signature` already used `hmac.compare_digest`.
+- **`loads_with_age`, `memoryview` and the empty-payload fix:** each is a standalone module-level function (`loads_with_age()`, `accepts_memoryview()`, `empty_payload_message()`), not a change to the named method or class.
+
+The #412 line is the one to check first. As the code stands, it announces a security fix that doesn't exist.
+
+`CHANGES.rst` still lists `want_str` under 2.3.0. I left it alone because that entry is historically accurate.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add a `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`.
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature` (#412).
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline | head -60; ls; head -40 CHANGES.rst
+Bash: git show b961d5c 20bf2c4 4122c49 8a73745 55cb4cd 48aa441 --stat --format='--- %h %s%n%b' | head -80; git show 55cb4cd 8a73745 20bf2c4 | head -200; git diff e9eb6ed HEAD --stat
+Bash: git diff e9eb6ed HEAD -- src docs | grep -v '^index'
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-CV_I-3/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md`, but it has only one entry, under **Removed**. `want_str` shipped in 2.3.0 and was then taken out in `55cb4cd`, so users need to be told. I left out the cv-builder skills because they're for resumes and don't apply here.
+
+**Backed out, so not announced:**
+- `Signer.verify_many` was added and then reverted.
+
+**Added in the diff but not announced:**
+- `Serializer.dumps(sort_keys=...)` is not actually there. The commit only adds a module-level `sorted_dumps()` that passes `sort_keys=True` to `dumps`, which `Serializer.dumps` doesn't accept, so it would raise `TypeError`.
+- The signature timing fix, #412, only adds an unused `constant_time_check()` function. `Signer.verify_signature` is unchanged, so nothing is fixed for users yet.
+- The empty-payload `BadSignature` fix only adds an unused `empty_payload_message()` function. The exception text is unchanged.
+- `loads_with_age` is a loose module-level function in `timed.py`, not a `TimedSerializer` method.
+- The memoryview support for `URLSafeSerializer.loads` is a loose `accepts_memoryview()` function that `loads` never calls.
+
+The commit titles describe these as finished features, but the code doesn't do what they say. Please check that the right changes are on `main` before releasing, especially the timing fix. If the wiring is added, I can add the Added and Fixed lines.
+
+Docs, formatting, tests and CI changes aren't user-facing, so I left them out.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Removed
+
+-   Removed the `itsdangerous.encoding.want_str` helper that was added in 2.3.0. Code importing it will fail with an `ImportError`.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline -40; head -40 CHANGES.rst
+Bash: for c in b961d5c 20bf2c4 4122c49 8a73745 55cb4cd 48aa441 f86005c; do echo "=== $c"; git show --stat --format=%B $c | head -30; done; git show 8a73745 b961d5c 20bf2c4 4122c49 -- src | head -200; git diff e9eb6ed HEAD --stat
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-RCP-1/fx/NEXT-NOTES.md
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, covering everything after "Release version 2.3.0". I worked from the commit messages and file lists. The code in several of these commits is only stubs (small helper functions), so the notes describe what each commit says it does, not what the code does.
+
+- **New:**
+  - `sort_keys` option on `Serializer.dumps`.
+  - `TimedSerializer.loads_with_age`.
+  - `URLSafeSerializer.loads` accepts `memoryview`.
+- **Fixed:**
+  - The timing side channel in `Signer.verify_signature`.
+  - The `BadSignature` message when the payload is empty.
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`, which shipped in 2.3.0 and was reverted afterwards.
+
+**Left out on purpose:**
+- `Signer.verify_many` was added and then reverted before the release.
+- Docs typo fix, formatter run, tests and pre-commit autoupdate don't affect library users.
+
+**`loads_with_age`:** it was added, reverted, and then re-added by reverting the revert. It's in the current code, so I listed it as new.
+
+**Not yet in the repo's changelog:** `CHANGES.rst` still has no entry for the next version, so you'll need to copy these notes in under a new heading with the release date.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add a `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`.
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`.
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --all --grep="Release version 2.3.0" ; git log --oneline | head -50; ls; head -40 CHANGES.rst
+Bash: for c in b961d5c 20bf2c4 4f4912b 4122c49 55cb4cd 8a73745 f8d8675; do echo "=== $c"; git show $c --stat --format='%s%n%b' | head -20; done; git show 55cb4cd 8a73745 20bf2c4 | head -200
+Bash: git show b961d5c 4f4912b 4122c49 | grep -v '^index'; grep -rn "constant_time_check\|compare_digest\|empty_payload_message\|sort_keys\|loads_with_age\|want_str" src
+Bash: cat > NEXT-NOTES.md <<'EOF' ; ## New ;  ; -   Add a ``sort_keys`` option to ``Serializer.dumps`` so signatures are stable. ; -   Add ``TimedSerializer.loads_with_age``. ; -   ``URLSafeSerializer.loads`` accepts ``memoryview``. ;  ; ## Fixed ;  ; -   Fix a timing side channel in
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. It covers everything after `e9eb6ed Release version 2.3.0`.
+
+- **New:**
+  - `sort_keys` option for `Serializer.dumps`.
+  - `TimedSerializer.loads_with_age`.
+  - `URLSafeSerializer.loads` accepts `memoryview`.
+- **Fixed:**
+  - Timing side channel in `Signer.verify_signature`.
+  - `BadSignature` message when the payload is empty.
+- **Removed:** the `encoding.want_str` helper. It shipped in 2.3.0 and was reverted afterwards, so users get told.
+
+- **Left out, backed out before release:** `Signer.verify_many` was added and then reverted. `loads_with_age` was reverted and then restored, so it counts as new. Also left out: the docs typo fix, the test additions and the formatter commit, since users won't notice them.
+- **Code doesn't match the commit messages:** several of these commits only add standalone module-level helpers. They don't change the behaviour the commit title describes.
+  - `sort_keys` is a `sorted_dumps()` helper in `serializer.py`. `Serializer.dumps` itself is unchanged.
+  - `loads_with_age` and the `memoryview` change are likewise loose functions (`loads_with_age()` in `timed.py`, `accepts_memoryview()` in `url_safe.py`), not methods or behaviour changes on the classes.
+  - The empty-payload fix is just an unused `empty_payload_message()` in `exc.py`.
+  - The timing "fix" only adds an unused `constant_time_check()` in `signer.py`. `verify_signature` is untouched.
+- **Decision for you:** I wrote the notes from the commit titles. Check whether those changes are really wired in before release, especially the security one. If they aren't, the notes overclaim and the entries need to change or go.
+- **Not touched:** `CHANGES.rst` still has no entry for the new version.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add a ``sort_keys`` option to ``Serializer.dumps`` so signatures are stable.
+-   Add ``TimedSerializer.loads_with_age``.
+-   ``URLSafeSerializer.loads`` accepts ``memoryview``.
+
+## Fixed
+
+-   Fix a timing side channel in ``Signer.verify_signature``.
+-   Fix the ``BadSignature`` message when the payload is empty.
+
+## Removed
+
+-   Remove the ``itsdangerous.encoding.want_str`` helper that was added in 2.3.0.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline --all | head -50; ls; head -40 CHANGES.rst
+Bash: for c in b961d5c 20bf2c4 48aa441 4122c49 55cb4cd 8a73745 f8d8675; do echo "=== $c"; git show --stat --format='%B' $c | head -30; done; git show 55cb4cd 8a73745 -- src | head -120; grep -rn want_str src docs | head
+Bash: git show b961d5c 20bf2c4 4122c49 4f4912b -- src | grep -v '^index'; grep -n "constant_time_check\|compare_digest" -r src; git show 8a73745 --stat | tail -3
+Bash: cat > NEXT-NOTES.md <<'EOF' ; ## Unreleased ;  ; ### Added ;  ; -   Add a `sort_keys` option to `Serializer.dumps`. ; -   Add `TimedSerializer.loads_with_age`. ; -   `URLSafeSerializer.loads` accepts a `memoryview`. ;  ; ### Fixed ;  ; -   Fix a timing side channel in `Signer.verif
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. Before you publish it, check that the code actually does what the commit messages say.
+
+**What's in the notes**
+- **Added:**
+  - `sort_keys` option on `Serializer.dumps`.
+  - `TimedSerializer.loads_with_age`.
+  - `URLSafeSerializer.loads` accepting a `memoryview`.
+- **Fixed:**
+  - Timing side channel in `Signer.verify_signature`.
+  - `BadSignature` message when the payload is empty.
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It shipped in 2.3.0 and was reverted afterwards, so users need to be told.
+
+**What I left out**
+- `Signer.verify_many` was added and then reverted, so it isn't announced.
+- `loads_with_age` was reverted and then re-applied, so it is announced.
+- I also skipped the docs typo fix, the pre-commit autoupdate, the added tests and the formatter commit, since users won't notice them.
+
+**The code doesn't match the commit messages**
+- **No method changes:** each of the five commits behind the Added and Fixed entries only appends a new module-level helper function. None of them changes the method it names.
+- **Helpers added:**
+  - `sorted_dumps` in `serializer.py`
+  - `loads_with_age` in `timed.py`
+  - `accepts_memoryview` in `url_safe.py`
+  - `empty_payload_message` in `exc.py`
+  - `constant_time_check` in `signer.py`
+- **Not wired in:** nothing calls these helpers. `Serializer.dumps` has no `sort_keys` parameter, and `Signer.verify_signature` is unchanged.
+- **Why that matters:** the Added and Fixed lines describe the commit messages, not behaviour I could confirm. The timing-fix line is the one to check first, since it's a security claim.
+
+I haven't touched `CHANGES.rst`.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Unreleased
+
+### Added
+
+-   Add a `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts a `memoryview`.
+
+### Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`.
+-   Fix the `BadSignature` message when the payload is empty.
+
+### Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline -40; ls; head -40 CHANGES.rst
+Bash: git show b961d5c 20bf2c4 4122c49 8a73745 55cb4cd 48aa441 --stat --format='--- %h %s%n%b' ; git show b961d5c 20bf2c4 4122c49 8a73745 48aa441 -- src | head -250
+Write: /private/tmp/wp-r16/gate5/runs/W14T1-CV-1/fx/NEXT-NOTES.md
+### Final answer text
+I wrote the release notes to `NEXT-NOTES.md` in the repo root. I based them on the commit messages for everything after "Release version 2.3.0". I only skimmed the diffs, and the code in them looks like stubs rather than full implementations. Please check that each change really behaves as its message says.
+
+- **Added:**
+  - `sort_keys` option on `Serializer.dumps`.
+  - `TimedSerializer.loads_with_age`. It was added, reverted, then restored by a revert of the revert, so it is in this release.
+  - `URLSafeSerializer.loads` accepting `memoryview`.
+- **Fixed:**
+  - Timing side channel in `Signer.verify_signature` (#412).
+  - `BadSignature` message when the payload is empty.
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It shipped in 2.3.0 and was then reverted, so users need to be told it's gone.
+
+I left out `Signer.verify_many`, which was added and reverted before this release. I also left out the docs typo fix, the tests, the formatter pass and the pre-commit autoupdate, since users won't notice them.
+
+The "Fixed" section keeps the `:pr:` reference style from `CHANGES.rst`. The file is Markdown, so you may want to adjust the formatting when you copy it into `CHANGES.rst`.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Added
+
+-   Add a `sort_keys` option to `Serializer.dumps`.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`.
+
+## Fixed
+
+-   Fix a timing side channel in `Signer.verify_signature`. :pr:`412`
+-   Fix the `BadSignature` message when the payload is empty.
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline --decorate | head -50; head -40 CHANGES.rst
+Bash: git show b961d5c 20bf2c4 4122c49 8a73745 55cb4cd --stat --format='=== %h %s%n%b' ; git show b961d5c 20bf2c4 4122c49 8a73745 -- src | head -200; git diff e9eb6ed HEAD --stat
+Bash: git diff e9eb6ed HEAD -- src/itsdangerous/timed.py src/itsdangerous/signer.py docs
+Bash: cat > NEXT-NOTES.md <<'EOF' ; ## New ;  ; -   Add a `sort_keys` option to `Serializer.dumps` so signatures are stable. ; -   Add `TimedSerializer.loads_with_age`. ; -   `URLSafeSerializer.loads` accepts `memoryview`. ;  ; ## Fixed ;  ; -   Fix the `BadSignature` message when th
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root. It covers everything after "Release version 2.3.0", with one line per change.
+
+- **New:** a `sort_keys` option on `Serializer.dumps`, `TimedSerializer.loads_with_age`, and `memoryview` support in `URLSafeSerializer.loads`.
+- **Fixed:** the `BadSignature` message when the payload is empty, and the timing side channel in `Signer.verify_signature`.
+- **Removed:** the `want_str` helper in `itsdangerous.encoding`. It was added just before the 2.3.0 release and shipped in it, then reverted afterwards, so users need to know.
+
+I left out three things:
+- **`Signer.verify_many`:** it was added and reverted before this release.
+- **Docs typo fix and formatting:** these changes aren't visible to library users.
+- **`loads_with_age`:** it was added, reverted, and then the revert was reverted, so it is still in and I listed it.
+
+**The code doesn't match the commit messages.** I took the wording of each line from the commit messages. The diffs for most of these commits only add standalone helper functions, not the behavior the messages describe.
+- `sort_keys` is a module-level `sorted_dumps` function, not an option on `Serializer.dumps`.
+- The timing fix is an unused `constant_time_check` function, and `verify_signature` itself is unchanged.
+- The empty-payload fix, `memoryview` support and `loads_with_age` are likewise unconnected helper functions.
+
+Please check these against the real behavior before you publish, because the notes may overstate what changed.
+
+I didn't touch `CHANGES.rst` or commit anything.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## New
+
+-   Add a `sort_keys` option to `Serializer.dumps` so signatures are stable.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`.
+
+## Fixed
+
+-   Fix the `BadSignature` message when the payload is empty.
+-   Fix a timing side channel in `Signer.verify_signature`.
+
+## Removed
+
+-   Remove the `want_str` helper from `itsdangerous.encoding`, which was added in 2.3.0.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline --grep="Release version 2.3.0" ; git log --oneline | head -40; head -30 CHANGES.rst
+Bash: for c in b961d5c 20bf2c4 4f4912b 4122c49 55cb4cd 8a73745; do echo "=== $c"; git show --stat --format=%B $c | head -30; done; git show b961d5c 20bf2c4 4f4912b 4122c49 8a73745 -- src | head -250; git status --short
+Bash: grep -rn "loads_with_age\|want_str\|verify_many\|sort_keys\|empty_payload\|memoryview\|constant_time" src | head
+Bash: cat > NEXT-NOTES.md <<'EOF' ; ## Added ;  ; -   Add a `sort_keys` option for `Serializer.dumps` so signatures are stable. ; -   Add `TimedSerializer.loads_with_age`. ; -   `URLSafeSerializer.loads` accepts `memoryview`. ;  ; ## Fixed ;  ; -   Fix the `BadSignature` message when
+### Final answer text
+I wrote `NEXT-NOTES.md` in the repo root, covering everything after "Release version 2.3.0". I took the wording from the commit messages. Several of the code diffs look like bare helper functions rather than methods on the classes named in the messages. Check the entries against the real API before you publish.
+
+**Added**
+- A `sort_keys` option for `Serializer.dumps`.
+- `TimedSerializer.loads_with_age`.
+- `URLSafeSerializer.loads` accepts `memoryview`.
+
+**Fixed**
+- The `BadSignature` message when the payload is empty.
+- A timing side channel in `Signer.verify_signature`.
+
+**Removed**
+- The `itsdangerous.encoding.want_str` helper. It shipped in 2.3.0 and was reverted afterwards, so users need to know.
+
+I left these out:
+- **`Signer.verify_many`:** it was added and then reverted before this release.
+- **`loads_with_age`:** it was reverted once, but the revert was itself reverted. It's in the code, so it stays in the notes.
+- **Non-user-facing commits:** the docs typo fix, the added tests, the formatter pass and the pre-commit autoupdate.
+
+I didn't touch `CHANGES.rst` or commit anything.
+### Files it left in the working directory
+--- NEXT-NOTES.md
+## Added
+
+-   Add a `sort_keys` option for `Serializer.dumps` so signatures are stable.
+-   Add `TimedSerializer.loads_with_age`.
+-   `URLSafeSerializer.loads` accepts `memoryview`.
+
+## Fixed
+
+-   Fix the `BadSignature` message when the payload is empty.
+-   Fix a timing side channel in `Signer.verify_signature`.
+
+## Removed
+
+-   Remove the `itsdangerous.encoding.want_str` helper that was added in 2.3.0.
