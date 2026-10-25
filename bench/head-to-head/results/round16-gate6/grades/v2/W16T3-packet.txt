@@ -1,0 +1,557 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-04-01 --until 2026-06-30 2>&1 | head -60; echo ======; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60; git log --since=2026-04-01 --until=2026-10-01 --format='%an|%ae|%ad|%s' --date=short | head -40
+### Final answer text
+Between Q2 and Q3 (Q3 was 1 July to 30 September 2026) three people joined and two stopped contributing. Both lists come from commit activity, so "left" only means "no commits in Q3".
+
+**Joined in Q3 (no commits in Q2)**
+- Omar Haddad: first commit 22 July
+- Noor Haddad: first commit 18 August
+- Pia Lindqvist: first commit 29 September, the day before the quarter ended
+
+**Left after Q2 (commits in Q2, none in Q3)**
+- Lucia Bianchi: last commit 2 May
+- Kofi Mensah: last commit 18 June
+
+**Continued in both quarters:** Jonas Weber, Iris Moreau and Mei Tanaka.
+
+**Please check with the team lead**
+1. **Iris Moreau and Mei Tanaka may each be two people.**
+   - Each appears under two e-mail addresses at different organisations (an old-job address in Q2, the company address later). I treated each pair as one person because the full names match, but that is a probable match, not a proven one.
+   - If either is actually two people, the old-address person would count as someone who left and the company-address person as someone who joined. That would make 5 joiners and 4 leavers instead of 3 and 2.
+2. **"Left" is only inferred.** Lucia and Kofi may be on leave, or working in ways that leave no commits, rather than gone. History can't show departures, so HR or the team lead should confirm before this goes to executives.
+3. **Pia Lindqvist's one commit came on 29 September.** She is a Q3 joiner on this evidence, but the team lead should confirm her start date.
+4. **Noor and Omar Haddad share a surname.** They have separate addresses and different work, so I counted them as two people. It's worth confirming they aren't one person who changed first name.
+
+**Excluded:** dependabot[bot] made one commit in Q3 (5 August). It's an automated bot, not a person, so it isn't in either list.
+
+Q2 had 5 contributors and Q3 had 6. The comparison covers commit authors only. Reviewers and others who didn't commit aren't counted.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: C=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; node $C people --since 2026-04-01 --until 2026-06-30 2>&1 | head -60; echo ======; node $C people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60
+Bash: git log --format='%an|%ae|%ad|%cd' --date=short --no-merges -i --author='Haddad\|Lindqvist\|Bianchi\|Mensah\|Moreau\|Tanaka' | sort -t'|' -k3
+### Final answer text
+**Joined (active in Q3, no commits in Q2)**
+- Omar Haddad: first commit 22 Jul 2026, and none before.
+- Pia Lindqvist: first commit 29 Sep 2026, and none before.
+- Noor Haddad: 1 commit on 18 Aug 2026. This is a return, not a new joiner. Noor's earlier commits are from Feb and Jun 2025.
+
+**Left (active in Q2, no commits in Q3)**
+- Lucia Bianchi: 2 commits in Q2, the last on 2 May. None since.
+- Kofi Mensah: 1 commit in Q2, on 18 Jun. None in Q3.
+
+**Not counted as people movement**
+- Iris Moreau, Jonas Weber and Mei Tanaka were active in both quarters.
+- dependabot[bot] is a bot and is excluded.
+
+**Check with the team lead before this goes to the executives**
+1. **Kofi Mensah may not have left.** Kofi has a commit on 12 Oct 2026, after the quarter ended. They had no commits in Q3, but they are still active, so listing them as having left would probably be wrong. Ask whether they were on leave or on other work in Q3.
+2. **Iris Moreau and Mei Tanaka are probable matches, not certain.** Each used an old e-mail address in Q2 (a different organisation, oldjob and old-corp) and a company address in Q3. I treated each pair as one person because the full names match. If either pair is actually two people with the same name, that person would move into "joined" and the other into "left". Please confirm both are the same people.
+3. **"Joined" and "left" are inferred from commits only.** I have no HR or access records. A quiet quarter, such as Lucia's, does not prove someone left, and a first commit does not prove their start date. Omar and Pia in particular could have been on the team earlier without committing.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-04-01 --until 2026-06-30 2>&1 | head -60; echo ======; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60
+Bash: for n in "Noor Haddad" "Omar Haddad" "Pia Lindqvist" "Lucia Bianchi" "Kofi Mensah"; do echo "== $n"; git log --author="$n" --format='%an <%ae> | author %aI | commit %cI | %s' | sed -n '1p;$p'; git log --author="$n" --oneline | wc -l; done; git log --since=2026
+Bash: git log --author="Noor Haddad" --format='%aI %s'; git log --author="Omar Haddad" --format='%aI %s'; git log --author="Pia" --format='%aI %s'; git log --author="Jonas Weber" --format='%aI %s'
+### Final answer text
+Based on commits in the project history, here is Q3 2026 (1 Jul to 30 Sep, UTC) compared with Q2 (1 Apr to 30 Jun). I counted a person as active if they authored at least one commit in the quarter. I left out merge commits and bots.
+
+**Joined (active in Q3, no commits in Q2)**
+- Omar Haddad: first commit 22 Jul. This is their only commit in the whole history, so they are genuinely new.
+- Pia Lindqvist: first commit 29 Sep. This is also their only commit in the whole history, so they are genuinely new.
+- Noor Haddad: one commit on 18 Aug. This is a return, not a new joiner. They also have commits from Feb and Jun 2025, so they were not in Q2 but are not new to the project.
+
+**Left (active in Q2, no commits in Q3)**
+- Lucia Bianchi: two commits (10 Apr, 2 May), then nothing. Q2 was their first and only activity.
+- Kofi Mensah: one commit on 18 Jun. They are not a confirmed leaver, because they committed again on 12 Oct, after the quarter ended.
+
+**Continuing in both quarters:** Iris Moreau, Jonas Weber, Mei Tanaka.
+
+**Please check with the team lead**
+1. **Iris Moreau and Mei Tanaka.** Each appears under two e-mail addresses at different organisations: a current company address and an old one (Iris's old address is at oldjob.example.net, Mei's at old-corp.example.net). I treated each pair as one person because the full names match. A namesake is possible. If either pair is actually two people, the old address would count as a leaver in Q2 and the current one as a joiner in Q3. Please confirm both are the same people.
+2. **Kofi Mensah.** Listed as a leaver only because they had no commits in Q3. Their October commit suggests a quiet quarter, not a departure. I'd confirm before calling it a departure.
+3. **Lucia Bianchi.** No commits since 2 May. History shows only that they went quiet, not whether they left the team or just moved to other work. The same applies to Noor, whose return could be a short visit.
+4. **Method limit.** Commit history shows activity, not employment. Someone who reviewed, tested or managed without committing doesn't appear here.
+
+**Bots (not people):** dependabot[bot] made one commit in Q3, and I excluded it.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-04-01 --until=2026-10-01 --format='%h|%ad|%an|%ae|%cn|%ce|%s' --date=short | head -300; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log -3 --format='%h|%ad|%cd|%an|%ae|%s' --date=iso; git log --all --since=2026-03-01 --format='%h|%ad|%an|%ae|%s' --date=short | wc -l; git log --format='%an|%ae' | sort | uniq -c | sort -rn; git log --format='%B' --since=2026-04-01 | grep -i 'co-authored'
+Bash: git log --since=2026-04-01 --format='%h|%ad|%an|%s%n%b' --date=short | grep -B6 -i 'co-authored'; git log -1 --format=%B 3248f2f
+### Final answer text
+Going by commit authorship in git history, three people joined in Q3 and one person left. I treated "joined" as "committed in Q3 but not in Q2" and "left" as "committed in Q2 but not in Q3". I merged identities by name, and I left out dependabot.
+
+**Joined (in Q3, not in Q2)**
+- Noor Haddad: first commit 18 Aug.
+- Omar Haddad: first commit 22 Jul.
+- Pia Lindqvist: first commit 29 Sep.
+
+**Left (in Q2, not in Q3)**
+- Lucia Bianchi: last commit 2 May, nothing since.
+
+**Please check with the team lead**
+- **Kofi Mensah:** Kofi committed in Q2 (18 Jun) and not at all in Q3, so by my rule they look like a leaver. But they committed again on 12 Oct, so they are probably on leave or busy elsewhere. I would not report them as having left.
+- **Rhea Kapoor:** Rhea has no commits of their own. They appear only as a `Co-authored-by` on Iris's squashed IPv6 mask commit (27 Aug). They may be a new contributor, or someone whose work was committed by Iris. I did not count them as joined.
+- **Lucia Bianchi:** Having no commits could also mean leave or a non-code role. Confirm that Lucia has actually left.
+- **Noor and Omar Haddad:** I counted them as two different people because their names and e-mails differ. They share a surname, so confirm they aren't one person with two accounts. Also confirm that all three newcomers are new to the project, not returning from before April.
+- **Commits only:** This reflects commits only. Reviewers, issue triagers and anyone who doesn't commit are invisible to it.
+
+**Identity changes and bots**
+- Mei Tanaka and Iris Moreau each used an old e-mail in Q2 (`@old-corp.example.net` and `@oldjob.example.net`) and a current `@example.com` one in Q3. I counted each as one person who stayed, not as a leaver plus a joiner. This rests on identical names, so the team lead can confirm that too.
+- `dependabot[bot]` (5 Aug) is a bot and is excluded.
+
+Jonas Weber committed in both quarters, so they stayed.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-04-01 --until=2026-10-01 --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=short | head -300; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log -3 --format='%h|%an|%ae|%ad|%cd|%s' --date=short; git branch -a; git log --before=2026-04-01 --format='%an|%ae' | sort | uniq -c | sort -rn | head -30; git log --all --since=2026-04-01 --format='%an|%ae' | sort | uniq -c
+Bash: for n in "Noor Haddad" "Omar Haddad" "Pia Lindqvist" "Kofi Mensah" "Mei Tanaka" "Iris Moreau" "Lucia Bianchi" "Jonas Weber"; do echo "== $n"; git log --format='%ad %ae %s' --date=short --author="$n" | sort; done
+### Final answer text
+Comparing who committed in Q3 (Jul–Sep 2026) with Q2 (Apr–Jun 2026), based on the git history:
+
+**Joined (in Q3, not in Q2)**
+- **Omar Haddad**: first commit on 22 Jul. It's his only commit in the history, so he's new to the project.
+- **Pia Lindqvist**: first commit on 29 Sep. It's her only commit, so she's new to the project.
+
+**Left (in Q2, not in Q3)**
+- **Lucia Bianchi**: last commit on 2 May, nothing since.
+
+**Not counted as movement**
+- Iris Moreau and Mei Tanaka changed e-mail address (Iris from an oldjob.example.net address, Mei from old-corp.example.net). I treated each as one person who was active in both quarters.
+- dependabot[bot] is a bot, so I left it out.
+
+**Please check with the team lead**
+- **Kofi Mensah** had a Q2 commit (18 Jun) and none in Q3, so on the quarter comparison alone he looks like a leaver. But he committed again on 12 Oct, so I would not report him as having left. Possibly he was away or busy during Q3.
+- **Noor Haddad** committed in Q3 (18 Aug) but not in Q2. Noor also has two older commits (Feb and Jun 2025), so they are returning after about 14 months, not new. I'd describe them as "returned" rather than "joined", or leave them out.
+- **Lucia Bianchi**: no commits since May may only mean a quiet period, not a departure. The history can't show whether she left the team.
+- **Omar and Pia**: a single commit each shows that they contributed. It doesn't show that they formally joined the team.
+- **Name matching**: I matched people by name and by whether their old and new e-mails were used in turn. I didn't check that the old and new addresses belong to the same person, and that is the main thing the team lead could confirm.
+- **Commits only**: reviews, issues and non-code work don't appear in this data.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-04-01 --until=2026-10-01 --format='%h|%ad|%an|%ae|%cn|%ce' --date=short | head -300; ls -a; git log --oneline | wc -l; cat .mailmap 2>/dev/null
+Bash: git log --format='%h|%ad|%an|%ae' --date=short | head -5; echo; git log --format='%an|%ae|%ad' --date=short | awk -F'|' '{k=$1"|"$2; if(!(k in last))last[k]=$3; first[k]=$3; n[k]++} END{for(k in n)print k, first[k], last[k], n[k]}' | sort; git log -1 --format=
+### Final answer text
+Based on commit activity only, in this repo's git history:
+
+**Joined in Q3 (July–September)**
+- **Omar Haddad:** first commit 22 Jul. I found no earlier history for them.
+- **Pia Lindqvist:** first commit 29 Sep. I found no earlier history for them.
+
+**Left after Q2 (April–June)**
+- **Lucia Bianchi:** two commits in Q2 (10 Apr, 2 May) and nothing since.
+
+**Not counted as joined or left**
+- **Iris Moreau, Mei Tanaka:** they changed e-mail address. Iris moved from `iris@oldjob.example.net` to `iris.moreau@example.com`. Mei moved from `mei.tanaka@old-corp.example.net` to `mei.tanaka@example.com`. I merged each pair into one person, so they count as continuing contributors.
+- **dependabot[bot]:** a bot, excluded. Its commit on 5 Aug is not a person joining.
+- **Jonas Weber:** active in both quarters.
+
+**Please check with the team lead**
+1. **Kofi Mensah:** their last Q2 commit was 18 Jun and they have none in Q3, so they look like a leaver. But they committed again on 12 Oct, so they are probably on a break, not gone. I left them off the "left" list.
+2. **Noor Haddad:** first commit was February 2025 and they had nothing in Q2, but they committed on 18 Aug. They are a returning contributor, not a new joiner, so I left them off the "joined" list.
+3. **Omar Haddad and Noor Haddad:** they share a surname. I assumed they are different people, but I can't confirm that from the history.
+4. **Iris and Mei merges:** I matched each pair by name only. Please confirm that each is one person and not two people with the same name.
+5. **Commits don't show employment:** a quiet quarter could be leave or work outside this repo, and a first commit isn't necessarily a start date. Lucia in particular should be confirmed as a real departure before this goes to the executives.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%ad|%an|%ae|%cn|%s' --date=short | head -300; echo; git log --all --format='%ad' --date=short | sort | sed -n '1p;$p'; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --all --format='%h|%ad|%an|%ae' --date=short -i --author='omar\|pia\|lindqvist\|noor\|lucia\|kofi' ; echo ---; git log --all --since=2026-04-01 --format='%an|%ae|%(trailers:key=Co-authored-by,valueonly,separator=;)' | sort | uniq -c; git branch -a; git
+### Final answer text
+I answered this from the git history. The receipts skill only reports your own Claude Code usage, so it can't show team movement. I counted someone as part of a quarter if they authored at least one commit in it. Q2 is Apr–Jun 2026 and Q3 is Jul–Sep 2026.
+
+**Joined in Q3 (not active in Q2)**
+- Omar Haddad: first commit 22 Jul, and there's nothing from them earlier.
+- Pia Lindqvist: first commit 29 Sep, and there's nothing from them earlier.
+- Noor Haddad: committed on 18 Aug, but they also committed in Feb and Jun 2025. That makes them a returning contributor rather than a new one.
+
+**Left after Q2 (active in Q2, nothing in Q3)**
+- Lucia Bianchi: last commit 2 May.
+- Kofi Mensah: last commit 18 Jun. They committed again on 12 Oct, so they are on a gap, not gone.
+
+**Stayed active in both quarters:** Iris Moreau, Jonas Weber and Mei Tanaka.
+- Iris and Mei each changed e-mail address (iris@oldjob.example.net to iris.moreau@example.com, and mei.tanaka@old-corp.example.net to mei.tanaka@example.com). I treated each as one person, so neither counts as a joiner or leaver.
+- I excluded dependabot[bot], which has one commit in August.
+
+**Please check with the team lead**
+1. **Kofi Mensah:** is Kofi a real departure? They have no Q3 commits but are back in October. I'd list them as inactive in Q3, not as having left.
+2. **Noor Haddad:** should Noor be reported as a joiner? Their last prior commit was June 2025. Whether that counts as joining or returning depends on how the team defines it.
+3. **Noor and Omar Haddad:** I treated them as two different people because their names and e-mails differ. If they are one person, the joiner count changes.
+4. **Rhea Kapoor:** Rhea is credited as co-author, with Jonas Weber, on one of Iris's commits and has never authored a commit. Rhea could be a contributor who is invisible to a simple author count.
+5. **Commit counts and review work:** I only counted commits. Someone who was active through reviews, issues or non-code work wouldn't show up, and a person with a single commit in a quarter may only have been passing through.
+6. **GitHub identity:** I only looked at git author names and e-mails. I didn't check GitHub accounts or any team roster.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=short | head -300; ls; cat .mailmap 2>/dev/null
+Bash: git log --all --format='%an|%ae|%ad' --date=short | awk -F'|' '{k=$1"|"$2; if(!(k in l)){l[k]=$3} f[k]=$3; n[k]++} END{for(k in n) print k, "first="f[k], "last="l[k], n[k]}' | sort -t= -k3 | grep -E 'Omar|Pia|Noor|Kofi|Lucia|Jonas|Mei|Iris|Haddad|Weber|Tanaka|
+### Final answer text
+Going by commits to the repo, here is how the people changed between Q2 (Apr–Jun 2026) and Q3 (Jul–Sep 2026). Mei Tanaka and Iris Moreau each changed e-mail address, so I counted each as one person. I ignored `dependabot[bot]`.
+
+**Joined in Q3 (no commits in Q2)**
+- Omar Haddad: first commit ever on 22 Jul.
+- Pia Lindqvist: first commit ever on 29 Sep.
+- Noor Haddad: first commit in Q3 was 18 Aug, but they also committed in Feb and Jun 2025. They are returning, not new, so you may want to list them separately.
+
+**Left after Q2 (no commits in Q3)**
+- Lucia Bianchi: first appeared 10 Apr and last committed 2 May, so they joined in Q2 and have no commits since.
+- Kofi Mensah: last Q2 commit was 18 Jun, but they committed again on 12 Oct. That makes a quiet quarter, not a departure.
+
+**Continuing, not movement:** Jonas Weber, Iris Moreau and Mei Tanaka committed in both quarters. Iris and Mei are the two who changed address, from `oldjob.example.net` and `old-corp.example.net` to `example.com`.
+
+**Please check with the team lead**
+1. **Kofi Mensah:** the history can't say whether they left. Pia's was the only commit between 18 Jun and 12 Oct that wasn't in Kofi's name or the others' lists. If Kofi was on leave, they shouldn't be listed as leaving.
+2. **Lucia Bianchi:** a month of activity and then nothing could be a departure, a reassignment or leave.
+3. **Noor Haddad:** confirm they were away and came back, rather than being a new joiner.
+4. **Omar Haddad and Noor Haddad:** they share a surname and might be related, but I treated them as two people. I merged Iris and Mei because the name is identical and the commits fall in sequence, with no overlap between the old and new address. The team lead should confirm those two merges, since I couldn't verify them.
+5. **Commit history only:** someone who joined the project but hasn't committed yet, or who reviews without committing, won't appear here. It only shows who committed.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=short | sort -t'|' -k6 | head -300; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --all --since=2026-01-01 --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=short | sort -t'|' -k6; echo ---; git log --all --until=2025-12-31 --format='%an|%ae' | sort | uniq -c | sort -rn | head -80; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --all --author='Noor\|Omar\|Pia\|Lucia\|Kofi\|Iris\|Mei\|Jonas' --format='%h|%an|%ae|AD:%ad|CD:%cd|%s' --date=short; git branch -a; git log -1 --format=%cd
+### Final answer text
+I didn't run the receipts skill. It summarises one person's Claude Code usage, so it can't show who joined or left. I used the git history instead (`git log --all`, by author and commit date).
+
+**Joined in Q3 (not active in Q2)**
+- **Omar Haddad:** first commit 22 Jul. Nothing earlier in the history.
+- **Pia Lindqvist:** first commit 29 Sep. Nothing earlier in the history.
+- **Noor Haddad:** commit on 18 Aug. This is a return rather than a new joiner, because Noor has two commits from Feb and Jun 2025 and none in Q2.
+
+**Left after Q2 (active in Q2, not in Q3)**
+- **Lucia Bianchi:** commits on 10 Apr and 2 May, then nothing.
+
+**Same people in both quarters**
+- **Jonas Weber** is active in both.
+- **Iris Moreau** and **Mei Tanaka** are active in both under a new address:
+  - Iris moved from `iris@oldjob.example.net` to `iris.moreau@example.com`.
+  - Mei moved from `mei.tanaka@old-corp.example.net` to `mei.tanaka@example.com`.
+  - Counting them by address would wrongly show two leavers and two joiners.
+- **Bots:** `dependabot[bot]` has one commit (5 Aug) and is excluded from both lists.
+
+**Check with the team lead**
+1. **Iris and Mei:** I matched them by name and similar timing only, since no `.mailmap` links the addresses. Please confirm each is one person and not a namesake.
+2. **Kofi Mensah:** no commits in Q3 (the last was 18 Jun), but there is one on 12 Oct. I didn't count Kofi as a leaver, but they may have been away or on leave.
+3. **Noor Haddad:** please confirm whether to report them as new to the project or as returning. I'd say "returning".
+4. **Lucia Bianchi:** a missing commit doesn't prove they left. Please check whether they have actually left or are only quiet.
+5. **Commits only:** this counts commits, so anyone who only reviewed or did non-code work is invisible.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-04-01 --until=2026-10-01 --format='%h|%ad|%an|%ae|%cn|%ce|%s' --date=short | head -300; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log -8 --format='%h|%ad|%cd|%an|%ae|%s' --date=short; git branch -a; ls verify; git log --all --since=2026-04-01 --format='%h|%ad|%an|%ae|%s' --date=short | wc -l; git log --before=2026-04-01 -n 40 --format='%ad|%an|%ae' --date=short | sort -u -t'|' -k2 | 
+Bash: for n in Omar Pia Lucia Noor Kofi Jonas Iris Mei; do echo "== $n"; git log --all -i --author="$n" --format='%ad|%an|%ae' --date=short | sed -n '1p;$p'; git log --all -i --author="$n" --format='%ad' --date=format:%Y-%m | sort | uniq -c | tr '\n' ' '; echo; done
+### Final answer text
+Based on commit history (author names and dates). I counted Q3 as 1 Jul–30 Sep 2026 and treated "active" as having at least one commit in the quarter.
+
+**Joined in Q3 (new compared with Q2)**
+- Omar Haddad: first commit 22 Jul (env var defaults for string flags).
+- Pia Lindqvist: first commit 29 Sep (usage output for required flags).
+- Noor Haddad: 18 Aug (IP mask slice parsing). Noor is a returning contributor rather than a brand-new one. They committed in Feb and Jun 2025 and nothing in Q2 2026, so whether to call them "joined" is up to you.
+
+**Left (active in Q2, no commits in Q3)**
+- Lucia Bianchi: commits on 10 Apr and 2 May, nothing after.
+- Kofi Mensah: last Q2 commit 18 Jun. Kofi has no Q3 commits, but committed again on 12 Oct (rune slice flag). That makes them a quiet quarter rather than a leaver, so I would not list them as having left.
+
+**Continuing, so not counted as joined or left:** Jonas Weber, Iris Moreau and Mei Tanaka. Iris and Mei used old e-mail addresses in Q2 (`iris@oldjob.example.net`, `mei.tanaka@old-corp.example.net`) and new `@example.com` ones in Q3. The names match and the history is continuous, so I treated each pair as one person. A naive e-mail count would wrongly show both as having left and rejoined.
+
+**Excluded:** `dependabot[bot]` (the 5 Aug setup-go bump) is a bot, not a person.
+
+**Please check with the team lead**
+1. **Lucia Bianchi:** I can't tell whether Lucia left the project or just had no commits in Q3. Commits are the only evidence I have, so reviewing work, leave or a role change would not show up.
+2. **Kofi Mensah:** I'm assuming they are still on the project, based on the October commit. Confirm that before the executives see it.
+3. **Noor Haddad:** is Noor a "joiner" or a returnee?
+4. **Omar Haddad and Noor Haddad:** they share a surname, with different names and e-mails. I treated them as two people. Please confirm they aren't one person with two identities.
+5. **Iris and Mei:** please confirm the e-mail changes are the same people, as I assumed.
+6. **Single-commit contributors:** Omar and Pia each have only one commit so far. They may be occasional contributors rather than team members.
+
+This only covers git commits. Reviewers, maintainers and people who worked outside commits (issues, reviews) won't appear, so real joiners and leavers could be missing. I also found no `.mailmap` file in the repo, so I matched the e-mail changes by name myself.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%ad|%an|%ae|%cn|%ce|%s' --date=short | head -300; echo; git log --all --oneline | wc -l; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --all --since=2026-03-01 --format='%h|%aI|%cI|%an <%ae>|%s%n%b' ; git branch -a; git tag | tail; ls -a; git config --get-all mailmap.file; git shortlog -sne --all --since=2025-01-01
+Bash: git log --all -i --format='%h %ad %an <%ae>' --date=short --author='omar' --author='pia' --author='rhea' --author='kapoor' --author='lindqvist'; git log --all --format='%h %ad %an' --date=short --grep='Rhea\|Omar\|Pia\|Lucia'; grep -rIl 'Rhea\|Lucia\|Kapoor' .
+### Final answer text
+I compared who committed in Q2 (Apr–Jun 2026) with who committed in Q3 (Jul–Sep 2026), using the full git history. I counted a person as one individual even when their e-mail address changed, and I left out bots.
+
+**Joined (in Q3, not in Q2)**
+- **Omar Haddad:** first commit 22 Jul. This is his only commit, and nothing earlier exists under his name.
+- **Pia Lindqvist:** first commit 29 Sep. This is her only commit, and nothing earlier exists under her name.
+- **Noor Haddad:** commits on 18 Aug, but this is a return, not a new arrival. Noor also committed in Feb and Jun 2025, so they are new compared with Q2 but not new to the project.
+
+**Left (in Q2, not in Q3)**
+- **Lucia Bianchi:** two commits in Q2 (10 Apr, 2 May) and nothing since.
+
+**Continuing:** Iris Moreau, Jonas Weber and Mei Tanaka committed in both quarters. Iris and Mei each changed e-mail address, but the commits belong to the same person (Iris: `iris@oldjob…` to `iris.moreau@example…`; Mei: `old-corp…` to `example.com`). Neither is a joiner or a leaver.
+
+**Excluded:** `dependabot[bot]` (one commit in August).
+
+**Please check with the team lead**
+1. **Lucia Bianchi:** git only shows that Lucia stopped committing, not that they left. They may be on leave or working on non-code tasks.
+2. **Kofi Mensah:** Kofi committed in Q2 (18 Jun) and not at all in Q3, so a quarter-only comparison would list Kofi as a leaver. Kofi committed again on 12 Oct, so I did not list them. They look like a quiet quarter, but the team lead should confirm.
+3. **Rhea Kapoor:** Rhea appears only as a co-author on Iris's squashed commit of 27 Aug (#412), with no commits of their own. They may be a real new contributor, so I did not list them as a joiner. Please confirm.
+4. **Matching Iris and Mei across e-mail addresses:** I matched them by name, since there is no mapping file in the repo. That is very likely right, but it is an assumption. If either were two different people, the counts would change.
+5. **Omar and Pia:** they have one commit each. "Joined" here means "first appeared in git", so their actual start dates, and whether they are staff or external contributors, should be confirmed.
+
+This only counts code commits. Reviewers, issue triagers and anyone else who doesn't commit won't show up.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=short --since=2026-04-01 --until=2026-10-01 | head -300; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log -3 --format='%h|%an|%ae|%ad|%s' --date=short; git branch -a; git log --all --format='%an|%ae' | sort | uniq -c | sort -rn; echo; for n in "Omar Haddad" "Noor Haddad" "Pia Lindqvist" "Lucia Bianchi" "Kofi Mensah"; do echo "$n:"; git log --all --author="
+Bash: git log --format='%h %ad %an | %s' --date=short --grep='Co-authored-by: \(Rhea\|Jonas\)'; git log --format='%ad %an %ae' --date=short --author='Noor\|Lucia\|Kofi\|Mei\|Iris\|Jonas' | sort; git log --format='%h %ad %an|%cn' --date=short | awk -F'|' '$1!~/./' | 
+### Final answer text
+Going by commit history only, the movement from Q2 (April to June) to Q3 (July to September 2026) is:
+
+**Joined in Q3**
+- Omar Haddad: first commit on 22 Jul ("Support env var defaults for string flags"). Nothing earlier in the history.
+- Pia Lindqvist: first commit on 29 Sep ("Clarify usage output for required flags"). Nothing earlier in the history.
+
+**Left after Q2**
+- Lucia Bianchi: two commits in Q2 (10 Apr and 2 May), none since.
+
+**Please check with the team lead**
+- **Kofi Mensah:** Kofi was active in Q2 (18 Jun) and made no commits in Q3, so they look like a leaver. But Kofi committed again on 12 Oct, just after the quarter ended. I'd list them as "no Q3 activity, back in October", not as having left.
+- **Noor Haddad:** Noor made no Q2 commits and one in Q3 (18 Aug). That looks like a join, but Noor also committed in Feb and Jun 2025, so they are a returning contributor, not a new one. I left Noor off the joiners list.
+- **Rhea Kapoor:** Rhea is credited as co-author on Iris's 27 Aug commit (#412) but has no commits of their own. Whether that counts as joining is up to the team lead.
+- **Commit activity as a proxy:** Commit history can't show people who contribute only through reviews, issues or support. Omar and Pia each have a single commit, and Lucia's absence may just be a quiet quarter, so confirm all three.
+
+**Excluded or merged**
+- dependabot[bot] is a bot. I excluded it, and it only appears in Q3.
+- Mei Tanaka appears under two addresses (`@old-corp.example.net` in Q2, `@example.com` in Q3) but is clearly the same person.
+- Iris Moreau also appears under two addresses (`iris@oldjob.example.net` in Q2, `iris.moreau@example.com` in Q3), so I merged them too. I matched both by name, not by any link between the addresses. If a different person shared a name, that would change the result.
+- Jonas Weber was active in both quarters, so there's no change.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=short | head -300; ls -a; git log --all --oneline | wc -l
+Bash: git log --all --format='%ad|%an|%ae|%s' --date=short | awk -F'|' '$1>="2026-01-01"' | sort | head -80; echo; git log --all --format='%an|%ae' | sort | uniq -c | sort -rn; ls -a; cat .mailmap 2>/dev/null; git log --all --format='%an <%ae>|%cn' | awk -F'|' '$1 !
+Bash: git log --all --since=2026-04-01 --format='%h %ad %an | %b' --date=short | grep -i -E 'co-authored|signed-off' ; git branch -a; git log --all --since=2026-04-01 --merges --oneline | wc -l
+Bash: git log --all --since=2026-04-01 --format='%h %ad %an | %b' --date=short | grep -B3 -i 'co-authored'; git log --all --grep='Rhea' --format='%h %ad %an %s'; git log --all -i --grep='rhea.kapoor' --format=%h | wc -l
+### Final answer text
+I used the git history (author names and emails by calendar quarter) rather than the cv-builder skills, which are for resumes. People are matched by name, not email. Kofi Mensah's 12 Oct commit falls in Q4, so it isn't counted.
+
+**Joined in Q3 (no commits before July)**
+- Omar Haddad: first commit 22 Jul
+- Noor Haddad: first commit 18 Aug
+- Pia Lindqvist: first commit 29 Sep
+
+**Left after Q2 (committed in Q2, nothing in Q3)**
+- Lucia Bianchi: last commit 2 May
+- Kofi Mensah: last Q2 commit 18 Jun
+
+**Continuing, so on neither list**
+- Iris Moreau, Jonas Weber and Mei Tanaka committed in both quarters.
+- Iris and Mei changed email addresses. Iris moved from `iris@oldjob.example.net` to `iris.moreau@example.com`, and Mei from `mei.tanaka@old-corp.example.net` to `mei.tanaka@example.com`. I counted each as one person, not as a leaver plus a joiner.
+- `dependabot[bot]` has one Q3 commit, which I excluded as a bot.
+
+**Please check with the team lead**
+1. **Kofi Mensah** isn't really a leaver. Their last Q2 commit was 18 Jun, they had no Q3 commits, and they committed again on 12 Oct. They look like a quiet quarter or a break, so I'd drop them from "left" unless the lead says they left the project.
+2. **Lucia Bianchi** is "left" only because they stopped committing. Their last commit was 2 May, but the history can't show whether they left the project or just went quiet, so please confirm.
+3. **Rhea Kapoor** is probably a missed joiner. They have no authored commits, but they're credited as co-author with Jonas Weber on Iris's squashed commit for #412 (27 Aug). That may mean a contributor joined in Q3 without appearing as an author.
+4. **Name-based matching for Iris and Mei.** The history shows no email link between their old and new addresses. It's very likely the same person in each case, but it's worth a quick confirmation.
+5. **Omar and Noor Haddad** share a surname. I treated them as two different people, which fits their different names and emails. Mention it only if the executives might read it as a duplicate.
+6. **Pia Lindqvist** has only one commit, on 29 Sep. They count as a Q3 joiner, but only just.
+
+I can't tell from the history whether anyone formally joined or left the team. For example, someone could have been on the team without committing. The lists show who started or stopped committing.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%ad|%an|%ae|%cn|%ce|%s' --date=short | head -300; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --all --format='%h|%ad|%an|%ae' --date=short | grep -iE 'pia|omar|lucia|noor|haddad|lindqvist|bianchi' ; echo ---; git log --all --since=2026-01-01 --format='%h %ad %B' --date=short | grep -iE 'co-authored|signed-off|reviewed' ; echo ---; git log --all
+Bash: git log --all --since=2026-01-01 --format='%h %ad %an | %b' --date=short | grep -B0 -iE 'co-authored'; git log --all -i --grep='Rhea' --format='%h %ad %an %s' --date=short
+### Final answer text
+Commit authorship is the only signal I have, so these lists show who committed in each quarter. They don't show who is on the team.
+
+**Joined in Q3 (no commits in Q2)**
+- Pia Lindqvist: first commit 29 Sep, and nothing earlier in the history.
+- Omar Haddad: first commit 22 Jul, and nothing earlier in the history.
+- Noor Haddad: committed in Q3 but not in Q2. This is a return, not a new joiner. Their earlier commits are from Feb and Jun 2025, so they were away for about a year.
+
+**Left after Q2 (committed in Q2, nothing in Q3)**
+- Lucia Bianchi: last commit was 2 May. They may have left, or they may just have been quiet.
+- Kofi Mensah: committed on 18 Jun and not at all in Q3, but committed again on 12 Oct. That puts them back in Q4. I would not list them as having left.
+
+**Not counted as people movement**
+- dependabot[bot] is a bot, so I left it out.
+- Mei Tanaka and Iris Moreau each appear under two e-mail addresses (old-corp.example.net and oldjob.example.net, then example.com). I treated each pair as one person who stayed. I matched them on name only.
+- Jonas Weber committed in both quarters, so there is no change there.
+
+**Please check with the team lead**
+1. **Lucia Bianchi:** is Lucia actually gone, or just inactive?
+2. **Kofi Mensah:** confirm they were on leave or away in Q3, not gone and rehired.
+3. **Haddad:** I assumed Noor and Omar are two different people because the names and addresses differ. Please confirm.
+4. **Noor Haddad:** do they count as "joined" because they returned, or should they stay off the list?
+5. **Mei and Iris:** confirm the old and new addresses are the same person. If they aren't, Mei and Iris would each be one leaver and one joiner.
+6. **Rhea Kapoor:** credited as co-author on the IPv6 mask flag commit (#412, 27 Aug) but has no commits of their own. They might be a new contributor, so please ask whether to include them.
+7. **Q3 cut-off:** the repository has a commit dated 12 Oct (Q4). I excluded it from Q3.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%s' | head -300; echo; ls -a; git log --all | wc -l; cat .mailmap 2>/dev/null
+Bash: git log --all --since=2025-01-01 --format='%an|%ae|%aI' | sort -t'|' -k1,1 -k3 | awk -F'|' '{print $1" | "$2" | "substr($3,1,10)}'; echo; git log --all --format='%an|%ae' | grep -iE 'omar|pia|lindqvist|kofi|lucia|haddad' | sort | uniq -c; git branch -a; git lo
+### Final answer text
+I used `git log` author data and counted a person as active in a quarter if they committed in it. The cv-builder skills are for resumes, so I didn't use them.
+
+**Joined in Q3 (Jul–Sep), with no commits in Q2**
+- Omar Haddad: first commit 22 Jul. This is the only commit under that name in the repo.
+- Pia Lindqvist: first commit 29 Sep. This is the only commit under that name in the repo.
+- Noor Haddad: commit on 18 Aug. Noor is a returning contributor, not a new one, because they also committed in Feb and Jun 2025.
+
+**Left after Q2 (committed in Q2, nothing in Q3)**
+- Lucia Bianchi: last commit 2 May 2026, and none since. This is the only clear departure.
+- Kofi Mensah: no Q3 commits (last was 18 Jun), but they committed again on 12 Oct. Treat that as a quiet quarter rather than a departure.
+
+**Handled so they don't count as joined or left**
+- Iris Moreau changed from `iris@oldjob.example.net` to `iris.moreau@example.com`. They were active in both quarters.
+- Mei Tanaka changed from `mei.tanaka@old-corp.example.net` to `mei.tanaka@example.com`. They were active in both quarters.
+- Jonas Weber was active in both quarters.
+- `dependabot[bot]` has a commit on 5 Aug. I excluded it as a bot.
+
+**Please check with the team lead**
+1. **Kofi Mensah:** the Q3 gap is probably leave or a focus change, but only the team lead can confirm.
+2. **Lucia Bianchi:** the git log can't show whether Lucia left the project or only stopped committing. They may be doing reviews or other work.
+3. **Omar and Noor Haddad:** they share a surname but have different names and emails. I treated them as two people. Please confirm.
+4. **Pia and Omar:** both have a single commit, so "joined" is inferred from first appearance. They could have worked elsewhere in the org before.
+5. **Iris and Mei:** I matched them across emails by exact name only. The team lead should confirm the old and new addresses are the same person.
+6. **Method:** this counts commit authors only. Reviewers, issue triagers and people who commit under other names or squash-merge accounts won't show up. The repo also has no `.mailmap` or CODEOWNERS file to cross-check against.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-04-01 --until=2026-10-01 --format='%h|%ad|%an|%ae|%cn|%ce' --date=short | head -300; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log -8 --format='%h|%ad|%cd|%an|%ae' --date=short; echo; git log --format='%an|%ae' | sort | uniq -c | sort -rn | head -40; echo; git log --since=2026-04-01 --format='%h %(trailers:key=Co-authored-by,valueonly,separator=;)' | grep -i ';\|[a-z]' | grep -v '
+Bash: git log --format='%ad|%an|%ae|%h %s' --date=short --author='example' ; git log --all --format='%h %an %s' | grep -i 'rhea\|merge' | head; git log --format=%B | grep -i 'co-authored\|signed-off' | grep example
+### Final answer text
+Comparing commit authors in Q3 (Jul–Sep 2026) with Q2 (Apr–Jun 2026), I got these two lists. I merged the old and new e-mail addresses for the same name, and I left out dependabot[bot].
+
+**Joined (active in Q3, not in Q2)**
+- Pia Lindqvist: first commit 29 Sep, and no earlier history.
+- Omar Haddad: first commit 22 Jul, and no earlier history.
+- Noor Haddad: commit on 18 Aug. This is a return, not a first appearance, because Noor also committed in Feb and Jun 2025.
+
+**Left (active in Q2, not in Q3)**
+- Lucia Bianchi: commits on 10 Apr and 2 May, nothing since.
+- Kofi Mensah: last Q2 commit on 18 Jun, nothing in Q3.
+
+**Not counted**
+- Iris Moreau and Mei Tanaka are the same people under two addresses, so they are not joiners or leavers. Iris moved from iris@oldjob.example.net to iris.moreau@example.com, and Mei moved from mei.tanaka@old-corp.example.net to mei.tanaka@example.com.
+- Jonas Weber was active in both quarters.
+- dependabot[bot] is a bot, so I excluded it.
+
+**Please check with the team lead**
+1. **Kofi Mensah** isn't clearly a leaver. They committed again on 12 Oct 2026, just after the quarter, so they look inactive in Q3 rather than gone.
+2. **Lucia Bianchi** is only "left" in the sense that they have no commits after 2 May. They may be on leave or working outside the repository, so I can't tell whether they left.
+3. **Noor Haddad** should probably be described as "returned" rather than "joined". Please confirm which wording the executives should see.
+4. **Rhea Kapoor** appears only as a co-author on Iris's 27 Aug commit, with no commits of their own. They may be a new participant, so please ask whether to count them.
+5. **The e-mail merges** (Iris and Mei) rest on matching names plus the timing of the switch. I found no `.mailmap` file to confirm them, so please check that the old and new addresses belong to the same people.
+
+This is based on commit authorship only, so reviews, issues and work outside the repository aren't reflected. Someone can still be on the team without committing in a given quarter.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an|%ae|%cn|%ce|%ad' --date=short --since=2026-04-01 --until=2026-10-01 | sort | uniq -c | sort -k2 | head -200; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --all --format='%ad|%an|%ae|%s' --date=short | sort | awk -F'|' '{print}' | grep -v '^$' | head -80; echo; git log --all --format='%an|%ae' | sort | uniq -c; git branch -a; git log --all --format=%B | grep -i 'co-authored' | sort | uniq -c; ls verify
+Bash: git log --format='%h|%ad|%an <%ae>|%s' --date=short --since=2026-01-01 ; echo; git log --format='%h|%ad|%an|%s%n%b' --date=short | grep -B3 -i 'co-authored-by: \(Jonas\|Rhea\)' ; git log --all --format='%ad|%an' --date=short | grep -E 'Iris|Jonas|Kofi|Lucia|Me
+### Final answer text
+**Joined in Q3 (new compared with Q2)**
+- **Omar Haddad:** first commit 22 Jul. It's the first time they appear in the history.
+- **Pia Lindqvist:** first commit 29 Sep. It's the first time they appear in the history.
+- **Noor Haddad:** commit on 18 Aug. This is a return rather than a new joiner. Their only earlier commits were in Feb and Jun 2025, and they were absent in Q2.
+
+**Left (active in Q2, gone in Q3)**
+- **Lucia Bianchi:** two Q2 commits, the last on 2 May. There's nothing since, including in Q3 and October.
+
+**Not counted as movement**
+- **Iris Moreau** and **Mei Tanaka** each commit under two e-mail addresses (an old-job or old-corp address in Q2, the example.com one in Q3). The names match and the switch is chronological, so I treated each as one person who stayed.
+- **dependabot[bot]** is a bot and is excluded.
+- **Jonas Weber** is active in both quarters.
+
+**Please check with the team lead**
+1. **Kofi Mensah:** one Q2 commit (18 Jun) and none in Q3, so on the numbers alone they look like a leaver. But they committed again on 12 Oct, so I did not list them as left. It could be a leave of absence or a quiet quarter. Please confirm.
+2. **Lucia Bianchi:** this is based on silence only. The history can't tell whether they left or just moved to other work.
+3. **Noor Haddad:** decide whether a returning contributor counts as "joined". If your count only covers people who are new to the project, drop them.
+4. **Rhea Kapoor:** credited as co-author on Iris's squashed IPv6 mask commit (27 Aug). They have no commits of their own, so I did not count them. They may be a real Q3 contributor whose work was squashed into Iris's commit.
+5. **Iris and Mei identity merge:** I matched them by name only. Confirm that the old and new addresses belong to the same person, rather than two people with the same name.
+
+This comes from git commit history only, so it measures commit activity, not team membership or HR status. The repo has no `.mailmap` file.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%ad|%an|%ae|%cn|%ce' --date=short | head -300; git log --oneline | wc -l; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --all --since=2026-03-31 --format='%h|%ad|%cd|%an|%ae' --date=short; git log --all --since=2026-03-31 --format=%B | grep -i -E 'co-authored|signed-off'; git branch -a
+Bash: git log --since=2026-03-31 --format='%h %ad %an%n%b' --date=short | grep -B6 -i 'co-authored'; git log --all --format='%h %ad %s' --date=short -i --grep='Rhea'
+### Final answer text
+I based this on the git history of this repo, using author names and e-mails on commits dated 1 April to 30 September 2026. "Joined" means a person had commits in Q3 but none in Q2. "Left" means the reverse.
+
+**Joined in Q3 (new compared with Q2)**
+- Omar Haddad: first commit 22 Jul.
+- Pia Lindqvist: first commit 29 Sep.
+- Noor Haddad: commit on 18 Aug (see the checks below).
+
+**Left in Q3 (active in Q2, no commits in Q3)**
+- Lucia Bianchi: commits on 10 Apr and 2 May, nothing since.
+- Kofi Mensah: only one Q2 commit (18 Jun), nothing in Q3 (see the checks below).
+
+**Not counted as movement**
+- Iris Moreau and Mei Tanaka changed e-mail address (iris@oldjob.example.net to iris.moreau@example.com, and mei.tanaka@old-corp.example.net to mei.tanaka@example.com). Both were active in Q2 and Q3, so they stayed. I matched them by name only.
+- Jonas Weber was active in both quarters, so he stayed.
+- dependabot[bot] is a bot and is excluded.
+
+**Please check with the team lead**
+1. **Kofi Mensah** is probably not a real leaver. He committed again on 12 Oct, after Q3 ended, so he may have been away on leave or reassigned rather than gone. He is also the only Q2 contributor with a single commit.
+2. **Noor Haddad** may be a returning member rather than a new joiner. Noor had commits in Feb and Jun 2025 and then nothing until Aug 2026.
+3. **Rhea Kapoor** appears only as a co-author of the squashed IPv6 mask commit (8afb9e2, 27 Aug), and has no commits of their own. They may be a Q3 contributor who is missing from the joiner list.
+4. **Omar Haddad and Noor Haddad** share a surname, which might be a coincidence. I'd confirm they are two separate people and that Omar isn't a second identity of Noor.
+5. **Iris and Mei** are merged only because the names match. Please confirm each is the same person and not two people sharing a name.
+
+Commits show who contributed code, not who is on the team. Someone who only reviewed, wrote documents or took leave won't show up here. Treat the lists as a starting point and have the team lead confirm them against the roster.
+### Files it left in the working directory
+(none)

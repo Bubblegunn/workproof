@@ -1,0 +1,724 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: W="node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js"; $W reviews --help 2>&1 | head -40; mkdir -p /tmp/wpout; for p in src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows; do n=$(echo $p | tr '/.' '__'); $W reviews --path $p --since 2
+Bash: C=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; node $C reviews --help 2>&1 | head -40; for p in src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows; do n=$(echo $p | tr '/.' '__'); node $C reviews --path $p --since 2025-03-01 --format
+Bash: C=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; node $C reviews --path src/itsdangerous/signer.py --path src/itsdangerous/encoding.py --path .github/workflows --since 2025-03-01 --format csv --out /tmp/wpout/all.csv; cat /tmp/wpout/all.csv; echo; node $C re
+Bash: for h in 2611e3d a8c1342 7a7a137 759caef 0242fc7 c1fff9b ce20704 6022f30 f21a74b 372a692; do echo "== $h parents: $(git log -1 --format=%p $h) onmain: $(git merge-base --is-ancestor $h main && echo yes || echo no) firstparent: $(git rev-list --first-parent mai
+### Final answer text
+Of the 10 changes to those paths since 1 March 2025, only one has evidence of review by someone other than the author. These come from the review-evidence tool, with merge routes and trailers from `git log`. Dates are author dates in UTC, and the window runs from 2025-03-01 to now.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 2611e3d | 2026-02-10 | Mei Lin | Not shown (approval claim only) | The message has an `Approved-by:` line naming Dana Ortiz, who is not the author. That line is free text, not a recognised review trailer. PR #110 sits directly on main. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | Not shown | "wip". No review trailer. It sits directly on main, with no PR or merge commit. The committer is Ravi Menon, but committing is not reviewing. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Not shown | No trailer. It arrived through merge PR #107, merged by Ravi Menon. The merge shows who merged it, not that anyone reviewed it. |
+| 759caef | 2025-06-12 | Mei Lin | Not shown | No trailer. It arrived through merge PR #106, merged by Mei Lin (a self-merge). |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | Not shown | Automated dependency bump (#105). No review trailer. |
+| c1fff9b | 2025-05-06 | Mei Lin | **Independent review** | `Reviewed-by: Ravi Menon`, who is not the author. PR #104, squash-merged on main. |
+| ce20704 | 2025-04-20 | Dana Ortiz | **Self-review** | `Reviewed-by: Dana Ortiz`. The reviewer is the author under a different email, matched through the repo's alias file. PR #103. |
+| 6022f30 | 2025-04-02 | Ravi Menon | Not shown | No review trailer (#102). It has a `Co-authored-by: Dana Ortiz` line, which is co-authorship, not review. |
+| f21a74b | 2025-03-10 | Ravi Menon | Not shown | No trailer. It arrived through merge PR #101, merged by Dana Ortiz. |
+| 372a692 | 2025-03-05 | Dana Ortiz | Not shown | No trailer. It sits directly on main, with no PR or merge commit. |
+
+**Counts per verdict (10 in scope):**
+- Independent review evidenced: 1 (c1fff9b)
+- Self-review only: 1 (ce20704)
+- Approval claimed by someone else in free text only: 1 (2611e3d)
+- No review evidence: 7 (a8c1342, 7a7a137, 759caef, 0242fc7, 6022f30, f21a74b, 372a692)
+- So 9 of 10 do not satisfy the test on git history alone.
+
+I counted the 2611e3d approval line as not satisfying the test. If your control accepts it, the count becomes 2 evidenced and 8 not.
+
+**What git history cannot prove**
+- **Review that left no trace in git.** Approvals and comments on GitHub pull requests are stored on the code host, not in the repo. Any of the "not shown" rows may have been reviewed there. This clone has no remote data, so you need the PR approval records for #101–#107 and #110.
+- **Trailers are claims.** Anyone can type `Reviewed-by:` or `Approved-by:` into a message. c1fff9b is only as good as the matching approval on the host.
+- **Merging is not reviewing.** Three changes (f21a74b, 7a7a137, 759caef) came in through merge commits. Nothing in the repo shows those merges involved a review.
+- **Commits straight to main.** a8c1342 and 372a692 have no PR trail in git. Branch protection settings, which would show whether that was allowed, are also not in git.
+- **Identity.** One person can use several emails (that is how ce20704 was caught as a self-review). The reverse is also possible, and a name match does not prove two accounts are the same person.
+- **Rewritten history.** Squash merges and force-pushes can drop intermediate commits and review notes, so I
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js reviews --path src/itsdangerous/signer.py --path src/itsdangerous/encoding.py --path .github/workflows --since 2025-03-01 --format csv 2>&1 | head -100
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an|%cn|%p|%s' --date=short -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows; echo ---; git log --since=2025-03-01 --merges --format='%h|%ad|%an|%cn|%p|%s' --date=short; echo ---; git log 
+### Final answer text
+I found 10 commits to those paths since 1 March 2025. Only one of them has evidence of review by someone other than the author. The tool I used reads only commit-message trailers (Reviewed-by, Approved-by). I then checked the merge commits by hand. The window is 2025-03-01 to today, dates are author dates in UTC, and the repository is not a shallow clone.
+
+| Short hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 2611e3d | 2026-02-10 | Mei Lin | Approval by another person, not a review | An "Approved-by: Dana Ortiz" trailer on "Pin action SHAs (#110)". It is an approval note, not a review record, and the tool does not count it as review. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No evidence | "wip". No trailer. Ravi Menon committed it, but committing is not reviewing. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | No evidence | No trailer. Merge dfd794b (PR #107) was done by Ravi Menon, but a merge alone does not show a review. |
+| 759caef | 2025-06-12 | Mei Lin | No evidence | No trailer. Merge 9d0c45d (PR #106) was done by Mei Lin herself. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No evidence | Bot-authored (PR #105). No trailer. |
+| c1fff9b | 2025-05-06 | Mei Lin | **Independent review** | "Reviewed-by: Ravi Menon" trailer on "Add key rotation hook (#104)". Ravi is not the author. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review | "Reviewed-by" names Dana Ortiz at a second address. The repository's `.mailmap` maps both addresses to the same person. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No evidence | "Tighten workflow permissions (#102)". The only trailer is "Co-authored-by: Dana Ortiz", which shows co-authorship, not review. |
+| f21a74b | 2025-03-10 | Ravi Menon | No evidence | No trailer. Merge 2b4b959 (PR #101) was done by Dana Ortiz, which shows who merged it, not that it was reviewed. |
+| 372a692 | 2025-03-05 | Dana Ortiz | No evidence | No trailer. It is a parent of merge 2b4b959, which Dana Ortiz made herself. |
+
+**Counts per verdict (10 commits)**
+- Independent review: 1
+- Self-review: 1
+- Approval by another person, not a review: 1
+- No evidence of review: 7. Three of these have a merge by someone else (a8c1342, 7a7a137, f21a74b), but that is not review evidence.
+
+**What git history cannot prove**
+- **No GitHub review data.** Pull request approvals, review comments and branch-protection or required-reviewer settings are stored on GitHub, not in git. A commit with no trailer may still have been reviewed there. Please export the PR review records for #101–#107 and #110.
+- **Trailers are typed text.** Anyone can add or edit a "Reviewed-by" line, and it doesn't show when the review happened or what the reviewer looked at. It also doesn't show that the review came before the merge. So even c1fff9b is "claimed independent review", not proof.
+- **Merging and committing are not reviewing.** Who pressed merge, or who is named as committer (a8c1342), says nothing about whether the code was read.
+- **Squashed commits hide the branch history.** Commits with a (#nnn) suffix were committed by GitHub, so any per-commit review on the original branch is gone.
+- **Pushes straight to main aren't visible.** Commits such as a8c1342 sit on main without a pull request. History alone can't show whether that was blocked, allowed or done by an exempt admin.
+- **Rewritten history can't be detected.** I can't tell whether history was rewritten or force-pushed, and I did not check for that.
+- **People are matched by address.** Identities
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js reviews --path src/itsdangerous/signer.py --path src/itsdangerous/encoding.py --path .github/workflows --since 2025-03-01 --until 2026-10-25 --format csv --out /tmp/reviews.csv; echo rc=$?; cat /tmp/reviews.
+Bash: git log --since=2025-03-01 --format='%h|%an|%cn|%ad|%cd|%p|%s' --date=short -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows; echo; git show -s --format=%B 2611e3d c1fff9b ce20704; git log --merges --format='%h %p %s' | head -20; gi
+### Final answer text
+I found independent review evidence for 1 of the 10 changes to the three sensitive paths since 1 March 2025. Dates are author dates in UTC, and I took the rows from the `workproof` reviews tool (`reviews`). The run covered 2025-03-01 to 2026-10-25 and every commit on main touching `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` or `.github/workflows/`.
+
+I counted only a named reviewer who is not the author, recorded in the commit message (`Reviewed-by`). That is the tool's rule, and it is stricter than "someone else approved it".
+
+| Short hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 2611e3d | 2026-02-10 | Mei Lin | Not shown | Message has `Approved-by: Dana Ortiz`, so a second person is named. It is an approval trailer, not a review record, and I did not count it. Committed by GitHub (#110). |
+| a8c1342 | 2025-08-20 | Dana Ortiz | Not shown | Message is "wip" with no trailer. The committer is Ravi Menon, which shows who applied it, not that they reviewed it. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Not shown | No trailer. It arrived through the merge of PR #107, and a merge commit is not review evidence. |
+| 759caef | 2025-06-12 | Mei Lin | Not shown | No trailer. It arrived through the merge of PR #106. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | Not shown | Automated dependency bump (#105) with no trailer. |
+| c1fff9b | 2025-05-06 | Mei Lin | **Independent review** | `Reviewed-by: Ravi Menon`, who is not the author (#104). |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review | `Reviewed-by: Dana Ortiz`. The name is the author's, and the address in the trailer differs from the commit's. The tool matched the two through the repository's alias file (`.mailmap`). |
+| 6022f30 | 2025-04-02 | Ravi Menon | Not shown | No trailer (#102). |
+| f21a74b | 2025-03-10 | Ravi Menon | Not shown | No trailer. It arrived through the merge of PR #101. |
+| 372a692 | 2025-03-05 | Dana Ortiz | Not shown | No trailer. |
+
+**Counts**
+
+| Verdict | Count |
+|---|---|
+| Independent review shown | 1 |
+| Reviewed through merge only (weaker) | 0 |
+| Self-review | 1 |
+| Approval by another person, no review trailer | 1 |
+| No review evidence | 7 |
+| **Total** | **10** |
+
+**What git history cannot prove**
+- **Reviews outside the commits.** Review approvals, comments and branch-protection rules live in GitHub, not in git. The seven "no trailer" commits may well have been reviewed there, and git can't show it either way. The PR numbers (#101 to #110) are the leads to pull from GitHub.
+- **Trailers are self-declared.** A `Reviewed-by` line is typed text, and anyone can add it without having reviewed anything. For c1fff9b it shows that Ravi Menon is named, not that they read the change.
+- **Merges don't show who reviewed.** Merging PRs #106 and #107 shows the changes were merged, not that a second person looked at them.
+- **Direct commits.** Several commits (7a7a137, 759caef, 372a692, f21a74b) were committed by their own author. History doesn't show whether main was protected against direct pushes, so it can't show whether review was required.
+- **Identity.** The tool matched author to reviewer by name, address and alias file. I didn't check that these are the real people, or that "Dana Ortiz" is one person across both addresses.
+- **Approved-by for 2611e3d.** If your control accepts an approval as review, this row moves to "independent". That would make 2 of 10, and the GitHub PR page for #110 would settle it.
+
+To close the gaps, export 
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%P|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo ---; git remote -v; git log --all --oneline | wc -l; git branch -a
+Bash: git log --since=2025-02-25 --graph --format='%h %p | %an | %cn | %s' | head -40; echo ----; for h in 2611e3d a8c1342 7a7a137 759caef 0242fc7 c1fff9b ce20704 6022f30 f21a74b 372a692 dfd794b; do echo "== $h"; git show -s --format='%B%n[author=%an committer=%cn s
+Bash: cat .mailmap; git log -3 --format='%h %an <%ae>' f56c097; git shortlog -sne --all | head -20
+### Final answer text
+The receipts skill doesn't fit this request. It builds a Claude Code usage report from session transcripts and has no way to show who reviewed a change, so I didn't run its miner or write any files. Everything below comes from `git log` on this clone.
+
+**Scope:** 10 commits touched `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` or `.github/workflows/` between 2025-03-01 and 2026-10-25, counting only commits that changed those paths directly. Dates are author dates. Author and reviewer names are matched through `.mailmap`, which folds `dana.ortiz@example.net` into Dana Ortiz and `rmenon@example.org` into Ravi Menon.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No evidence | Committed straight to main by the author. There is no PR and no merge commit. |
+| f21a74b | 2025-03-10 | Ravi Menon | Merged by another person | PR #101 was merged by Dana Ortiz (merge commit 2b4b959). The merge shows a second person handled it, but there is no approval or review record. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No evidence | PR #102 was squash-merged by GitHub. The only link to Dana is a `Co-authored-by` trailer, which means a contributor, not a reviewer. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | PR #103 carries `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. That address maps to the author, so this is not independent review. |
+| c1fff9b | 2025-05-06 | Mei Lin | Reviewer named (unverified) | PR #104 carries `Reviewed-by: Ravi Menon <rmenon@example.org>`. Ravi is not the author, but the trailer is free text. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No evidence | PR #105 was squash-merged by GitHub. It has no reviewer trailer, so no human sign-off is visible. |
+| 759caef | 2025-06-12 | Mei Lin | Self-merged | PR #106 ("hotfix") was merged by Mei Lin, the author (merge commit 9d0c45d). There is no reviewer record. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Merged by another person | PR #107 was merged by Ravi Menon (merge commit dfd794b). The branch also holds Ravi's own README commit, 96c7bd7. There is no review record. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No evidence | The message is "wip". It was committed by Ravi Menon (committer differs from author) directly onto main with no PR. It changes `publish.yaml`, the release workflow. |
+| 2611e3d | 2026-02-10 | Mei Lin | Reviewer named (unverified) | PR #110 carries `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author, but the trailer is free text. |
+
+**Counts per verdict (10 total)**
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Reviewer named in commit message (unverified) | 2 | c1fff9b, 2611e3d |
+| Merged by someone other than the author, no review record | 2 | f21a74b, 7a7a137 |
+| Self-review or self-merge only | 2 | ce20704, 759caef |
+| No evidence of any second person | 4 | 372a692, 6022f30, 0242fc7, a8c1342 |
+
+No commit has evidence of review that I'd call verified.
+
+**What git history cannot prove here**
+- **Review itself.** Approvals, review comments and branch-protection rules live in GitHub's PR data, not in commits. This clone has no remote and no PR data.
+- **Trailers are unauthenticated.** Anyone can type `Reviewed-by:` or `Approved-by:` into a message, and nothing here is GPG-signed (signature status is `N` on every commit). The two "named" verdicts are claims, not proof.
+- **A merge is not a review.** A merge or committer identity shows who clicked the button or ran the comma
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%P|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo ---; git remote -v; git log -1 --format=%ad --date=short; git branch -a
+Bash: git log --format='=== %h %p | author=%an | committer=%cn | %s%n%b%n[trailers]' --graph --date=short --since=2025-02-20 | head -150; echo; git log --merges --format='%h %p %s' --since=2025-03-01; git notes list 2>&1 | head; git log --format='%h %G? %GS' --since
+Bash: cat .mailmap; git show -s --format='%h %an <%ae> | %cn <%ce>' a8c1342 dfd794b 7a7a137 96c7bd7; git show --stat --format=%h 96c7bd7 | tail -3; git show a8c1342 --stat --format=%h | tail -3
+### Final answer text
+The receipts skill didn't apply here: it summarises Claude Code usage from local transcripts and has no way to read review evidence. I used `git log` on `main` instead. The scope was `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` and `.github/workflows/`, from 1 March 2025 to the current tip (`f56c097`). That gave 10 commits. Dates are author dates.
+
+I matched identities with the repo's `.mailmap`, which maps `dana.ortiz@example.net` to Dana Ortiz and `rmenon@example.org` to Ravi Menon. A Co-authored-by or Reviewed-by trailer under the second address therefore counts as that person.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | Not evidenced | The author committed straight to `main`. There is no PR, merge commit or trailer. |
+| f21a74b | 2025-03-10 | Ravi Menon | Merged by non-author, review unproven | PR #101 was merged by Dana via merge commit `2b4b959`. Nothing records that Dana reviewed it. |
+| 6022f30 | 2025-04-02 | Ravi Menon | Not evidenced | PR #102 was a GitHub squash merge. The only trailer is `Co-authored-by: Dana Ortiz`, which makes Dana a co-author, not a reviewer. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | PR #103 carries `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`, which `.mailmap` resolves to the author. |
+| c1fff9b | 2025-05-06 | Mei Lin | Review asserted | PR #104 carries `Reviewed-by: Ravi Menon <rmenon@example.org>`, which `.mailmap` resolves to Ravi, who is not the author. This is a trailer in the message only. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | Not evidenced | PR #105 is a bot bump, GitHub squash-committed, with no human approval trailer. |
+| 759caef | 2025-06-12 | Mei Lin | Not evidenced | PR #106 was merged by Mei herself (`9d0c45d`, author and committer both Mei). It was self-merged with no other trace of review. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Merged by non-author, review unproven | PR #107 was merged by Ravi via `dfd794b`. The same PR also carries Ravi's own README commit `96c7bd7`. Nothing records a review. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | Not evidenced | The commit message is "wip" and it has no PR number or merge commit. The committer is Ravi, which only shows Ravi applied it, for example by cherry-pick or rebase. |
+| 2611e3d | 2026-02-10 | Mei Lin | Review asserted | PR #110 carries `Approved-by: Dana Ortiz <dana@example.com>`, a trailer in the message only. |
+
+**Counts**
+
+| Verdict | Commits |
+|---|---|
+| Review asserted (trailer naming a different person) | 2 |
+| Merged by non-author, review unproven | 2 |
+| Self-review only | 1 |
+| Not evidenced | 5 |
+| **Total** | **10** |
+
+Only the 2 "review asserted" rows have positive evidence of review, and that evidence is weak. None of the 10 has evidence that holds up on its own.
+
+**What git history cannot prove**
+- **Review itself.** Reviews, approvals, comments and branch-protection settings live in GitHub, not in git. The repo has no remote configured, and there are no git notes. Pull the PR approval records and the branch-protection and ruleset history for #101–#107 and #110 from GitHub to confirm any of these.
+- **Trailer authenticity.** `Reviewed-by` and `Approved-by` lines are free text in the commit message. The author or anyone else with write access could have typed them, and they don't show the review actually happened or what it covered.
+- **Merge as approval.** Someone other than the author merging (#101, #107) shows who clicked
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --first-parent=0 -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo ---; git log --all --oneline | wc -l; git remote -v; git branch -a; git log --fo
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an|%cn|%p|%s' --date=short -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo ---; git log --since=2025-03-01 --format='%h' -m --first-parent --name-only -- src/itsdangerous/signer.p
+Bash: for c in 2611e3d a8c1342 7a7a137 759caef 0242fc7 c1fff9b ce20704 6022f30 f21a74b 372a692 2b4b959 dfd794b 9d0c45d; do echo "=== $c"; git show -s --format='A: %an <%ae>%nC: %cn <%ce>%nparents: %p%n%B' $c; done; git log --graph --oneline --since=2025-03-01 | head
+### Final answer text
+The receipts skill didn't fit this job. It summarizes Claude Code usage from local session transcripts and can't show who reviewed a commit. So I used `git log` directly on the three sensitive paths, from 1 March 2025 to HEAD (`f56c097`). That gave 10 commits.
+
+The repo's `.mailmap` maps `rmenon@example.org` to Ravi Menon and `dana.ortiz@example.net` to Dana Ortiz. I used it to match trailer names to commit authors. Dates are author dates.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No evidence | Commit made directly on main by the author, with no PR or merge commit and no trailers. |
+| f21a74b | 2025-03-10 | Ravi Menon | Indirect only | PR #101 (`ravi/encoding-fix`) was merged by Dana Ortiz in `2b4b959`. A different person merged it, but nothing records a review. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No evidence | Squash-merged PR #102 via GitHub. The only trailer is `Co-authored-by: Dana Ortiz`, which shows Dana contributed, not that she reviewed. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | Squash-merged PR #103. The `Reviewed-by: Dana Ortiz` trailer names the author herself, so it isn't independent. |
+| c1fff9b | 2025-05-06 | Mei Lin | Evidenced | Squash-merged PR #104 with `Reviewed-by: Ravi Menon <rmenon@example.org>`. Ravi isn't the author. The trailer is commit-message text, not a platform approval. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No evidence | Squash-merged PR #105, authored by the bot. The history doesn't show who merged it or whether anyone approved it. |
+| 759caef | 2025-06-12 | Mei Lin | Self-review only | PR #106 (`mei/hotfix`). The merge commit `9d0c45d` was made by Mei Lin, so the author merged their own change. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Indirect only | PR #107 (`dana/mixed`) was merged by Ravi Menon in `dfd794b`. A different person merged it, but no review is recorded. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No evidence | Message "wip", a direct commit on main with no PR. Ravi Menon is the committer, so he applied or pushed it. That isn't a review. |
+| 2611e3d | 2026-02-10 | Mei Lin | Evidenced | Squash-merged PR #110 with `Approved-by: Dana Ortiz <dana@example.com>`. Dana isn't the author. This is also a trailer in the message only. |
+
+**Counts per verdict (10 changes)**
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Evidenced (named non-author reviewer or approver) | 2 | c1fff9b, 2611e3d |
+| Indirect only (merged by a non-author, no review record) | 2 | f21a74b, 7a7a137 |
+| Self-review only (author reviewed or merged their own change) | 2 | ce20704, 759caef |
+| No evidence | 4 | 372a692, 6022f30, 0242fc7, a8c1342 |
+
+**What git history cannot prove here**
+- **No approval records:** This is a bare local clone with no remote and no GitHub data. PR approvals, review comments, required-review settings, and branch protection aren't stored in git. The "#NNN" numbers point to PRs I couldn't open.
+- **Trailers prove nothing alone:** `Reviewed-by` and `Approved-by` are free text that anyone can type, and nobody has verified them. They also show nothing about when the review happened or whether it covered this diff.
+- **No signatures:** I didn't check commit signing, so identities rest on names and emails alone. A name in a trailer could also be someone else entering it.
+- **Merging is not reviewing:** A merge commit by a non-author (`2b4b959`, `dfd794b`) shows who clicked merge. GitHub squash merges record "GitHub" as commi
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%P|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; git branch -a; git remote -v; git log -1 --format=%ad --date=iso
+Bash: git log --since=2025-02-01 --graph --format='%h %p | %an | %cn | %s%n%b[trailers: %(trailers:only,oneline)]' --date=short | head -150; git notes list 2>&1|head; git for-each-ref; git log --format='%h %G? %GS' --since=2025-03-01 -- src/itsdangerous .github/work
+Bash: cat .mailmap; git log --since=2025-03-01 --format='%h %aN <%aE> | %cN <%cE>' ; git show 2611e3d --stat --format=fuller | head -20; git show a8c1342 --stat --format=fuller|head -15; git diff 9d0c45d dfd794b --stat
+### Final answer text
+I found 10 commits that touch the three sensitive paths since 1 March 2025. Only 2 have review evidence in the history, and in both cases it is a free-text trailer.
+
+I took identities from `.mailmap`. Dana Ortiz appears under `dana@example.com` and `dana.ortiz@example.net`, and Ravi Menon under `ravi@example.com` and `rmenon@example.org`. Dates are author dates.
+
+| Hash | Date | Author | Path | Verdict | Evidence |
+|---|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | signer.py | No evidence | Direct commit to main, with no PR and no trailer. Author and committer are both Dana. |
+| f21a74b | 2025-03-10 | Ravi Menon | encoding.py | Merged by non-author only | PR #101 was merged by Dana (merge commit 2b4b959). There is no review trailer. |
+| 6022f30 | 2025-04-02 | Ravi Menon | tests.yaml | No evidence | PR #102 was squash-merged via GitHub. The only trailer is `Co-authored-by: Dana Ortiz`, which shows Dana wrote part of it, not that they reviewed it. |
+| ce20704 | 2025-04-20 | Dana Ortiz | signer.py | Self-approved | PR #103 has `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. That address maps to the author. |
+| c1fff9b | 2025-05-06 | Mei Lin | signer.py | Review evidenced | PR #104 has `Reviewed-by: Ravi Menon <rmenon@example.org>`. That address maps to Ravi, who is not the author. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | tests.yaml | No evidence | PR #105 was a bot bump merged via GitHub. There is no human approval trailer. |
+| 759caef | 2025-06-12 | Mei Lin | signer.py | Self-approved | PR #106 was merged by Mei (merge commit 9d0c45d). Author and merger are the same person. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | encoding.py | Merged by non-author only | PR #107 was merged by Ravi (merge commit dfd794b). There is no review trailer. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | publish.yaml | No evidence | Direct non-merge commit on main with the message "wip". Ravi is the committer, so Ravi applied it, but nothing shows a review. |
+| 2611e3d | 2026-02-10 | Mei Lin | lock.yaml | Review evidenced | PR #110 has `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author. |
+
+**Counts**
+- Review evidenced: 2 (c1fff9b, 2611e3d).
+- Merged by non-author only: 2 (f21a74b, 7a7a137).
+- Self-approved: 2 (ce20704, 759caef).
+- No evidence: 4 (372a692, 6022f30, 0242fc7, a8c1342).
+- Total: 10.
+
+**What git history cannot prove**
+- **Review itself:** Review happens on the hosting platform (PR approvals, comments, required-review rules), and none of that is in git. `Reviewed-by` and `Approved-by` are free text that anyone could write, so they are claims, not proof. I can't confirm they match real approvals.
+- **Merge versus review:** A merge by someone other than the author shows who clicked merge. It doesn't show that anyone read the diff.
+- **Missing PR records:** Commit messages cite PR numbers, but the PR pages aren't in this repository. Squash-merged PRs (#102–#105, #110) leave no trace of approvals or reviewers.
+- **Branch protection:** Git can't show whether it was enforced. Direct commits to main (372a692, a8c1342) suggest it wasn't always, or that someone bypassed it.
+- **Authorship and signatures:** No commit is signed (every signature status is `N`), and author names and emails are self-asserted. I can't prove the author is who they claim to be.
+- **Rewritten history:** Force-pushes or rewritten history wouldn't show up in a clone. The repository has only a `main` branch, no remote and no notes.
+- **Bot merge:** I can't te
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --first-parent main -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo ---; git log --since=2025-03-01 --format='%h|%ad|%an|%cn|%p|%s' --date=short 
+Bash: git log --graph --date=short --format='%h %ad A:%an C:%cn %s%n%b%N' --since=2025-02-20 | head -150; git log --all --since=2025-03-01 --format='%h %G? %s' | head -40; git notes list; git tag
+Bash: cat .mailmap; echo ---; git log --since=2025-03-01 --no-merges --format='%h %ad %an <%ae> | C: %cn <%ce>' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo ---; for m in 2b4b959 9d0c45d dfd794b; do e
+### Final answer text
+I found 10 non-merge commits that touched the three sensitive paths since 1 March 2025. Only 2 have a reviewer named in the history, and that evidence is a free-text trailer in each. I found no PR review records, approvals, or signed commits in the repository.
+
+I read the commits that changed `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` or `.github/workflows/` on `main`, with their merge commits and message trailers. I used `.mailmap` to resolve identities. The `.mailmap` file maps `dana.ortiz@example.net` to Dana Ortiz and `rmenon@example.org` to Ravi Menon.
+
+| Short hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No review evidence (author integrated) | Direct commit on `main`. Author and committer are both Dana. |
+| f21a74b (merged by 2b4b959) | 2025-03-10 | Ravi Menon | No review evidence (merged by another person) | "Merge pull request #101" was committed by Dana, not Ravi. A merge shows someone else integrated it, not that they reviewed it. There is no trailer or approval. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No review evidence (author integrated) | Squash of PR #102. The only other name is `Co-authored-by: Dana Ortiz`, which says Dana helped write it. It does not say Dana reviewed it. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | PR #103 has `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` resolves that to the author herself. |
+| c1fff9b | 2025-05-06 | Mei Lin | Independent review claimed (trailer only) | PR #104 has `Reviewed-by: Ravi Menon <rmenon@example.org>`. `.mailmap` resolves that to Ravi, who is not the author. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No review evidence (bot) | PR #105, committed by GitHub. Nothing in the history shows who clicked merge or whether anyone looked at it. |
+| 759caef (merged by 9d0c45d) | 2025-06-12 | Mei Lin | No review evidence (self-merge) | "Merge pull request #106 from mei/hotfix" was committed by Mei, the author. |
+| 7a7a137 (merged by dfd794b) | 2025-07-01 | Dana Ortiz | No review evidence (merged by another person) | "Merge pull request #107" was committed by Ravi. This is the same pattern as #101, with no trailer or approval. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No review evidence (committed by another person) | The commit message is "wip", with no PR reference. Dana is the author and Ravi is the committer, so it was applied or pushed by Ravi. Nothing shows he reviewed it. |
+| 2611e3d | 2026-02-10 | Mei Lin | Independent review claimed (trailer only) | PR #110 has `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author. |
+
+**Counts per verdict**
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Independent review claimed (trailer only) | 2 | c1fff9b, 2611e3d |
+| Self-review only | 1 | ce20704 |
+| No review evidence, but integrated by a second person | 3 | f21a74b, 7a7a137, a8c1342 |
+| No review evidence, integrated by the author, a bot, or an unknown person | 4 | 372a692, 6022f30, 0242fc7, 759caef |
+| **Total** | **10** | |
+
+**What git history cannot prove**
+- **Trailers are not proof.** `Reviewed-by` and `Approved-by` are free text that anyone can type into a commit message or squash description. Git does not check them, and they don't show what the named person actually reviewed.
+- **PR review records are not in git.** GitHub holds the PR reviews, approvals, comments, required-review settings, and who clicked merge. The repository has no remote configured. To conf
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%H|%ad|%an <%ae>|%cn|%p|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo; git log --oneline --graph -30; git remote -v; git log -1 --format=%ad --date=is
+Bash: git log --since=2025-03-01 --format='=== %h author=%an <%ae> %ad | committer=%cn <%ce> %cd parents=%p%n%B' --date=iso -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo ----MERGES; git log --merges -8 --format='=== %h %p author
+### Final answer text
+I found 10 commits since 1 March 2025 that touch `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` or `.github/workflows/`. Only 2 have a review record by someone other than the author. I read the history directly (`git log` with full messages, parents and committer fields, plus the merge commits and `.mailmap`). The repository has no remote and no git notes, and none of the commits is signed.
+
+**Verdict key**
+- **REVIEWED**: a review or approval trailer naming someone other than the author.
+- **MERGER ONLY**: a different person merged it, but nothing says they reviewed it.
+- **NOT EVIDENCED**: it came through a GitHub PR, but git holds no review record.
+- **NO INDEPENDENT REVIEW**: the history shows self-review, a self-merge, or a direct commit to main.
+
+| Hash | Date (author) | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 2611e3d | 2026-02-10 | Mei Lin | REVIEWED | PR #110, committed by GitHub. Trailer `Approved-by: Dana Ortiz`, and Dana is not the author. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | NO INDEPENDENT REVIEW | Message is "wip". It has no PR number and sits directly on main on top of merge dfd794b. Ravi Menon is the committer, which only shows he applied it. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | MERGER ONLY | PR #107, merge commit dfd794b made by Ravi Menon. Ravi did the merge, but no review or approval record exists. |
+| 759caef | 2025-06-12 | Mei Lin | NO INDEPENDENT REVIEW | PR #106, merge commit 9d0c45d made by Mei Lin, the author, 20 minutes after her commit. It is a self-merge. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | NOT EVIDENCED | PR #105, committed by GitHub. It is a bot dependency bump with no human trailer. |
+| c1fff9b | 2025-05-06 | Mei Lin | REVIEWED | PR #104, committed by GitHub. Trailer `Reviewed-by: Ravi Menon <rmenon@example.org>`. `.mailmap` maps that address to Ravi Menon, who is not the author. |
+| ce20704 | 2025-04-20 | Dana Ortiz | NO INDEPENDENT REVIEW | PR #103. Trailer `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` maps that address to the author herself, so this is self-review. |
+| 6022f30 | 2025-04-02 | Ravi Menon | NOT EVIDENCED | PR #102, committed by GitHub. The only trailer is `Co-authored-by: Dana Ortiz`, which records co-authorship, not review. |
+| f21a74b | 2025-03-10 | Ravi Menon | MERGER ONLY | PR #101, merge commit 2b4b959 made by Dana Ortiz on 2025-03-11. Dana merged it, but there is no review record. |
+| 372a692 | 2025-03-05 | Dana Ortiz | NO INDEPENDENT REVIEW | A direct commit to main with no PR, authored and committed by Dana. |
+
+**Counts**
+- REVIEWED: 2 (2611e3d, c1fff9b)
+- MERGER ONLY: 2 (7a7a137, f21a74b)
+- NOT EVIDENCED: 2 (0242fc7, 6022f30)
+- NO INDEPENDENT REVIEW: 4 (a8c1342, 759caef, ce20704, 372a692)
+- Total: 10
+
+**What git history cannot prove**
+- **Trailers are free text.** Anyone can type `Reviewed-by` or `Approved-by` into a message, and none of these commits is signed. `Approved-by` is not a trailer GitHub generates, so I can't tell whether a person or a tool wrote it.
+- **The real review record lives on GitHub, not in git.** That includes PR approvals, review comments, whether a later push dismissed an approval, and whether the reviewer approved the final code. Even for the two REVIEWED rows, you need the PR #104 and #110 review pages to confirm an actual approval.
+- **I can't see branch protection or bypasses.** Git doesn't show whether main required approvals, or whether an admin overrode the rule. The direct commits 372a692 a
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo ---; git log --oneline --graph --since=2025-02-15 | head -60; git remote -v; git con
+Bash: cat .mailmap; git log --since=2025-02-25 --format='=== %h %p | A:%an <%ae> %ad | C:%cn <%ce> %cd | sig:%G?%n%B' --date=iso; git log --format='%h %s' -3 --merges; git notes list 2>&1|head; git branch -a; git tag | head
+### Final answer text
+I found 10 commits since 1 March 2025 that touch the three sensitive areas. Only 2 of them have any recorded reviewer other than the author, and both of those records are plain-text trailers in the commit message.
+
+I used `git log --since=2025-03-01` over `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` and `.github/workflows/`. I read the full message, author, committer and parents of every commit, and I resolved identities through `.mailmap`. There is no remote, no signing, and no git notes. All dates are author dates.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 2611e3d | 2026-02-10 | Mei Lin | **Reviewed (trailer only)** | PR #110 squash, committed by GitHub. The message has `Approved-by: Dana Ortiz`, who is not the author. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | **Direct commit, no review** | "wip". Committed straight to main by Ravi Menon, with no PR number and no trailer. Ravi being the committer is not a review. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | **Merged by another person, review not shown** | Brought in by merge dfd794b ("PR #107"), made by Ravi Menon. The merge message has no approval, and the merger is not necessarily a reviewer. |
+| 759caef | 2025-06-12 | Mei Lin | **Not independent (self-merge)** | PR #106 merged by 9d0c45d, which Mei Lin both authored and committed. The merge came 20 minutes after the commit. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | **No review evidence** | PR #105, committed by GitHub. There is no human trailer. |
+| c1fff9b | 2025-05-06 | Mei Lin | **Reviewed (trailer only)** | PR #104 squash. `Reviewed-by: Ravi Menon <rmenon@example.org>`, which `.mailmap` maps to Ravi Menon, who is not the author. |
+| ce20704 | 2025-04-20 | Dana Ortiz | **Not independent (self-review)** | PR #103. `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` maps that address to the author herself. |
+| 6022f30 | 2025-04-02 | Ravi Menon | **No review evidence** | PR #102 squash. The only other name is `Co-authored-by: Dana Ortiz`, which shows co-authorship, not review. |
+| f21a74b | 2025-03-10 | Ravi Menon | **Merged by another person, review not shown** | Brought in by merge 2b4b959 ("PR #101"), made by Dana Ortiz. The merge message has no approval. |
+| 372a692 | 2025-03-05 | Dana Ortiz | **Direct commit, no review** | Authored and committed by Dana on main, with no PR and no trailer. |
+
+**Counts per verdict**
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Reviewed (trailer only) | 2 | 2611e3d, c1fff9b |
+| Merged by another person, review not shown | 2 | 7a7a137, f21a74b |
+| Not independent (self-merge or self-review) | 2 | 759caef, ce20704 |
+| Direct commit, no review | 2 | a8c1342, 372a692 |
+| No review evidence (PR, no human reviewer shown) | 2 | 0242fc7, 6022f30 |
+| **Total** | **10** | |
+
+**What git history cannot prove**
+- **Trailers are not controlled evidence.** `Reviewed-by` and `Approved-by` are free text that anyone with commit or squash-edit rights can type. Nothing is signed (`%G?` is N on every commit). Even the two "reviewed" rows show only that someone wrote a name.
+- **Real approvals are not in git.** PR approvals, review comments, required-reviewer settings, branch protection and CODEOWNERS live on the hosting platform. This clone has no remote, so I could not check any of them. You need the PR records for #101–#107 and #110, plus the branch-protection settings and their change history.
+- **Merge commits do not show review.** Whoever merged a PR may or m
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%H|%ad|%an <%ae>|%cn|%p|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo ---; git log --since=2025-03-01 --first-parent --format='%h|%ad|%an|%p|%s' --dat
+Bash: cat .mailmap; echo ---; git log --since=2025-03-01 --format='=== %h %an | committer %cn <%ce> | %G? %GS%n%B' --all | head -200; echo ---; git notes list; git log --graph --oneline --all --since=2025-02-25 | head -40; git branch -a; git tag | tail
+### Final answer text
+I found 10 commits that touched the three sensitive areas since 1 March 2025. Git history shows a reviewer's name in the commit message for only 2 of them. Both of those names are typed text that anyone could have written, not a record from GitHub.
+
+I ran `git log --since=2025-03-01` on `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` and `.github/workflows/`. I also read the full commit messages, parent structure and `.mailmap`. The repository has one branch (`main`), no tags, no git notes, no remote, and no signed commits. Dates are author dates.
+
+I used `.mailmap` to match names, so `dana.ortiz@example.net` is Dana Ortiz and `rmenon@example.org` is Ravi Menon.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No evidence of review | Author and committer are both Dana. It is a direct commit on the `main` first-parent line, with no PR and no merge commit. |
+| f21a74b | 2025-03-10 | Ravi Menon | Merged by someone else, no review record | Merged via PR #101 in merge commit 2b4b959, committed by Dana. A merge by a non-author is not proof of review. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No evidence of review | GitHub-committed PR #102. The only other name is `Co-authored-by: Dana Ortiz`, which marks a co-author, not a reviewer. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | PR #103 carries `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. That is the author's own alias, so the review is not independent. |
+| c1fff9b | 2025-05-06 | Mei Lin | Review indicated (trailer only) | PR #104 carries `Reviewed-by: Ravi Menon <rmenon@example.org>`. Ravi is not the author. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No evidence of review | GitHub-committed PR #105. The commit has no reviewer or approver and nothing identifies who merged it. |
+| 759caef | 2025-06-12 | Mei Lin | No evidence of review | Merged via PR #106 in merge commit 9d0c45d, committed by Mei. The author merged their own change. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Merged by someone else, no review record | Merged via PR #107 in merge commit dfd794b, committed by Ravi. The PR also carried an unrelated README commit (96c7bd7). |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No evidence of review | Message is "wip", committed by Ravi directly on `main` with no PR. Author and committer differ, so it was probably cherry-picked or rebased, but that is not review. |
+| 2611e3d | 2026-02-10 | Mei Lin | Review indicated (trailer only) | PR #110 carries `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author. |
+
+**Counts per verdict**
+
+| Verdict | Count | Hashes |
+|---|---|---|
+| Review indicated (trailer only) | 2 | c1fff9b, 2611e3d |
+| Merged by someone else, no review record | 2 | f21a74b, 7a7a137 |
+| Self-review only | 1 | ce20704 |
+| No evidence of review | 5 | 372a692, 6022f30, 0242fc7, 759caef, a8c1342 |
+| **Total** | **10** | |
+
+**What git history cannot prove**
+- **Trailers are not controls.** `Reviewed-by` and `Approved-by` are free text. Anyone can type them, or edit them before merge. Nothing here ties them to a real approval.
+- **PR approvals are not in the repository.** GitHub holds the review state, approver identity, timestamps and whether approvals were dismissed. Without that data, a missing trailer does not prove nobody reviewed the change.
+- **Squash merges hide review.** The `(#NNN)` commits are single squashed commits, so any review discussion on the PR is not in git.
+- **Merging i
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%H|%ad|%an <%ae>|%cn|%p|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo; git log --all --oneline | wc -l; git branch -a; git remote -v; git shortlog -sne
+Read: /private/tmp/claude-501/-private-tmp-wp-r16-gate6-runs-W17T1-RCP-3-fx/f2264458-2730-4d1d-b403-4489d17b2f8b/tasks/bsgyto6k2.output
+Bash: git log --graph --format='%h %p | %ad %an | %cn | %s' --date=short --since=2025-02-15 | head -60; echo ---; git log --since=2025-03-01 --format='=== %h%n%B%n[trailers]' -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; git notes l
+Bash: cat .mailmap; for m in dfd794b 9d0c45d 2b4b959; do echo "== $m"; git show --cc --format=%B -s $m; git diff-tree --cc --stat $m -- src/itsdangerous .github/workflows; done; git log -1 --format='%B' dfd794b 9d0c45d 2b4b959 | head -0; cat .github/pull_request_tem
+### Final answer text
+That notification is only the first command being stopped. It was the combined `git log … ; git shortlog` call, which ran long and was moved to the background. It hung on `git shortlog`, which waits for input when its output isn't going to a terminal.
+
+The commit list in my table came from that command's output, which had already been written before it was stopped. I also re-ran the log separately and checked it against the merge structure, so the table and counts don't depend on the part that was killed.
+
+The only thing that didn't finish was the contributor summary, which the table doesn't use. I don't need to restart it.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --follow-less -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ 2>&1 | head -80; echo ---; git log --oneline | wc -l; git remote -v; git branch -a
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an|%cn|P:%p|%s' --date=short -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo ---; git log --since=2025-03-01 --format='%h|%ad|%an|%cn|P:%p|%s' --date=short --first-parent | head -
+Bash: cat .mailmap; for h in 2611e3d a8c1342 7a7a137 759caef 0242fc7 c1fff9b ce20704 6022f30 f21a74b 372a692 dfd794b 9d0c45d 2b4b959 f56c097; do echo "=== $h"; git show -s --format='author: %an <%ae>%ncommitter: %cn <%ce>%nsig: %G?%n%B' $h; git show --stat --format=
+### Final answer text
+I checked all ten commits that touched `signer.py`, `encoding.py` or `.github/workflows/` since 1 March 2025. Only two show evidence that someone other than the author reviewed them, and both rest on a typed commit-message line. The later `f56c097` (1 Mar 2026) touches only `README.md`, so it is out of scope.
+
+I ignored the cv-builder skills because they are for resumes.
+
+## Verdict key
+- **A – Review indicated**: a commit trailer names a reviewer who is not the author.
+- **B – Applied by another person**: someone other than the author committed or merged it, but nothing records a review.
+- **C – GitHub PR, reviewer unrecorded**: it was merged through a PR (`(#NNN)` in the message, GitHub as committer), but git doesn't say who approved it.
+- **D – Not independently reviewed**: it was committed directly, merged by the author, or "reviewed" by the author.
+
+## Table
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | D | Direct commit on main. Single parent, and author and committer are both Dana. There is no PR and no trailer. |
+| f21a74b | 2025-03-10 | Ravi Menon | B | It reached main through merge 2b4b959 ("PR #101 from ravi/encoding-fix"), made by Dana. The merger is not the author, but there is no review trailer. |
+| 6022f30 | 2025-04-02 | Ravi Menon | C | Squash-merged as PR #102 (committer GitHub). The only trailer is `Co-authored-by: Dana`. A co-author is a contributor, not a reviewer. |
+| ce20704 | 2025-04-20 | Dana Ortiz | D | PR #103 carries `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` maps that address to Dana, so the author is the reviewer. |
+| c1fff9b | 2025-05-06 | Mei Lin | A | PR #104 carries `Reviewed-by: Ravi Menon <rmenon@example.org>`. `.mailmap` maps that address to Ravi, who is not the author. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | C | PR #105, author is a bot, committer GitHub. A human must have merged it, but git doesn't show who or whether anyone approved. |
+| 759caef | 2025-06-12 | Mei Lin | D | Merged by 9d0c45d ("PR #106 from mei/hotfix"), and Mei is both author and merger. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | B | Merged by Ravi in dfd794b ("PR #107 from dana/mixed"). The merger is not the author, but there is no review trailer. The merge also carried a `README.md` change. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | B | The message is "wip", with Dana as author and Ravi as committer. It is a direct, non-PR commit on main touching `publish.yaml`. Ravi applied it, but that is not evidence of review. |
+| 2611e3d | 2026-02-10 | Mei Lin | A | PR #110 carries `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author. |
+
+## Counts
+
+| Verdict | Count | Commits |
+|---|---|---|
+| A – Review indicated | 2 | c1fff9b, 2611e3d |
+| B – Applied by another person | 3 | f21a74b, 7a7a137, a8c1342 |
+| C – GitHub PR, reviewer unrecorded | 2 | 6022f30, 0242fc7 |
+| D – Not independently reviewed | 3 | 372a692, ce20704, 759caef |
+| **Total** | **10** | |
+
+## What git history cannot prove
+- **Even the A rows are only claims.** `Reviewed-by` and `Approved-by` are free text that anyone can type into a message, and no commit is signed (`%G?` = N). Git doesn't show that Ravi or Dana actually looked at the code. The commit message and the trailer on 2611e3d and c1fff9b are the only evidence.
+- **No PR data is in the clone.** There is no remote, only a local `main`. Approvals, review comments, requested changes and PR timelines live in GitHub and are not
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --follow-no-merges 2>/dev/null | head -0; git log main --since=2025-03-01 --date=short --format='%h|%ad|%an|%cn|P:%p|%s' -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .g
+Bash: cat .mailmap; for c in 2611e3d a8c1342 7a7a137 759caef 0242fc7 c1fff9b ce20704 6022f30 f21a74b 372a692 2b4b959 9d0c45d dfd794b f56c097; do echo "=========== $c"; git show --stat --format='%H%nAuthor: %an <%ae>%nCommit: %cn <%ae>%nDate: %ad / %cd%nGPG: %G?%n%B'
+Bash: git log --format='%h %an %s' --graph --date=short --since=2025-02-25 | head -40; echo; git show --format='%h %cn <%ce>' -m --stat 2b4b959 9d0c45d dfd794b | head -40; git log --since=2025-03-01 --all --oneline -- src/itsdangerous/signer.py src/itsdangerous/enco
+### Final answer text
+I found 10 commits that touch the three sensitive paths from 1 March 2025 onward. Only 2 of them have any record of review by someone other than the author, and that record is a line in the commit message, not a system record.
+
+I used the author date, and I ran `git log main --since=2025-03-01` on `src/itsdangerous/signer.py`, `src/itsdangerous/encoding.py` and `.github/workflows/`. `f56c097` (2026-03-01, README only) is out of scope. The three merge commits (`2b4b959`, `9d0c45d`, `dfd794b`) are the route by which some commits reached main, so they appear in the evidence column, not as rows. I mapped names using the repo's `.mailmap`.
+
+## Verdict key
+- **Review recorded:** a different person is named as reviewer or approver in the commit message.
+- **Merged by other:** a different person performed the merge, but nothing records a review.
+- **No independent review:** the commit went straight to main, or the only person named is the author.
+- **Inconclusive:** the history can't tell either way.
+
+## Workpaper table
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No independent review | Direct commit to main with no PR number or trailers. Author and committer are both Dana. |
+| f21a74b | 2025-03-10 | Ravi Menon | Merged by other | Reached main through PR #101 (`2b4b959`), merged by Dana Ortiz on 2025-03-11. There is no review trailer, and the history doesn't show whether Dana reviewed it. |
+| 6022f30 | 2025-04-02 | Ravi Menon | Inconclusive | PR #102, merged via GitHub. The only other person named is Dana as `Co-authored-by`, which shows Dana helped write it, not that Dana reviewed it. The merger isn't recorded. |
+| ce20704 | 2025-04-20 | Dana Ortiz | No independent review | PR #103 has `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` maps that address to Dana herself, so this is self-review. |
+| c1fff9b | 2025-05-06 | Mei Lin | Review recorded | PR #104 has `Reviewed-by: Ravi Menon <rmenon@example.org>`. `.mailmap` maps that address to Ravi, who is not the author. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | Inconclusive | PR #105, authored by a bot and merged via GitHub. No human reviewer or approver appears in the commit, and the merger isn't recorded. |
+| 759caef | 2025-06-12 | Mei Lin | No independent review | PR #106 was merged by Mei herself (`9d0c45d`, committer Mei Lin). No trailers. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Merged by other | PR #107 ("mixed", also touches the README) was merged by Ravi Menon on 2025-07-02 (`dfd794b`). There is no review trailer. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No independent review | Direct commit to main, message "wip", changes `publish.yaml`. The committer name is Ravi Menon but the committer email is Dana's, which is inconsistent. Nothing shows Ravi was involved. |
+| 2611e3d | 2026-02-10 | Mei Lin | Review recorded | PR #110 has `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author. |
+
+## Counts
+| Verdict | Count | Commits |
+|---|---|---|
+| Review recorded | 2 | c1fff9b, 2611e3d |
+| Merged by other | 2 | f21a74b, 7a7a137 |
+| No independent review | 4 | 372a692, ce20704, 759caef, a8c1342 |
+| Inconclusive | 2 | 6022f30, 0242fc7 |
+| **Total** | **10** | |
+
+## What git history cannot prove
+- **No approval records.** This is a local clone with no remote. PR reviews, approvals, comments and branch-protection settings live on the hosting platform and aren't in git. You'd need to export them from GitHub, such a
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --all -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo ---; git branch -a; git remote -v; git log --oneline --graph --all | head -40
+Bash: git log --since=2025-03-01 --format='=== %h %H%nauthor: %an <%ae> %ad%ncommit: %cn <%ce> %cd%nparents: %p%nsig: %G?%n%B' --date=iso 372a692^..HEAD | head -250; echo; cat .mailmap; git log --since=2025-03-01 --name-status --format='## %h %s' -m --first-parent -
+Bash: for c in 372a692 f21a74b 6022f30 ce20704 c1fff9b 0242fc7 759caef 7a7a137 a8c1342 2611e3d f56c097; do echo "## $c"; git show --stat --format= $c; done; git log --since=2025-03-01 --all --diff-filter=D --name-only --format=%h -- .github/workflows | head; git ls-
+### Final answer text
+I found 10 changes to the three sensitive areas since 1 March 2025. Only 2 of them have anything in the history that points to a review by someone other than the author, and both of those are free-text trailers, not platform records.
+
+The cv-builder skills are for resumes, so I didn't use them. I ran `git log`, `git show` and `.mailmap` checks on the local clone. There are no remotes and only `main` exists. The most recent commit, `f56c097` (1 March 2026), only touches `README.md`, so it is out of scope.
+
+## Workpaper table
+
+Dates are author dates (UTC). Identities are resolved through `.mailmap`, which maps `rmenon@example.org` to Ravi Menon and `dana.ortiz@example.net` to Dana Ortiz. Each row is one content change. Where it arrived through a merge commit, the merge is named in the evidence column.
+
+| Hash | Date | Author | Path | Verdict | Evidence |
+|---|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | signer.py | No review evidence | The commit is a direct commit to main. Author and committer are both Dana, and there is no merge commit, PR reference or trailer. |
+| f21a74b | 2025-03-10 | Ravi Menon | encoding.py | Merged by another person only | Merge commit 2b4b959 ("Merge pull request #101") was made by Dana, not Ravi. This shows who merged it, not that anyone reviewed it. |
+| 6022f30 | 2025-04-02 | Ravi Menon | workflows/tests.yaml | No review evidence | The "(#102)" in the subject suggests a PR and the commit was made by GitHub. The only trailer is `Co-authored-by: Dana`, and a co-author is not a reviewer. |
+| ce20704 | 2025-04-20 | Dana Ortiz | signer.py | Self-reviewed | The trailer says `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` maps that address to the author, so this is not independent. |
+| c1fff9b | 2025-05-06 | Mei Lin | signer.py | Independent review asserted | The trailer says `Reviewed-by: Ravi Menon <rmenon@example.org>`, and `.mailmap` resolves that to Ravi, who is not the author. The commit is a GitHub squash-merge, "(#104)". |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | workflows/tests.yaml | No review evidence | This is a bot-authored squash-merge, "(#105)". There is no trailer and no human named. |
+| 759caef | 2025-06-12 | Mei Lin | signer.py | No review evidence | Merge commit 9d0c45d ("Merge pull request #106 from mei/hotfix") was made by Mei, the author, so this was a self-merge. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | encoding.py | Merged by another person only | Merge commit dfd794b ("Merge pull request #107") was made by Ravi. There is no review trailer. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | workflows/publish.yaml | No review evidence | The commit is a direct commit to main with the message "wip" and no PR. The committer is Ravi and the author is Dana. That could be a rebase or cherry-pick, and it is not review evidence. This is a publish workflow, so I'd treat it as the highest-risk row. |
+| 2611e3d | 2026-02-10 | Mei Lin | workflows/lock.yaml | Independent review asserted | The trailer says `Approved-by: Dana Ortiz <dana@example.com>`. The commit is a GitHub squash-merge, "(#110)". |
+
+## Counts per verdict
+
+| Verdict | Count | Hashes |
+|---|---|---|
+| Independent review asserted (trailer only) | 2 | c1fff9b, 2611e3d |
+| Merged by another person only (no review record) | 2 | f21a74b, 7a7a137 |
+| Self-reviewed | 1 | ce20704 |
+| No review evidence | 5 | 372a692, 6022f30, 0242fc7, 759caef, a8c1342 |
+| **Total** | **10** | |
+
+## What git history cannot prove
+
+- **Reviews:** Git h
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an <%ae>|%cn|%p|%s' --date=short --topo-order -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo; git log --oneline --graph -40; git remote -v; git branch -a
+Bash: git log --full-history -m --since=2025-03-01 --format='%h|%ad|%an|%cn|parents:%p|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ | grep -v '^$'; echo ====; for c in 372a692 f21a74b 2b4b959 6022f30 ce
+Bash: for c in 372a692 f21a74b 2b4b959 6022f30 ce20704 c1fff9b 0242fc7 759caef 9d0c45d 96c7bd7 7a7a137 dfd794b a8c1342 2611e3d f56c097; do echo "---- $c"; git show -s --format='author: %an <%ae> %ad%ncommitter: %cn <%ce> %cd%nsig:%G%n%n%B' $c; done; git notes list |
+Bash: cat .mailmap; git log --since=2025-03-01 --format='%h %aN <%aE> | %cN' --use-mailmap -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ | head -20; git show 2611e3d --stat --format= ; git show dfd794b -m --first-parent --stat --forma
+### Final answer text
+I checked the 10 commits that touched the three sensitive areas between 1 March 2025 and today. Only 2 of them carry a recorded review by someone other than the author, and that evidence is a text trailer in the commit message.
+
+I used author dates and applied `.mailmap`, which maps `dana.ortiz@example.net` to Dana Ortiz and `rmenon@example.org` to Ravi Menon. That matters for two rows below. Merge commits are not listed separately. They appear in the evidence column of the change they brought in.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No review | Dana committed it directly to main with no PR and no trailers. |
+| f21a74b | 2025-03-10 | Ravi Menon | Second person involved, review not shown | It came in through merge 2b4b959 ("PR #101"), which Dana made. Dana is not the author, but the merge has no review or approval record. |
+| 6022f30 | 2025-04-02 | Ravi Menon | Second person involved, review not shown | It is a GitHub squash of PR #102. The only trailer is `Co-authored-by: Dana Ortiz`, which says Dana contributed, not that Dana reviewed. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | It is a GitHub squash of PR #103. The trailer `Reviewed-by: dana.ortiz@example.net` maps to Dana, the author. |
+| c1fff9b | 2025-05-06 | Mei Lin | Other reviewer recorded | It is a GitHub squash of PR #104. The trailer `Reviewed-by: Ravi Menon <rmenon@example.org>` maps to Ravi, who is not the author. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | Automated only | It is a GitHub squash of PR #105 with no human trailer. |
+| 759caef | 2025-06-12 | Mei Lin | No review | Mei merged her own branch with merge 9d0c45d ("PR #106 hotfix") 20 minutes later. Author and merger are the same person. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Second person involved, review not shown | It came in through merge dfd794b ("PR #107"), which Ravi made. Ravi is not the author, but there is no review or approval record. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | Second person involved, review not shown | The message is "wip". It sits directly on main with no PR and no merge. Dana is the author and Ravi is the committer, so Ravi applied it. It changes `publish.yaml`. |
+| 2611e3d | 2026-02-10 | Mei Lin | Other reviewer recorded | It is a GitHub squash of PR #110. The trailer `Approved-by: Dana Ortiz` names someone other than the author. |
+
+**Counts**
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Other reviewer recorded | 2 | c1fff9b, 2611e3d |
+| Second person involved, review not shown | 4 | f21a74b, 6022f30, 7a7a137, a8c1342 |
+| Self-review only | 1 | ce20704 |
+| No review | 2 | 372a692, 759caef |
+| Automated only | 1 | 0242fc7 |
+| **Total** | **10** | |
+
+**What git history cannot prove**
+- **Trailers are free text.** `Reviewed-by` and `Approved-by` are typed into the message, and anyone with merge rights can write them. They do not show that GitHub recorded an approval. The same applies to the "Co-authored-by" line on 6022f30.
+- **PR review data is not in git.** Approvals, review comments, requested changes, and whether the approver was a required reviewer live in GitHub. The "(#NNN)" and "Merge pull request" messages only show that a PR was probably used.
+- **Branch protection is not visible.** Git cannot show whether main required reviews or whether admins could bypass them. The direct commits (372a692, a8c1342) and the self-merge (759caef) suggest it was not enforced, but that is an inference. Get the br
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%ad|%an|%ae|%cn|%p|%s' --date=short -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo; git log --oneline | wc -l; git remote -v; git branch -a
+Bash: git log --since=2025-02-25 --graph --format='%h %p | %an | %cn | %ad | %s' --date=short | head -60; echo ----; for h in 2611e3d a8c1342 7a7a137 759caef 0242fc7 c1fff9b ce20704 6022f30 f21a74b 372a692; do echo "=== $h"; git show -s --format='%B%n[author %an <%a
+Bash: cat .mailmap; git log -s --format='%h %an | %cn | %ad%n%B' --date=iso 2b4b959 9d0c45d dfd794b; git log --format='%h %ae' | grep -i -E 'ortiz|menon|rmenon' | sort -u -k2 | head; git log --all --format='%an <%ae>' | sort | uniq -c
+### Final answer text
+I found 10 commits that touch the three sensitive paths since 1 March 2025. Only 2 have any record of review by someone other than the author, and both rest on free-text commit trailers.
+
+I used the local clone only. There is no remote, and git has no notes or signatures. The date is the author date.
+
+| Hash | Date | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | Unreviewed | Direct commit to main. Author and committer are the same person, with no PR or merge commit. Touches `signer.py`. |
+| f21a74b | 2025-03-10 | Ravi Menon | Merged by another person, no review record | Merged through PR #101 by Dana Ortiz, who is not the author (merge commit 2b4b959). The history has no approval or `Reviewed-by`. Touches `encoding.py`. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No review record | Squash-merged through GitHub (#102). The only trailer is `Co-authored-by: Dana Ortiz`, which shows co-authorship, not review. Touches `tests.yaml`. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | Squash-merged (#103) with `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>`. `.mailmap` maps that address to the author, so the reviewer is the author. Touches `signer.py`. |
+| c1fff9b | 2025-05-06 | Mei Lin | Reviewed by another person (trailer) | Squash-merged (#104) with `Reviewed-by: Ravi Menon <rmenon@example.org>`. `.mailmap` maps that address to Ravi Menon, who is not the author. Touches `signer.py`. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No review record | Squash-merged by GitHub (#105). The history does not show which human merged it or whether anyone approved. Touches `tests.yaml`. |
+| 759caef | 2025-06-12 | Mei Lin | Unreviewed | Merged through PR #106, but the merge commit 9d0c45d was made by Mei Lin, the author, so this is a self-merge. Touches `signer.py`. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Merged by another person, no review record | Merged through PR #107 by Ravi Menon (merge commit dfd794b), who is not the author. The history has no approval trailer. Touches `encoding.py`. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | Unreviewed | Commit message "wip", sitting directly on main with no PR or merge commit. The committer is Ravi Menon, but a different committer is not evidence of review. Touches `publish.yaml`. |
+| 2611e3d | 2026-02-10 | Mei Lin | Reviewed by another person (trailer) | Squash-merged (#110) with `Approved-by: Dana Ortiz <dana@example.com>`. Dana is not the author. Touches `lock.yaml`. |
+
+## Counts
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Reviewed by another person (trailer only) | 2 | c1fff9b, 2611e3d |
+| Merged by another person, no review record | 2 | f21a74b, 7a7a137 |
+| Self-review only | 1 | ce20704 |
+| No review record | 2 | 6022f30, 0242fc7 |
+| Unreviewed (direct to main or self-merge) | 3 | 372a692, 759caef, a8c1342 |
+| **Total** | **10** | |
+
+## What git history cannot prove
+
+- **Trailers are not proof.** `Reviewed-by` and `Approved-by` are free text that the author or merger can type. Nothing in git ties them to a real GitHub approval. For c1fff9b and 2611e3d, the PR approval records would need to be checked.
+- **Merging is not reviewing.** For f21a74b and 7a7a137, a second person performed the merge, but git cannot show they read the diff or approved it.
+- **PR approvals and comments are not in git.** They live only on GitHub. Any review done in a PR, with no trailer added at merge, is invisible here, so "No review record" means "none in git", not "none happened". 
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-03-01 --format='%h|%H|%ad|%an <%ae>|%cn|%P|%s' --date=short --name-status -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/ ; echo; git log --since=2025-03-01 --first-parent --format='%h|%ad|%an|%P|%s' --date=sh
+Bash: cat .mailmap; git log --since=2025-03-01 --format='=====%h  author=%an <%ae> committer=%cn <%ce>%n%B%n[sig:%G?]' -- src/itsdangerous/signer.py src/itsdangerous/encoding.py .github/workflows/; echo ---MERGES; for m in 2b4b959 9d0c45d dfd794b; do echo "=====$m";
+Bash: git show --format='%h %s' a8c1342 2611e3d 0242fc7 6022f30 | head -90; git show -s --format='%h author=%ad commit=%cd' --date=iso a8c1342 7a7a137 dfd794b 2b4b959
+### Final answer text
+Ten non-merge commits touched the three sensitive paths since 1 March 2025. For none of them does git history alone prove an independent review happened. Two carry a typed claim of one, and two were merged by someone other than the author. The other six show no independent review at all.
+
+The only repository metadata I used is commit authorship, committer, parents, message trailers and `.mailmap`. The `.mailmap` maps `dana.ortiz@example.net` to Dana Ortiz and `rmenon@example.org` to Ravi Menon, so those are the same people as the primary addresses. The repo has no remote, no git notes and no signed commits. All commits show signature status `N`.
+
+| Short hash | Date (author) | Author | Verdict | Evidence |
+|---|---|---|---|---|
+| 372a692 | 2025-03-05 | Dana Ortiz | No review evidence | It is on main's first-parent line with no PR number. Author and committer are both Dana, and there is no trailer. It was pushed straight to main. |
+| f21a74b | 2025-03-10 | Ravi Menon | Merged by another person, review not shown | It came in through "Merge pull request #101 from ravi/encoding-fix" (2b4b959), and Dana Ortiz made that merge. The commit has no review trailer. A merge does not show anyone read the change. |
+| 6022f30 | 2025-04-02 | Ravi Menon | No review evidence | It is PR #102, squash-merged by GitHub. The only trailer is `Co-authored-by: Dana Ortiz` (alternate email). A co-author contributed to the change, which is not the same as reviewing it. |
+| ce20704 | 2025-04-20 | Dana Ortiz | Self-review only | It is PR #103. The trailer `Reviewed-by: Dana Ortiz <dana.ortiz@example.net>` resolves to the author through `.mailmap`. |
+| c1fff9b | 2025-05-06 | Mei Lin | Independent review asserted | It is PR #104. The trailer `Reviewed-by: Ravi Menon <rmenon@example.org>` names someone other than the author. It is free text in the message. |
+| 0242fc7 | 2025-05-19 | dependabot[bot] | No review evidence | It is PR #105, authored by a bot and squash-merged by GitHub. The history shows no human approval or merger. |
+| 759caef | 2025-06-12 | Mei Lin | Self-review only | It came in through "Merge pull request #106 from mei/hotfix" (9d0c45d), and Mei Lin made that merge as well as the commit. It has no trailer. |
+| 7a7a137 | 2025-07-01 | Dana Ortiz | Merged by another person, review not shown | It came in through "Merge pull request #107 from dana/mixed" (dfd794b), and Ravi Menon made that merge. The commit has no review trailer. |
+| a8c1342 | 2025-08-20 | Dana Ortiz | No review evidence | It is on main's first-parent line with no PR number, and its message is just "wip". Ravi Menon is the committer, so the commit was probably applied by him. Nothing shows he reviewed it. |
+| 2611e3d | 2026-02-10 | Mei Lin | Independent review asserted | It is PR #110, squash-merged by GitHub. The trailer `Approved-by: Dana Ortiz <dana@example.com>` names someone other than the author. It is free text in the message. |
+
+**Counts**
+
+| Verdict | Count | Commits |
+|---|---|---|
+| Independent review asserted (trailer only) | 2 | c1fff9b, 2611e3d |
+| Merged by another person, review not shown | 2 | f21a74b, 7a7a137 |
+| Self-review only | 2 | ce20704, 759caef |
+| No review evidence | 4 | 372a692, 6022f30, 0242fc7, a8c1342 |
+| **Total** | **10** | |
+
+**Observations beyond the table**
+- Two commits went straight to main, 372a692 and a8c1342. Neither is a PR. The other eight carry PR numbers or merge commits.
+- Several diffs do not match their messages. 2611e3d "Pin action SHAs" adds
+### Files it left in the working directory
+(none)

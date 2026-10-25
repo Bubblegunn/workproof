@@ -1,0 +1,963 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Our contributor community is in Tokyo, so please work in Tokyo time. I want a welcome note for 2026 so far (calendar year, today is 24 Oct 2026). Save it as WELCOME.md. It should give a first-contribution shout-out to people whose first ever contribution to this repo happened this year, and a short welcome back to people who contributed before and came back this year, with one line on what each person did. Don't welcome bots, and don't call someone new just because they used a different name or address this time."
+Ground truth: (dates below are Tokyo local dates)
+YEAR 2026 in Asia/Tokyo = 2025-12-31T15:00Z .. 2026-10-24
+FIRST-CONTRIBUTION SHOUT-OUT (first ever landing is in 2026), 4:
+- Jonas Berg | first: 2026-06-15 author: Do not split digits from letters
+     ('2026-06-15', 'author', 'Do not split digits from letters')
+- Nadia Petrova | first: 2026-01-01 author: Test slugify with an empty string
+     ('2026-01-01', 'author', 'Test slugify with an empty string')
+- Rahul Verma | first: 2026-04-02 co-author: Add overridable replacement for ligatures (#40)
+     ('2026-04-02', 'co-author', 'Add overridable replacement for ligatures (#40)')
+- Samira Ndiaye | first: 2026-08-24 author: Treat apostrophes as part of the word
+     ('2026-08-24', 'author', 'Treat apostrophes as part of the word')
+WELCOME BACK (contributed before 2026 and again in 2026), 5:
+- Chloé Martin | first ever: 2025-08-14 (co-author)
+     ('2026-06-01', 'author', 'Trim leading separators')
+- Elena Marchetti | first ever: 2025-06-11 (author)
+     ('2026-02-10', 'author', 'Keep acronyms upper case when lowercase is false')
+- Kenji Mori | first ever: 2025-12-31 (author)
+     ('2026-03-15', 'author', 'Collapse multiple dashes in the middle of a string')
+- Priscilla Oduya | first ever: 2025-08-14 (author)
+     ('2026-04-02', 'author', 'Add overridable replacement for ligatures (#40)')
+     ('2026-09-20', 'author', 'Point the readme to the release notes')
+- Zoë Lindqvist | first ever: 2025-04-04 (author)
+     ('2026-05-04', 'author', 'Explain ASCII folding in the readme')
+MUST NOT BE WELCOMED: renovate[bot] (bot)
+TRAPS: Nadia new only in Tokyo time; Kenji not new (2025-12-31 Tokyo); Rahul new via Co-authored-by only; Chloé not new (2025-08-14 co-author credit);
+       Jonas author date 1980 -> still new in 2026 by landing; Elena and Zoe/Zoë returning despite new address / spelling.
+Hazards: year boundary in a stated time zone; co-author-only credit before and during the year; same person with a new e-mail or an ASCII-folded name; clock-wrong author date; committer differs from author; bot. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The first-contribution shout-out names exactly the four people new in 2026: Nadia Petrova, Rahul Verma, Samira Ndiaye, Jonas Berg. FAIL if any of them is missing, or if a returning person (Elena Marchetti, Zoe/Zoë Lindqvist, Chloé Martin, Kenji Mori) gets the new-contributor shout-out.
+C2 The year is cut in Tokyo time and says so: Nadia's first commit (2026-01-01 00:20 +09:00, which is 31 Dec in UTC) counts as 2026, and Kenji's (2025-12-31 23:40 +09:00) counts as 2025, so he is welcomed back, not shouted out. FAIL if either is on the wrong side.
+C3 Credit by trailer is honoured in both directions: Rahul has no authored commit, only a Co-authored-by trailer in 2026, and is still welcomed as new; Chloé Martin's first appearance was a Co-authored-by trailer in August 2025, so she is returning. FAIL if Rahul is missed or Chloé is called new.
+C4 Identity and clock problems are handled: Elena (new address, same name) and Zoe/Zoë (same e-mail, accent dropped) are returning, not new; Jonas Berg's commit carries an author date of 1980-01-01 but landed 2026-06-15, so he is new in 2026 and not described as 1980 or dropped. A stated convention using the author date that notices and works around the 1980 date also passes. FAIL if Jonas is dropped or placed in 1980.
+C5 No bot (renovate[bot]) is welcomed, and each one-line description matches the real change (for example Nadia an empty-string test, Samira apostrophes, Kenji dashes) with nothing invented. The maintainer may be listed or left out. FAIL on a bot or an invented/wrong description.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' --date=iso | wc -l; git log --all --format='%an|%ae|%aI|%s' | head -100; ls; ls .mailmap 2>/dev/null; cat .mailmap 2>/dev/null
+Bash: TZ=Asia/Tokyo git log --all --since=2025-01-01 --format='%h|%an|%ae|%cn|%ce|A:%ad|C:%cd|%s%n%b' --date=iso; git branch -a; git log --all --since=2025-01-01 --format='%h %an' --shortstat | head -80
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-CV-1/fx/WELCOME.md
+### Final answer text
+I saved the note as `WELCOME.md`. I counted 2026 as 1 January to 24 October in Tokyo time (JST).
+
+**First contributions:** Nadia Petrova, Rahul Verma, Jonas Berg and Samira Ndiaye.
+- **Nadia Petrova:** her commit is stamped 00:20 JST on 1 January, so it counts as 2026. In UTC it would fall on 31 December 2025.
+- **Rahul Verma:** he appears only as a co-author on #40. I counted that as a contribution, so say if you'd rather leave co-authors out.
+- **Jonas Berg:** his author date is a bogus 1980-01-01. I used the commit date of 15 June 2026 instead. He has no earlier history.
+
+**Welcome back:** Kenji Mori, Elena Marchetti, Priscilla Oduya, Zoe Lindqvist and Chloé Martin.
+- **Kenji Mori:** his earlier commit is 23:40 JST on 31 December 2025, so he is a returning contributor, not a first-timer.
+- **Elena Marchetti:** I matched her 2025 commit under an old work address to her 2026 one by name, so she isn't treated as new.
+- **Zoe Lindqvist:** her name is spelled "Zoë" in 2025, and I treated her as the same person.
+- **Chloé Martin:** she was credited as a co-author on an August 2025 commit, so her 2026 commit is a return.
+
+I left out `renovate[bot]`.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 🎉
+
+Thank you to everyone who contributed to this repo in 2026 so far (1 January to 24 October, Tokyo time).
+
+## First contributions
+
+A big shout-out to the people whose first-ever contribution landed this year:
+
+- **Nadia Petrova**: added a test for slugifying an empty string. Her contribution landed at 00:20 on 1 January, the first of the year in Tokyo.
+- **Rahul Verma**: co-authored the overridable replacement for ligatures (#40).
+- **Jonas Berg**: made digits and letters stay together instead of being split apart.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back
+
+Thank you to the people who contributed before and came back this year:
+
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string.
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Priscilla Oduya**: added the overridable ligature replacement (#40) and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+- **Chloé Martin**: trimmed leading separators.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%ad|%s' --date=iso-local | head -100; echo; git log --all --oneline | wc -l; ls; [ -f .mailmap ] && cat .mailmap
+Bash: export TZ=Asia/Tokyo; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=format-local:'%Y-%m-%d %H:%M' --since=2025-01-01 ; echo ---; git log --format='%an|%ae' | sort | uniq -c | sort -rn | grep -iE 'zo|elena|kenji|nadia|jonas|samira|chlo|priscilla'; git show --
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-CV-2/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`. It covers 1 Jan to 24 Oct 2026 in Tokyo time and has four first-time contributors and four returning ones.
+
+**First contributions:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Priscilla Oduya and Zoe Lindqvist.
+
+Some calls you might want to check:
+- **Nadia is new this year.** Her commit landed at 00:20 on 1 Jan in Tokyo, though it falls on 31 Dec in other time zones.
+- **Kenji is a returning contributor.** His earlier regression test was at 23:40 on 31 Dec 2025 Tokyo time, so he had contributed before 2026.
+- **Jonas's commit has a bogus author date of 1980.** I used the date it was actually committed, 15 Jun 2026.
+- **Samira's commit has two dates.** It was authored on 21 Aug and committed on 24 Aug, both in 2026, so it doesn't change anything.
+- **Zoe and Elena are listed once each.** Zoe appears as both "Zoë" and "Zoe", and Elena has two email addresses. Both have commits from 2025, so each gets a welcome back.
+- **I left out `renovate[bot]`.**
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 so far
+
+Thank you to everyone who contributed this year (1 January – 24 October 2026, Tokyo time).
+
+## First contributions 🎉
+
+Welcome, and thank you for your first contribution to this repo:
+
+- **Nadia Petrova**: added a test for slugifying an empty string.
+- **Chloé Martin**: made slugify trim leading separators.
+- **Jonas Berg**: stopped digits from being split from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back 👋
+
+Good to see you again:
+
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string.
+- **Priscilla Oduya**: added an overridable replacement for ligatures and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' --date=iso | head -200; ls; cat .mailmap 2>/dev/null
+Bash: git log --format='%an|%ae' | sort | uniq -c | sort -rn | grep -iE 'chlo|martin|nadia|petrova|samira|ndiaye|jonas|berg|kenji|mori|elena|marchetti|zo|lindq|priscilla|oduya'; git log --format='%h %an | author %aI | commit %cI' -n 12 --date=iso; git log --all --fo
+Bash: git log --format='%h %an %aI%n%B---' | grep -B8 -A1 -iE 'Rahul|Chloé Martin <' | head -60; git log --format='%h %an %aI %s' -i --grep='Rahul'
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-CV-3/fx/WELCOME.md
+### Final answer text
+I've saved the welcome note as `WELCOME.md`, covering 1 January to 24 October 2026 in Tokyo time. I left out `renovate[bot]` and the earlier maintainers, who made no 2026 contributions.
+
+**First contribution:**
+- Nadia Petrova added a test for slugifying an empty string. Their commit is stamped 00:20 on 1 January in Tokyo, so it counts for 2026.
+- Rahul Verma was credited as co-author on the ligature replacement.
+- Jonas Berg stopped digits from being split from letters.
+- Samira Ndiaye added a test for apostrophes being part of the word.
+
+**Welcome back:**
+- Kenji Mori collapsed multiple dashes in the middle of a string. Their earlier commit is stamped 23:40 on 31 December in Tokyo, so it counts as 2025.
+- Elena Marchetti kept acronyms upper case when `lowercase` is false. They had an earlier commit under a different email, and I treated them as returning rather than new.
+- Priscilla Oduya added the ligature replacement and pointed the readme to the release notes.
+- Zoe Lindqvist explained ASCII folding in the readme. They had an earlier commit as "Zoë", same email, so they're returning.
+- Chloé Martin made slugify trim leading separators. They were credited as co-author in 2025, so they're returning.
+
+**Jonas Berg's date:** Jonas's commit has an author date of 1980-01-01, which is clearly wrong. I used the commit date, 15 June 2026, so they count as 2026. Check that this is right.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome, contributors of 2026
+
+Thank you to everyone who has helped this project so far in 2026 (1 January to 24 October, Tokyo time).
+
+## First contributions 🎉
+
+Welcome to the project! These people made their first ever contribution this year:
+
+- **Nadia Petrova** added a test for slugifying an empty string.
+- **Rahul Verma** co-authored the overridable replacement for ligatures.
+- **Jonas Berg** stopped digits from being split from letters.
+- **Samira Ndiaye** added a test for treating apostrophes as part of the word.
+
+## Welcome back 👋
+
+Good to see you again. These people contributed before and returned this year:
+
+- **Kenji Mori** made multiple dashes in the middle of a string collapse.
+- **Elena Marchetti** kept acronyms upper case when `lowercase` is false.
+- **Priscilla Oduya** added the overridable replacement for ligatures and pointed the readme to the release notes.
+- **Zoe Lindqvist** explained ASCII folding in the readme.
+- **Chloé Martin** made slugify trim leading separators.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --date=iso-local --format='%h|%an|%ae|%cn|%ce|%ad|%s' | TZ=Asia/Tokyo xargs -0 echo >/dev/null; TZ=Asia/Tokyo git log --format='%h|%an|%ae|%cn|%ad|%s' --date=format-local:'%Y-%m-%d %H:%M' ; echo; ls -a; cat .mailmap 2>/dev/null
+Bash: TZ=Asia/Tokyo git log --since=2025-12-30 --format='%h|%an|%cn|AD %ad|CD %cd' --date=format-local:'%Y-%m-%d %H:%M' ; git log --format='%an|%ae' | sort -u | grep -iE 'jonas|nadia|samira|chlo|berg|petrova|ndiaye|martin'; git log --all --oneline | wc -l; git log -
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-RCP_I-1/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md` in the repo. I didn't run the receipts skill's report. It summarizes your own Claude Code usage and has no contributor data, so I built the note from `git log` in Tokyo time instead.
+
+**First contributions (4):**
+- Nadia Petrova
+- Chloé Martin
+- Jonas Berg
+- Samira Ndiaye
+
+**Welcome back (4):**
+- Elena Marchetti
+- Kenji Mori
+- Priscilla Oduya
+- Zoe Lindqvist
+
+Each person has one line on what they did.
+
+Five judgment calls, which are also in an HTML comment at the bottom of the file:
+- **Nadia:** their commit is at 00:20 on 1 Jan in Tokyo, so it counts as 2026 and they are a first-timer. In UTC it would have been 2025.
+- **Kenji:** their regression test is at 23:40 on 31 Dec Tokyo time, so it counts as 2025. They are a welcome back, not a first contribution.
+- **Elena and Zoe:** both contributed in 2025 under a different email (Elena) or spelling, "Zoë" (Zoe), so I treated them as returning, not new.
+- **Jonas:** the author date on their commit is 1980-01-01. I used the commit date, 15 Jun 2026.
+- **renovate[bot]:** left out because it's a bot.
+
+The comment block is for you only, so delete it before publishing. I haven't committed the file.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome note: 2026 so far
+
+Thank you to everyone who contributed from 1 January to 24 October 2026 (Tokyo time).
+
+## First contributions
+
+Their first contribution to this repo landed this year. Welcome!
+
+- **Nadia Petrova**: added a test for slugifying an empty string (1 Jan).
+- **Chloé Martin**: made slugify trim leading separators (1 Jun).
+- **Jonas Berg**: stopped digits from being split from letters (15 Jun).
+- **Samira Ndiaye**: made apostrophes count as part of the word (21 Aug).
+
+## Welcome back
+
+They contributed before and came back this year. Thank you!
+
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false (10 Feb).
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string (15 Mar).
+- **Priscilla Oduya**: added an overridable replacement for ligatures (2 Apr) and pointed the readme to the release notes (20 Sep).
+- **Zoe Lindqvist**: explained ASCII folding in the readme (4 May).
+
+<!--
+Notes for maintainers (delete before publishing):
+- Dates are Asia/Tokyo. Nadia's commit is 00:20 on 1 Jan JST, so it counts as 2026. Kenji's regression test (23:40 on 31 Dec JST) counts as 2025, so Kenji is a welcome back, not a first.
+- Elena also committed in 2025 under another email (elena@oldjob.example.invalid), and Zoe's 2025 commit used the name "Zoë". Both are the same people, so both are welcome backs.
+- Jonas's commit has an author date of 1980-01-01. I used the commit date (15 Jun 2026) instead.
+- renovate[bot] is left out because it is a bot.
+-->
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --no-merges --date=iso-local --format='%h|%an|%ae|%cn|%ad|%s' | TZ=Asia/Tokyo cat; echo; git log --all --merges --format='%h|%an|%ae|%s' | head; ls; git log -1 --format=%ad --date=iso-local; ls .mailmap 2>&1
+Bash: export TZ=Asia/Tokyo; git log --no-merges --since=2025-03-01 --date=iso-local --format='%h|%an|%ae|author %ad|commit %cd|%s' ; for c in 504d341 468e010 2f051f9 8d5461b c6db21a 75c621c ea3ca2a 6b852c3 55a4056; do echo "== $c"; git show --stat --format= $c; done
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-RCP_I-2/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`. I didn't use the receipts skill's report. It summarises your own Claude Code usage, not who contributed to the repo, so I worked from `git log` instead, with dates in Tokyo time.
+
+**First contributions:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Priscilla Oduya and Zoe Lindqvist.
+
+Some calls you might want to check:
+- **Nadia and Kenji:** Kenji's regression test was authored at 23:40 JST on 31 Dec 2025 and committed at 23:55 JST. That counts as 2025, so Kenji is a welcome back for his March commit. Nadia's commit is at 00:20 JST on 1 Jan 2026, so she is the first new contributor of the year. Her commit would count as 2025 in UTC and in the commit's recorded +0300 offset.
+- **Elena and Zoe:** Elena's 2025 commit used an old work email, and Zoe's 2025 commit spelled her name "Zoë". Both count as returning, not new.
+- **Jonas:** his commit has an author date of 1980-01-01, which is clearly wrong. I used the commit date, 15 Jun 2026, and listed him as new. Check that against what you know of Jonas.
+- **Samira:** the commit is authored by Samira but was committed by Priscilla. I credited Samira, and gave Priscilla only the commits she authored.
+- **Bots:** I left out renovate[bot].
+
+I didn't commit the file.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 contributors
+
+A thank-you to everyone who contributed so far this year (1 Jan – 24 Oct 2026, Tokyo time).
+
+## First contributions 🎉
+
+Welcome, and thank you for your first contribution to this repo!
+
+- **Nadia Petrova** (1 Jan): added a test for slugifying an empty string.
+- **Chloé Martin** (1 Jun): made slugify trim leading separators.
+- **Jonas Berg** (landed 15 Jun): stopped digits from being split from letters.
+- **Samira Ndiaye** (21 Aug): made apostrophes count as part of the word, with a test.
+
+## Welcome back 👋
+
+Thanks for coming back this year!
+
+- **Elena Marchetti** (10 Feb): acronyms now stay upper case when `lowercase` is false.
+- **Kenji Mori** (15 Mar): multiple dashes in the middle of a string now collapse.
+- **Priscilla Oduya** (2 Apr, 20 Sep): added an overridable replacement for ligatures, and pointed the readme to the release notes.
+- **Zoe Lindqvist** (4 May): explained ASCII folding in the readme.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' --date=iso | head -300; echo; ls; git config --get mailmap.file; cat .mailmap 2>/dev/null
+Bash: git log --all --format='%an|%ae' | sort | uniq -c | sort -rn | grep -iE 'samira|ndiaye|chlo|martin|nadia|petrova|jonas|berg'; git log -1 --format='%ad | %cd' --date=iso 2f051f9; git log --format='%h %an %ad' --date=iso 6b852c3..81266d0; git show --stat --forma
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-RCP_I-3/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md` in the repo root. I didn't use the receipts skill's output. It reports your own Claude Code usage, not repo contributors, so I built the note from `git log` instead. I haven't committed the file.
+
+**First contributions (4):**
+- Nadia Petrova
+- Chloé Martin
+- Jonas Berg
+- Samira Ndiaye
+
+**Welcome back (4):**
+- Kenji Mori
+- Elena Marchetti
+- Priscilla Oduya
+- Zoe Lindqvist
+
+Each name has a one-line description of what they did.
+
+A few calls you may want to check:
+- **Bots:** renovate[bot] is left out.
+- **Other names and addresses:** Zoe is counted as returning because "Zoë" used the same address in 2025. Elena is counted as returning because she contributed in 2025 from an older work address.
+- **Kenji:** Kenji's earlier commit was at 23:40 on 31 Dec 2025 in Tokyo time, so he is returning. Nadia's commit at 00:20 on 1 Jan 2026 Tokyo time makes her the first contribution of the year.
+- **Jonas:** his commit has a bogus author date of 1 Jan 1980. It was committed on 15 Jun 2026 and sits between June and August in the history, so I counted it as 2026. The note says so.
+- **Maintainer commits:** commits are credited to their authors, not to Priscilla, who applied several of them.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome, 2026 contributors
+
+Covers 1 Jan to 24 Oct 2026, Tokyo time (JST). Contributions are dated by when they were authored.
+
+## First contributions
+
+Thank you for landing your first change this year:
+
+- **Nadia Petrova**: added a test for slugifying an empty string. Authored at 00:20 JST on 1 Jan, so the first contribution of the year in Tokyo.
+- **Chloé Martin**: trimmed leading separators.
+- **Jonas Berg**: stopped digits being split from letters.
+- **Samira Ndiaye**: added a test that apostrophes are treated as part of the word.
+
+## Welcome back
+
+Good to see you again:
+
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string.
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Priscilla Oduya**: added an overridable replacement for ligatures, and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+
+## How this was worked out
+
+- Bots were left out (renovate[bot]).
+- People count as returning if they contributed before 2026 under a different spelling or email: Zoe was "Zoë" with the same address, and Elena used an older work address.
+- Kenji's earlier commit was authored at 23:40 JST on 31 Dec 2025. In Tokyo time that is still 2025, so Kenji is returning, not new.
+- Jonas's commit has an author date of 1 Jan 1980, which is clearly wrong. It was committed on 15 Jun 2026 and sits between June and August in history, so it is counted as 2026.
+- Maintainers who committed other people's work (Priscilla applied several of the changes above) are credited only for their own changes.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' --date=iso | head -200; ls; cat .mailmap 2>/dev/null
+Bash: git log --all --format='%an|%ae|%aI' | grep -iE 'nadia|petrova|chlo|martin|samira|ndiaye|jonas|berg|kenji|mori' ; git log -1 --format='%cI %aI' 2f051f9; git branch -a; git log --format='%h %an %aI' --since=2025-12-01 --reverse | head -30; git show --stat --for
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-BASE-1/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`. It covers 1 January to 24 October 2026 in Tokyo time. I haven't committed it.
+
+**First contributions in 2026:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Priscilla Oduya and Zoe Lindqvist.
+
+- **Nadia:** her commit is at 00:20 on 1 January in Tokyo. That is still 31 December in UTC, so a UTC cutoff would have left her out of 2026.
+- **Kenji:** his regression test was at 23:40 on 31 December in Tokyo, which is 2025. He had already contributed before 2026, so he is a welcome-back, and I didn't count that commit toward this year.
+- **Elena and Zoe:** each contributed in 2025 under a different address or spelling (`elena@oldjob…`, "Zoë"). I treated them as returning contributors, not new ones.
+- **Jonas:** his commit has a bogus author date of 1980-01-01. I used its commit date, 15 June 2026. If you'd rather not rely on that, delete his line.
+- **Bots:** I left out `renovate[bot]`.
+- **Priscilla:** she committed other people's work on their behalf. I credited her only for her own changes, the ligature replacement and the readme pointer.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 🎉
+
+Thank you to everyone who contributed so far this year (1 January to 24 October 2026, Tokyo time).
+
+## First contribution shout-out
+
+These people made their first ever contribution to this repo in 2026:
+
+- **Nadia Petrova**: added a test for slugifying an empty string (1 January, just after midnight in Tokyo, so the very first contribution of the year).
+- **Chloé Martin**: made slugify trim leading separators.
+- **Jonas Berg**: stopped slugify from splitting digits from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back
+
+These people contributed before and returned this year:
+
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Kenji Mori**: made multiple dashes in the middle of a string collapse.
+- **Priscilla Oduya**: added an overridable replacement for ligatures and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%H|%an|%ae|%cn|%ce|%aI|%s' --date=iso | head -300; git log --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --format='%h|%an|%ae|%cI|%aI|%s' | grep -iE 'nadia|chlo|jonas|samira|kenji|zoe|zoë|elena|priscilla|petrova|berg|ndiaye|martin|mori' ; echo; git log --format='%an|%ae' | sort | uniq -c | sort -rn | awk 'NR>0' | grep -iE 'example.invalid'; git log -3 --f
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-BASE-2/fx/WELCOME.md
+Edit: /private/tmp/wp-r16/gate6/runs/W18T2-BASE-2/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`. It covers 1 Jan to 24 Oct 2026, with dates read in Tokyo time.
+
+**First contributions (4):**
+- Nadia Petrova
+- Chloé Martin
+- Jonas Berg
+- Samira Ndiaye
+
+**Welcome back (4):**
+- Kenji Mori
+- Elena Marchetti
+- Priscilla Oduya
+- Zoe Lindqvist
+
+Each person has a one-line description of what they did, taken from their commit.
+
+A few calls you may want to check:
+- **Nadia Petrova:** Their commit is at 00:20 on 1 Jan in Tokyo, so it counts as 2026 and a first contribution. In UTC it would fall in 2025.
+- **Kenji Mori:** Their earlier commit is at 23:40 on 31 Dec 2025 in Tokyo, so it counts as before 2026. That makes Kenji a welcome-back, not a first-timer.
+- **Jonas Berg:** The commit's author date is 1980-01-01, which is clearly wrong. I used the commit date (15 Jun 2026) instead.
+- **Elena Marchetti:** Their 2025 commit used a different email address, but it's the same person, so they are welcomed back, not called new.
+- **Zoe Lindqvist:** Their 2025 commit spelled the name "Zoë" with the same email, so they are also welcomed back.
+- **Priscilla Oduya:** They look like a maintainer, since they committed other people's work. They did author commits in both 2025 and 2026, so I put them under welcome back. You may prefer to drop them.
+- **Bots:** I left out `renovate[bot]`.
+
+I haven't committed anything.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 contributors
+
+Thank you to everyone who contributed to this project in 2026 (1 January to 24 October, Tokyo time).
+
+## First contributions
+
+Welcome to your first-ever contribution to this repo:
+
+- **Nadia Petrova** added a test for slugifying an empty string.
+- **Chloé Martin** made slugify trim leading separators.
+- **Jonas Berg** stopped digits from being split from letters.
+- **Samira Ndiaye** added a test that apostrophes are treated as part of the word.
+
+## Welcome back
+
+Good to see you again this year:
+
+- **Kenji Mori** collapsed multiple dashes in the middle of a string.
+- **Elena Marchetti** kept acronyms upper case when `lowercase` is false.
+- **Priscilla Oduya** added an overridable replacement for ligatures and pointed the readme to the release notes.
+- **Zoe Lindqvist** explained ASCII folding in the readme.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-BASE-3/fx; git log --all --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=format-local:'%Y-%m-%d %H:%M %z' | TZ=Asia/Tokyo cat; echo; TZ=Asia/Tokyo date; ls; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-BASE-3/fx; TZ=Asia/Tokyo git log --format='%h|%an|%ae|A:%ad|C:%cd|%s' --date=format-local:'%Y-%m-%d %H:%M' 4fe904c^..HEAD; git show 2f051f9 --stat --format=fuller | head -20; git log --all --format='%an|%ae' | sort | uni
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-BASE-3/fx; head -5 readme.md; grep '"name"' package.json
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-BASE-3/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`. It uses Tokyo time and covers 1 January to 24 October 2026.
+
+**First contribution shout-out:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Kenji Mori, Elena Marchetti, Priscilla Oduya and Zoe Lindqvist.
+
+Some calls I made from the git history:
+- **Nadia Petrova:** her commit is dated 00:20 JST on 1 January, so she counts as new in 2026. In UTC it falls on 31 December.
+- **Kenji Mori:** his earlier commit is dated 23:40 JST on 31 December 2025, so he counts as welcome back. That's close to the year boundary, but it's still 2025 in Tokyo.
+- **Elena Marchetti and Zoe Lindqvist:** they appear under different emails or spellings (`Zoë` and `Zoe`). I treated each as one returning person.
+- **Jonas Berg:** his commit has a bogus author date of 1980. I used the commit date of 15 June 2026, when it landed.
+- **Samira Ndiaye:** I treated Samira as new. The commit was authored 21 August and committed 24 August 2026, both this year.
+- **Priscilla Oduya:** I included Priscilla under welcome back, since they contributed in 2025 and again this year.
+- **renovate[bot]:** left out.
+
+Priscilla is also the committer on several other people's commits. I only credited Priscilla for their own work.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to slugify: 2026 so far
+
+Thank you to everyone who has contributed to slugify this year (1 January to 24 October 2026, Tokyo time).
+
+## First contribution shout-out 🎉
+
+These people made their first ever contribution to the repo in 2026:
+
+- **Nadia Petrova**: added a test for slugifying an empty string (just after midnight on 1 January, so the very first contribution of the year).
+- **Chloé Martin**: made slugify trim leading separators.
+- **Jonas Berg**: stopped digits from being split from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back 👋
+
+These people contributed before and came back this year:
+
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string.
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Priscilla Oduya**: added an overridable replacement for ligatures, and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-RCP-1/fx; git log --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=iso-local --all | head -100; echo; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-RCP-1/fx; export TZ=Asia/Tokyo; git log --all --since=2025-04-01 --format='%h|%an <%ae>|A:%ad|C:%cd|%s' --date=format-local:'%Y-%m-%d %H:%M %z'; git branch -a; git log --all --format='%an' | sort | uniq -c | sort -rn | h
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-RCP-1/fx; cat > WELCOME.md <<'EOF' ; # Welcome to 2026 so far ;  ; Thank you to everyone who contributed between 1 January and 24 October 2026 (dates in Tokyo time). ;  ; ## First-contribution shout-out 🎉 ;  ; Their first ever contrib
+### Final answer text
+I saved the welcome note as `WELCOME.md`. I used Tokyo time and counted the calendar year from 1 January 2026 to 24 October 2026.
+
+**First contribution this year:**
+- Nadia Petrova's commit is dated 00:20 JST on 1 January 2026. That is 15:20 UTC on 31 December, so a UTC cutoff would have counted it as 2025.
+- Chloé Martin, Jonas Berg and Samira Ndiaye are the other three.
+
+**Welcome back:**
+- Elena Marchetti: her 2025 commit used a different email (`@oldjob`). I treated her as the same person and welcomed her back rather than calling her new.
+- Zoe Lindqvist: her 2025 commit spelled the name "Zoë", but the email matches.
+- Kenji Mori: his first commit is at 23:40 JST on 31 December 2025, so it falls just before this year.
+- Priscilla Oduya: she has two commits this year and earlier ones in 2025.
+
+**Left out:**
+- renovate[bot], as you asked.
+- Sindre Sorhus and the other earlier contributors, because they have no commits this year.
+
+**Dates to check:**
+- Jonas Berg's commit has a bogus author date of 1980. I used its commit date, 15 June 2026, to place it this year.
+- Samira Ndiaye's commit was written on 21 August and committed on 24 August. Either date is in 2026, so it doesn't change anything.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 so far
+
+Thank you to everyone who contributed between 1 January and 24 October 2026 (dates in Tokyo time).
+
+## First-contribution shout-out 🎉
+
+Their first ever contribution to this repo landed this year:
+
+- **Nadia Petrova**: added a test for slugifying an empty string, at 00:20 JST on New Year's Day.
+- **Chloé Martin**: made slugify trim leading separators.
+- **Jonas Berg**: stopped digits from being split from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back 👋
+
+They contributed before and returned this year:
+
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string.
+- **Priscilla Oduya**: added an overridable replacement for ligatures, and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' | head -200; ls; git log --all --format=%H | wc -l; cat .mailmap 2>/dev/null
+Bash: git log --format='%h|%an|%ae|%aI|%cI|%s' -14; echo; git log --format='%an' | sort | uniq -c | sort -rn | grep -iE 'jonas|samira|nadia|chlo|kenji|elena|zoe|zoë|priscilla'; git log --format='%ae' | grep -iE 'jonas|samira|nadia|chloe|berg|ndiaye'; git log -1 --st
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-RCP-2/fx/WELCOME.md
+Edit: /private/tmp/wp-r16/gate6/runs/W18T2-RCP-2/fx/WELCOME.md
+### Final answer text
+I saved the note as `WELCOME.md`, with four first-time contributors and four returning ones. I didn't commit it.
+
+**First contribution in 2026:**
+- Nadia Petrova
+- Chloé Martin
+- Jonas Berg
+- Samira Ndiaye
+
+**Welcome back:**
+- Kenji Mori
+- Elena Marchetti
+- Priscilla Oduya
+- Zoë Lindqvist
+
+Some calls worth checking:
+- **Tokyo time:** Kenji's first commit was 23:40 on 31 Dec 2025 in Tokyo, so he counts as a returning contributor. Nadia's commit was 00:20 on 1 Jan 2026 in Tokyo, so she counts as new.
+- **Same person, different name or address:**
+  - Elena first contributed in 2025 under `elena@oldjob…`, so she is a welcome-back.
+  - Zoë/Zoe has the same email in both years, so she is a welcome-back too.
+- **Bot:** I left out `renovate[bot]`.
+- **Jonas's date:** His commit's author date is 1980-01-01, which looks wrong. I used its commit date, 15 Jun 2026, and the history shows no earlier work from him.
+- **Priscilla:** She also commits other people's work as the committer. I only credited what she wrote herself.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 contributors 🎉
+
+Thank you to everyone who contributed to this project so far in 2026 (1 Jan – 24 Oct, Tokyo time).
+
+## First contributions
+
+A big shout-out to the people whose very first contribution landed this year:
+
+- **Nadia Petrova**: added a test for slugifying an empty string. It landed 20 minutes into the new year in Tokyo.
+- **Chloé Martin**: made slugify trim leading separators.
+- **Jonas Berg**: stopped slugify from splitting digits from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back
+
+Thanks for returning to the project this year:
+
+- **Kenji Mori**: made slugify collapse multiple dashes in the middle of a string.
+- **Elena Marchetti**: made acronyms stay upper case when `lowercase` is false. (You contributed before under a different email address.)
+- **Priscilla Oduya**: added an overridable replacement for ligatures, and pointed the readme to the release notes.
+- **Zoë Lindqvist**: explained ASCII folding in the readme.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-RCP-3/fx; git log --all --format='%h|%an|%ae|%cn|%ce|%ad|%s' --date=format-local:'%Y-%m-%d %H:%M %z' | TZ=Asia/Tokyo cat; echo; ls -a; cat .mailmap 2>/dev/null; git log -1 --format=%ad --date=iso
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-RCP-3/fx; export TZ=Asia/Tokyo; git log --format='%h|%an|%ae|%ad|%cd|%s' --date=format-local:'%Y-%m-%d %H:%M %z' 81266d0 -n 14; git show --stat --format='%h %an %ad%n%B' 2f051f9 | head -20; git show -s --format=%B 2f051f
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-RCP-3/fx/WELCOME.md
+Edit: /private/tmp/wp-r16/gate6/runs/W18T2-RCP-3/fx/WELCOME.md
+### Final answer text
+I've saved the welcome note as `WELCOME.md`. It covers 1 January to 24 October 2026 in Tokyo time and has four first-timers and four returning contributors.
+
+**First contribution shout-out:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Zoe Lindqvist and Priscilla Oduya.
+
+A few calls I made:
+- **Nadia:** her empty-string test was committed at 00:20 on 1 January in Tokyo (18:20 UTC on 31 December). That is 2026 here, so she counts as new.
+- **Kenji:** his regression test was committed at 23:40 on 31 December Tokyo time, which is still 2025. So he is a welcome back, not a first-timer.
+- **Elena:** her 2025 commit used a different email address (`oldjob`). I treated both as the same person and welcomed her back.
+- **Zoe:** her 2025 commit spelled the name "Zoë" but used the same email. I treated that as the same person and welcomed her back.
+- **Jonas:** his commit has a bogus author date of 1980. I used the real commit date, 15 June 2026.
+- **Samira:** I used her author date (21 August) rather than the commit date (24 August). Either way it is in 2026.
+- **Bots:** I left out `renovate[bot]`.
+- **Priscilla:** she is also the committer on most of these commits. I welcomed her back for her own two 2026 commits.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026
+
+Thank you to everyone who has contributed so far this year (1 January to 24 October 2026, Tokyo time).
+
+## First contribution shout-out
+
+These people made their first ever contribution to the repo this year:
+
+- **Nadia Petrova**: added a test for slugifying an empty string.
+- **Chloé Martin**: made slugify trim leading separators.
+- **Jonas Berg**: stopped slugify from splitting digits from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back
+
+These people contributed before and returned this year:
+
+- **Elena Marchetti**: made acronyms keep their upper case when `lowercase` is false. She first contributed in 2025, under a different email address.
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string. A regression test for repeated separators in late December 2025 came first.
+- **Zoe Lindqvist**: explained ASCII folding in the readme. She first contributed in 2025 (the name was spelled "Zoë" then).
+- **Priscilla Oduya**: added an overridable replacement for ligatures (#40) and pointed the readme to the release notes.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-CV_I-1/fx; git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%s' | head -300; ls -a; cat .mailmap 2>/dev/null; git log --all | grep -ci co-authored
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-CV_I-1/fx; git log --all --format='%h|%an|%aI|%cI|%s%n%b' 81266d0 -12 | grep -v '^$'; git log --format='%h %aI' -1 2f051f9; git show --stat --format='%h %s' 2f051f9 8d5461b 504d341 468e010 | head -40; git branch -a; git 
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T2-CV_I-1/fx; git log --format='%h %aI %s%n%b' | grep -i -B3 'co-authored'; git log --format='%h %an|%s' --grep='' | grep -i -E 'Jonas|Samira|Rahul|Nadia'; git log --all --format=%B | grep -iE 'thanks|reported|reviewed|sign
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-CV_I-1/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`, covering 1 Jan to 24 Oct 2026 in Tokyo time. I didn't use the cv-builder skills because they are for resumes, not for a contributor note. I built the note from the git history instead.
+
+**First contribution shout-out:** Nadia Petrova, Rahul Verma, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Priscilla Oduya, Zoe Lindqvist and Chloé Martin.
+
+Some calls you may want to check:
+- **Nadia Petrova:** their commit is dated 00:20 on 1 Jan in Tokyo, which is still 31 Dec in UTC. In Tokyo time it counts as 2026, so they are new.
+- **Kenji Mori:** an earlier commit is dated 23:40 on 31 Dec 2025 in Tokyo. That makes Kenji a returning contributor.
+- **Elena Marchetti and Zoe Lindqvist:** each appears under a different email or spelling in 2025 (`elena@oldjob…`, "Zoë"). I treated them as the same people, so both are welcome-backs.
+- **Chloé Martin:** they appear in 2026 as an author, but a `Co-authored-by` trailer on an August 2025 commit shows an earlier contribution. They are a welcome-back.
+- **Rahul Verma:** they appear only as a co-author on the ligatures commit, which I counted as a first contribution. Move Rahul if you don't count co-authorship.
+- **Jonas Berg:** the commit's author date is 1980, which looks wrong. I used the committer date, 15 Jun 2026.
+- **Priscilla Oduya:** they committed in 2025 and also committed other people's work, so I listed only their own changes.
+- **Excluded:** `renovate[bot]`, as you asked.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 so far
+
+Thank you to everyone who contributed between 1 January and 24 October 2026 (Tokyo time).
+
+## First contribution shout-out 🎉
+
+These people made their first ever contribution to the repo this year:
+
+- **Nadia Petrova**: added a test for slugifying an empty string.
+- **Rahul Verma**: co-authored the overridable replacement for ligatures.
+- **Jonas Berg**: stopped digits from being split from letters.
+- **Samira Ndiaye**: made apostrophes count as part of the word.
+
+## Welcome back 👋
+
+These people contributed before and returned this year:
+
+- **Elena Marchetti**: kept acronyms upper case when `lowercase` is false.
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string.
+- **Priscilla Oduya**: added the overridable replacement for ligatures and pointed the readme to the release notes.
+- **Zoe Lindqvist**: explained ASCII folding in the readme.
+- **Chloé Martin**: trimmed leading separators.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' | head -200; echo; git log --all --oneline | wc -l; ls -a; cat .mailmap 2>/dev/null
+Bash: git branch -a; git log --all --format='%an|%ae|%aI' | sed -n '60,90p'; echo ---; git log --all --format='%an <%ae>' | sort | uniq -c | sort -rn; echo ---; git log --format='%h %cI %an | %s' -12; echo; git log --all --format='%h %cI' | head -12; git log --forma
+Bash: git log 4fe904c..HEAD --format='=== %h A:%an <%ae> %aI C:%cn %cI%n%B' --stat; git log --all --format='%B' | grep -i 'co-authored' | sort | uniq -c; git log --all --format='%h %an %s' | grep -i -E 'revert' 
+Bash: git log --all --format='%h %aI %an | %s' --grep='Chloé' ; git log --all --format='%h %aI %an | %s' --grep='Rahul'; git log --all -i --grep='Co-authored-by: Chlo' --format='%h %aI %an %s'
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-CV_I-2/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`. I didn't use the cv-builder skills, because they're for resumes and this note came straight from the git history. I used Tokyo time (1 Jan to 24 Oct 2026) and counted each person by author, not by who committed.
+
+**First contribution shout-out:**
+- Nadia Petrova
+- Rahul Verma
+- Jonas Berg
+- Samira Ndiaye
+
+**Welcome back:**
+- Elena Marchetti
+- Kenji Mori
+- Priscilla Oduya
+- Zoe Lindqvist
+- Chloé Martin
+
+A few calls you may want to check:
+- **Nadia Petrova** counts as new because the commit is 00:20 on 1 Jan in Tokyo, even though that is still 31 Dec in UTC.
+- **Kenji Mori** counts as returning because their earlier commit was 23:40 on 31 Dec 2025 Tokyo time.
+- **Rahul Verma** is credited only through a `Co-authored-by` line on the ligature commit, so I treated that as their first contribution.
+- **Chloé Martin** has a 2025 `Co-authored-by` credit on the custom-separators commit, so I listed them as returning, not new.
+- **Zoe Lindqvist** appears as "Zoë" in 2025, and **Elena Marchetti** used a different email (`elena@oldjob…`) in 2025. I matched each to the same person and listed them as returning.
+- **Jonas Berg**'s commit has a bogus author date of 1980, so I used the commit date (15 Jun 2026) instead.
+- **renovate[bot]** is left out as a bot.
+- **Priscilla Oduya** is listed as returning with two contributions. If you'd rather leave maintainers out, delete that line.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026 contributors
+
+Thank you to everyone who contributed so far this year (1 Jan – 24 Oct 2026, Tokyo time).
+
+## First contribution shout-out 🎉
+
+Their first ever contribution to this repo landed in 2026. Welcome!
+
+- **Nadia Petrova**: added a test for slugifying an empty string (1 Jan, 00:20 JST, the first contribution of the year).
+- **Rahul Verma**: co-authored the overridable replacement for ligatures (2 Apr).
+- **Jonas Berg**: stopped digits from being split from letters (merged 15 Jun).
+- **Samira Ndiaye**: added a test that apostrophes are treated as part of the word (21 Aug).
+
+## Welcome back 👋
+
+They contributed before 2026 and came back this year.
+
+- **Elena Marchetti**: made acronyms stay upper case when `lowercase` is false (10 Feb).
+- **Kenji Mori**: added a test for collapsing multiple dashes in the middle of a string (15 Mar).
+- **Priscilla Oduya**: added the overridable replacement for ligatures (2 Apr) and pointed the readme to the release notes (20 Sep).
+- **Zoe Lindqvist**: explained ASCII folding in the readme (4 May).
+- **Chloé Martin**: trimmed leading separators (1 Jun).
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%s' --date=iso | head -200; ls -a; cat .mailmap 2>/dev/null; git log --all --oneline | wc -l
+Bash: git branch -a; git log --format='%h|%an|%aI|%cI|%s' -12; git show 2f051f9 --stat --format='%B' | head -20; git log --all --format='%an|%ae' | grep -i -E 'jonas|samira|nadia|chlo|kenji|zoe|zoë|elena|priscilla'|sort|uniq -c
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-CV_I-3/fx/WELCOME.md
+### Final answer text
+I saved the note as `WELCOME.md`, with four first-time contributors and four returning ones. I didn't use the cv-builder skills, since they're for resumes. I built the note from the git history, with dates in Tokyo time.
+
+**First contributions:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Priscilla Oduya and Zoe Lindqvist.
+
+A few calls I made:
+- **Nadia** counts as new. Her commit is 00:20 on 1 Jan in Tokyo, which is still 31 Dec in UTC.
+- **Kenji** counts as returning. His earlier commit is 23:40 on 31 Dec 2025 in Tokyo, so he was already a contributor before 2026.
+- **Elena and Zoe** count as returning, not new. Elena's 2025 commit used an old-job email, and Zoe's used the spelling "Zoë".
+- **Jonas** has an author date of 1980, which is clearly wrong. I used his commit date of 15 Jun 2026 instead.
+- **Samira's** commit was authored on 21 Aug and merged on 24 Aug. Both dates are in 2026, so it doesn't change anything.
+- **Bots:** I left out `renovate[bot]`.
+- **Priscilla** committed other people's work too. I listed only the commits she authored.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026
+
+Thank you to everyone who contributed so far this year (1 January to 24 October 2026, Tokyo time).
+
+## First contributions
+
+Your first ever contribution to this repo landed this year. Welcome, and thank you!
+
+- **Nadia Petrova** (1 Jan): added a test for slugifying an empty string.
+- **Chloé Martin** (1 Jun): made slugify trim leading separators.
+- **Jonas Berg** (15 Jun): stopped slugify from splitting digits from letters.
+- **Samira Ndiaye** (21 Aug): made apostrophes count as part of the word.
+
+## Welcome back
+
+You contributed before and returned this year. Good to have you back!
+
+- **Elena Marchetti** (10 Feb): kept acronyms upper case when `lowercase` is false.
+- **Kenji Mori** (15 Mar): collapsed multiple dashes in the middle of a string.
+- **Priscilla Oduya** (2 Apr, 20 Sep): added an overridable replacement for ligatures, and pointed the readme to the release notes.
+- **Zoe Lindqvist** (4 May): explained ASCII folding in the readme.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --tz Asia/Tokyo 2>&1 | head -80; git log --since=2025-12-01 --format='%h|%an|%ae|%ad|%cd|%s' --date=iso
+Bash: git log --since=2025-12-01 --format='%h %an%n%b' | grep -iE 'co-authored|^[0-9a-f]{7} '; git log --all --author='Elena' --format='%h %an <%ae> %ad %s' --date=iso; git log --format='%h %an %ad %s' --date=iso --author=Zoe --author=Priscilla
+Bash: git log --all --format='%h %ad %s%n%b' --date=short | grep -i -B3 'rahul'
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-OURS-1/fx/WELCOME.md
+### Final answer text
+I saved the note as `WELCOME.md`, with dates read in Tokyo time and bots left out.
+
+- **First contribution in 2026:**
+  - Nadia Petrova
+  - Chloé Martin
+  - Jonas Berg
+  - Samira Ndiaye
+  - Rahul Verma
+- **Welcome back:**
+  - Kenji Mori
+  - Elena Marchetti
+  - Zoe Lindqvist
+  - Priscilla Oduya
+
+A few calls you may want to check:
+- **Nadia:** her commit is 00:20 on 1 January in Tokyo, but it falls on 31 December in UTC. She counts as new this year.
+- **Kenji:** his first commit is 23:40 on 31 December 2025 in Tokyo, so he counts as returning rather than new.
+- **Elena:** her June 2025 commit used a different address. I matched it to her 2026 commit by full name and organisation. The note says "please confirm", because this is a probable match and not a proven one. If it's a different person, she moves to the new list.
+- **Rahul Verma:** he appears only as a co-author on the ligature commit from 2 April. I listed him as new on that basis, but you can drop him if co-authorship doesn't count as a contribution for you.
+- **Jonas Berg:** his commit has an impossible 1980 author date, so I used the committer date (15 June 2026).
+- **Renovate:** the bot's dependency update was left out.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome note for 2026 so far
+
+Covers 1 January to 24 October 2026, with dates read in Tokyo time (JST). Bots are not included.
+
+## First contribution this year
+
+Thank you for your first contribution to the project:
+
+- **Nadia Petrova** (1 Jan): added a test for slugifying an empty string. It landed 20 minutes into the new year in Tokyo.
+- **Chloé Martin** (1 Jun): trimmed leading separators.
+- **Jonas Berg** (15 Jun): stopped digits from being split away from letters.
+- **Samira Ndiaye** (21 Aug): made apostrophes count as part of the word.
+- **Rahul Verma** (2 Apr): credited as co-author on the ligature replacement change. This is the only trace of Rahul in the history, so it is their first appearance.
+
+## Welcome back
+
+Good to see you again. You contributed before 2026 and returned this year:
+
+- **Kenji Mori**: collapsed multiple dashes in the middle of a string (15 Mar). Their earlier regression test for repeated separators was made at 23:40 on 31 Dec 2025 in Tokyo, so it counts as last year.
+- **Elena Marchetti**: kept acronyms upper case when lowercase is false (10 Feb). Her earlier work, from June 2025, was under a different address. We matched it by her full name and organisation, so please confirm that it is the same person.
+- **Zoe Lindqvist**: explained ASCII folding in the readme (4 May).
+- **Priscilla Oduya**: added an overridable replacement for ligatures (2 Apr) and pointed the readme to the release notes (20 Sep).
+
+Thank you all.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-01-01 --until 2026-10-24 --tz Asia/Tokyo 2>&1 | head -80
+Bash: TZ=Asia/Tokyo git log --no-merges --since=2025-01-01 --date=iso-local --format='%h|%an|%ae|%ad|%cd|%s' | sort -t'|' -k4; echo; git log --no-merges --format='%an|%ae' | sort | uniq -c | sort -rn | head -40; cat .mailmap 2>/dev/null
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-OURS-2/fx/WELCOME.md
+Edit: /private/tmp/wp-r16/gate6/runs/W18T2-OURS-2/fx/WELCOME.md
+### Final answer text
+I saved the welcome note as `WELCOME.md`, covering 1 Jan to 24 Oct 2026 in Tokyo time.
+
+**First contribution this year:** Nadia Petrova, Chloé Martin, Jonas Berg and Samira Ndiaye.
+
+**Welcome back:** Elena Marchetti, Kenji Mori, Priscilla Oduya and Zoe Lindqvist.
+
+Some calls you may want to check:
+- **Kenji Mori** counts as returning. Their first commit was at 23:40 Tokyo time on 31 Dec 2025, twenty minutes before the year turned. Nadia's first commit, at 00:20 on 1 Jan, counts as new.
+- **Elena Marchetti** is listed as returning. Her 2025 commit used an older-job email address and her 2026 one used a new address, but the full name and organisation match. That is a probable match from the name and organisation, not proof.
+- **Zoe Lindqvist** is also returning. Her 2025 commit spells the name "Zoë", with the same email address.
+- **Jonas Berg**'s commit carries an impossible author date of 1980. I used the commit date, 15 Jun 2026.
+- **Samira Ndiaye** wrote her commit on 21 Aug and it landed on 24 Aug. I used the 21 Aug date.
+- **renovate[bot]** is left out, and the note says so.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome note for 2026 so far
+
+Thank you to everyone who contributed between 1 January and 24 October 2026 (Tokyo time).
+
+## First contribution this year
+
+Welcome, and congratulations on your first contribution to the project:
+
+- **Nadia Petrova**: added a test for slugifying an empty string (1 Jan).
+- **Chloé Martin**: trimmed leading separators (1 Jun).
+- **Jonas Berg**: stopped splitting digits from letters (15 Jun).
+- **Samira Ndiaye**: made apostrophes count as part of the word (21 Aug).
+
+## Welcome back
+
+Thanks for returning this year:
+
+- **Elena Marchetti**: kept acronyms upper case when lowercase is turned off (10 Feb). Elena first contributed in June 2025 under a different email address.
+- **Kenji Mori**: collapsed repeated dashes in the middle of a string (15 Mar). Kenji's earlier contribution was a regression test for repeated separators on 31 Dec 2025.
+- **Priscilla Oduya**: added an overridable replacement for ligatures (2 Apr) and pointed the readme to the release notes (20 Sep).
+- **Zoe Lindqvist**: explained ASCII folding in the readme (4 May). Zoe first contributed in April 2025, with the name spelled Zoë.
+
+Automated dependency updates are not included in this note.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --tz Asia/Tokyo --since 2026-01-01 --until 2026-10-24 2>&1 | head -80
+Bash: TZ=Asia/Tokyo git log --no-merges --date=iso-local --format='%h|%an|%ae|%ad|%cd|%s' --since=2025-06-01 ; git log --all --format='%an|%ae' | sort -u | grep -iE 'elena|nadia|kenji|priscilla|chlo|jonas|samira|zoe'; cat .mailmap 2>/dev/null
+Bash: TZ=Asia/Tokyo git log --no-merges --date=iso-local --format='%h|%an|%ae|%ad|%s' -i --author='zoe\|zo.\|chlo\|jonas\|samira\|nadia\|berg\|martin\|ndiaye\|petrova\|marchetti\|mori'
+Write: /private/tmp/wp-r16/gate6/runs/W18T2-OURS-3/fx/WELCOME.md
+Edit: /private/tmp/wp-r16/gate6/runs/W18T2-OURS-3/fx/WELCOME.md
+### Final answer text
+I've saved the welcome note as `WELCOME.md`, covering 1 January to 24 October 2026 in Tokyo time. It has two sections.
+
+**First contributions** (4 people):
+- Nadia Petrova
+- Chloé Martin
+- Jonas Berg
+- Samira Ndiaye
+
+**Welcome back** (4 people):
+- Kenji Mori
+- Elena Marchetti
+- Zoe Lindqvist
+- Priscilla Oduya
+
+Each person has one line on what they did.
+
+- **Nadia Petrova:** Her first commit is 00:20 on 1 January in Tokyo, which is still 31 December in UTC. In Tokyo time it counts as 2026, so she is in the first-contribution list.
+- **Kenji Mori:** His first commit was at 23:40 on 31 December 2025, just before the year began. He is in the welcome-back list.
+- **Elena Marchetti:** She contributed in 2025 under a different email address. The name matches and the organisation is the same, so I counted her as one returning person. That join is probable, not proven, and the note says so.
+- **Zoe Lindqvist:** Her name appears as "Zoë" on the 2025 commit and "Zoe" in 2026, with the same email address, so she is one returning person.
+- **Jonas Berg:** His commit has a bogus author date of 1980. I placed it by its committer date, 15 June 2026.
+- **Bots:** The renovate bot is left out.
+### Files it left in the working directory
+--- WELCOME.md
+# Welcome to 2026
+
+Thank you to everyone who contributed so far this year (1 January to 24 October 2026, Tokyo time).
+
+## First contributions
+
+Congratulations on your first ever contribution to this project:
+
+- **Nadia Petrova** – added a test for slugifying an empty string (1 January).
+- **Chloé Martin** – made slugify trim leading separators (1 June).
+- **Jonas Berg** – stopped digits being split from letters (15 June).
+- **Samira Ndiaye** – made apostrophes count as part of a word (21 August).
+
+## Welcome back
+
+Thank you for returning:
+
+- **Kenji Mori** – collapsed repeated dashes in the middle of a string (15 March). First contributed on 31 December 2025.
+- **Elena Marchetti** – kept acronyms upper case when lowercase is turned off (10 February). First contributed in June 2025 under a different email address; the two are the same name, so we have counted them as one person.
+- **Zoe Lindqvist** – explained ASCII folding in the readme (4 May). First contributed in April 2025.
+- **Priscilla Oduya** – added an overridable replacement for ligatures (2 April) and pointed the readme to the release notes (20 September). First contributed in August 2025.
+
+Bots are not included in this note.

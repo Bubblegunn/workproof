@@ -1,0 +1,646 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | head -300; echo; git log --since=2025-01-01 --all --format='%an <%ae>' | sort | uniq -c; git log --since=2025-01-01 --all --format='%cn <%ce>' | sort
+Bash: git log --since=2025-01-01 --format='%h %G? %P' | head -20; for h in 5b77f50 6442698 81cb6a5 3919c7b; do echo "== $h"; git show --stat --format='%h %an | %cn | %cd' $h | head -12; done; git log --all --format='%h %s' | grep -i -E 'kai|priya|mailmap'; ls -a | g
+### Final answer text
+**Answer: no.** 13 commits on `main` have been made since 1 January 2025 (all signature status "N", so nothing is signed). Six of them have an author or committer identity outside your list. I checked author and committer for each commit, and the history has only the one branch.
+
+## Commits outside the approved identities
+
+| Hash | Author / Committer | Date | Subject |
+|---|---|---|---|
+| `3cb1ba19447708d9b8ac075c2f2328be04e76f16` | Priya Nair `priya@example.com` (both) | 2025-04-09 | Add recipe for batching |
+| `5b77f50f2d7659085b8efdb6d2c8eafbb9c9cc83` | Author Lena Fischer `lena@example.com`; committer **Kai Brandt** `kai@example.com` | 2025-03-20 | Update typings test |
+| `64426983a54ca16026defd6ac8f709083c18e158` | Omar Haddad `omar.haddad@example.net` (both) | 2025-03-04 | Loosen type for limit argument |
+| `81cb6a5a0dc20b3e46ceacd64043d02a3fce77cc` | Author Sofia Alvarez `sofia@example.com`; committer **root** `root@buildhost.invalid` | 2025-07-15 | Release prep |
+| `3919c7b6d44da6024c64190f123d85077340b0bc` | dependabot[bot] `dependabot@mail.example.org` (both) | 2025-05-19 | Bump ava from 6.2.0 to 6.3.0 |
+| `71a324c4a6bac31f7b8817e18a1e23a2c5c75c45` | Lena Fischer `Lena@Example.COM` (both) | 2025-09-09 | Fix readme example |
+
+## What the history explains and what it doesn't
+
+**Explained from history:**
+- **`3cb1ba1` (Priya Nair):** it was merged by Omar through `d52644259c29f8b355e06965229eca1a0c4bec9a`, "Merge pull request #12 from priya/docs". That is an approved person and the GitHub web-merge committer. This shows an approved person accepted her change. It doesn't make Priya an approved contributor, so she still needs your sign-off.
+- **`71a324c` (`Lena@Example.COM`):** this is the same address as `lena@example.com` with different capitalization. Email domains are case-insensitive and local parts almost always are. It's very likely Lena, but strictly it's a different string from the one you approved.
+
+**Not explained from history:**
+- **`5b77f50` (Kai Brandt):** Kai is not on your list and committed Lena's work. That could be a legitimate cherry-pick or rebase of her patch. Nothing in the history says so, and there's no PR or sign-off line.
+- **`6442698` (`omar.haddad@example.net`):** the name matches Omar, but the address is not one of his approved addresses. It could be a personal or alternate address of his. The history alone can't confirm that.
+- **`81cb6a5` (committer `root@buildhost.invalid`):** Sofia is the author, but the commit was created on a build host as root. `.invalid` is a reserved non-routable domain, so it's a placeholder and not a real mailbox. This looks like a release script or CI job, which would be normal for "Release prep", but the history doesn't show that. Treat the commit as unverified until someone confirms the build host.
+- **`3919c7b` (dependabot at `mail.example.org`):** the display name matches Dependabot, but the address is not GitHub's. The genuine Dependabot commit in this range, `754b39c7c404e74c76ef85f5ba207b7631a5e8df`, uses `49699333+dependabot[bot]@users.noreply.github.com`, and was committed by GitHub. This commit was also committed directly by the "bot" and not through GitHub. It looks like someone spoofed Dependabot, so I'd treat it as the most suspicious commit here. It changes only `CHANGES.txt`, but you should check it against the actual dependency changes.
+
+## Commits that passed
+These match an approved identity or the GitHub web-merge committer (`noreply@github.com`):
+- `46ed4
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2025-01-01 --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short; echo; git log --all --since=2025-01-01 --format='%an <%ae>%n%cn <%ce>' | sort | uniq -c
+### Final answer text
+**Not all commits are from expected identities.** I checked all 12 commits since 2025-01-01 on all refs. Five have an identity outside your approved list, and two more look fine but are worth a note. The other five are clean.
+
+**Outside the approved list**
+
+| Commit | Date | Identity | What the history shows |
+|---|---|---|---|
+| `3cb1ba19447708d9b8ac075c2f2328be04e76f16` "Add recipe for batching" | 2025-04-09 | Priya Nair `priya@example.com` as author and committer | **Can partly explain.** The next commit, `d52644259c29f8b355e06965229eca1a0c4bec9a`, merges it as "Merge pull request #12 from priya/docs". Omar Haddad merged it through GitHub. That is a normal outside contribution. Priya isn't on your approved list, so you need to decide whether to accept it. |
+| `64426983a54ca16026defd6ac8f709083c18e158` "Loosen type for limit argument" | 2025-03-04 | Omar Haddad `omar.haddad@example.net` as author and committer | **Cannot explain.** The name matches an approved person, but this address isn't one of theirs. Nothing in the history links it to Omar's `omar@example.com`. |
+| `5b77f50f2d7659085b8efdb6d2c8eafbb9c9cc83` "Update typings test" | 2025-03-20 | Author is Lena Fischer `lena@example.com` (approved). **Committer is Kai Brandt `kai@example.com`.** | **Cannot explain.** Kai isn't approved. A different committer usually means a cherry-pick, rebase or applied patch, but the history doesn't say why Kai handled Lena's change. |
+| `81cb6a5a0dc20b3e46ceacd64043d02a3fce77cc` "Release prep" | 2025-07-15 | Author is Sofia Alvarez `sofia@example.com` (approved). **Committer is `root <root@buildhost.invalid>`.** | **Partly explained.** It looks like a build or release machine, since `.invalid` is a reserved non-routable domain. The history can't confirm who ran it or that it was authorized. |
+| `3919c7b6d44da6024c64190f123d85077340b0bc` "Bump ava from 6.2.0 to 6.3.0" | 2025-05-19 | `dependabot[bot] <dependabot@mail.example.org>` as author and committer | **Cannot explain.** The other Dependabot commit uses GitHub's `…@users.noreply.github.com` address and was committed by GitHub. This one uses a different address and was committed directly by the "bot". Anyone can set that name locally, so treat it as unverified Dependabot. |
+
+**Matches an approved name but not exactly**
+
+- `71a324c4a6bac31f7b8817e18a1e23a2c5c75c45` "Fix readme example" (2025-09-09) is by Lena Fischer `Lena@Example.COM`, as author and committer. Email addresses are normally case-insensitive, so this is very likely Lena's `lena@example.com`. It is still not a literal match, and the history can't prove it's the same account.
+
+**Fine**
+
+- `754b39c7c404e74c76ef85f5ba207b7631a5e8df` is Dependabot's usual noreply address, committed by GitHub.
+- `46ed43d95c94777178b95153ff180862ef8c2ffa` and `48962019a4cc377889796ab191103170b0261602` are Omar's and Sofia's commits, committed by GitHub's web-merge identity.
+- `aa5cf0075b6c13fee85f9bf94167a55b8cb4159f` is Sofia's `s.alvarez@example.org`.
+- `2e3c5ee60728e01d070a6ad5d590ab3be1a933bc` is Omar's `omar@example.com`.
+- `264c373c7e08ddf22e11a735486c0cbd22270955` is Sofia's `sofia@example.com`.
+- `d52644259c29f8b355e06965229eca1a0c4bec9a` is Omar's merge of Priya's PR, committed by GitHub.
+
+**Limits of this check**
+
+Git author and committer fields are self-declared and can be forged. This check shows which identities appear. It doesn't show who actually pushed. To go further, check the GitHub audit log, push and PR records, and commit signatures 
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | wc -l; git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short
+Bash: git branch -a; git log --since=2025-01-01 --all --format='%h %G? %P' | head -20; git show --stat --format='%h %an %s%n%b' 5b77f50 81cb6a5 6442698 3919c7b | head -50; git log --format='%h %ae' --until=2024-12-31 | head -3
+### Final answer text
+I checked all 13 commits dated 1 Jan 2025 or later, on all refs. There is only one branch, `main`. No commit is signed (`%G?` is `N` for every one), so none of the identities can be cryptographically verified. All of this comes from the commit metadata alone.
+
+## Commits outside the approved list
+
+| Hash | Author / committer | Why it's flagged | Explained from history? |
+|---|---|---|---|
+| `3cb1ba1` | Priya Nair `<priya@example.com>` is both author and committer. | Not an approved person. | **Partly.** `d526442` (Omar, via GitHub web-merge) is "Merge pull request #12 from priya/docs", so this is the PR's commit and an approved person merged it. The history doesn't show who Priya is or whether they are authorised. |
+| `5b77f50` | Author is Lena Fischer `<lena@example.com>`. Committer is **Kai Brandt `<kai@example.com>`**. | The committer is not approved. | **No.** The author is approved, but Kai applied or rewrote the commit. That could be a cherry-pick, rebase or `git am`. The history doesn't say why, and Kai appears nowhere else. |
+| `81cb6a5` | Author is Sofia (`sofia@example.com`). Committer is **`root <root@buildhost.invalid>`**. | The committer is an unknown identity on a `.invalid` domain. | **No.** It looks like a build or release machine, which fits the "Release prep" message, but that is a guess. Nothing in the history confirms it. |
+| `6442698` | Omar Haddad `<omar.haddad@example.net>` is both author and committer. | The name matches an approved person, but the address is not one of Omar's (`omar@example.com`). | **No.** It may be Omar with a personal or old address, or someone using Omar's name. The history can't tell which. |
+| `3919c7b` | dependabot[bot] `<dependabot@mail.example.org>` is both author and committer. | The name matches Dependabot, but the address is not GitHub's usual `…@users.noreply.github.com`. The committer is also Dependabot rather than GitHub's web-merge identity. | **No.** Compare with `754b39c`, which uses the genuine `49699333+dependabot[bot]@users.noreply.github.com` address. This is a possible Dependabot spoof, and I'd treat it as the most suspicious commit. |
+| `71a324c` | Lena Fischer `<Lena@Example.COM>` is both author and committer. | The address differs from `lena@example.com` only in capitalisation. | **Mostly.** Email addresses are effectively case-insensitive, so this is very likely Lena with a differently configured git client. Strictly, though, it is not an address on your list. |
+
+## Commits that are clean
+
+I found no problem with the identities on these seven: `46ed43d`, `4896201`, `754b39c`, `d526442`, `aa5cf00`, `2e3c5ee` and `264c373`.
+
+- **GitHub committer:** `46ed43d`, `4896201`, `754b39c` and `d526442` have GitHub `noreply@github.com` as committer, which is the accepted web-merge identity.
+- **Sofia's second address:** `aa5cf00` uses `s.alvarez@example.org`, which is on your list.
+
+## Things to note
+
+- `3919c7b`, `6442698`, `5b77f50` and `81cb6a5` each change only `CHANGES.txt`, by one line. That is a small change, but the content of those lines is worth a look given the identities above.
+- I didn't check whether the commits before 2025 matter to you. The most recent earlier ones are by `sindresorhus@gmail.com` and `120936337@qq.com`.
+- To resolve the open items, you'd need external evidence. That means GitHub's PR #12 and merge records, the Dependabot configuration and audit logs, build-host logs, and asking Omar, Lena, Sofia and Kai directly.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | wc -l; git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short
+Bash: git branch -a; git log --since=2025-01-01 --all --format='%h %G? %P' ; cat .mailmap 2>/dev/null; for c in 81cb6a5 3919c7b 6442698 5b77f50 71a324c; do echo == $c; git show --stat --format='%h %an %ae | %cn %ce | %ad | %cd%n%b' $c | head -15; done; git log --all
+Bash: for c in 81cb6a5 3919c7b 6442698 5b77f50 71a324c 3cb1ba1; do echo == $c; git show --stat --format='%h %an %ae | %cn %ce | %ad | %cd%n%b' $c | head -12; done; git log --all --format=%h%x20%an%x20%ae --before=2025-01-01 | head -5
+Bash: for c in 81cb6a5 3919c7b 6442698 5b77f50 71a324c 3cb1ba1; do echo "--- $c"; git show --stat --format='%h %an %ae | %cn %ce | %ad | %cd%n%b' $c | head -12; done; git log --format='%h %an %ae' --before=2025-01-01 | head -5
+### Final answer text
+**Answer: no.** 13 commits since 1 January 2025 (all on `main`, the only branch), and 6 of them have an author or committer identity outside your approved list. I checked both the author and committer fields on every commit. No commit is signed, so none of the identities is cryptographically verified. Everything below rests on the name and email in the commit metadata.
+
+**Identities outside the approved list**
+
+| Hash | Author / committer | Why it's flagged |
+|---|---|---|
+| `3cb1ba1` | Priya Nair `priya@example.com` (both fields) | Not an approved person. |
+| `5b77f50` | Author Lena Fischer `lena@example.com`; committer **Kai Brandt** `kai@example.com` | The committer is not approved. |
+| `6442698` | Omar Haddad `omar.haddad@example.net` (both fields) | The name matches an approved person, but this address is not on the list (Omar's is `omar@example.com`). |
+| `81cb6a5` | Author Sofia Alvarez `sofia@example.com`; committer **root** `root@buildhost.invalid` | The committer is a non-person account on a `.invalid` host. |
+| `3919c7b` | `dependabot[bot]` `dependabot@mail.example.org` (both fields) | The name is Dependabot, but the address is not Dependabot's usual noreply address. Compare `754b39c`, which uses `49699333+dependabot[bot]@users.noreply.github.com` and is committed through GitHub. |
+| `71a324c` | Lena Fischer `Lena@Example.COM` (both fields) | This is `lena@example.com` with different capitalisation. Email addresses are normally case-insensitive, so it is probably Lena. Whether to accept it is your call. |
+
+**What the history explains**
+- **`3cb1ba1` (Priya):** The next commit, `d526442`, is "Merge pull request #12 from priya/docs", merged by Omar through GitHub's web merge. So this was an outside contribution that an approved person accepted. The history does not say who Priya is.
+- **`3919c7b` (Dependabot):** It matches the pattern of the Dependabot commit `754b39c` and touches `CHANGES.txt` (a one-line change). But the address differs from the genuine one, so the history cannot confirm it came from Dependabot.
+- **`71a324c` (Lena):** The only difference from her approved identity is the case of the address.
+
+**What the history does not explain**
+- **`5b77f50` (Kai Brandt):** Nothing in the history says who Kai is or why they committed Lena's change. A commit with a different committer usually means a cherry-pick, rebase or applied patch, and the committer date is a day after the author date. The author field matches an approved identity, but the committer does not.
+- **`6442698` (Omar, `example.net`):** It could be Omar on another machine or account, or someone using his name. The history can't distinguish these.
+- **`81cb6a5` (root on `buildhost.invalid`):** It looks like an automated release or build host, and the message is "Release prep". The history doesn't show who ran it or on whose authority.
+
+**Approved identities that came out clean:** `264c373`, `2e3c5ee`, `aa5cf00` (Sofia's `s.alvarez@example.org` address, which is approved), `754b39c`, `4896201` and `46ed43d` (GitHub web-merge committer, which you accept). The Dependabot commit `754b39c` and the web-merge commits `d526442`, `4896201` and `46ed43d` are also fine.
+
+To settle the unexplained ones, ask Sofia whether the release in `81cb6a5` came from a build host, ask Omar about the `example.net` address, and ask Lena about Kai. If you can reach GitHub's records, the PR #12 and #14 pages would confirm the merged contributions.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2025-01-01 --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short
+Bash: git log --all --since=2025-01-01 --format='%h %G? %p' ; git branch -a; for c in 3919c7b 81cb6a5 5b77f50 6442698 3cb1ba1; do echo == $c; git show --stat --format='%h %an %ad | commit %cd%n%b' $c | head -15; done; git log -3 --format='%h %ae' --before=2025-01-01
+Bash: for c in 3919c7b 81cb6a5 5b77f50 6442698 3cb1ba1; do echo "== $c"; git show --stat --format='%h %an | author %ad | commit %cd' $c | head -12; done
+### Final answer text
+**No. Six of the 13 commits since 1 Jan 2025 (all on `main`, the only branch) have an identity outside your approved list.** None are signed (`%G?` is `N` everywhere), so no commit's identity is cryptographically verified. Every commit also touches only `CHANGES.txt`, so the diffs don't help tell people apart.
+
+## Outside the approved list
+
+| Commit | Date | Identity found | What the history does and doesn't explain |
+|---|---|---|---|
+| `3cb1ba1` "Add recipe for batching" | 2025-04-09 | Author and committer: **Priya Nair <priya@example.com>** | Not an approved person. It was merged by Omar through GitHub as `d526442` ("Merge pull request #12 from priya/docs"), which gives a plausible route: an outside contributor's PR, reviewed and merged by an approved person. The history can't show whether Priya is a legitimate contributor. |
+| `5b77f50` "Update typings test" | 2025-03-20 | Author: Lena Fischer <lena@example.com> (approved). Committer: **Kai Brandt <kai@example.com>** | Not an approved person. The commit was applied the next day (2025-03-21), which fits Kai rebasing or cherry-picking Lena's work. The history doesn't say who Kai is or why they had commit access. |
+| `6442698` "Loosen type for limit argument" | 2025-03-04 | Author and committer: **Omar Haddad <omar.haddad@example.net>** | The name matches an approved person, but this address isn't one of Omar's (only omar@example.com is). The history can't explain it. Omar may have used another address, or someone may be using his name. |
+| `3919c7b` "Bump ava from 6.2.0 to 6.3.0" | 2025-05-19 | Author and committer: **dependabot[bot] <dependabot@mail.example.org>** | The name matches Dependabot, but the address doesn't. The other Dependabot commit (`754b39c`) uses `49699333+dependabot[bot]@users.noreply.github.com`, and it went through GitHub's web-merge committer. This one is committed directly, not through GitHub, at exactly 04:00:00 UTC. That makes it look like someone is imitating Dependabot. The history can't explain it. |
+| `81cb6a5` "Release prep" | 2025-07-15 | Author: Sofia Alvarez <sofia@example.com> (approved). Committer: **root <root@buildhost.invalid>** | The committer is not an approved person. It was committed 30 minutes after authoring, on a host named `buildhost.invalid`, which fits a release script or build machine. That is plausible but unconfirmed, because the history doesn't say whether such a host is sanctioned. |
+| `71a324c` "Fix readme example" | 2025-09-09 | Author and committer: **Lena Fischer <Lena@Example.COM>** | This is probably benign. It differs from `lena@example.com` only in letter case, and email addresses are normally treated as case-insensitive. Strictly, though, it isn't an exact match to a known address. A mail client or git config with different capitalization is the likeliest cause. |
+
+## Commits that match the approved list
+- **Approved authors, committed through GitHub's web-merge committer:** `46ed43d` (Omar), `4896201` (Sofia).
+- **Dependabot with its usual noreply address, merged through GitHub:** `754b39c`.
+- **Merge commit by Omar, committed through GitHub:** `d526442`.
+- **Approved authors and committers with exact addresses:** `2e3c5ee` (Omar), `264c373` (Sofia, sofia@example.com), `aa5cf00` (Sofia, s.alvarez@example.org).
+
+## What to follow up on
+- Ask Omar whether `omar.haddad@example.net` is his, and ask whoever administers the repo who `3919c7b`'s Dependabot address belongs to. These two are the ones I can't explain and would treat
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2025-01-01 --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | head -500
+Bash: git log --all --format='%h|%an <%ae>|%ad|%cd|%G?' --date=short | head -30; git branch -a; git tag | head
+### Final answer text
+**No. Seven of the 13 commits since 1 January 2025 involve an identity outside your approved list.** I checked all refs. There is only `main`, and there are no tags. No commit is signed (`%G?` is `N`), so nothing here is cryptographically verified. Everything below rests on the author and committer fields, which anyone can set.
+
+## Commits outside the approved list
+
+| Hash | Date | Author / Committer | Why it's flagged |
+|---|---|---|---|
+| `3cb1ba1` | 2025-04-09 | Priya Nair `priya@example.com` (both) | She isn't an approved person. |
+| `5b77f50` | 2025-03-20 | Author Lena Fischer `lena@example.com`; committer **Kai Brandt** `kai@example.com` | Kai Brandt isn't approved. |
+| `6442698` | 2025-03-04 | Omar Haddad `omar.haddad@example.net` (both) | The name matches an approved person, but the address is not one we know. |
+| `81cb6a5` | 2025-07-15 | Author Sofia Alvarez `sofia@example.com`; committer **root** `root@buildhost.invalid` | The committer is a generic account on a non-routable domain. |
+| `3919c7b` | 2025-05-19 | dependabot[bot] `dependabot@mail.example.org` (both) | The name says Dependabot, but the address is not Dependabot's usual noreply address. |
+| `71a324c` | 2025-09-09 | Lena Fischer `Lena@Example.COM` (both) | The address differs from the approved `lena@example.com` only in letter case. |
+| `d526442` | 2025-04-10 | Omar Haddad `omar@example.com`; committer GitHub | The commit itself is fine, but it merges Priya's PR #12. |
+
+## What the history alone can and can't explain
+
+**Can explain**
+- **`d526442`:** This is a web-UI merge by Omar, an approved author, using GitHub's committer identity. It merges `3cb1ba1` from the branch `priya/docs`. It is clean in itself, but it is how Priya's unapproved commit got into `main`.
+- **`71a324c`:** Email addresses are case-insensitive in practice, so this is very likely Lena with a differently configured git client. I'd treat it as expected, but you should confirm that your policy accepts case variants.
+- **`3cb1ba1`:** The history shows who merged it (Omar, via PR #12) but not who Priya is or whether she's authorised. That needs a person to confirm.
+- **`5b77f50`:** Lena authored it and Kai committed it on the following day (2025-03-21). That pattern is typical of someone cherry-picking, rebasing or applying a patch. The history doesn't say who Kai is or whether he should have push access.
+
+**Cannot explain**
+- **`6442698`:** This could be Omar using a personal or other address, or someone else using his name. Nothing in the history links `omar.haddad@example.net` to `omar@example.com`. Ask Omar.
+- **`81cb6a5`:** Sofia's authorship is plausible, but a `root@buildhost.invalid` committer means the commit was created or rewritten on some build machine. That is an automated or unattributed process, and the history doesn't show which one. This is the "Release prep" commit, so it deserves a closer look.
+- **`3919c7b`:** The earlier Dependabot commit, `754b39c`, uses the genuine `49699333+dependabot[bot]@users.noreply.github.com` address and a GitHub committer. This one has a different address on `mail.example.org` and a bot-style committer, so it looks like someone imitating Dependabot. It could also come from a differently configured bot. I can't tell which from the history, so treat it as suspicious until you've checked the diff against a real Dependabot PR.
+
+## Commits that pass
+
+- `46ed43d`: Omar, committed through GitHub.
+- `4896201`: Sofia, committed through GitHub.
+- `754b39c`: genu
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' ; echo; git log --since=2025-01-01 --all --format='%an <%ae>%n%cn <%ce>' | sort | uniq -c
+Bash: for c in 5b77f50 81cb6a5 6442698 3919c7b 71a324c; do echo "== $c"; git show -s --format='parents=%p sig=%G? author-date=%ad commit-date=%cd' $c; git show --stat --format= $c | tail -3; done; git log --all --since=2025-01-01 --format='%h %ae' | wc -l; git branc
+### Final answer text
+I didn't use the receipts skill's miner. It builds a Claude Code usage report, which doesn't answer an authorship question. I read the git history directly instead: 13 commits since 2025-01-01, all on `main`, and none are signed. Seven of them have an author or committer identity outside your approved list.
+
+## Outside the approved list
+
+| Hash | Author / committer | Date | What the history shows |
+|---|---|---|---|
+| `3cb1ba1` | Priya Nair `priya@example.com` (both roles) | 2025-04-09 | She isn't on the approved list. This is a contributor's docs commit, "Add recipe for batching". It was merged by Omar in `d526442` ("Merge pull request #12 from priya/docs"), which fits a normal outside PR. |
+| `5b77f50` | Author Lena Fischer `lena@example.com`; committer **Kai Brandt** `kai@example.com` | 2025-03-20 (committed 03-21) | Kai isn't approved. The author is approved, but someone else committed it. It sits directly after `6442698`, so it may be a cherry-pick or rebase of Lena's work. |
+| `6442698` | **Omar Haddad `omar.haddad@example.net`** (both roles) | 2025-03-04 | The name matches Omar but the address isn't one of yours. |
+| `81cb6a5` | Author Sofia `sofia@example.com`; committer **`root <root@buildhost.invalid>`** | 2025-07-15 | The committer isn't an approved person. |
+| `71a324c` | Lena Fischer `Lena@Example.COM` (both roles) | 2025-09-09 | This differs from `lena@example.com` only in letter case. |
+| `3919c7b` | `dependabot[bot] <dependabot@mail.example.org>` (both roles) | 2025-05-19 | The name is Dependabot, but the address isn't GitHub's. |
+| `754b39c` | `dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>`; committer GitHub | 2025-05-05 | This has the real Dependabot address, so I'd treat it as fine. I list it only for contrast with `3919c7b`. |
+
+## What I can and can't explain from history alone
+
+**Explained, with low concern**
+- **`3cb1ba1` (Priya):** the merge commit `d526442` shows an approved person accepted it through PR #12. Priya herself is not on your approved list.
+- **`71a324c` (Lena, mixed case):** email addresses are case-insensitive in practice, so this is almost certainly Lena. Git doesn't prove it, and your list says `lena@example.com`.
+- **`754b39c` (Dependabot):** the address matches the real bot, and GitHub did the web-merge.
+
+**Can't explain from history alone**
+- **`6442698` (Omar, `@example.net`):** this could be Omar on a personal or other machine, or someone using his name. Nothing in the repo links the `@example.net` address to him. Ask Omar to confirm.
+- **`3919c7b` (Dependabot, `@mail.example.org`):** a real Dependabot commit normally uses the GitHub noreply address, as `754b39c` does. This one looks like someone imitating the bot. It sits right after the genuine one and changes only `CHANGES.txt`, which is the same file the other flagged commits touch. Check what the commit changed against the Dependabot PR in GitHub.
+- **`5b77f50` (committer Kai Brandt):** nothing shows who Kai is or why they committed Lena's work. Lena or Kai would need to confirm.
+- **`81cb6a5` (committer `root@buildhost.invalid`):** this is probably a build or release script, and the commit is titled "Release prep". The `.invalid` domain can't be a real mailbox, and nothing shows what machine or job ran it. Ask whoever runs releases.
+
+## Other points
+- `2e3c5ee`, `264c373`, `aa5cf00`, `46ed43d` and `4896201` all have approved authors, and the committers are either the same person or GitHub's web-flow. I found nothin
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --since=2025-01-01 --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' ; echo; git log --all --since=2025-01-01 --oneline | wc -l
+Bash: git show --stat --format='%h %an %ae | %cn %ce%n%s%n%b' 81cb6a5 3919c7b 5b77f50 6442698 | head -60; git show -s --format='%h parents:%p' d526442; git log --all --since=2025-01-01 --format='%h %G? %GS'|head -20
+### Final answer text
+**Result: no, not all 13 commits since 1 January 2025 came from expected accounts.** Eight have an author or committer identity outside your list. The history can explain some of them, but none can be confirmed as legitimate from the history alone.
+
+I didn't use the receipts skill's output. It builds a Claude Code usage report from local session transcripts, which doesn't answer an identity audit, so I read `git log --all` directly. None of the 13 commits is signed (signature status is "N" on all), so no identity here is cryptographically verified.
+
+## Identities outside the approved set
+
+| Hash | Date | Author / committer | Why it's flagged |
+|---|---|---|---|
+| `3cb1ba1` | 2025-04-09 | Priya Nair `priya@example.com` (both) | Unknown person. |
+| `d526442` | 2025-04-10 | Omar (approved), committed by GitHub | Not flagged on identity. It is the merge of `3cb1ba1` (PR #12 "from priya/docs") and `5b77f50`. |
+| `5b77f50` | 2025-03-20 | Author Lena `lena@example.com` (approved), committer **Kai Brandt** `kai@example.com` | Unknown committer. |
+| `6442698` | 2025-03-04 | Omar Haddad `omar.haddad@example.net` (both) | Approved name, address not on your list. |
+| `71a324c` | 2025-09-09 | Lena Fischer `Lena@Example.COM` (both) | Approved name, but the address differs from `lena@example.com` in case. |
+| `81cb6a5` | 2025-07-15 | Author Sofia (approved), committer `root <root@buildhost.invalid>` | Unknown committer. |
+| `3919c7b` | 2025-05-19 | `dependabot[bot] <dependabot@mail.example.org>` (both) | Dependabot name, but the address is not GitHub's Dependabot address. |
+
+That is seven rows: `d526442` has no identity problem of its own and is listed only because it merges `3cb1ba1`. The six commits with an identity problem are `3cb1ba1`, `5b77f50`, `6442698`, `71a324c`, `81cb6a5` and `3919c7b`. Add `d526442` for the content it carries and that is seven commits to look at.
+
+## What the history can and can't explain
+
+**Can explain (weakly):**
+- `d526442`, `4896201` and `46ed43d` have the GitHub web-merge committer, which you accept. Their authors are approved, and `d526442`'s parents show it merged Priya's PR. That shows how her commit entered the repo, not who she is.
+- `71a324c` differs from Lena's approved address only by letter case. Email domains are case-insensitive and the local part usually is too, so this is very likely Lena with a differently configured git client. The history can't prove it.
+
+**Cannot explain:**
+- **Priya Nair** (`3cb1ba1`): nothing in the history says she's authorised. It may be an outside contributor via PR #12, but you'd need the PR on GitHub to confirm. Omar merged it, which suggests a maintainer reviewed it.
+- **Kai Brandt** (`5b77f50`): Kai committed Lena's work. That fits Kai rebasing or cherry-picking it, but Kai isn't approved, so someone needs to confirm.
+- **`omar.haddad@example.net`** (`6442698`): the name matches Omar, but the address is one you don't know. It could be a personal or old address, or an impersonation. Ask Omar.
+- **`root@buildhost.invalid`** (`81cb6a5`): a release-prep commit made on a build host, with Sofia as author. `.invalid` is a reserved non-routable domain, so it's likely a script or CI machine. Confirm which process runs there.
+- **Dependabot address** (`3919c7b`): a Dependabot name with `dependabot@mail.example.org` is not what GitHub's Dependabot uses. `754b39c` shows the genuine form (`49699333+dependabot[bot]@users.noreply.github.com`, committed by GitHub), and that one is fine. Trea
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' ; echo; git log --since=2025-01-01 --all --format='%an <%ae>%n%cn <%ce>' | sort | uniq -c
+### Final answer text
+**Answer: no.** Seven of the 13 commits since 1 January 2025 have an identity outside your approved list, or one that needs a caveat. I used `git log --all`, so every branch is included. I can explain some of them from the history, but several I can't.
+
+**Clearly outside the approved list**
+
+| Hash | Date | Author / committer | Can history explain it? |
+|---|---|---|---|
+| `3cb1ba1` | 2025-04-09 | Priya Nair `priya@example.com` (both) | **Cannot.** Priya isn't approved. The merge commit `d526442` ("Merge pull request #12 from priya/docs") was made by Omar through GitHub's web merge, so it's consistent with an outside contributor's PR being merged. History doesn't show that anyone approved her, and her commit sits in the repo unchanged. |
+| `5b77f50` | 2025-03-20 | Author Lena `lena@example.com`, **committer Kai Brandt `kai@example.com`** | **Cannot.** Kai isn't approved. The author is an approved address, so Kai applied or rebased Lena's work. Nothing in the history says why or who Kai is. |
+| `81cb6a5` | 2025-07-15 | Author Sofia `sofia@example.com`, **committer `root <root@buildhost.invalid>`** | **Partly.** The author is approved. The committer is an unattributed build host (`.invalid` is a reserved non-routable domain), which fits a release script run as root. Who ran it isn't recorded. |
+
+**Approved name, unknown address**
+
+| Hash | Date | Identity | Can history explain it? |
+|---|---|---|---|
+| `6442698` | 2025-03-04 | Omar Haddad `omar.haddad@example.net` (author and committer) | **Cannot.** Omar is approved only as `omar@example.com`. This could be Omar on another address, or someone using his name. The history has nothing to tell the two apart. |
+| `71a324c` | 2025-09-09 | Lena Fischer `Lena@Example.COM` (author and committer) | **Probably explained.** It's the approved address with different capitalisation, almost certainly a mail-client or git config quirk. Strictly it isn't byte-identical to `lena@example.com`, so it's your call whether to accept it. |
+
+**Dependabot with an unusual address**
+
+| Hash | Date | Identity | Can history explain it? |
+|---|---|---|---|
+| `3919c7b` | 2025-05-19 | `dependabot[bot] <dependabot@mail.example.org>` (author and committer) | **Cannot.** Dependabot's real commits use `…@users.noreply.github.com` and are web-committed by GitHub, as in `754b39c`. Here the name matches but the address is a non-GitHub domain, and the committer is the bot rather than GitHub. This looks like someone spoofing the bot's name, or a differently configured bot. The commit bumps `ava` from 6.2.0 to 6.3.0, so the content looks routine, but the identity doesn't match. |
+
+**Within policy, for completeness**
+- `46ed43d` and `4896201`: approved author (Omar and Sofia) with GitHub's web-merge committer.
+- `d526442`: Omar, committed via GitHub's web merge.
+- `754b39c`: Dependabot with the genuine noreply address, committed by GitHub.
+- `aa5cf00`, `2e3c5ee`, `264c373`: approved authors and addresses (Sofia at her second address, Omar, Sofia).
+
+**Limits of this check:** git author and committer fields are self-declared and can be forged. I haven't checked signatures or the hosting platform's records. Matching identities show only that the metadata looks right, not who actually made the commits.
+
+**To close out the unexplained ones:** ask Omar whether `omar.haddad@example.net` is his, ask Lena or Kai about `5b77f50`, check the platform for PR #12 and Priya's access, and look at how Dependabot is configured for `3919c7b`.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2025-01-01 --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short; echo; git log --all --since=2025-01-01 --format='%h' | wc -l; git branch -a; git log --all --format='%h|%an <%ae>|%cn <%ce>|%ad' --date=short | tail -3
+### Final answer text
+**Short answer: no.** Of the 13 commits since 1 Jan 2025 (all on `main`, the only branch), 7 have an author or committer identity outside your approved list. This comes from `git log` metadata only. Git doesn't verify identities, so none of it proves who actually made a change.
+
+**Outside the approved list**
+
+| Hash | Date | Identity at issue | Can history explain it? |
+|---|---|---|---|
+| `3cb1ba1` | 2025-04-09 | Author and committer: Priya Nair `priya@example.com` | **Partly.** She isn't approved. The next commit, `d526442` (Omar's merge of "PR #12 from priya/docs"), suggests an outside contributor's PR that Omar merged. The history doesn't show that anyone approved her. |
+| `5b77f50` | 2025-03-20 | Committer: Kai Brandt `kai@example.com` (author is Lena, approved address) | **No.** Nothing shows why Kai committed Lena's work. It could be a rebase, a cherry-pick or an applied patch, but the history can't confirm which. |
+| `6442698` | 2025-03-04 | Author and committer: Omar Haddad `omar.haddad@example.net` | **No.** The name matches an approved person, but this address isn't one of Omar's known ones (`omar@example.com`). It might be Omar's other address, or someone else. |
+| `71a324c` | 2025-09-09 | Author and committer: Lena Fischer `Lena@Example.COM` | **Probably benign.** It differs from `lena@example.com` only in letter case, and email domains are case-insensitive. It still isn't the exact string you approved, so you may want Lena to confirm. |
+| `81cb6a5` | 2025-07-15 | Committer: `root <root@buildhost.invalid>` (author is Sofia, approved) | **Partly.** `.invalid` is a reserved non-routable domain, so this looks like a local or CI build host. History can't tell who ran it or whether Sofia was involved. |
+| `3919c7b` | 2025-05-19 | Author and committer: `dependabot[bot] dependabot@mail.example.org` | **No.** Dependabot is approved, but this address is not GitHub's usual `…@users.noreply.github.com` form. It could be a spoof or a mirror, and this commit wasn't web-merged. |
+
+**Seen and acceptable**
+- **Approved Dependabot:** `754b39c` uses Dependabot's standard noreply address, with GitHub as committer.
+- **Approved web-merge committer:** `46ed43d`, `4896201` and `d526442` have GitHub `noreply@github.com` as committer, and approved authors (Omar, Sofia, Omar).
+- **Approved people at known addresses:** `264c373`, `2e3c5ee`, `aa5cf00` (Sofia's `s.alvarez@example.org`) and `5b77f50`'s author line (Lena).
+
+**Summary of what history can't settle**
+- **Unexplained:** `5b77f50`, `6442698` and `3919c7b`.
+- **Only circumstantial evidence:** `3cb1ba1` and `81cb6a5`.
+- **Likely case-only difference:** `71a324c`.
+
+To go further, check GitHub's PR #12 and the Dependabot activity log. Also ask Omar and Kai about `6442698` and `5b77f50`. If the commits are GPG- or SSH-signed, `git log --show-signature` would help, but I haven't checked that.
+
+I didn't run the workproof tool, because this was an identity audit and not a count of anyone's work.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | head -300; echo; git log --since=2025-01-01 --all --format='%an <%ae> | %cn <%ce>' | sort | uniq -c
+Bash: git log --all --format='%h %an <%ae> | %cn <%ce> | %G? %ad' --date=short | grep -iE 'kai|priya|root|mail.example.org|omar.haddad@' ; echo ---; ls -a | head -30; cat .mailmap CODEOWNERS .github/CODEOWNERS 2>/dev/null; git log --all --format='%h %s%n%b' -n 20 | 
+Bash: git log --since=2025-01-01 --format='%h %an%n%(trailers)' | grep -B1 -iE 'co-authored|signed-off'; git log --since=2025-01-01 --format='%h %(trailers:key=Co-authored-by,valueonly,separator=;)' | awk 'NF>1'
+### Final answer text
+**No. Of the 12 commits since 1 January 2025 (all on `main`, the only branch), 7 have an identity outside your list, and I can fully explain only 2 of those 7 from the history.** None of the commits is signed (`%G?` is `N` for all), so the history can't prove who actually held the keys.
+
+I ran `git log --since=2025-01-01 --all` and compared the author and committer on every commit. Commits that are clean and not listed: `264c373`, `2e3c5ee`, `aa5cf00` (Sofia's second address, which is approved), `4896201` and `d526442`.
+
+**Outside the approved list**
+
+| Hash | Identity outside the list | What the history shows |
+|---|---|---|
+| `3cb1ba1` (2025-04-09, "Add recipe for batching") | Priya Nair <priya@example.com>, as author and committer | **Partly explained.** `d526442` is the merge of "pull request #12 from priya/docs". Omar merged it through GitHub, so a contributor PR is plausible. Nothing in the repo shows Priya is approved, so you need to confirm that. |
+| `5b77f50` (2025-03-20, "Update typings test") | Committer is Kai Brandt <kai@example.com>. The author is Lena at her known address. | **Cannot explain.** Kai appears nowhere else in the history. The commit could be a rebase or cherry-pick of Lena's work, but nothing records that. |
+| `6442698` (2025-03-04, "Loosen type for limit argument") | Omar Haddad <omar.haddad@example.net>, as author and committer | **Cannot explain.** The name matches an approved person, but this address isn't one of the ones you gave for Omar (`omar@example.com` only). |
+| `81cb6a5` (2025-07-15, "Release prep") | Committer is `root <root@buildhost.invalid>`. The author is Sofia at her known address. | **Cannot fully explain.** It looks like a commit made on a build or release machine, since `.invalid` is a reserved non-routable domain. Sofia is the author, but the history doesn't show who ran the machine. |
+| `3919c7b` (2025-05-19, "Bump ava from 6.2.0 to 6.3.0") | dependabot[bot] <dependabot@mail.example.org>, as author and committer | **Cannot explain.** The other Dependabot commit uses GitHub's `…@users.noreply.github.com` address and was committed by the GitHub web-flow committer, so this one is inconsistent. The author is also pushing directly with no GitHub committer, so it could be someone using Dependabot's name. |
+| `71a324c` (2025-09-09, "Fix readme example") | Lena Fischer <Lena@Example.COM>, as author and committer | **Explained, with a caveat.** It differs from `lena@example.com` only in letter case. Email addresses are case-insensitive in practice, so it is almost certainly the same mailbox. A strict string match would flag it. |
+
+**Not a problem, but worth noting**
+- `4896201` (the PR #14 squash) has a `Co-authored-by: Wes Doyle <wes@example.net>` trailer. The author and committer are approved (Sofia and GitHub), but Wes is a contributor whose name is on the commit and who isn't on your list.
+- `754b39c` (Dependabot, committer GitHub), `46ed43d`, `d526442` and `4896201` use the GitHub noreply committer, which you accept.
+
+**What would settle the open ones**
+- Ask Omar whether `omar.haddad@example.net` is his, and ask Sofia whose machine uses `root@buildhost.invalid`.
+- Ask Lena or Kai why Kai committed `5b77f50`.
+- Check the repository's GitHub PR and Dependabot logs for `3919c7b`, and confirm with Priya (and Wes) that they are expected contributors.
+
+I didn't run the workproof counting CLI, because this was an identity check and didn't need figures. I only read the history and changed nothing
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2025-01-01 --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short; echo; git log --all --since=2025-01-01 --oneline | wc -l; git log --all --format='%h|%an <%ae>|%cn <%ce>|%ad' --date=short | tail -3
+### Final answer text
+Of the 13 commits since 1 January 2025 (all refs), 8 have an author or committer identity outside your list. The other 5 are clean: `264c373`, `2e3c5ee`, `aa5cf00`, `4896201` and `d526442`. The `4896201` and `d526442` commits were committed through GitHub's web merge, which you accept.
+
+**Not approved (author or committer is not on your list)**
+- `3cb1ba1` (2025-04-09, "Add recipe for batching"): author and committer are Priya Nair <priya@example.com>. Priya isn't on your list. The history does give a partial explanation. `d526442` is Omar's merge of "pull request #12 from priya/docs" two days later, so this looks like an outside contributor's PR that Omar merged. That explains how it got in. It doesn't show that Priya is an approved contributor.
+- `5b77f50` (2025-03-20, "Update typings test"): the author is Lena (lena@example.com), but the committer is Kai Brandt <kai@example.com>. Kai isn't on your list. Nothing in the history says why Kai committed Lena's work, such as an applied patch or a rebase. I can't explain it.
+- `81cb6a5` (2025-07-15, "Release prep"): the author is Sofia (sofia@example.com), but the committer is `root <root@buildhost.invalid>`. This looks like a build or release machine, since `.invalid` is a reserved non-deliverable domain. The history can't show who ran it or whether Sofia authored it. It's an unexplained committer.
+
+**Approved name with an address you don't list**
+- `6442698` (2025-03-04, "Loosen type for limit argument"): author and committer are Omar Haddad <omar.haddad@example.net>. Your list gives only omar@example.com for Omar. This could be a second address of Omar's or someone else using his name. I can't tell which from the history.
+- `71a324c` (2025-09-09, "Fix readme example"): author and committer are Lena Fischer <Lena@Example.COM>. Your list has lena@example.com. This differs only in letter case, so it is very likely the same person with a differently configured git email. It's still not an exact match, so I'm listing it.
+
+**Dependabot with an unexpected address**
+- `3919c7b` (2025-05-19, "Bump ava from 6.2.0 to 6.3.0"): author and committer are `dependabot[bot] <dependabot@mail.example.org>`. This is not Dependabot's usual address, and there is no GitHub web-merge committer. Compare `754b39c` (2025-05-05, xo bump), which has the genuine `49699333+dependabot[bot]@users.noreply.github.com` author and a GitHub committer. `3919c7b` could be someone imitating Dependabot, so treat it as suspicious. I can't explain it from the history alone.
+
+**Limits**
+- Git authorship and committer fields are self-declared. A matching identity doesn't prove the account that pushed the commit. I haven't checked signatures or the hosting platform's push logs.
+- If you want any of these cleared, check them against the PR records and CI or build-host logs for `81cb6a5`, `5b77f50` and `3919c7b`, and ask Omar and Lena about their alternate addresses.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' ; echo; git log --since=2025-01-01 --all --format='%an <%ae>%n%cn <%ce>' | sort | uniq -c
+Bash: git branch -a; git show -s --format='%h %P | %G? %GS' d526442 3cb1ba1 5b77f50 81cb6a5 3919c7b 754b39c 6442698 71a324c; git show --stat --format='%h %s' 3919c7b 81cb6a5 6442698 | head -30; git log --all --format='%h %ad' --date=short | tail -3
+### Final answer text
+**Answer: no.** 13 commits have been made since 1 January 2025, and 7 of them have an author or committer identity outside your approved list. No commits are GPG-signed (`%G?` = N everywhere), so identity rests on unverified header fields only.
+
+## Commits outside the approved set
+
+| Hash | Date | Author / Committer | Why it's flagged |
+|---|---|---|---|
+| `3cb1ba1` | 2025-04-09 | Priya Nair `priya@example.com` (both) | Not an approved person. |
+| `d526442` | 2025-04-10 | Omar Haddad (approved) / GitHub | Identity is fine. This is the web merge of PR #12 from `priya/docs`, which brings in `3cb1ba1`. |
+| `5b77f50` | 2025-03-20 | Author Lena Fischer `lena@example.com` (approved) / **committer Kai Brandt `kai@example.com`** | Kai Brandt is not approved. |
+| `6442698` | 2025-03-04 | Omar Haddad `omar.haddad@example.net` (both) | Name matches an approved person, but the address isn't one of yours. |
+| `81cb6a5` | 2025-07-15 | Author Sofia Alvarez `sofia@example.com` (approved) / **committer `root <root@buildhost.invalid>`** | Unknown committer identity on a non-routable domain. |
+| `3919c7b` | 2025-05-19 | `dependabot[bot] <dependabot@mail.example.org>` (both) | Claims to be Dependabot, but the address isn't Dependabot's. The genuine one is `49699333+dependabot[bot]@users.noreply.github.com`, as in `754b39c`. |
+| `71a324c` | 2025-09-09 | Lena Fischer `Lena@Example.COM` (both) | Same name and address as an approved one apart from capitalisation. Email addresses are effectively case-insensitive, so this is very likely fine, but it isn't a literal match. |
+
+Everything else is clean: `264c373`, `2e3c5ee`, `aa5cf00`, `4896201`, `46ed43d`, and the genuine Dependabot commit `754b39c`.
+
+## What the history alone can and can't explain
+
+**Can explain**
+- **`d526442` and `3cb1ba1`:** this is a normal PR flow. Omar merged Priya's PR through the GitHub UI. That explains the GitHub committer, but it doesn't make Priya approved. The history can't show whether she should have been.
+- **`71a324c`:** only the address case differs, so this is almost certainly Lena with a differently configured git email. It is still worth a line in your report.
+- **`5b77f50`:** the author/committer split is consistent with Kai applying, cherry-picking or rebasing Lena's patch. Its parent is `6442698` and it sits directly beneath Priya's PR. The history can't confirm that Kai was authorised, or that Lena actually wrote it.
+
+**Cannot explain**
+- **`6442698`:** the history doesn't show whether `omar.haddad@example.net` is Omar on another machine or someone using his name. It was Omar's only commit with that address. His other commits use `omar@example.com`.
+- **`81cb6a5`:** `root@buildhost.invalid` points to a build or release script that committed on Sofia's behalf. `.invalid` is a reserved non-routable TLD, so the history can't tie it to anyone. It is also the "Release prep" commit, which touches `CHANGES.txt`, so it deserves a look.
+- **`3919c7b`:** the history doesn't show why a Dependabot-named commit carries a non-Dependabot address, and it was committed directly rather than through GitHub. It only adds one line to `CHANGES.txt`, which is not what a Dependabot bump normally does. It could be spoofed, or a mirror or bot might have rewritten it. The version bump subject should also change `package.json`, and this one doesn't.
+
+## Caveats
+- Only the `main` branch exists locally, and there are no remote refs. Commits on other branches or forks wouldn't appear here.
+- Author and
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | wc -l; git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short
+Bash: git branch -a; git tag; git remote -v; git log --since=2025-01-01 --all --format='%H %G? %P%n  AD=%ad CD=%cd%n%b' --date=iso | head -80; git log --all --since=2025-01-01 --format=%h --diff-filter=A --name-only | head -0; for c in 3919c7b 754b39c 81cb6a5 644269
+### Final answer text
+**Result: no, not every change since 1 January 2025 came from an expected identity.** There are 13 commits in the period, all on `main` (the only branch). Seven have an author or committer identity outside your approved list. None are GPG-signed, so signatures can't help verify any of them.
+
+I treated Dependabot as the `dependabot[bot]` name, and the GitHub web-merge committer as `GitHub <noreply@github.com>`.
+
+## Flagged commits
+
+| Commit | Author / committer | Why it's flagged | Explainable from history alone? |
+|---|---|---|---|
+| `3cb1ba19447708d9b8ac075c2f2328be04e76f16` (2025-04-09) | Priya Nair `<priya@example.com>` for both | Not an approved person. | **Partly.** `d526442` is a web merge of "pull request #12 from priya/docs" by Omar. That shows she contributed through a PR that an approved person merged. It doesn't show she is authorised. |
+| `5b77f50f2d7659085b8efdb6d2c8eafbb9c9cc83` (2025-03-20) | Author Lena Fischer `<lena@example.com>`, committer **Kai Brandt** `<kai@example.com>` (committed 2025-03-21) | Committer is not approved. | **No.** The author is approved, but Kai committed it a day later. I can't tell whether Kai rebased, cherry-picked or applied a patch. |
+| `64426983a54ca16026defd6ac8f709083c18e158` (2025-03-04) | Omar Haddad `<omar.haddad@example.net>` for both | The name is approved but the address isn't on your list. | **No.** It may be Omar's other address, or someone else using his name. Nothing in the repository settles it. |
+| `81cb6a5a0dc20b3e46ceacd64043d02a3fce77cc` (2025-07-15) | Author Sofia Alvarez `<sofia@example.com>`, committer `root <root@buildhost.invalid>` | The committer `root@buildhost.invalid` is not approved. | **Partly.** It looks like a commit made or rewritten on a build host, and Sofia is the author. The history doesn't say who was on that host. This is the release-prep commit, so I'd treat it as the most sensitive. |
+| `71a324c4a6bac31f7b8817e18a1e23a2c5c75c45` (2025-09-09) | Lena Fischer `<Lena@Example.COM>` for both | The address differs from `lena@example.com` only in case. | **Mostly.** Email domains are case-insensitive and local parts almost always are, so this is very likely Lena. Strictly it's an address you haven't listed. |
+| `3919c7b6d44da6024c64190f123d85077340b0bc` (2025-05-19) | `dependabot[bot] <dependabot@mail.example.org>` for both | The name matches Dependabot, but this is not Dependabot's usual address, and the committer isn't GitHub's web-flow either. | **No.** Compare `754b39c`, which uses the real `49699333+dependabot[bot]@users.noreply.github.com` address and a GitHub committer. This commit could be a spoof of the bot name. |
+| `4896201` full hash `48962019a4cc377889796ab191103170b0261602` (2025-06-02, "Simplify queue handling (#14)") | Sofia Alvarez `<sofia@example.com>`, committer GitHub | The author and committer are both approved. It is flagged only because its message carries `Co-authored-by: Wes Doyle <wes@example.net>`. | **Partly.** Wes is credited as a co-author but isn't approved. The merge itself is by an expected identity. |
+
+## Commits that pass
+These all have approved identities:
+- `46ed43d95c94777178b95153ff180862ef8c2ffa`: Omar, committed through GitHub's web-merge account.
+- `d52644259c29f8b355e06965229eca1a0c4bec9a`: Omar, committed through GitHub's web-merge account.
+- `754b39c7c404e74c76ef85f5ba207b7631a5e8df`: Dependabot, committed through GitHub's web-merge account.
+- `aa5cf0075b6c13fee85f9bf94167a55b8cb4159f`: Sofia at `s.alvarez@example.or
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | head -300; echo; git log --since=2025-01-01 --all --format='%an <%ae>|%cn <%ce>' | sort | uniq -c
+Bash: cat .mailmap 2>/dev/null; git log --since=2025-01-01 --all --format='--- %h %G? %GS%n%b' | head -80; git log --all --format='%h %an <%ae> | %cn <%ce> %ad' --date=short --until=2024-12-31 | head; git show --stat --format='%h %s' d526442 3cb1ba1 5b77f50 6442698 
+### Final answer text
+Nine of the 13 commits since 1 Jan 2025 are fully covered by your approved list, so the answer is no. Six commits have an identity outside it, and four of those I can't explain from the history. I checked every ref (`--all`), and there is only `main`. No `.mailmap` exists and no commit is signed, so nothing in the history verifies who actually made any of them.
+
+## Commits outside the approved list
+
+| Hash | Subject | Identity | Explained from history? |
+|---|---|---|---|
+| `6442698` | Loosen type for limit argument | Author and committer: Omar Haddad `<omar.haddad@example.net>` | **No.** The name matches an approved person, but that address isn't on your list. Omar's other commits use `omar@example.com`. |
+| `5b77f50` | Update typings test | Author: Lena Fischer (approved address). Committer: **Kai Brandt `<kai@example.com>`** | **No.** Kai Brandt appears nowhere else. Nothing shows a rebase, cherry-pick or patch hand-off. |
+| `3919c7b` | Bump ava 6.2.0 → 6.3.0 | Author and committer: `dependabot[bot] <dependabot@mail.example.org>` | **No.** The name is Dependabot, but the address isn't. The other Dependabot commit, `754b39c`, uses the usual `49699333+dependabot[bot]@users.noreply.github.com` and is committed by GitHub. This one is committed by the "bot" itself, which Dependabot doesn't normally do. It could be an impersonation. |
+| `3cb1ba1` | Add recipe for batching | Author and committer: Priya Nair `<priya@example.com>` | **Partly.** She isn't approved. But `d526442` ("Merge pull request #12 from priya/docs"), a GitHub web merge by Omar, brought it in, so an approved person reviewed and merged it. The history can't show whether Priya was authorised to contribute. |
+| `81cb6a5` | Release prep | Author: Sofia (`sofia@example.com`). Committer: `root <root@buildhost.invalid>` | **Partly.** It is consistent with a release run on a build host, and the author is approved. But `.invalid` is a reserved non-routable domain, and the history doesn't confirm it was a real build host. |
+| `71a324c` | Fix readme example | Author and committer: Lena Fischer `<Lena@Example.COM>` | **Mostly.** Her approved address is `lena@example.com`, so this differs only in letter case. Domains are case-insensitive and it is almost certainly her, but it isn't a byte-exact match. Confirm whether you want to count it. |
+
+## Related note
+
+`4896201` (Simplify queue handling, #14) has a `Co-authored-by: Wes Doyle <wes@example.net>` trailer. Its author and committer are approved (Sofia and GitHub), so it doesn't strictly meet your criterion, but a third party is credited for code in it.
+
+## Covered by the approved list
+
+These nine are covered:
+- `46ed43d`: Omar, committed by GitHub
+- `4896201`: Sofia, committed by GitHub
+- `d526442`: Omar, committed by GitHub
+- `754b39c`: Dependabot, committed by GitHub
+- `aa5cf00`: Sofia, using her second approved address
+- `2e3c5ee`: Omar
+- `264c373`: Sofia
+- The two commits `4896201` and `46ed43d` use the GitHub web-merge committer you accept.
+
+## Suggested follow-ups
+
+These need information outside the repository:
+- Ask Omar whether `omar.haddad@example.net` is his (`6442698`).
+- Ask Kai and Lena about `5b77f50`.
+- Check GitHub's Dependabot activity or PR record for the ava bump (`3919c7b`).
+- Check the release or CI logs for `81cb6a5`.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --all --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}'
+Bash: git branch -a --contains 5b77f50 6442698 2>&1 | head; git branch -a; git log --since=2025-01-01 --all --format='%h %G? %GS' | head -20; git log --all --oneline | wc -l; git log --all --until=2024-12-31 --oneline | head -3
+### Final answer text
+I checked all 13 commits dated since 2025-01-01 on `main`, which is the only branch. Seven fall outside your approved identities. Of those, I can partly explain three from the history alone and can't explain four. No commit is signed, so none of the identities is cryptographically verified.
+
+## Outside the approved list
+
+| Hash | Author / committer | Why it's flagged | Explainable from history? |
+|---|---|---|---|
+| `6442698` | Omar Haddad `omar.haddad@example.net` (author and committer) | The name matches an approved person, but the address isn't one of theirs. Omar's approved address is `omar@example.com`. | **No.** It could be Omar on another address, or someone using their name. |
+| `81cb6a5` | Author Sofia Alvarez `sofia@example.com`; committer `root <root@buildhost.invalid>` | The committer is an unapproved identity on a `.invalid` domain, which can't be a real mailbox. | **Partly.** The author is approved, and a build host committing "Release prep" is plausible. Nothing in git confirms that the build host is ours. |
+| `5b77f50` | Author Lena Fischer `lena@example.com`; committer **Kai Brandt** `kai@example.com` | Kai Brandt isn't on the approved list. | **Partly.** Lena's authorship is approved, and a different committer is consistent with Kai applying or rebasing her patch. Kai has no other commits here, so nothing shows who Kai is or whether Kai is authorised. |
+| `3cb1ba1` | Priya Nair `priya@example.com` (author and committer) | Not an approved person. | **Partly.** `d526442` ("Merge pull request #12 from priya/docs") shows the commit arrived through a PR that Omar merged via the GitHub web UI. That explains how it got in, but not whether Priya is an approved contributor. |
+| `3919c7b` | `dependabot[bot] <dependabot@mail.example.org>` (author and committer) | The name is Dependabot, but the address isn't GitHub's. Real Dependabot commits use `49699333+dependabot[bot]@users.noreply.github.com`, as `754b39c` does. The committer is also Dependabot itself, not GitHub's web-merge identity as in `754b39c`. | **No.** The commit is a plausible ava bump, but a Dependabot-lookalike identity is a classic spoofing pattern. Check the diff, especially lockfile and `package.json` changes, and whether a PR exists for it. |
+| `71a324c` | Lena Fischer `Lena@Example.COM` (author and committer) | The address differs from the approved `lena@example.com` only by case. | **Probably benign.** Email domains are case-insensitive, and this is typically a mail-client or git-config quirk. It still isn't an exact match, so it's your call. |
+
+## Approved identities
+
+Approved people appear in these commits with exact approved addresses, and the GitHub web-merge committer is accepted:
+
+- `264c373`
+- `2e3c5ee`
+- `aa5cf00` (Sofia's `s.alvarez@example.org` address)
+- `4896201`
+- `d526442`
+- `46ed43d`
+- `754b39c` (real Dependabot address, with GitHub as committer)
+
+Several of these have the GitHub web-merge committer, which you accept.
+
+## Caveats
+
+- Git author and committer fields are self-asserted. Even the approved-looking commits could be forged without signatures or a hosting-side check, such as GitHub's push log or PR records.
+- The history I can see is the local clone. A rewritten history or a force-push wouldn't show here.
+
+To close the open items, confirm who Kai Brandt, Priya Nair and the `omar.haddad@example.net` address are. Also check the build host behind `root@buildhost.invalid`, and the origin of the `mail.example.org` Dependabot commit (`3919c7b
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-01-01 --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short --all
+Bash: cat .mailmap 2>/dev/null; git log --since=2025-01-01 --all --format='%h %G? %GS' ; git show -s --format=%B 5b77f50 3cb1ba1 81cb6a5 3919c7b 6442698 | head -40; git branch -a; git shortlog -sne --all | head -20
+### Final answer text
+**Answer: no.** Of the 12 commits since 1 Jan 2025, 7 are fully clean. The other 5 have an identity outside your approved list, and a sixth, `71a324c`, needs your judgment. No commit is signed (all show `N`), so nothing here is cryptographically verified. There is no `.mailmap` and only the `main` branch exists.
+
+**Outside the approved list**
+
+| Commit | Date | Identity issue | Explainable from history alone? |
+|---|---|---|---|
+| `64426983a54ca16026defd6ac8f709083c18e158` "Loosen type for limit argument" | 2025-03-04 | Author and committer are Omar Haddad `<omar.haddad@example.net>`. Omar is approved only as `omar@example.com`. | **No.** It could be a personal or alternate address, but nothing in the history links it to the approved one. |
+| `5b77f50f2d7659085b8efdb6d2c8eafbb9c9cc83` "Update typings test" | 2025-03-20 | Author is Lena (approved address). Committer is **Kai Brandt `<kai@example.com>`**, who isn't approved. | **No.** Kai could have cherry-picked, rebased or applied Lena's patch, but that is a guess. Nothing in history shows Kai as a contributor. |
+| `3cb1ba19447708d9b8ac075c2f2328be04e76f16` "Add recipe for batching" | 2025-04-09 | Author and committer are **Priya Nair `<priya@example.com>`**, not approved. | **Partly.** Her PR was merged by Omar via `d52644259c29f8b355e06965229eca1a0c4bec9a`, a GitHub web merge by an approved person. That fits an outside contributor's PR, but it doesn't make her approved. The merge commit itself is clean. |
+| `3919c7b6d44da6024c64190f123d85077340b0bc` "Bump ava from 6.2.0 to 6.3.0" | 2025-05-19 | Claims to be dependabot[bot], but the address is `dependabot@mail.example.org`. The committer is the same identity, not GitHub. | **No.** Real Dependabot commits here, such as `754b39c7c404e74c76ef85f5ba207b7631a5e8df`, use `49699333+dependabot[bot]@users.noreply.github.com` with GitHub as committer. This one looks like a spoof or a differently configured bot, so treat it as suspicious. |
+| `81cb6a5a0dc20b3e46ceacd64043d02a3fce77cc` "Release prep" | 2025-07-15 | Author is Sofia (approved address). Committer is **`root <root@buildhost.invalid>`**. | **Partly.** It looks like a commit made or rewritten on a build or release host. The `.invalid` domain can't be a real mailbox, so it can't be attributed to anyone. |
+
+**Needs your judgment**
+
+- `71a324c4a6bac31f7b8817e18a1e23a2c5c75c45` "Fix readme example" (2025-09-09): author and committer are Lena Fischer `<Lena@Example.COM>`. Only the case differs from the approved `lena@example.com`. Email is effectively case-insensitive, so it is almost certainly Lena, but strictly it isn't the listed string. The history can't confirm it either way.
+
+**Clean (all identities approved)**
+
+- `264c373c7e08ddf22e11a735486c0cbd22270955`
+- `2e3c5ee60728e01d070a6ad5d590ab3be1a933bc`
+- `aa5cf0075b6c13fee85f9bf94167a55b8cb4159f` (Sofia's second approved address)
+- `754b39c7c404e74c76ef85f5ba207b7631a5e8df` (genuine-looking Dependabot, GitHub committer)
+- `d52644259c29f8b355e06965229eca1a0c4bec9a` (Omar, GitHub web-merge committer)
+- `48962019a4cc377889796ab191103170b0261602` (Sofia, GitHub committer)
+- `46ed43d95c94777178b95153ff180862ef8c2ffa` (Omar, GitHub committer)
+
+Because none of these commits are signed, a matching name and address doesn't prove who made them. Anyone can set author and committer fields. To resolve the "No" items, check the GitHub PR and audit logs for `64426983`, `5b77f50` and `3919c7b`, and ask Sofia about the build host behind `81cb6a5`.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2025-01-01 --format='%H|%an <%ae>|%cn <%ce>|%ad|%s' --date=short | awk -F'|' '{print}' | wc -l; git log --all --since=2025-01-01 --format='%h|%an <%ae>|%cn <%ce>|%ad|%s' --date=short
+Bash: git branch -a; git log --all --since=2025-01-01 --format='%h %G? %p' | head -20; git show -s --format='%h %an %cn %b' 3919c7b 3cb1ba1 | head; git show --stat --format=%h 81cb6a5 3919c7b 5b77f50 6442698 | head -30
+### Final answer text
+**No. Seven of the 13 commits since 1 January 2025 (all on `main`, the only branch) have an author or committer identity outside your approved list.** No commit is signed (every signature status is `N`), so none of the identities can be verified cryptographically. Everything below comes from the commit metadata and a look at what each commit changed.
+
+## Identities outside the approved list
+
+| Hash | Author / committer | Why it's flagged | Explainable from history alone? |
+|---|---|---|---|
+| `3cb1ba1` | Priya Nair `<priya@example.com>` (both roles) | Not an approved person. | **Partly.** `d526442` ("Merge pull request #12 from priya/docs") is a GitHub web merge by Omar, so Omar accepted it. Nothing in the history shows Priya is authorized. |
+| `5b77f50` | Author Lena Fischer `<lena@example.com>`, committer Kai Brandt `<kai@example.com>` | Kai Brandt isn't approved, and committed work authored under Lena's name. | **No.** The history doesn't say why Kai committed it. It could be a cherry-pick, a rebase or an applied patch, or someone committing under Lena's name. |
+| `6442698` | Omar Haddad `<omar.haddad@example.net>` (both roles) | The name is approved but this address isn't. | **No.** The history can't tell us whether this is Omar on a different address or someone else using his name. |
+| `3919c7b` | `dependabot[bot] <dependabot@mail.example.org>` (both roles) | Dependabot is accepted, but real Dependabot commits use `49699333+dependabot[bot]@users.noreply.github.com`, as in `754b39c`. This one has a different address and wasn't committed through GitHub, which marks web-made commits with the committer `GitHub <noreply@github.com>`. | **No.** It looks like a spoof or a mimic. |
+| `71a324c` | Lena Fischer `<Lena@Example.COM>` (both roles) | Same as the approved `lena@example.com` apart from letter case. | **Probably benign.** Domains are case-insensitive, and the local part almost always is. It's still not an exact match, so confirm with Lena. |
+| `81cb6a5` | Author Sofia Alvarez `<sofia@example.com>`, committer `root <root@buildhost.invalid>` | The committer is a build host, not an approved person or GitHub. | **Partly.** The author is approved and the message is "Release prep". The `.invalid` address suggests a local or CI machine, but the history doesn't say which. |
+| `46ed43d` | Author Omar `<omar@example.com>`, committer GitHub | This one is fine. GitHub's web-merge committer is accepted. | **Yes.** Listed only to say it isn't a problem. |
+
+`46ed43d` is the only entry that passes. The other six need follow-up.
+
+## Commits that pass
+- `264c373`, `2e3c5ee`: Sofia and Omar, both with approved addresses.
+- `aa5cf00`: Sofia, using her second approved address.
+- `4896201`: Sofia as author, GitHub as committer (PR #14).
+- `754b39c`: Dependabot with the genuine noreply address, committed by GitHub.
+- `d526442`: Omar as author, GitHub as committer (web merge).
+- `46ed43d`: Omar as author, GitHub as committer.
+
+## What I'd check
+1. Whether `6442698` and `3919c7b` were really made by those accounts. They look the most suspicious.
+2. Who Kai Brandt and Priya Nair are, and whether they're approved.
+3. Whether `81cb6a5` came from your release or CI host.
+
+Each of the four commits I looked at in detail (`81cb6a5`, `3919c7b`, `5b77f50`, `6442698`) adds one line to `CHANGES.txt`. I didn't review the other commits' contents. The scope is also limited to what is in this clone, so rewritten history or force-pushed refs on the remote wouldn't show up.
+### Files it left in the working directory
+(none)

@@ -1,0 +1,640 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "Can you tell me who contributed what since the 1.0.25 release of this crate? I want to credit people in the release thank-you for what they actually wrote, grouped as code, docs and tests, one line per person. Please don't give credit for things people didn't write themselves, and watch for work that was co-authored or landed under a maintainer's name. Just answer in chat, no file needed."
+Ground truth: WINDOW: commits after 'Release 1.0.25' in history (9 non-merge commits); dates are not used
+CREDIT BY AREA:
+- Anya Sokolova | credited areas: code, tests
+    2026-01-25 author: Reject empty build metadata  -> code+tests
+- Lena Fischer | credited areas: none (see notes)
+    2026-04-10 author: Indent with tabs everywhere  -> mechanical-format
+- Mia Okafor | credited areas: code, tests
+    2026-03-12 author: Add parse failure tests (#321)  -> tests
+    2026-06-12 author: Avoid an allocation in Version::to_string  -> code
+- Mina Park | credited areas: docs
+    2026-02-05 author: Clarify the crate documentation for Version::parse  -> docs
+- Ravi Menon | credited areas: docs
+    2026-05-02 author: Add the minimum supported Rust version to the readme  -> docs
+- Tariq Aziz | credited areas: tests
+    2026-08-03 author: Add an identifier round trip test  -> tests
+- Tomas Rey | credited areas: none (see notes)
+    2026-02-18 author: Update vendored unicode tables  -> vendored-or-generated
+- Wen Zhou | credited areas: tests
+    2026-03-12 co-author: Add parse failure tests (#321)  -> tests
+NOT IN WINDOW: Kai Nakamura (before release), Tariq Aziz's 'Fix overflow in prerelease parsing' (landed before the release; author date 2026-02-01 is a wrong clock)
+NO CODE CREDIT: Tomas Rey (vendored tables only), Lena Fischer (whitespace-only reformat; at most 'formatting'), github-actions[bot]
+Hazards: window defined by a release commit, not a date (one patch authored before the release date but landed after; one landed before the release with an author clock ahead of it); doc-comment-only change inside src/; vendored and generated files; whitespace-only reformat touching 15 files; Co-authored-by in a squash; bot. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The window follows history, not dates: Anya Sokolova (authored 2026-01-15, before the release date, landed after) is included; Tariq Aziz's overflow fix (landed before the release, author date 2026-02-01) and Kai Nakamura (earlier) are not credited for work since the release. FAIL if Anya is missing or either pre-release change is credited.
+C2 Mina Park's change only edits a //! documentation comment in src/lib.rs and is credited as docs. A stated path-based classification that still flags it as documentation-comment-only also passes. FAIL if it is presented as a code change without that caveat.
+C3 Nothing generated or vendored is credited as someone's code: Tomas Rey (vendored unicode tables) gets no code credit (a "vendored update" mention is fine), and github-actions[bot] is not credited. FAIL if Tomas is listed as a code contributor or the bot is thanked.
+C4 The whitespace-only tab reformat by Lena Fischer (about 2,000 lines) is not presented as code authorship; at most a "formatting" mention. Mia Okafor (the maintainer) is not credited with others' changes merely because she committed them. FAIL if Lena gets code credit or the maintainer is credited for patches she only landed.
+C5 Areas per person match the data and the squashed test commit is co-credited: Anya code and tests; Ravi Menon docs; Tariq Aziz tests (his later test, not the earlier fix); Wen Zhou tests via Co-authored-by in "Add parse failure tests (#321)" alongside Mia; Mia code (to_string allocation) and tests. FAIL if Wen is missing or an area is wrong.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git log --format='%h|%an|%s' | grep -n -i -E '1\.0\.2[4-6]|release|version' | head; grep -m3 version Cargo.toml; git log --oneline | wc -l
+Bash: git log c5b806c..HEAD --format='=== %h|%an <%ae>|committer %cn|%s%n%b' --stat
+Bash: git show d279751 553dfdb 587c267 c2b5f05 114d0f3 8a5a147 00fdc7d --format='--- %h %s' | grep -v '^index'; git show 6cb4f19 | head -30; git log c5b806c..HEAD -3 --format=%h -- vendor/unicode-tables | head -2; git show 0e5ed19 -w --stat | tail -3
+### Final answer text
+Here are the credits since the 1.0.25 release. The repo has no tags, so I used the "Release 1.0.25" commit (`c5b806c`) as the starting point.
+
+**Code**
+- Mia Okafor: avoid an allocation in `Version::to_string`.
+- Anya Sokolova: reject empty build metadata. This is the parser change in `src/parse.rs`.
+
+**Docs**
+- Mina Park: the crate-level documentation for `Version::parse`.
+- Ravi Menon: the minimum supported Rust version line in the readme.
+
+**Tests**
+- Tariq Aziz: the identifier round trip test. Mia Okafor committed it, but the commit is authored by Tariq.
+- Anya Sokolova: the test that empty build metadata is rejected.
+- Mia Okafor and Wen Zhou: the parse failure tests (#321). Wen Zhou is a `Co-authored-by` trailer on a commit authored by Mia, so I listed them together.
+
+**Left out on purpose**
+- Lena Fischer: the "Indent with tabs everywhere" commit only changes whitespace across 15 files. It's mechanical formatting, so I wouldn't credit it as code, docs or tests. You could give Lena a separate "formatting" mention if you want one.
+- Tomas Rey: the vendored unicode tables are a 1,501-line generated file (`@generated by vendor/update.sh - do not edit`). Tomas ran the update script rather than writing the contents.
+- github-actions[bot]: the regenerated `docs/api.generated.md` is bot output (`@generated by cargo doc2md`), not written by a person.
+
+Mia Okafor is the committer on nearly every commit, so I credited authors rather than committers.
+
+Several of these commits are one-line additions that look like placeholders, for example empty `fn reject_empty_build_metadata() {}` and `#[test] fn identifier_roundtrip() {}`. They're credited by what the commits say they do, but the diffs don't implement that behaviour. Check them before you word the thank-you.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git tag | grep 1.0.2 | tail; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git tag | tail; git log --oneline | grep -i -E '1\.0\.2[0-9]|release' | head; git log --oneline | wc -l
+Bash: git log --format='%h|%an <%ae>|%cn|%s%n%b---' --stat c5b806c..HEAD
+Bash: git show 587c267 d279751 00fdc7d c2b5f05 8a5a147 114d0f3 553dfdb --format='== %h %an' | grep -v '^index'; git show 6cb4f19 | head -30
+### Final answer text
+Here's the credit list for the commits after `Release 1.0.25` (c5b806c), grouped as you asked. There's no `1.0.25` tag, so I used that release commit as the boundary.
+
+**Code**
+- Anya Sokolova: rejecting empty build metadata (`src/parse.rs`).
+- Mia Okafor: avoiding an allocation in `Version::to_string` (`src/display.rs`).
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse`.
+- Ravi Menon: added the minimum supported Rust version to the readme.
+
+**Tests**
+- Anya Sokolova: the test for rejecting empty build metadata.
+- Tariq Aziz: the identifier round trip test.
+- Mia Okafor and Wen Zhou: the parse failure tests (#321). Mia committed it and the message has a `Co-authored-by: Wen Zhou` trailer, so I credited both.
+
+**Left out on purpose**
+- **Lena Fischer:** "Indent with tabs everywhere" only changes whitespace across 15 files. I'd leave it out unless you want a "formatting" mention.
+- **Tomas Rey:** "Update vendored unicode tables" is a generated file from `vendor/update.sh` (marked "do not edit"), so he didn't write its contents.
+- **github-actions[bot]:** it only regenerated `docs/api.generated.md`.
+- **Maintainer attribution:** Mia Okafor is the committer on almost every commit, including the ones authored by Ravi, Lena, Mina, Anya and Tomas. I used the author field, so she only gets credit for the commits she authored.
+
+Each commit is tiny, mostly one added line, and several of the added lines are empty stubs (`fn reject_empty_build_metadata() {}`, `#[test] fn identifier_roundtrip() {}`). I credited what each commit says it does, but the diffs may not match those descriptions, so check them before publishing the thank-you.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git log --format='%h|%an|%s' | grep -n -i -E '1\.0\.25|release' | head; grep -n '^version' Cargo.toml; git log --format='%h|%an|%ad|%s' --date=short | head -40
+Bash: git log --format='%h|%p|%an|%cn|%s' c5b806c~3..HEAD; echo; git log --graph --oneline c5b806c~3..HEAD | head -30; for c in $(git rev-list --reverse c5b806c..HEAD); do echo "=== $c"; git show -s --format='%an <%ae> | committer %cn <%ce>%n%s%n%b' $c; git show --s
+Bash: for c in 587c267 d279751 00fdc7d 8a5a147 114d0f3 c2b5f05; do echo "=== $c"; git show --format= $c; done; git show 6cb4f19 | head -30; git show 553dfdb --format=; git show 0e5ed19 -w --stat --format= | tail -3; ls vendor/unicode-tables; head -5 vendor/unicode-t
+### Final answer text
+Here is who contributed what after the 1.0.25 release. The repo has no tags, so I took the "Release 1.0.25" commit (`c5b806c`) as the cut-off and looked at the 9 commits after it.
+
+**Code**
+- Anya Sokolova: reject empty build metadata (`587c267`)
+- Mia Okafor: avoid an allocation in `Version::to_string` (`114d0f3`)
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse` (`d279751`)
+- Ravi Menon: added the minimum supported Rust version to the readme (`8a5a147`)
+
+**Tests**
+- Anya Sokolova: test that empty build metadata is rejected (`587c267`)
+- Mia Okafor and Wen Zhou: parse failure tests (`00fdc7d`). Mia is the author, and the commit message has a `Co-authored-by: Wen Zhou` trailer, so I credited Wen as well.
+- Tariq Aziz: identifier round trip test (`c2b5f05`)
+
+Mia Okafor is the committer on almost every commit. I credited authors, not committers, so Mia only appears for the two commits she authored.
+
+I left out three contributions:
+- **Tomas Rey**, "Update vendored unicode tables" (`6cb4f19`): the file is marked `@generated by vendor/update.sh - do not edit`, so Tomas ran a script and didn't write it. You could thank them for the refresh if you want, but they didn't write the content.
+- **github-actions[bot]**, `docs/api.generated.md` (`553dfdb`): generated output from a bot.
+- **Lena Fischer**, "Indent with tabs everywhere" (`0e5ed19`): the diff is empty with whitespace ignored, so it only changes formatting. It's a big diff, but I'd treat it as a reformat rather than code, docs or tests. Credit it separately if you want to.
+
+Also, `2d5b0b1` (Tariq Aziz, overflow fix) and `a6f6401` (Kai Nakamura, identifier comparison speed-up) came before the release commit, so they belong to 1.0.25 and not to this list.
+
+Several of these commits are very small. For example, the code changes are one-line function stubs and the tests are empty `#[test]` functions. The credit above reflects what each person actually committed, but you may want to check that the commits match what you plan to say they did.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git tag | grep -E '1\.0\.2[0-9]'; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git tag | tail; git log --oneline | grep -iE '1\.0\.25|release|version' | head; grep -m3 version Cargo.toml
+Bash: git log --format='%n== %h | author: %an <%ae> | committer: %cn | %ad%n%s%n%b' --date=short --stat c5b806c..HEAD
+Bash: head -5 vendor/unicode-tables/tables.rs; git show 6cb4f19 --format=%B -s; git show 00fdc7d 587c267 --format='%h %s' | grep -E '^[+-]|^[0-9a-f]{7}'
+### Final answer text
+Here is who wrote what since the 1.0.25 release (commit c5b806c, "Release 1.0.25"; the repo has no tags). Mia Okafor committed most of these, but the author field shows who actually wrote each change.
+
+**Code**
+- Anya Sokolova: rejects empty build metadata in the parser (`src/parse.rs`).
+- Mia Okafor: avoids an allocation in `Version::to_string`.
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse`.
+- Ravi Menon: added the minimum supported Rust version to the readme.
+
+**Tests**
+- Anya Sokolova: test for the empty build metadata rejection.
+- Mia Okafor: parse failure tests (#321), co-authored with Wen Zhou.
+- Wen Zhou: co-author of the parse failure tests (#321).
+- Tariq Aziz: identifier round trip test. The commit landed under Mia's name as committer, but Tariq is the author.
+
+**Left out, and why**
+- Lena Fischer: "Indent with tabs everywhere" is a mechanical reformat of 15 files. It's a judgment call, but I wouldn't credit it as code, docs or tests. You could mention it separately as a formatting cleanup.
+- Tomas Rey: "Update vendored unicode tables" is 1,501 lines, but the file header says `@generated by vendor/update.sh`. The script wrote it, so I wouldn't credit Tomas for authoring it.
+- github-actions[bot]: regenerated `docs/api.generated.md`. It's automated output, not someone's writing.
+
+**Caveats**
+- Wen Zhou's credit comes from a `Co-authored-by` trailer on the commit. I can't tell from git how much they wrote, so check with Mia if you want to be sure.
+- The /receipts skill produces a Claude Code usage report, not contributor credit, so I didn't run its miner or write any files.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git tag --list | grep -E '1\.0\.2[0-9]' ; git log --oneline 1.0.25..HEAD 2>&1 | wc -l
+Bash: git tag | tail -5; git log --format='%h %an <%ae> | %cn | %s' 1.0.25..HEAD 2>&1 | head; git log --all --oneline --grep='1.0.25' | head
+Bash: git log --format='--- %h%nauthor: %an <%ae>%ncommitter: %cn <%ce>%nsubj: %s%n%b' --stat c5b806c..HEAD
+Bash: git show d279751 587c267 00fdc7d 114d0f3 c2b5f05 -U0 --format='== %h' | grep -v '^index'; git show 6cb4f19 | head -20; git show 0e5ed19 -w --stat | tail -3
+### Final answer text
+Since the "Release 1.0.25" commit (c5b806c), the contributors are below. The repo has no `1.0.25` tag, so I used that commit as the boundary. Your last two commits, c2b5f05 and 114d0f3, are the only ones after it by the maintainer's name or a rebased copy of someone else's work.
+
+**Code**
+- Anya Sokolova: rejects empty build metadata (`src/parse.rs`).
+- Mia Okafor: avoids an allocation in `Version::to_string`.
+
+**Docs**
+- Mina Park: clarifies the crate documentation for `Version::parse`.
+- Ravi Menon: adds the minimum supported Rust version to the readme.
+
+**Tests**
+- Tariq Aziz: adds the identifier round trip test. Mia Okafor committed it, but Tariq is the author.
+- Wen Zhou: co-authored the parse failure tests (#321) with Mia Okafor. The commit is under Mia's name, and the `Co-authored-by` trailer is the only sign of Wen's part.
+- Anya Sokolova: wrote the test for the empty-build-metadata fix. Credit goes under both code and tests, but she's one person, so you may want a single line.
+
+**Left out on purpose**
+- Lena Fischer: "Indent with tabs everywhere" only changes whitespace. A `-w` diff shows no content change, so I'd leave it out or give it a separate "formatting" mention.
+- Tomas Rey: "Update vendored unicode tables" is a 1,501-line file headed `@generated by vendor/update.sh - do not edit`. Tomas ran the script but didn't write the contents.
+- github-actions[bot]: regenerated `docs/api.generated.md`, which is automated output.
+
+Mia Okafor appears as the committer on most of these, but I credited her only for the allocation change and as co-author of the parse failure tests.
+
+Wen Zhou's credit rests only on the trailer, and Mia's author line on that commit doesn't say which parts Wen wrote. Let me know if you want to check with them before publishing.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git tag | grep -n "1.0.2" ; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git tag | tail -20; git log --oneline | wc -l; git log --all --oneline -i --grep='1\.0\.25' | head; grep -n '^version' Cargo.toml; git log --format='%h %s' -S'version = "1.0.25"' -- Cargo.toml | head
+Bash: git log --format='%h|%an <%ae>|%cn|%s' --stat=120 c5b806c..HEAD; echo ---; git log c5b806c..HEAD --format='%h %(trailers:key=Co-authored-by,valueonly,separator=%x2C)' | grep -i . 
+Bash: git log c5b806c..HEAD --format='=== %h %an%n%B'; git show d279751 114d0f3 c2b5f05 587c267 00fdc7d 6cb4f19 --format='--- %h' | grep -v '^index' | head -120
+### Final answer text
+Here are the contributions since 1.0.25. There are no release tags, so I used commit `c5b806c` ("Release 1.0.25") as the baseline. The range is 9 commits up to HEAD.
+
+I credited the commit author, not the committer. Mia Okafor committed most of these, including other people's work.
+
+**Code**
+- Mia Okafor: avoided an allocation in `Version::to_string`.
+- Anya Sokolova: rejected empty build metadata (the parser change; the test is under Tests).
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse`.
+- Ravi Menon: added the minimum supported Rust version to the readme.
+
+**Tests**
+- Mia Okafor and Wen Zhou: added the parse failure tests (#321). Wen Zhou is credited through a `Co-authored-by` trailer, and the commit is under Mia's name.
+- Tariq Aziz: added the identifier round trip test. Mia committed it, but Tariq is the author.
+- Anya Sokolova: added the test for the empty build metadata change.
+
+**Left out on purpose**
+- Lena Fischer's "Indent with tabs everywhere" commit changes whitespace only, across 15 files (2,070 lines in, 2,070 out). It's reasonable to skip it or give it a separate "formatting" mention, but it isn't authored code, docs or tests.
+- Tomas Rey's "Update vendored unicode tables" commit is a 1,501-line file marked `@generated by vendor/update.sh - do not edit`. It's script output, so I wouldn't credit it as code. You could thank Tomas for running the update.
+- `github-actions[bot]` regenerated `docs/api.generated.md`. That's automated output, not a person's docs.
+
+**Caveats**
+- Git history can't tell me if a commit's content was written by someone else. The trailer and the author/committer mismatch are the only signals I have.
+- A few of these diffs are single stub lines, such as an empty `fn` or `#[test]`. They are small contributions, so you may want to word the thanks accordingly.
+
+I didn't write any files, as you asked. The receipts skill didn't apply here, so I didn't run its miner or create its report files.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h|%an|%ae|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git log --oneline | wc -l; git log --format='%h %ad %an %s' --date=short | grep -n -i -E '1\.0\.2[0-9]|release|bump|version' | head -20; grep -m3 version Cargo.toml
+Bash: git log --format='%h|%an <%ae>|%cn|%s%n%b%n--' --stat c5b806c..HEAD; git log --graph --oneline c5b806c~2..HEAD | head -20
+Bash: git show --format='%h %an' 587c267 d279751 6cb4f19 114d0f3 c2b5f05 00fdc7d 8a5a147 553dfdb -- . ':!vendor' | grep -v '^index'; git show 6cb4f19 | head -20
+### Final answer text
+The repo has no `1.0.25` tag, so I used the commit "Release 1.0.25" (`c5b806c`) as the baseline. I looked at the nine commits after it, using each commit's author and any `Co-authored-by` trailer, not the committer. Mia Okafor committed everything, including other people's work.
+
+**Code**
+- Anya Sokolova: reject empty build metadata (`587c267`)
+- Mia Okafor: avoid an allocation in `Version::to_string` (`114d0f3`)
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse` (`d279751`)
+- Ravi Menon: added the minimum supported Rust version to the readme (`8a5a147`)
+
+**Tests**
+- Anya Sokolova: test for rejecting empty build metadata (`587c267`, same commit as the code change above)
+- Mia Okafor and Wen Zhou: parse failure tests (`00fdc7d`, #321). Mia authored it and Wen is a `Co-authored-by` trailer on it.
+- Tariq Aziz: identifier round trip test (`c2b5f05`). Mia committed it, but Tariq is the author.
+
+**Left out on purpose**
+- Lena Fischer, "Indent with tabs everywhere" (`0e5ed19`): this is a whitespace-only reformat across 15 files, with no functional change. Credit it as formatting or cleanup if you want to mention it, but I wouldn't list it as code.
+- Tomas Rey, "Update vendored unicode tables" (`6cb4f19`): the file is marked `@generated by vendor/update.sh - do not edit`. Tomas ran the script and didn't write the content.
+- github-actions[bot], regenerate `docs/api.generated.md` (`553dfdb`): this is generated by `cargo doc2md` and has no human author.
+
+Most of these changes are one-line additions, and several are empty stubs. Examples are `fn reject_empty_build_metadata() {}` and `#[test] fn identifier_roundtrip() {}`. The credits above reflect who authored each commit, not how substantial the change is. You may want to check that the changes are real before thanking people for them.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git log --format='%h|%an|%s' | grep -iE '1\.0\.2[4-6]|release|version' | head; git log --oneline | wc -l; grep -n '^version' Cargo.toml
+Bash: git log c5b806c..HEAD --format='=== %h|%an <%ae>|committer %cn|%s%n%b' --stat; git log c5b806c..HEAD --format='%h' | wc -l
+Bash: git show c2b5f05 114d0f3 8a5a147 00fdc7d d279751 587c267 553dfdb --format='=== %h %s' | grep -v '^index'; git show 6cb4f19 | head -30; git diff -w --stat c5b806c~0 0e5ed19~1 -- >/dev/null; git show -w 0e5ed19 --stat | tail -3
+### Final answer text
+Here is the credit list for the commits after the "Release 1.0.25" commit (`c5b806c`). The repo has no `1.0.25` tag, so I used that commit as the boundary. There are 9 commits.
+
+**Code**
+- Anya Sokolova: reject empty build metadata (`src/parse.rs`)
+- Mia Okafor: avoid an allocation in `Version::to_string` (`src/display.rs`)
+
+**Docs**
+- Mina Park: clarified the crate docs for `Version::parse`
+- Ravi Menon: added the minimum supported Rust version to the readme
+
+**Tests**
+- Anya Sokolova: test for rejecting empty build metadata
+- Tariq Aziz: identifier round trip test
+- Mia Okafor and Wen Zhou: parse failure tests (#321). Mia authored the commit, and its `Co-authored-by` trailer names Wen.
+
+**Left out on purpose**
+- **Lena Fischer:** "Indent with tabs everywhere" touches 15 files, but it only changes whitespace. If you want to thank them for it anyway, call it a formatting cleanup rather than code.
+- **Tomas Rey:** "Update vendored unicode tables" is a 1,501-line generated file (`@generated by vendor/update.sh - do not edit`), so Tomas didn't write it.
+- **github-actions[bot]:** regenerated `docs/api.generated.md`, which is also generated output.
+- **Maintainer name on others' work:** Mia is the committer on nearly every commit, but I credited the author. Tariq's test and Anya's change both landed under Mia's name as committer, so I credited Tariq and Anya, not Mia.
+- **Earlier commits:** the "Fix overflow in prerelease parsing" fix by Tariq (`2d5b0b1`) and the `Version::parse` doc clarification by Mina (`d279751`) both sit before or around the release commit. Mina's doc commit is after `c5b806c`, so it counts. Tariq's fix is before it, so it was in 1.0.25 and isn't included.
+
+Several of these commits add only a one-line stub, such as an empty `#[test] fn` or an empty `fn`, not a real implementation or test. For example, Anya's "reject empty build metadata" adds an empty `fn reject_empty_build_metadata() {}`. The credit above follows what each commit claims to do, so you may want to check the substance before you publish.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git tag | grep -n 1.0.2 | head; git log --format='%h|%an|%ae|%cn|%s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git tag | tail; git log --oneline | wc -l; git log --format='%h %ad %s' --date=short | grep -i -E '1\.0\.2|release|version' | head
+Bash: git log --format='--- %h | author: %an <%ae> | committer: %cn | %ad%n%s%n%b' --date=short --stat c5b806c..HEAD
+Bash: git merge-base --is-ancestor 2d5b0b1 c5b806c && echo anc; git show d279751 587c267 00fdc7d c2b5f05 114d0f3 --format='== %h' | grep -v '^index'; git show 6cb4f19 | head -20; git show 553dfdb | tail -8; git diff -w --stat c5b806c~0 0e5ed19~1 -- >/dev/null; git s
+### Final answer text
+Here is the credit list for everything after the 1.0.25 release commit (`c5b806c`, "Release 1.0.25"). The repo has no git tags, so I used that commit as the boundary.
+
+**Code**
+- Anya Sokolova: rejecting empty build metadata (`587c267`). The same commit also added a test, so Anya is listed under tests too.
+- Mia Okafor: avoiding an allocation in `Version::to_string` (`114d0f3`).
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse` (`d279751`).
+- Ravi Menon: added the minimum supported Rust version to the readme (`8a5a147`).
+
+**Tests**
+- Anya Sokolova: test for rejected empty build metadata (`587c267`).
+- Tariq Aziz: identifier round-trip test (`c2b5f05`). Mia Okafor committed it, but Tariq wrote it.
+- Mia Okafor, with Wen Zhou: parse failure tests (#321, `00fdc7d`). Mia is the author and Wen is credited in a `Co-authored-by` trailer, so name both.
+
+**Leave out or mention separately**
+- **Lena Fischer** (`0e5ed19`, "Indent with tabs everywhere"): this is a whitespace-only reformat across 15 files, so it adds no behaviour, docs or tests. It's up to you whether to thank Lena for it, but I wouldn't list it under code, docs or tests.
+- **Tomas Rey** (`6cb4f19`, "Update vendored unicode tables"): the file is marked `@generated by vendor/update.sh`, so the output came from a script. If you credit Tomas, it should be for running the update, not for writing the tables.
+- **github-actions[bot]** (`553dfdb`): it regenerated `docs/api.generated.md` automatically, so no human credit applies.
+- **Fix overflow in prerelease parsing** (`2d5b0b1`): the commit is dated 2026-02-01, after the 1.0.25 release date of 2026-01-20. It is an ancestor of the release commit, though, so it shipped in 1.0.25 and I excluded it. If your release notes cover it, its author needs a separate check.
+
+Some of the code and test commits are one-line stubs, for example `fn reject_empty_build_metadata() {}` and `#[test] fn identifier_roundtrip() {}`. They are real changes, but they are small, so you may want to word the thank-yous modestly.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git tag | grep -n '1.0.2[45]'; git log --oneline 1.0.25..HEAD 2>&1 | head -100
+Bash: git tag | tail; git log --oneline --all -i --grep='1\.0\.25' | head; grep -n '^version' Cargo.toml; git log --oneline -S'version = "1.0.25"' -- Cargo.toml | head
+Bash: git log --format='%h|%an|%cn|%ad|%s' --date=short c5b806c..HEAD; echo; git log c5b806c..HEAD --format='%h %(trailers:key=Co-authored-by,valueonly,separator=;)' | head -50
+Bash: git log c5b806c..HEAD --format='=== %h %an: %s%n%b' --numstat; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2025-01-01 2>&1 | head -40
+Bash: git show -w --stat --format=%h 0e5ed19 | tail -3; git show --format='%h' c2b5f05 114d0f3 8a5a147 d279751 587c267 00fdc7d 553dfdb | grep -E '^(\+|-|[0-9a-f]{7}$)' | grep -v '^+++\|^---'; git show 6cb4f19 --stat --format=%h | head -3; git show 6cb4f19 | sed -n 1
+### Final answer text
+I checked each of the 9 commits after the Release 1.0.25 commit (c5b806c) by author and diff. Authorship comes from the author field, not the committer. Mia Okafor committed almost all of them, including other people's work. The line counts below come from the diffs and the `people` tool output.
+
+**Code**
+- Mia Okafor: avoided an allocation in `Version::to_string` (114d0f3).
+- Anya Sokolova: reject empty build metadata (587c267), a one-line fix in `src/parse.rs`.
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse` (d279751).
+- Ravi Menon: added the minimum supported Rust version to the readme (8a5a147).
+
+**Tests**
+- Tariq Aziz: added an identifier round trip test (c2b5f05).
+- Mia Okafor and Wen Zhou: parse failure tests (00fdc7d, #321). Mia authored the commit and Wen is named as co-author, so credit both. History can't show how the work was split.
+- Anya Sokolova: also wrote the matching test in 587c267.
+
+Mia and Anya each appear under two headings. If you want one line per person, make both of them "code and tests".
+
+**Not credited, because they didn't write it**
+- Lena Fischer: "Indent with tabs everywhere" (0e5ed19) touches about 2,000 lines across 15 files. It is a whitespace-only change: ignoring whitespace, the diff is empty.
+- Tomas Rey: "Update vendored unicode tables" (6cb4f19) adds 1,501 lines. It is a generated vendored file, marked "do not edit", so Tomas ran the update script rather than writing the content.
+- github-actions[bot]: regenerated `docs/api.generated.md` (553dfdb). It is a bot and the file is generated.
+
+If you'd rather give Lena and Tomas a "maintenance" thanks, that would be fair. I kept them out of code, docs and tests.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --oneline 1.0.25..HEAD | wc -l; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --help 2>&1 | head -30
+Bash: git tag | wc -l; git log --all --oneline -i --grep='1\.0\.25' | head; git log -S'1.0.25' --oneline -- Cargo.toml | head
+Bash: git log --format='%h %an | %cn | %ad | %s' --date=short c5b806c..HEAD; git log --merges --oneline c5b806c..HEAD | wc -l
+Bash: git log --format='--- %h %an%n%B' --stat c5b806c..HEAD; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --repo . --since 2025-01-01 2>&1 | head -40
+Bash: git show --format='%h %an' -U0 d279751 587c267 114d0f3 c2b5f05 00fdc7d 8a5a147 | grep -v '^index'
+### Final answer text
+I've finished checking the history. The repo has no tags, so I used the "Release 1.0.25" commit (c5b806c) as the starting point. Nine commits have landed since then, and none are merges.
+
+**Code**
+- Anya Sokolova: rejecting empty build metadata (the code half of 587c267)
+- Mia Okafor: avoiding an allocation in `Version::to_string` (114d0f3)
+
+**Docs**
+- Mina Park: the crate documentation note for `Version::parse` (d279751)
+- Ravi Menon: the minimum supported Rust version in the readme (8a5a147)
+
+**Tests**
+- Anya Sokolova: the empty-build-metadata test, in the same commit as her code
+- Tariq Aziz: the identifier round trip test (c2b5f05)
+- Wen Zhou and Mia Okafor: the parse failure tests (00fdc7d, #321)
+
+**Things to know**
+- **Wen Zhou:** Wen has no commit of their own. They appear only as a `Co-authored-by` trailer on Mia's commit. They get a line for that test, which is credit from the trailer alone.
+- **Mia Okafor:** Mia is listed beside Wen as the commit's author, but the commit doesn't say who wrote what. If you want Wen alone, that's your call.
+- **Maintainer name:** Mia Okafor committed every one of these commits, including the ones above that are by other people. That's why the committer name doesn't match the author. I credited the author of each commit, not the committer.
+
+**Left out on purpose**
+- **Lena Fischer** (0e5ed19, "Indent with tabs everywhere"): this is a whitespace reformat of 15 files (2,070 lines changed). It isn't new code, docs or tests, so I'd thank Lena separately as formatting cleanup, if at all.
+- **Tomas Rey** (6cb4f19, "Update vendored unicode tables"): this adds 1,501 lines under `vendor/`. It's a vendored upstream table, not something Tomas wrote.
+- **github-actions[bot]** (553dfdb): it regenerated `docs/api.generated.md`. That's a bot and a generated file, so it isn't human credit.
+
+**Caveat:** Several commits add only a single line, and some of those lines are stubs, such as empty test and function bodies. The credit is for what the history shows, so check whether any of it is too thin to name in a thank-you.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git tag | grep -E '1\.0\.2[0-9]' | head; git log --oneline 1.0.25..HEAD | wc -l; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --help 2>&1 | head -30
+Bash: git tag | tail -5; git log --oneline --all -i --grep='1\.0\.25' | head; grep -n '^version' Cargo.toml; git log --oneline -S'version = "1.0.25"' -- Cargo.toml | head
+Bash: git log --format='%h %ad %cd | %an <%ae> | %cn | %s' --date=short c5b806c..HEAD; git show -s --format=%ad%n%cd c5b806c
+Bash: git log c5b806c..HEAD --format='=== %h %an | %s%n%b' --stat -M
+Bash: git log c5b806c..HEAD -p --format='=== %h %an | %s' -- . ':!src/*.rs' ':!tests/*' ':!vendor' | head -0; for c in c2b5f05 114d0f3 8a5a147 00fdc7d d279751 587c267 553dfdb; do git show $c --format='=== %h %s' | tail -n +2 | grep -E '^(===|[+-][^+-]|diff)'; done; 
+### Final answer text
+I've checked the nine commits after the 1.0.25 release commit (c5b806c, 2026-01-20). I read each diff and author, and the commit message for co-author trailers. Mia Okafor committed all nine, so the committer name tells you nothing about who wrote them. Credit below follows the author field and the trailers.
+
+**Code**
+- Anya Sokolova: rejects empty build metadata (the fix in `parse.rs`).
+- Mia Okafor: avoids an allocation in `Version::to_string`.
+
+**Docs**
+- Mina Park: clarifies the crate documentation for `Version::parse`.
+- Ravi Menon: adds the minimum supported Rust version to the readme.
+
+**Tests**
+- Tariq Aziz: adds the identifier round trip test.
+- Mia Okafor and Wen Zhou: add the parse failure tests (#321). Mia is the author, and Wen is credited only by a `Co-authored-by` trailer. The commit has no other trace of Wen, so please confirm their part with them.
+- Anya Sokolova: adds the test that goes with the empty build metadata fix, so Anya could also appear on the tests line.
+
+**Leave out**
+- Lena Fischer: "Indent with tabs everywhere" is a whitespace-only reformat. It changes 2,070 lines across 15 files and nothing else. If you want to mention it, call it a formatting cleanup rather than code or tests.
+- Tomas Rey: "Update vendored unicode tables" adds a file marked `@generated`, with 1,501 lines of vendored output. It's generated, not written by hand.
+- github-actions[bot]: regenerated `docs/api.generated.md`. It's a bot, and the file is generated.
+
+Anya's commit has an author date of 2026-01-15, before the release. It was committed on 2026-01-25, after the release commit, so it counts as post-release. I also didn't check whether any of these were reverted. None of the commit subjects look like reverts.
+
+Most of these commits are one or two lines, so I'd keep the thank-you to names and not rank by size.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h %an <%ae> | %s' 1.0.25..HEAD 2>&1 | head -80
+Bash: git log --oneline | grep -iE '1\.0\.2[0-9]|release|bump|version' | head; git log --oneline | wc -l; grep -m3 version Cargo.toml
+Bash: git log --reverse --format='=== %h | author: %an <%ae> | committer: %cn | %s%n%b' --stat c5b806c..HEAD
+Bash: head -8 vendor/unicode-tables/tables.rs; git show 587c267 00fdc7d 114d0f3 --format='--- %h' | grep -E '^(---|[+-][^+-])'; git show 0e5ed19 -w --stat --format= | tail -3
+### Final answer text
+Credits for the commits after `c5b806c` ("Release 1.0.25"). The repo has no `1.0.25` tag, so I used that release commit as the cutoff.
+
+**Code**
+- Anya Sokolova: rejecting empty build metadata in the parser (`src/parse.rs`)
+- Mia Okafor: avoiding an allocation in `Version::to_string` (`src/display.rs`)
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse`
+- Ravi Menon: added the minimum supported Rust version to the readme
+
+**Tests**
+- Anya Sokolova: the empty build metadata rejection test (`tests/test_version.rs`)
+- Mia Okafor and Wen Zhou: the parse failure tests (#321). Wen Zhou is credited only through a `Co-authored-by` trailer on Mia's commit, so confirm Wen's part before you thank them.
+- Tariq Aziz: the identifier round trip test
+
+**Left out on purpose**
+- **Tomas Rey** ("Update vendored unicode tables"): the file is marked `@generated by vendor/update.sh`, so the output is generated rather than written by hand. Credit Tomas only if you want to thank them for the refresh.
+- **github-actions[bot]**: regenerated `docs/api.generated.md` automatically.
+- **Lena Fischer** ("Indent with tabs everywhere"): this is a whitespace-only reformat of 15 files. Add a "formatting" credit if you want one.
+
+Mia Okafor committed every human commit, including the ones authored by others. I used the commit authors, not the committer, so Mia only gets credit for the two items above.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h %an <%ae> | %s%n%b---' 1.0.25..HEAD 2>&1 | head -150
+Bash: git log --oneline | grep -n -i -E '1\.0\.2[0-9]|release|bump' | head; git log --oneline | wc -l; grep -n '^version' Cargo.toml
+Bash: git log --format='=== %h | author: %an <%ae> | committer: %cn%n%s%n%b' --stat c5b806c..HEAD
+Bash: git show --format='=== %h %s' -U0 587c267 d279751 00fdc7d 114d0f3 8a5a147 c2b5f05 | grep -v '^index'; git show -w --stat 0e5ed19 | tail -3; git show 6cb4f19 | head -20
+### Final answer text
+Here's who wrote what in the commits after `Release 1.0.25` (c5b806c). The repo has no tags, so I used that release commit as the starting point.
+
+**Code**
+- Anya Sokolova: rejects empty build metadata (`src/parse.rs`).
+- Mia Okafor: avoids an allocation in `Version::to_string` (`src/display.rs`).
+
+**Docs**
+- Mina Park: clarifies the crate documentation for `Version::parse` (`src/lib.rs`).
+- Ravi Menon: adds the minimum supported Rust version to the readme. Mia committed it, but Ravi is the author.
+
+**Tests**
+- Anya Sokolova: adds the test for empty build metadata (`tests/test_version.rs`).
+- Tariq Aziz: adds the identifier round trip test. Mia committed it, but Tariq is the author.
+- Mia Okafor: adds the parse failure tests (#321).
+- Wen Zhou: co-authored the parse failure tests, per the `Co-authored-by` trailer on #321. The commit is under Mia's name, so I credited both.
+
+**Left out on purpose**
+- **Lena Fischer:** "Indent with tabs everywhere" only changes whitespace across 15 files. It touches no logic, so I wouldn't credit it as code, docs or tests. Mention it as a formatting cleanup if you like.
+- **Tomas Rey:** "Update vendored unicode tables" is a file marked `@generated by vendor/update.sh - do not edit`. Tomas ran the script rather than writing the content.
+- **github-actions[bot]:** regenerated `docs/api.generated.md`. That's automated output, not a person's work.
+
+The contributions are tiny: each is one or two lines. The code lines in particular are stub one-liners (`fn reject_empty_build_metadata() {}`, `fn to_string_without_allocation() {}`) rather than real implementations. Check that these commits are what you meant to release before you thank people for them.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --format='%h|%an|%cn|%s' 1.0.25..HEAD 2>&1 | head -80
+Bash: git log --format='%h|%an|%s' -S'1.0.25' -- Cargo.toml | head; git log --oneline | wc -l; git log --oneline | grep -i -E '1\.0\.2[0-9]|release'| head
+Bash: git log --reverse --format='=== %h | author: %an <%ae> | committer: %cn | %s%n%b' --stat c5b806c..HEAD
+Bash: git show 6cb4f19 | head -20; git diff -w --stat 0e5ed19~1 0e5ed19 | tail -3; git show 553dfdb | head -15
+### Final answer text
+Changes since 1.0.25 (commit `c5b806c`, "Release 1.0.25"; the repo has no tags). Mia Okafor is the committer on everything except the bot's commit.
+
+**Code**
+- Anya Sokolova: reject empty build metadata (`src/parse.rs`).
+- Mia Okafor: avoid an allocation in `Version::to_string`.
+
+**Docs**
+- Mina Park: clarified the crate documentation for `Version::parse`.
+- Ravi Menon: added the minimum supported Rust version to the readme.
+
+**Tests**
+- Anya Sokolova: the test for the empty build metadata change (`tests/test_version.rs`).
+- Mia Okafor and Wen Zhou: parse failure tests (#321). Mia is the commit author, and Wen is credited with `Co-authored-by`.
+- Tariq Aziz: identifier round trip test.
+
+**Left out of the thank-you**
+- Tomas Rey: the "Update vendored unicode tables" commit is a 1,501-line file marked `@generated by vendor/update.sh`. It was produced by a script, so I wouldn't credit it as written work. You could still thank them for running the update.
+- github-actions[bot]: regenerated `docs/api.generated.md`, which is also generated output.
+- Lena Fischer: "Indent with tabs everywhere" is a whitespace-only reformat of 15 files. It adds no code, docs or tests. You may want to mention it as housekeeping rather than credit it as a contribution.
+
+**Caveat**
+- Wen Zhou's `Co-authored-by` is the only co-author trailer in the range. I can't tell from git how much of the tests Wen wrote, so check that credit with Mia if it matters.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git tag | tail -5; git log --oneline 1.0.25..HEAD 2>&1 | head -80
+Bash: git log --format='%h %an <%ae> | %cn | %s' | head -60; git log --all --oneline -i --grep='1\.0\.25' 
+Bash: for c in $(git log --reverse --format=%h c5b806c..HEAD); do echo "=== $(git log -1 --format='%h %an | %s' $c)"; git log -1 --format='%b' $c; git show --stat --format= $c; done
+Bash: for c in 587c267 d279751 553dfdb 00fdc7d 8a5a147 114d0f3 c2b5f05; do echo "=== $c"; git show --format= $c; done; git show 6cb4f19 --format=%B | head -12; git show 6cb4f19 --format= | sed -n 1,20p; git show -w --stat --format= 0e5ed19 | tail -3; git log -3 --fo
+### Final answer text
+I counted commits after the "Release 1.0.25" commit (`c5b806c`). The repo has no tags, so I used that commit as the release point. Mia Okafor committed every one of them, so I credited by commit author and the `Co-authored-by` trailer.
+
+**Code**
+- Anya Sokolova: rejecting empty build metadata (`src/parse.rs`).
+- Mia Okafor: avoiding an allocation in `Version::to_string` (`src/display.rs`).
+
+**Docs**
+- Mina Park: the crate documentation for `Version::parse`.
+- Ravi Menon: the minimum supported Rust version in the readme.
+
+**Tests**
+- Anya Sokolova: the empty-build-metadata test, bundled with her code change.
+- Tariq Aziz: the identifier round-trip test.
+- Mia Okafor and Wen Zhou: the parse-failure tests (#321). Mia authored the commit and Wen is a `Co-authored-by`, so they share the credit.
+
+**Left out on purpose**
+- **Lena Fischer** wrote "Indent with tabs everywhere". It changes about 2,000 lines, but `git show -w` shows no difference once whitespace is ignored, so it's pure reformatting. Mention it separately if you want to, but I wouldn't list it as code or tests.
+- **Tomas Rey** committed "Update vendored unicode tables". The file header says `@generated by vendor/update.sh - do not edit`, so the content came from a script rather than from Tomas.
+- **github-actions[bot]** added `docs/api.generated.md`, which is generated output (`@generated by cargo doc2md`), so there's nobody to thank.
+- **Kai Nakamura and Tariq Aziz** have earlier commits (identifier comparison speed-up, prerelease overflow fix). Those landed before the release commit, so they belong to 1.0.25 itself. Tariq is still credited above for his later test.
+
+**Caveats**
+- Most of these diffs are single-line stubs, such as empty `fn` bodies and `#[test] fn ... {}`. The credit above matches what each person authored, but the commit titles describe more than the diffs actually do. You may want to check them before praising specific behaviour.
+- Mia's two commits and Wen's co-authorship are the only places where credit overlaps with the maintainer. Everything else was authored by someone other than Mia and only committed by her.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git tag --list | grep -E '1\.0\.2[0-9]' ; git log --oneline 1.0.25..HEAD | wc -l
+Bash: git tag | tail -5; git log --oneline --all -i --grep='1\.0\.25' | head; git log --oneline | wc -l; grep -n '^version' Cargo.toml
+Bash: git log --format='%h|%an|%cn|%s%n%b---' c5b806c..HEAD; echo; git log --format='%h' c5b806c..HEAD | while read h; do echo "== $h"; git show --stat --format= $h; done
+Bash: for h in c2b5f05 114d0f3 8a5a147 00fdc7d 553dfdb d279751 587c267; do echo "== $h"; git show --format= -U0 $h; done; echo == tables; git show --format=%B 6cb4f19 | head -5; head -8 vendor/unicode-tables/tables.rs; echo == tabs; git show -w --stat --format= 0e5e
+Bash: git show --format=%B -s 6cb4f19; head -5 vendor/unicode-tables/tables.rs; git show -w --stat --format= 0e5ed19 | tail -2; git log -3 --format='%h %an %s' -- vendor
+### Final answer text
+Range used: `c5b806c` ("Release 1.0.25", there are no git tags) to `HEAD`, which is 9 commits. Mia Okafor is the committer on all of them, so I went by author, co-author trailers and the actual diffs.
+
+**Code**
+- Anya Sokolova: rejects empty build metadata (`src/parse.rs`).
+- Mia Okafor: avoids an allocation in `Version::to_string` (`src/display.rs`).
+
+**Docs**
+- Mina Park: clarified the crate docs for `Version::parse` (`src/lib.rs`).
+- Ravi Menon: added the minimum supported Rust version to the README.
+
+**Tests**
+- Anya Sokolova: the test for rejecting empty build metadata (`tests/test_version.rs`).
+- Mia Okafor and Wen Zhou: parse failure tests (#321). Wen is credited only by a `Co-authored-by` trailer, so I can't tell how the work was split. Credit them together.
+- Tariq Aziz: identifier round trip test.
+
+Anya's name appears under both code and tests because that commit touches both.
+
+**Leave out of the thank-you**
+- Lena Fischer: "Indent with tabs everywhere" touches 15 files, but it's a whitespace-only change (`git show -w` shows no difference). It's not a contribution of substance, so I'd skip it or give it a passing mention.
+- Tomas Rey: "Update vendored unicode tables" adds 1,501 lines, but the file is marked `@generated by vendor/update.sh - do not edit`. Tomas ran the script and didn't write the content.
+- `github-actions[bot]`: regenerated `docs/api.generated.md` (marked `@generated`). It's automated output, not a person's work.
+
+These changes are all one-liners. Several of the "tests" and "code" lines are just empty stubs (for example `fn to_string_without_allocation() {}` and `#[test] fn identifier_roundtrip() {}`). I credited them as committed, but you may want to check them before praising the performance or test coverage. The `to_string` commit adds only an empty function and no actual allocation change.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git tag --list | tail -5; git log --format='%h %an <%ae> | %cn | %s' 1.0.25..HEAD 2>&1 | head -100
+Bash: git log --format='%h %ad %an | %s' --date=short | head -60; git log --all --oneline | grep -i '1\.0\.25'; grep -n '^version' Cargo.toml
+Bash: git log --reverse --format='=== %h | author: %an <%ae> | committer: %cn | %s%n%b' --stat c5b806c..HEAD
+Bash: git merge-base --is-ancestor 2d5b0b1 c5b806c && echo "2d5b0b1 before release"; git branch --contains 2d5b0b1; for c in 587c267 d279751 6cb4f19 553dfdb 00fdc7d 8a5a147 114d0f3 c2b5f05; do echo "##### $c"; git show --format= $c -- . ':!vendor' | head -40; done; 
+### Final answer text
+Here's the credit list for everything after the `1.0.25` release. The repo has no `1.0.25` tag, so I used the "Release 1.0.25" commit (`c5b806c`) as the starting point. That gives 9 commits.
+
+**Code**
+- Anya Sokolova: reject empty build metadata (`587c267`). The source change is a one-line stub function in `src/parse.rs`, not real validation logic.
+- Mia Okafor: avoid an allocation in `Version::to_string` (`114d0f3`). This is also only a stub function in `src/display.rs`.
+
+**Docs**
+- Mina Park: clarified the crate docs for `Version::parse` (`d279751`).
+- Ravi Menon: added the minimum supported Rust version to the readme (`8a5a147`).
+
+**Tests**
+- Anya Sokolova: added a test for empty build metadata being rejected (`587c267`, in the same commit as her code change). The test body is empty.
+- Mia Okafor and Wen Zhou: added the parse failure tests (`00fdc7d`, #321). Wen Zhou is credited through a `Co-authored-by` trailer, and Mia committed it. The test body is empty.
+- Tariq Aziz: added an identifier round trip test (`c2b5f05`). The test body is empty.
+
+**Leave out or handle separately**
+- **Tomas Rey** (`6cb4f19`): the commit only adds a vendored file marked `@generated by vendor/update.sh`. It's regenerated output, so I wouldn't credit it as code.
+- **github-actions[bot]** (`553dfdb`): it regenerated `docs/api.generated.md`. That's not a person's writing, so it gets no credit.
+- **Lena Fischer** (`0e5ed19`): this is a whitespace-only switch to tab indentation. `git show -w` shows no changes, so it's formatting churn, not code. You could add a "formatting" note for them if you want one.
+- **Mia Okafor as committer:** she committed every commit in the range. I credited her only for the two commits she authored. Everyone else's commits landed under her name as committer, but the authorship is theirs.
+
+**Not in this release:** Tariq's "Fix overflow in prerelease parsing" (`2d5b0b1`) and Kai Nakamura's "Speed up identifier comparison" (`a6f6401`). Both are ancestors of the release commit, so they shipped in 1.0.25 or earlier. Tariq's commit is dated 2026-02-01, after the release commit's date of 2026-01-20, but it's still in the earlier history. Anya's commit goes the other way: it's dated 2026-01-15, before the release date, but it landed after the release commit.
+
+Most of the new functions and tests are empty stubs, so the credit lines describe what each commit set out to do. If you want the wording to match what was actually implemented, check these before publishing.
+### Files it left in the working directory
+(none)

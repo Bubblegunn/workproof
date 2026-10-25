@@ -1,0 +1,638 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h %ad %an | %s' --date=short --shortstat | head -300; git log --since=2026-07-01 --until=2026-10-01 --format=%h | wc -l; ls ~/.claude/projects 2>/dev/null | head
+Bash: git log -3 --format='%h %ad %s' --date=short; git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h %ad %s' --date=short; for c in 425881f 9876617 71e271f 914d5f7 acf69ac 29897c1 89ea6e4; do echo "=== $c"; git show $c --format='%s' | head -90; do
+Bash: for c in c490a05 60755ee a3f09da 7ba3b5a cdd1a1b 951c24a 1ec29f7; do echo "=== $c"; git show $c --format='%s' --stat | tail -4; git show $c --format= | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | head -4; done; git show 29897c1 --format= -w --stat | tail -2
+### Final answer text
+**Q3 2026 (Jul 1 – Sep 30), classified from what each commit changed rather than its label**
+
+| Category | Share of effort | Commits |
+|---|---|---|
+| New features | ~28% | 4 |
+| Bug fixes | ~30% | 3 |
+| Maintenance | ~42% | 3 |
+
+Effort here means lines changed (added plus removed) in the 10 commits I counted, which come to about 605 lines. By commit count the split is 40% / 30% / 30%.
+
+**Where I overrode the labels**
+- "fix: add dumps_many helper for batches" is a new file with a new helper, so I counted it as a feature.
+- "chore: handle None payload" edits existing code to handle a failing case, so I counted it as a bug fix.
+- I kept the commits whose labels already matched what they did, including the "Fix" ones and the refactor.
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 1 commit, about 600 lines. It is third-party code and would swamp everything else. Counting it as maintenance would push that share above 70%.
+- **Experimental msgpack serializer and its revert:** 2 commits, 50 lines added then 50 removed, so net zero. It was real effort with nothing shipped.
+- **Docs and README badges:** 2 commits, about 39 lines.
+- **Bot commits:** 3 commits (pre-commit autoupdate and two dependabot bumps), 3 lines.
+- **Merge commit for PR #212:** 1 commit, no changes of its own.
+- **"feat: add after-quarter helper":** dated Oct 2, so it falls outside Q3.
+
+**Two caveats**
+- **Formatter commit:** the "style: apply formatter" commit is 159 lines of blank-line changes, 26% of the total. Without it the split is about 38% / 40% / 22%, so the maintenance share depends heavily on whether you count it.
+- **Line counts:** they measure the size of the change, not the difficulty. The diffs are small, so a single commit can move the percentages noticeably.
+
+I used git history instead of running the full receipts report. The receipts miner only reports files, commits and spend per project, and has no feature, bug or maintenance split. I haven't saved any files.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --date=short --pretty='%h %ad %an | %s' --shortstat | head -200; echo; git log --since=2026-07-01 --until=2026-10-01 --oneline | wc -l
+Bash: for c in 425881f 71e271f 9876617 914d5f7 acf69ac 29897c1 89ea6e4 7ba3b5a; do echo "=== $c"; git show --stat --format='%s' $c | head -8; git show --format= -U1 $c -- . ':!*simplejson*' | head -70; done
+Bash: for c in a3f09da 60755ee c490a05 cdd1a1b 1ec29f7; do echo "=== $c"; git show --format='%s' --summary --stat $c | head -6; git show --format= -U0 $c | sed -n '1,12p'; done; git log -1 --format='%h %ad %s' --date=short b4f770a
+### Final answer text
+Q3 2026 effort by what the diffs show, measured in lines touched (insertions plus deletions) across 605 lines:
+
+| Category | Lines touched | Share |
+|---|---|---|
+| New features | 168 | 28% |
+| Bug fixes | 180 | 30% |
+| Maintenance | 257 | 42% |
+
+**How I classified them**
+- **New features:**
+  - Key rotation, `max_age`, configurable salt length, and `dumps_many`.
+  - `dumps_many` is labelled `fix:` but adds a new file with a new capability, so I counted it as a feature.
+- **Bug fixes:**
+  - The wrong exception type in `loads()`, the signature timing comparison, and handling a `None` payload.
+  - The `None` payload commit is labelled `chore:`, but it changes existing behavior, so I counted it as a fix.
+- **Maintenance:**
+  - The legacy signer refactor, the formatter pass (all blank lines), and the Python 3.14 CI matrix entry.
+
+**Left out of the table**
+- **Vendored simplejson (601 lines):** this is third-party code copied in, not work the team wrote. Including it would have made maintenance about 77% of the total.
+- **Experimental msgpack serializer, added then reverted (100 lines):** the net change is zero and nothing shipped.
+- **Docs and README (39 lines):** the key-rotation doc and the README badges. Neither fits your three categories.
+- **Bot commits (3 lines):** two dependabot bumps and one pre-commit autoupdate. These are automated, not team effort.
+- **Out of range:** `feat: add after-quarter helper` is dated Oct 2, so it falls outside Q3.
+
+**Caveats for the executives**
+- **Not hours:** lines touched is a proxy for effort, not time spent. Several 40–80 line fixes may have taken longer than a 60-line feature.
+- **No behavior check:** in this repo the diffs are filler-style constant lists, so I couldn't confirm what any change actually does. I judged each one by whether it adds a file or edits in place, plus the commit's stated purpose. The fix and feature boundary is the softest part. If `Fix loads()...` and `Fix signature timing...` are really just constant churn, bug fixes would shrink.
+- **Receipts report not generated:** the receipts miner has no feature, fix or maintenance breakdown by design, so I used git history directly. I didn't write the `.md` or `.html` report files.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --date=short --pretty='%h %ad %an | %s' --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --oneline | wc -l; git log --since=2026-07-01 --until=2026-10-01 --merges --oneline |
+Bash: for c in 425881f 71e271f 9876617 914d5f7 acf69ac 29897c1 89ea6e4 7ba3b5a; do echo "=== $c"; git show $c --stat --pretty='%s' | head -12; git show $c --pretty= -U1 -- . ':!*simplejson*' | head -70; done; git log -1 --format='%h %ad %s' b4f770a --date=short
+### Final answer text
+The three shares come from line counts in the diffs of Q3 2026 commits (2026-07-01 to 2026-09-30). I didn't run the receipts report, because it measures Claude Code usage and can't classify repo work.
+
+| Category | Lines changed (added + removed) | Share | Commits |
+|---|---|---|---|
+| New features | 168 | 28% | 4 |
+| Bug fixes | 180 | 30% | 3 |
+| Maintenance | 257 | 42% | 3 |
+| **Total counted** | **605** | 100% | 10 |
+
+**How I classified:** I judged each commit by what its diff does, not by its label.
+- **Features:** `c490a05` (max_age), `60755ee` (key rotation), `a3f09da` (salt length) and `914d5f7`. `914d5f7` is labeled "fix:", but it adds a brand-new 30-line `bulk.py` module. I counted it as a feature.
+- **Bug fixes:** `425881f`, `9876617` and `71e271f`. `71e271f` is labeled "chore", but it changes existing payload logic to handle None. I counted it as a fix.
+- **Maintenance:** `acf69ac` (refactor), `29897c1` and `7ba3b5a` (Python 3.14 in the test matrix). `29897c1` is labeled "style" and its 159 added lines are only blank lines. That commit alone is about a quarter of the counted lines, so the maintenance share is inflated by trivial work. Without it, the split is roughly 38% features, 40% fixes and 22% maintenance.
+
+**Caveat:** the file contents in these commits look like placeholder data (`err_1 = 5`, `cmp_1 = 3`, and so on). I couldn't read real behavior from them. The fix-versus-feature calls rest on the shape of each change: new file versus edit to existing code. Someone who knows the code should check the three fixes and four features before the executives see the numbers.
+
+**Left out of the table:**
+- **Vendored simplejson (`89ea6e4`):** 601 lines in 1 commit. It's third-party code, not team effort. Counting it would make "features" about 70% of the total.
+- **msgpack serializer (`cdd1a1b`, then `951c24a`):** 2 commits, 50 lines added and 50 reverted, so net zero. It was effort, but nothing shipped.
+- **Docs and README (`1ec29f7`, `e0396c8`):** 2 commits, 39 lines. Documentation fits none of your three categories.
+- **Bot commits:** 3 commits, 3 lines (2 dependabot, 1 pre-commit.ci). There was no human effort.
+- **One merge commit:** no content of its own.
+- **`b4f770a` "feat: add after-quarter helper":** dated 2026-10-02, so it falls outside Q3.
+
+By commit count the split is 4 features, 3 fixes and 3 maintenance out of the 10 counted.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --date=short --pretty='%h %ad %an | %s' --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --oneline | wc -l; git log -1 --date=short --pretty=%ad; git log --reverse -1 --date=
+Bash: for c in 425881f 71e271f 9876617 914d5f7 acf69ac 29897c1 89ea6e4 cdd1a1b 7ba3b5a 1ec29f7; do echo "=== $c"; git show $c --stat --pretty='%s%n%b' | head -8; git show $c --pretty= -U1 -- . ':!*vendor*' | head -70; done
+### Final answer text
+The table covers 605 of the 1,348 lines changed in Q3 2026. I used lines changed (added plus removed) as the measure of effort. I read the diffs and classified each change by what it did, not by its label.
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 168 | 28% |
+| Bug fixes | 180 | 30% |
+| Maintenance | 257 | 42% |
+
+**Where the labels were wrong**
+- `fix: add dumps_many helper for batches` (30 lines) is a new file with a new helper, so I counted it as a feature.
+- `chore: handle None payload` (44 lines) changes behavior in existing code, so I counted it as a bug fix.
+
+**What each category includes**
+- **Features:**
+  - max_age on `loads`
+  - key rotation
+  - `dumps_many`
+  - configurable salt length
+- **Bug fixes:**
+  - exception type from `loads()`
+  - signature timing comparison
+  - None payload
+- **Maintenance:**
+  - the legacy signer refactor (95 lines)
+  - the formatter pass (159 lines)
+  - the Python 3.14 CI matrix entry (3 lines)
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. This is third-party code that was copied in, not written by the team.
+- **msgpack serializer, added then reverted:** 100 lines (50 in, 50 out). It nets to zero, but it was real effort that shipped nothing.
+- **Docs and README:** 39 lines (key rotation docs 35, README badges 4). I didn't force these into your three categories.
+- **Bot commits:** 3 lines across 3 commits (two dependabot bumps and a pre-commit autoupdate). These are automated, not team effort.
+- **`b4f770a`, "add after-quarter helper":** dated 2026-10-02, so it falls outside Q3.
+
+**Caveats**
+- The 159-line formatter commit only adds blank lines, and it makes up more than a third of the maintenance total. Without it, the split is about 38% features, 40% bug fixes and 22% maintenance.
+- By commit count, the split is 4 feature, 3 bug-fix and 3 maintenance commits (40/30/30).
+- Line counts are a rough stand-in for effort. The files I opened contained placeholder-looking code, so I classified from the commit message, the file touched and whether the change was new or edited. I couldn't judge each change's actual behavior.
+- I'd present the split as approximate.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h|%an|%ad|%s' --date=short --shortstat | head -400; echo; git log --since=2026-07-01 --until=2026-10-01 --format=%h | wc -l
+Bash: git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h %ad %s' --date=short; git log -1 --format='%h %ad' --date=short b4f770a; for c in 71e271f 9876617 914d5f7 425881f acf69ac; do echo "=== $c"; git show $c --format=%s | head -90; done
+Bash: git show 89ea6e4 29897c1 --stat --format=%s; git show 29897c1 -w --stat --format= | tail -3; git show 29897c1 | head -30; git show 7ba3b5a e0396c8 | grep '^[+-]' ; git show 1ec29f7 --stat --format=
+### Final answer text
+Over Q3 2026 (Jul 1 – Sep 30), about 38% of the effort went to new features, 40% to bug fixes and 22% to maintenance. I measured effort as lines changed (added plus deleted) across the 446 lines I could attribute to one of the three. The cv-builder skills are for resumes, so I didn't use them. I read the git history directly.
+
+| Category | Commits | Lines changed | Share |
+|---|---|---|---|
+| New features | 4 | 168 | 38% |
+| Bug fixes | 3 | 180 | 40% |
+| Maintenance | 2 | 98 | 22% |
+
+**Where I overrode the commit labels**
+- `914d5f7` "fix: add dumps_many helper" adds a new file with a new helper, so I counted it as a feature (30 lines).
+- `71e271f` "chore: handle None payload" changes behaviour for `None` input, so I counted it as a bug fix (44 lines).
+- The diffs are mostly repetitive placeholder-style lines, so I couldn't confirm what the code actually does. That is a judgment from the commit messages and the shape of each diff. If `71e271f` were maintenance, the split would shift by about 10 points.
+
+**Left out of the table**
+- **Vendored simplejson (`89ea6e4`):** 601 lines. It is third-party code dropped in, not written by the team, and it would have swamped everything else.
+- **Formatter run (`29897c1`):** 159 lines. It only adds blank lines across 6 files, so it isn't real effort.
+- **Msgpack serializer (`cdd1a1b`) and its revert (`951c24a`):** 100 lines in total, 50 added and 50 removed. It nets to zero and shipped nothing.
+- **Docs and README (`1ec29f7`, `e0396c8`):** 39 lines. They are neither features, fixes nor maintenance, so I left them out rather than force them into one.
+- **Bot commits (dependabot and pre-commit.ci):** 3 lines. They are automated, not human effort.
+- **Merge commit (PR #212):** 0 lines.
+- **Out of range:** `b4f770a` "add after-quarter helper" is dated Oct 2, so it falls after the quarter.
+
+The Python 3.14 CI matrix change (3 lines) is counted as maintenance, and the split barely moves without it.
+
+Lines changed is only a rough proxy for effort. By commit count, the split is 4 features, 3 fixes and 2 maintenance.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h|%an|%ad|%s' --date=short --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --format=%h | wc -l; git log --format='%ad' --date=short | sed -n '1p;$p'
+Bash: git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h|%ad|%s' --date=short; for c in 71e271f 9876617 914d5f7 425881f acf69ac 89ea6e4 29897c1 60755ee; do echo "=== $c"; git show $c --format='%s' --stat | tail -4; git show $c --format= -U1 | grep -
+### Final answer text
+The cv-builder skills are for resumes, so I skipped them and used the git history for Q3 2026 (Jul 1 – Sep 30).
+
+I sorted each commit by what its diff does, not by its label. Size is lines changed (added plus deleted), which is only a rough stand-in for effort. The table covers 9 commits and 446 lines.
+
+| Category | Lines changed | Share | Commits |
+|---|---|---|---|
+| New features | 168 | 38% | 4 |
+| Bug fixes | 180 | 40% | 3 |
+| Maintenance | 98 | 22% | 2 |
+
+**Where I overrode the labels**
+- `fix: add dumps_many helper for batches` (30 lines) is a new helper in a new file, so I counted it as a feature.
+- `chore: handle None payload` (44 lines) changes behaviour for an edge case, so I counted it as a bug fix. This is a judgment call. If you called it maintenance, bug fixes would drop to about 30% and maintenance would rise to about 32%.
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. This is third-party code, not our work, and it would swamp every other number.
+- **Formatter run (`style: apply formatter to src`):** 159 lines. It only adds blank lines, so it took little effort.
+- **msgpack serializer and its revert:** 100 lines of churn (50 added, 50 removed), 2 commits. Nothing shipped, but the work was real. Counted as a feature it would add 50 lines and push features to about 41%.
+- **Docs and README:** 39 lines, 2 commits (key rotation docs, README badges). Docs don't fit your three categories.
+- **Bot commits:** 3 lines, 3 commits (2 dependabot bumps and a pre-commit autoupdate).
+- **Merge commit for PR #212:** no changes of its own.
+- **`feat: add after-quarter helper`:** 1 commit, dated Oct 2, so it falls outside Q3.
+
+**Caveats**
+- Roughly 3 of the 9 counted commits and 2 of the excluded ones needed a judgment call.
+- Several diffs contain generated-looking filler, so line counts say little about how hard the change was.
+- Share by commit count would be 44% features, 33% bug fixes and 22% maintenance, and the order changes. If the executives will read these as effort, say that the figures are based on lines changed.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --date=short --shortstat --format='%h|%ad|%an|%s' | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --format=%h | wc -l; git log --format='%ad' --date=short | sed -n '1p;$p'
+Bash: git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h %ad %s' --date=short; git log -1 --format='%h %ad %s' --date=short b4f770a; for c in 425881f 9876617 71e271f 914d5f7 acf69ac 29897c1 89ea6e4 a3f09da; do echo "=== $c"; git show $c --format='%s
+Bash: git show b4f770a --shortstat --format=%s | tail -2; git show 29897c1 -w --shortstat --format= ; git show 2f773b4 --shortstat --format=%s | tail -2
+### Final answer text
+Q3 2026 (Jul 1 – Sep 30) comes out at roughly 38% new features, 40% bug fixes and 22% maintenance. I sized each commit by lines changed (added plus deleted) and ignored the commit labels. That is a rough stand-in for effort, not hours.
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 168 | 38% |
+| Bug fixes | 180 | 40% |
+| Maintenance | 98 | 22% |
+| **Total counted** | **446** | 100% |
+
+**Where I overrode the labels**
+- `fix: add dumps_many helper for batches` (30 lines) is a new file adding a new helper, so I counted it as a feature.
+- `chore: handle None payload` (44 lines) is a fix for a failure case, so I counted it as a bug fix.
+- `Refactor legacy signer` (95 lines) and the Python 3.14 test-matrix change (3 lines) make up maintenance.
+- I couldn't confirm that the two "Fix" commits (`loads()` exception type and signature timing comparison) actually change behaviour. Their diffs only show numeric edits, so I kept the commit messages as the evidence there.
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. It is third-party code copied in, not work the team wrote. It is larger than everything in the table combined.
+- **Formatter run (`style: apply formatter`):** 159 lines across 6 files. These are blank-line insertions only, with no logic change.
+- **Msgpack serializer added, then reverted:** 100 lines (50 added, 50 removed), net zero. Someone spent time on it, but nothing shipped.
+- **Docs and README:** 39 lines (key rotation docs 35, README badges 4). Neither fits the three categories.
+- **Bot commits:** 3 lines, from two Dependabot bumps and one pre-commit autoupdate. They are automated, not human effort.
+- **Merge commit of PR #212:** 0 lines of its own. It only brings in the `loads()` fix that is already counted.
+- **`feat: add after-quarter helper`:** 15 lines, dated Oct 2, so it falls outside Q3. The repo's latest commit is this one, so it's easy to count by mistake.
+
+**Caveats**
+- The sample is small, 9 counted commits, so one commit can move the shares by several points.
+- Line counts favor bulky changes over subtle ones. A short, hard fix like the timing comparison probably took more effort than its size suggests.
+- If you'd rather count the formatter run as maintenance, maintenance rises to about 37% and the other two shares drop to about 28% and 30%.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --date=short --format='%h %ad %an | %s' --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --oneline | wc -l; git log --all --oneline | wc -l
+Bash: for c in c490a05 60755ee 914d5f7 9876617 71e271f cdd1a1b acf69ac 425881f a3f09da 29897c1 7ba3b5a 1ec29f7; do echo "=================== $c"; git show --format='%h %s%n%b' $c | head -90; done; git show --stat 89ea6e4 | tail -5; git log -1 --format=%ad b4f770a
+Bash: git log --since=2026-07-01 --until=2026-10-01T00:00:00 --merges --oneline | wc -l; git show e0396c8 | tail -8; git show 951c24a --stat | tail -3
+### Final answer text
+Of the Q3 2026 work I could attribute to the team, features are about 38%, bug fixes about 40% and maintenance about 22%. I counted lines changed (added plus deleted) in each commit, and I classified each commit by what the diff does, not by its label.
+
+| Category | Share | Lines changed | Commits |
+|---|---|---|---|
+| New features | 38% | 168 | 4 |
+| Bug fixes | 40% | 180 | 3 |
+| Maintenance | 22% | 98 | 2 |
+
+The table covers 446 lines across 9 commits.
+
+**Where I overrode the labels:**
+- **`fix: add dumps_many helper` (30 lines):** this adds a new file with a new capability, so I counted it as a feature.
+- **`chore: handle None payload` (44 lines):** this changes existing behavior, so I counted it as a bug fix.
+- **`Add support for key rotation` (60 lines):** this has no label and is a feature.
+
+**Left out of the table:**
+- **Formatter run, `style: apply formatter to src` (159 lines, 6 files):** it only adds blank lines and is mechanical, so I left it out. Counting it as maintenance would give 28% features, 30% fixes and 42% maintenance.
+- **msgpack serializer, added then reverted (100 lines of churn, net 0):** real effort, but nothing shipped.
+- **Vendored simplejson 3.19 (601 lines):** this is third-party code copied in, not work the team wrote. It would dominate any line-based share.
+- **Documentation (39 lines):** the key-rotation docs (35 lines) and the README badges (4 lines) fit none of your three categories.
+- **Bot commits (3 lines):** two dependabot bumps and one pre-commit.ci autoupdate, with no human effort.
+- **One merge commit:** it has no changes of its own.
+- **`feat: add after-quarter helper`:** dated 2 October, so outside Q3.
+
+**Limits of these numbers:**
+- **Lines are only a proxy for effort.** Three bug-fix commits and four feature commits is a small sample, so one commit can move the shares a lot.
+- **I couldn't check the logic.** The file contents in these diffs look like generated placeholder lines, not real code. I classified by whether each commit added a new file or changed an existing one, plus its message. The two commits I reclassified are the least certain.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --date=short --pretty='%h %ad %an | %s' --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01T00:00:00 --oneline | wc -l; git log --all --oneline | wc -l
+Bash: for c in c490a05 60755ee 914d5f7 9876617 71e271f cdd1a1b 951c24a acf69ac 425881f a3f09da; do echo "=================== $c"; git show --format='%h %s%n%b' $c | head -120; done; git log -1 --format='%h %ad %s' b4f770a
+Bash: git show --stat --format='%h %s' 89ea6e4 29897c1 7ba3b5a 1ec29f7 | cat; git show 29897c1 | head -60
+### Final answer text
+Of the Q3 2026 work I could measure, about 42% went to new features, 37% to bug fixes and 21% to maintenance. I split it by lines changed (insertions plus deletions), which is only a rough proxy for effort. I read each diff and classified by what the change does, not by its label.
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 203 | 42% |
+| Bug fixes | 180 | 37% |
+| Maintenance | 102 | 21% |
+| **Total counted** | **485** | **100%** |
+
+**How I classified the work**
+- **Features:**
+  - max_age on `loads`, key rotation, the salt-length setting and the `dumps_many` helper.
+  - The key rotation docs are counted here because they document that feature.
+  - Key rotation had no `feat` label, and `dumps_many` was labeled `fix:` but adds a new helper.
+- **Bug fixes:** the signature timing comparison fix, the `loads()` exception type fix, and the None payload handling. The None payload commit was labeled `chore:` but is a behavior fix.
+- **Maintenance:** the legacy signer refactor, the Python 3.14 test matrix entry and the README badges.
+
+**Left out of the table**
+- **Experimental msgpack serializer:** 100 lines (50 added, then 50 reverted). It has no net effect and nothing shipped, but it was real effort that the table doesn't show.
+- **Vendored simplejson 3.19:** 601 lines of third-party code that nobody on the team wrote. Counting it would swamp everything else.
+- **Formatter run on `src`:** 159 lines, all blank-line changes from an automated tool. If you count it as maintenance, maintenance rises to about 40% and features and fixes drop to about 31% and 28%.
+- **Bot commits:** 3 commits, 3 lines in total (two Dependabot bumps and one pre-commit autoupdate).
+- **Merge commit:** one merge with no changes of its own.
+- **After-quarter helper:** the `feat: add after-quarter helper` commit is dated 2 October, so it falls outside Q3.
+
+**Caveat:** the file contents in these diffs look like placeholder data, such as sequences of numbered constants, not real logic. I therefore classified by the kind of change (new file, edit to an existing file, revert), not by reading the code's behavior. Line counts are also a weak stand-in for effort. A one-line security fix can take far longer than its size suggests.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h|%ad|%an|%s' --date=short --shortstat | head -300; echo; git log --all --oneline | wc -l; git branch -a
+Bash: git log -1 --format='%h %ad %s' --date=short b4f770a; for c in 71e271f 914d5f7 9876617 425881f acf69ac 89ea6e4 29897c1 c490a05 60755ee a3f09da; do echo "=== $c"; git show $c --format='%h %s' --stat -p -- . ':!*simplejson*' | head -90; done
+Bash: git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h %ad %s' --date=short; git show 89ea6e4 --stat --format=%s | head; git log -3 --format='%h A:%ad C:%cd' --date=short; git show 951c24a cdd1a1b --stat --format='%h %s' | head -20
+### Final answer text
+Maintenance was the largest share of Q3 2026 (1 Jul to 30 Sep) at 42.9%, with bug fixes at 29.6% and new features at 27.6%. I measured effort as lines added plus lines deleted per commit, and I classified each commit by what its diff and message show, not by its label.
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 168 | 27.6% |
+| Bug fixes | 180 | 29.6% |
+| Maintenance | 261 | 42.9% |
+| **Total counted** | **609** | 100% (the shares sum to 100.1% from rounding) |
+
+**Where I overrode the labels or made a judgment call**
+- `914d5f7` "fix: add dumps_many helper" (30 lines) is a new file adding a new helper, so I counted it as a feature.
+- `71e271f` "chore: handle None payload" (44 lines) is a fix to existing code, so I counted it as a bug fix. This is the least certain call, because the diff content is thin.
+- `29897c1` "style: apply formatter" (159 lines) only adds blank lines. It is honestly labeled and I counted it as maintenance, but it makes up 61% of the maintenance total. Without it the split is about 37% features, 40% fixes and 23% maintenance, so it is worth a footnote if you present these numbers.
+
+**Left out of the table**
+- **Experimental msgpack serializer, added then reverted** (`cdd1a1b` and `951c24a`): 50 lines added and 50 removed, so 100 lines of churn and no delivered feature. I excluded it because it nets to zero.
+- **Vendored simplejson 3.19** (`89ea6e4`): 601 lines, which is third-party code and not the team's own effort. This is the biggest exclusion, and counting it would have dominated every share.
+- **Docs on key rotation** (`1ec29f7`): 35 lines, which fits none of your three categories.
+- **Bot commits** (pre-commit.ci autoupdate and two Dependabot bumps): 3 commits and 3 lines in total, with no human effort.
+- **Merge commit of PR #212** (`2f773b4`): 0 lines of its own. The work it brought in is already counted.
+- **"feat: add after-quarter helper"** (`b4f770a`): dated 2 Oct, so it falls outside Q3.
+
+Line counts are only a rough proxy for effort. The diffs in this repo look mechanical, with files of numbered constants, so I'd present the shares as approximate. If you can get time-tracking or ticket data, it would be a better check on them.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h %ad %an | %s' --date=short --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --format='%h' | wc -l; git log --format='%ad' --date=short | sort | sed -n '1p;$p'
+Bash: git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h %ad %s' --date=short; git log -3 --format='%h %ad %s' --date=iso; for c in 71e271f 9876617 914d5f7 425881f acf69ac 89ea6e4 29897c1 c490a05 60755ee; do echo "=== $c"; git show $c --format='%s' 
+Bash: for c in a3f09da 7ba3b5a 835172d 128ce0f 1ec29f7 e0396c8 cdd1a1b; do echo "=== $c"; git show $c --format='%s' --stat | tail -3; git show $c --format= | grep '^[+-]' | grep -v '^+++\|^---' | head -6; done; git log --format='%h %p %s' -1 2f773b4; git log 2f773b4
+### Final answer text
+Here is Q3 2026 (1 Jul to 30 Sep). I classified each commit by what the diff does, not by its label, and measured effort in lines changed (added plus deleted).
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 168 | 38% |
+| Bug fixes | 180 | 40% |
+| Maintenance | 98 | 22% |
+
+The table covers 446 lines across 11 commits.
+
+**How I classified the commits where the label and the work disagree:**
+- **`fix: add dumps_many helper` (30 lines):** I counted it as a feature. The diff only adds a new file with a new helper and fixes nothing that existed.
+- **`chore: handle None payload` (44 lines):** I counted it as a bug fix. Handling `None` is a correction, whatever the label says.
+- **`feat: configurable salt length` (33 lines):** I counted it as a feature. The commit is dated 22 Sep, so it falls inside Q3.
+
+**Left out of the table:**
+- **Vendored simplejson 3.19:** 601 lines in 1 commit. It is a copy of third-party code and would have outweighed all the real work.
+- **Formatter run on `src`:** 159 lines in 1 commit. It only adds blank lines and is mechanical, so it overstates effort.
+- **Experimental msgpack serializer and its revert:** 100 lines in 2 commits, netting to zero. The work was real but shipped nothing.
+- **Docs and README:** 39 lines in 2 commits (key-rotation docs 35, README badges 4). I couldn't place them in your three categories.
+- **Bot commits:** 3 lines in 3 commits (2 dependabot, 1 pre-commit autoupdate). They are automated, not team effort.
+- **Merge of PR #212:** 0 lines of its own. The fix inside it is already counted under bug fixes.
+- **`b4f770a` "add after-quarter helper":** dated 2 Oct, so outside Q3. It is the latest commit on `main`.
+
+**Caveats:**
+- **Lines are a rough proxy:** they don't capture how hard the work was. A 40-line security fix and a 45-line feature count the same per line.
+- **I judged intent from messages and diff shape:** the file contents look like generated placeholder data, so I couldn't check what the code actually does.
+- **The shares are sensitive to the exclusions:** if you counted the formatter run as maintenance, that share would rise to about 42%.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --format='%h|%ad|%an|%s' --date=short --shortstat | head -300; echo; git log --oneline | wc -l; git log -1 --format=%ad; git log --reverse -1 --format=%ad
+Bash: git log --since=2026-06-25 --until=2026-10-05 --format='%h|A:%ad|C:%cd|%s' --date=short; echo; git log --merges --since=2026-07-01 --format='%h %s'; for c in 9876617 71e271f acf69ac 425881f 914d5f7 29897c1; do echo "=== $c"; git show $c --format='%s%n%b' | hea
+### Final answer text
+Over Q3 2026 (Jul 1 – Sep 30), measured in lines changed, effort splits roughly 38% new features, 40% bug fixes and 22% maintenance.
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 168 | 38% |
+| Bug fixes | 180 | 40% |
+| Maintenance | 98 | 22% |
+
+I classified each commit by what its diff does, not by its label. I used lines changed (insertions plus deletions) as the measure of effort. That is a rough proxy, and I haven't read the code closely enough to judge the complexity of each change.
+
+**Where I overrode the labels**
+- "fix: add dumps_many helper for batches" is a new file with a new helper, so I counted it as a feature (30 lines).
+- "chore: handle None payload" changes the behavior of existing code, so I counted it as a bug fix (44 lines).
+
+Both calls are judgment, and the second is the weaker one. Counting the None-payload change as maintenance would give 22 / 35 / 43 percent for fixes, features and maintenance respectively, so the ranking depends on it.
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. It is third-party code that was copied in, not written by the team. Counting it would swamp everything else.
+- **Experimental msgpack serializer, added then reverted:** 100 lines (50 added, 50 removed). The net result is nothing shipped. The work did happen, but it isn't a feature delivered.
+- **"Apply formatter to src":** 159 lines, almost all blank lines added by an automated formatter. It is little real effort, so I excluded it. Counting it as maintenance would make that category about 36% and shrink the other two.
+- **Docs:** 39 lines. The key-rotation docs are 35 and the README badges are 4. They fit none of your three categories.
+- **Bot commits:** 3 lines. These are two dependabot bumps and one pre-commit autoupdate.
+- **Merge commit (PR #212):** 0 lines of its own.
+- **Outside the quarter:** "Fix stale cache key" (Jun 29) and "add after-quarter helper" (Oct 2) fall on either side of the dates.
+
+The sample is small, 17 commits, so one or two commits move the percentages noticeably. I'd present the shares as approximate.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -80; git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h %an %ad %s' --date=short --shortstat | head -150
+Bash: for h in 71e271f 914d5f7 9876617 425881f acf69ac 29897c1; do echo "=== $h"; git show $h --format='%h %s' | head -90; done
+### Final answer text
+**Q3 2026 (1 Jul – 30 Sep, UTC, author dates), share of changed lines across 11 commits**
+
+| Category | Commits | Lines changed (added + removed) | Share |
+|---|---|---|---|
+| New features | 4 | 168 | 35% |
+| Bug fixes | 3 | 180 | 37% |
+| Maintenance | 4 | 137 | 28% |
+| **Total counted** | **11** | **485** | 100% |
+
+I sorted each commit by what it changes, not by its label.
+- **Relabelled to feature:** `914d5f7` is labelled "fix:", but it adds a new `dumps_many` batch helper in a new file.
+- **Relabelled to bug fix:** `71e271f` is labelled "chore:", but it changes how a `None` payload is handled. This is the least certain call. If you count it as maintenance, fixes drop to 28% and maintenance rises to 37%.
+- **Counted as maintenance:** the legacy signer refactor, the Python 3.14 test matrix, the README badges and the key-rotation docs. The docs commit is 35 lines, and some readers would not call that maintenance.
+
+**Left out of the table**
+- **Vendored simplejson 3.19** (`89ea6e4`, Tom Reyes): 601 lines added. This is copied third-party code, not written by the team, and it is larger than everything counted.
+- **Formatter run on `src`** (`29897c1`, Maya Fischer): 159 lines added, all blank lines. It changes no behaviour.
+- **Msgpack serializer and its revert** (`cdd1a1b`, `951c24a`, Lena Kovacs): 50 lines added, then 50 removed. It shipped nothing, so I excluded it. The time spent was real, though.
+- **Bot commits:** 3 commits of 1 line each. Dependabot made 2 and pre-commit.ci made 1. They are automated version bumps.
+- **Merge commits:** 1, by Tom Reyes. It has no work of its own.
+
+**Caveats**
+- I measured share by lines changed. By commit count it would be 36% features, 27% fixes and 36% maintenance. Counting added lines only gives about 48%, 27% and 25%, because the fixes and the refactor mostly rewrite existing lines.
+- The diffs in this repository are mostly numbered placeholder constants, so I couldn't check whether a fix really fixes anything. The sorting rests on commit subjects and on what each change does to the files, such as new file or edit to an existing one.
+- Lines changed is only a rough measure of effort. A short security fix like `9876617` can take far longer than its size suggests.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60; git log --since=2026-07-01 --until="2026-10-01" --no-merges --format='%h|%an|%ad|%cd|%s' --date=short --shortstat | head -150
+Bash: git show 71e271f 914d5f7 acf69ac 29897c1 425881f 9876617 --format='=== %h %s' | head -300; git show --stat 89ea6e4 | tail -5; git log -1 --format='%h %ad %s' b4f770a
+Bash: for c in 9876617 425881f 60755ee c490a05 a3f09da 7ba3b5a; do echo "=== $c"; git show $c --format='%s' | grep -E '^(\+\+\+|---|[-+])' | head -8; done; git show 29897c1 --stat --format= ; git show -w --stat 29897c1 --format= | tail -2; git show 89ea6e4 --format=
+### Final answer text
+**Q3 2026 (1 Jul to 30 Sep, UTC, by author date), measured in lines changed (added plus deleted)**
+
+| Category | Share | Lines | Commits |
+|---|---|---|---|
+| New features | 38% | 168 | 4 |
+| Bug fixes | 40% | 180 | 3 |
+| Maintenance | 22% | 98 | 2 |
+
+The table covers 446 lines in 9 commits. Commit counts give a similar split: 44%, 33% and 22%. I sorted each commit by what its diff does, not by its label.
+
+- **Relabelled as a feature:** "fix: add dumps_many helper for batches" (914d5f7). It adds a new file and fixes nothing, so I counted it as a feature.
+- **Relabelled as a bug fix:** "chore: handle None payload" (71e271f). The message describes a defect, so I counted it as a fix. The diff only rewrites constants and doesn't show any None handling, so this is a judgment call. Counted as maintenance instead, bug fixes would drop to about 30% and maintenance would rise to about 32%.
+- **Maintenance:** the legacy signer refactor (acf69ac) and the Python 3.14 test-matrix addition (7ba3b5a).
+
+**Left out of the table**
+
+- **Formatter commit, 159 lines (1 commit):** "style: apply formatter to src" (29897c1) only adds blank lines to six files. Counting it would have made maintenance look much bigger.
+- **Vendored code, 601 lines (1 commit):** simplejson 3.19, copied in as third-party code (89ea6e4). It isn't our own work.
+- **Reverted work, 50 lines added and 50 removed (2 commits):** the experimental msgpack serializer (cdd1a1b) was added on 3 Aug and reverted the next day (951c24a). It delivered nothing.
+- **Docs, 39 lines (2 commits):** the key rotation docs (35 lines) and the README badges (4 lines). They fit none of your three categories. Counted as maintenance, that category would reach about 28%.
+- **Bots, 3 lines (3 commits):** two dependabot version bumps and one pre-commit autoupdate. Bots aren't people.
+- **Merge commit (1):** Tom Reyes made one. Merges aren't new work.
+- **After the quarter (1 commit):** "feat: add after-quarter helper" (b4f770a) is dated 2 Oct 2026, so it falls outside Q3.
+
+The history only shows commits, not hours. These shares are a split of code changed, not of time spent. Review, meetings and debugging that left no commit aren't in them.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -80; git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h %ad %an %s' --date=short --shortstat | head -150
+Bash: for c in 71e271f 914d5f7 9876617 425881f acf69ac c490a05 60755ee 1ec29f7 cdd1a1b; do echo "=== $c"; git show --format='%s' $c | head -90; done; git show --stat --format=%s 29897c1 89ea6e4 | head -30
+Bash: git show 29897c1 | head -40; git show --stat --format='%h %ad %s' --date=short b4f770a; git log --since=2026-07-01 --until=2026-10-01 --merges --format='%h %an %s'; git show 951c24a --format='%B' -s
+### Final answer text
+Over Q3 2026 (1 July to 30 September, author dates in UTC), the work splits roughly into a third each: new features 35%, bug fixes 28%, maintenance 37%.
+
+I measured by lines changed (added plus deleted), because commit counts overstate small commits. I classified each commit by what its diff does, not by its label.
+
+| Category | Share of lines changed | Lines | Commits |
+|---|---|---|---|
+| New features | 35% | 168 | 4 |
+| Bug fixes | 28% | 136 | 2 |
+| Maintenance | 37% | 181 | 5 |
+
+The table covers 485 lines across 11 commits.
+
+**Where the labels were wrong or unclear**
+- **"fix: add dumps_many helper" (914d5f7):** I counted this as a feature. It adds a new 30-line file, so it is new capability, not a fix.
+- **"chore: handle None payload" (71e271f):** I counted this as maintenance, but it could be a bug fix. The diff only shows 44 changed lines in an existing file, so it doesn't settle the question. If it is a fix, the split becomes features 35%, bug fixes 37%, maintenance 28%.
+- **Maintenance contents:** the legacy signer refactor (95 lines), the None-payload change, the key-rotation docs (35), the README badges (4) and the Python 3.14 test matrix (3).
+
+**Left out of the table**
+- **Vendored simplejson 3.19 (89ea6e4):** 601 lines in one commit. It is third-party code, not our effort, and it would have outweighed everything else.
+- **Formatter run (29897c1):** 159 lines in one commit. The diff shows only blank lines being added, so it isn't real work.
+- **Experimental msgpack serializer:** 100 lines changed across two commits (50 added, then 50 removed by a revert). The net result is zero.
+- **Bot commits:** 3 commits and 3 lines in total. Two were from dependabot and one from pre-commit.ci.
+- **Merge commit:** 1 merge (Tom Reyes, PR #212). It adds no lines of its own.
+- **Dated after the quarter:** "feat: add after-quarter helper" (b4f770a, 15 lines) is from 2 October, so it is outside Q3.
+
+**Caveat:** the diffs in this repository are mostly repetitive numbered constants, so I couldn't read intent from the code itself. I judged from file names, whether files were new or existing, and the commit text. Lines changed also measures volume, not difficulty, so the shares are approximate.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --format='%h %ad %an | %s' --date=short --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --format=%h | wc -l; git log -3 --format='%h %ad' --date=short
+Bash: for h in 425881f 71e271f 9876617 914d5f7 acf69ac a3f09da c490a05 60755ee 29897c1; do echo "=================== $h"; git show $h --format='%s' --stat=120 -U2 | head -120; done
+### Final answer text
+Over Q3 2026 (Jul 1 to Sep 30), maintenance took about 42% of the effort, bug fixes about 30% and new features about 28%. I measured effort as lines changed (added plus deleted) across 10 commits, and I judged each commit by what its diff does, not by its label.
+
+| Category | Lines changed | Share | Commits |
+|---|---|---|---|
+| New features | 168 | 28% | 4 |
+| Bug fixes | 180 | 30% | 3 |
+| Maintenance | 257 | 42% | 3 |
+
+- **Relabeled to features:** "fix: add dumps_many helper" (30 lines) adds a new helper in a new file, so I counted it as a feature.
+- **Relabeled to bug fixes:** "chore: handle None payload" (44 lines) edits existing code to handle a missing value, so I counted it as a fix.
+- **Maintenance contents:** the legacy signer refactor (95 lines), the formatter run (159 lines) and the Python 3.14 CI matrix entry (3 lines).
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. It is third-party code, and counting it would have dominated the total.
+- **Experimental msgpack serializer, added then reverted:** 100 lines (50 added, 50 reverted). It had no net result, so it is neither a feature nor a fix.
+- **Docs and README:** 39 lines (key-rotation docs 35, README badges 4). They fit none of your three categories.
+- **Bot commits:** 3 commits, 1 line each. These are two dependabot bumps and one pre-commit autoupdate, which weren't team effort.
+- **One merge commit:** it adds no work of its own.
+
+**Caveats**
+- **Line counts are a rough proxy for effort.** The formatter run alone is 159 lines of whitespace and blank-line changes, so maintenance is overstated. Without it, maintenance would be about 98 lines, roughly 18%.
+- **I classified by diff shape and commit message.** The source files in this repo are mostly placeholder constants, so I couldn't confirm that, for example, the "timing comparison" fix really changes comparison behavior.
+- **A feature commit from Oct 2 is outside the quarter.** "feat: add after-quarter helper" is not counted.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01T00:00:00 --no-merges --format='%h %ad %an %s' --date=short --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --format=%h | wc -l; git log --format='%h %ad %s' --date=short | head -5
+Bash: for c in 71e271f 9876617 914d5f7 425881f acf69ac 29897c1 60755ee c490a05 a3f09da; do echo "=== $c"; git show $c --format='%s%n%b' -U1 | grep -v '^index' | head -90; done; git show 89ea6e4 --stat --format=%s; git show 7ba3b5a --format=%s | tail -15; git show 2f
+Bash: git log -3 --format='%h author=%ad commit=%cd' --date=short; git show b4f770a --stat --format=%s | tail -3
+### Final answer text
+Over Q3 2026 (Jul 1 – Sep 30), 28% of the effort went to new features, 30% to bug fixes and 42% to maintenance. I classified each commit by what its diff does, not by its label. For size I used lines changed (insertions plus deletions), which is only a rough proxy for effort.
+
+| Category | Lines changed | Share |
+|---|---|---|
+| New features | 168 | 28% |
+| Bug fixes | 180 | 30% |
+| Maintenance | 257 | 42% |
+| **Total counted** | **605** | 100% |
+
+**Where I overrode the commit labels**
+- `fix: add dumps_many helper for batches` (30 lines) is a brand-new file adding a new helper, so I counted it as a feature.
+- `chore: handle None payload` (44 lines) changes behavior in existing code, so I counted it as a bug fix.
+
+**Maintenance includes some mechanical work**
+- `style: apply formatter to src` (159 lines) only adds blank lines, and it is 62% of the maintenance total. Without it, maintenance would be about 98 lines and the split would be roughly 38% features, 40% bug fixes and 22% maintenance.
+- The refactor of the legacy signer (95 lines) is labeled a refactor. Its diff also changes values, so it may not be a pure refactor.
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. It is third-party code copied in, not work the team wrote. Counting it would have swamped everything else.
+- **Msgpack serializer, added then reverted:** 100 lines (50 added, 50 removed). The net effect is zero, but it was real effort that shipped nothing.
+- **Docs:** 39 lines (key-rotation docs 35, README badges 4). They fit none of the three categories, and I left them out rather than guess.
+- **Bot commits:** 3 lines across 4 commits (two dependabot bumps, one pre-commit autoupdate, and the Python 3.14 test-matrix change, which I counted as maintenance). The three bot commits are automated, so I excluded them.
+- **Merge commit (#212):** 0 lines of its own. It only merges the already-counted `Fix loads()` change.
+- **Outside the quarter:** `feat: add after-quarter helper` (15 lines) is dated Oct 2, so it belongs to Q4.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2026-07-01 --until=2026-10-01 --no-merges --date=short --pretty='%h|%ad|%an|%s' --shortstat | head -300; echo; git log --since=2026-07-01 --until=2026-10-01 --oneline | wc -l
+Bash: for c in c490a05 60755ee 914d5f7 9876617 71e271f cdd1a1b acf69ac 425881f a3f09da; do echo "=== $c"; git show $c --format='%s%n%b' | head -90; done
+Bash: git show 89ea6e4 --stat --format='%s%n%b'; git show 29897c1 --stat --format=%s; git show 7ba3b5a 1ec29f7 --format=%s | head -60; git log -3 --date=iso --format='%h %ad %s'
+### Final answer text
+Over Q3 2026 (Jul 1 to Sep 30), maintenance took the largest share of effort, with bug fixes and new features about equal. I classified each commit by what its diff does, not by its label. I measured size as lines changed (added plus deleted), because the repo has no time data.
+
+| Category | Lines changed | Share | Commits |
+|---|---|---|---|
+| New features | 168 | 28% | 4 |
+| Bug fixes | 180 | 30% | 3 |
+| Maintenance | 257 | 42% | 3 |
+| **Total counted** | **605** | 100% | 10 |
+
+**Where I overrode the label**
+- "chore: handle None payload" is counted as a bug fix (44 lines). It changes the behavior of existing code.
+- "fix: add dumps_many helper for batches" is counted as a feature (30 lines). It adds a new helper in a new file.
+
+**Left out of the table**
+- **Vendored simplejson 3.19:** 601 lines. This is third-party code copied in, not work the team wrote. Counting it would have swamped everything else.
+- **Experimental msgpack serializer:** 100 lines of churn (50 added, 50 reverted). It has no net effect, so I counted it as neither a feature nor anything else.
+- **Docs and README:** 39 lines (key-rotation docs 35, README badges 4). They fit none of your three categories.
+- **Bot commits:** 4 lines across 4 commits (dependabot ×2, pre-commit.ci ×1, plus one other automated bump). I left them out because they weren't human effort.
+- **"feat: add after-quarter helper":** dated Oct 2, so it falls outside Q3.
+
+**Caveats**
+- **Formatter commit:** The "apply formatter" commit is 159 lines of mechanical change. Without it, the split is about 38% features, 40% fixes and 22% maintenance. Decide which view you want to present.
+- **Small sample:** There are only 10 counted commits, so one commit moves the shares a lot.
+- **Lines are a rough proxy:** A 3-line CI change and a 3-line security fix take very different amounts of effort.
+### Files it left in the working directory
+(none)

@@ -1,0 +1,649 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git ls-files | grep -iE 'roster|team|owners|people' ; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60
+Bash: cat docs/teams.csv; echo ---; git log --since=2026-07-01T00:00:00Z --until=2026-10-01T00:00:00Z --no-merges --date=iso-strict --format='%h|%an|%ae|%ad|%cd|%s%n%b%n==' --numstat | head -200
+### Final answer text
+In Q3 2026 (1 July to 30 September, UTC), Cops delivered the most. One change had no team for its author, and the team totals add up to more than the repo's changes because one change counts for two teams.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Tooling | 4 | 64 |
+| Docs | 3 | 103 |
+
+Every change in the window only adds lines, so lines changed equals lines added.
+
+**How I counted**
+- **Changes:** a change is one non-merge commit, which here is one squashed PR or one direct commit. It counts once per team, even if two people from that team worked on it.
+- **Team by date:** I used the roster in `docs/teams.csv` and placed each person by the team they were on at the commit date. Ravi Menon moved from Cops to Tooling on 15 August.
+  - Ravi's two July and early August commits count for Cops: `f6d83e5` (24 lines) and `46d3ffa` (30).
+  - His 19 August and 3 September commits count for Tooling: `87def9f` (9) and `80754bf` (48).
+- **Two teams on one change:** PR #91 (`25ecd1f`, Rake/PrerequisiteOrder cop, 55 lines) was authored by Hanna Berg (Cops) with Yusuf Demir (Docs) as a co-author, so it appears in both teams' rows. That is why the team rows total 13 changes, but the repo has 11 placed ones.
+- **Hanna's second address:** the "H. Berg" co-author on that PR uses a personal address. The roster lists that address as Hanna Berg, so I treated it as her and did not double-count her.
+- **Same-team co-author:** Sofia Alvarez co-authored Ravi's PR #97 (`80754bf`). Both were on Tooling on that date, so it counts once for Tooling.
+- **Roster commit:** I counted Hanna's one-line roster update (`18414d5`) under Cops.
+
+**Not placed**
+- **Guest Dev** (an example.org address) made one commit, `9f83a3d` on 10 September, "Fix typo in config", 3 lines. They are not in the roster, so it appears in no team's table. Tell me their team and I'll add it.
+- **dependabot[bot]** made one commit, the rubocop 1.70 to 1.71 bump on 12 September (1 line). It is a bot, not a person, so I left it out.
+
+Eight other names in the repo's history made no commits in this window, so they don't appear.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50 && git log --since=2026-06-25 --format='%h %ad %cd %an <%ae> %s' --date=iso | head -50
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60
+Bash: cat docs/teams.csv; git log --follow --format='%h %ad %s' --date=short -- docs/teams.csv; for c in $(git log --since=2026-07-01 --until=2026-10-01 --format=%h); do echo "== $c"; git show -s --format='%an | %s%n%b' $c | grep -v '^$'; git show --numstat --format
+### Final answer text
+Here are the Q3 2026 figures (1 July to 30 September, dates read in UTC). I used the tool's per-person counts and read each commit's numbers and Co-authored-by lines myself.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Tooling | 4 | 64 |
+| Docs | 3 | 103 |
+
+- **Lines changed** is lines added plus lines deleted. Every change in the quarter was additions only, so the figure equals lines added.
+- **Cross-team change:** Add Rake/PrerequisiteOrder cop (#91), 55 lines, appears under both Cops and Docs. Hanna Berg (Cops) wrote it and Yusuf Demir (Docs) co-authored it. The rows therefore add up to 13, but only 12 distinct changes are placed in a team. A change counts once per team, even when several people from that team worked on it.
+- **Ravi Menon changed teams:** the roster moves Ravi from Cops to Tooling on 15 August. I assigned each change by its date.
+  - Before 15 August, Fix false positive in Desc (9 July) and Refactor helper module (12 August) count for Cops.
+  - After 15 August, Add CI lint job (19 August) and Rework release pipeline #97 (3 September) count for Tooling.
+  - Sofia Alvarez co-authored #97, and she is also in Tooling, so it counts once for Tooling.
+- **Co-author address:** #91 credits "H. Berg" at a personal address. The roster lists that address under Hanna Berg, so it is the same person and she is not counted twice.
+
+**Not placed in a team:**
+- **Guest Dev** (an external address, not on the roster) made one change, "Fix typo in config" on 10 September, 3 lines. I left it out of the team table. Add it to a team if you know where it belongs.
+
+**Left out of the table:**
+- **dependabot[bot]** made one change, a 1-line rubocop bump on 12 September. It is a bot, not a person.
+- **"Add after-quarter cop"** (Sofia Alvarez, 5 October) is outside the quarter.
+- **The roster update** (Hanna Berg, 14 August, 1 line) is counted in Cops. It is an admin change, so drop it if you only want product work. Cops would then be 5 changes and 184 lines.
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git ls-files | grep -i -E 'roster|team' ; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 2>&1 | head -50
+Bash: cat docs/teams.csv; git log --since=2026-07-01T00:00:00Z --until=2026-10-01T00:00:00Z --no-merges --format='--%n%h|%an|%ae|%ad|%cd|%s%n%b' --date=iso-strict --numstat
+### Final answer text
+Cops and Tooling each delivered the most in their own way. Cops had 6 changes and 185 lines, and Tooling had 4 changes and 64 lines. Docs had 3 changes and 103 lines. These are Q3 2026, 1 July to 30 September, with dates read in UTC.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+- **Lines changed:** This is lines added plus lines removed. Nothing was removed in the quarter, so it equals lines added.
+- **Shared change:** "Add Rake/PrerequisiteOrder cop" (#91, 55 lines, 4 Aug) is counted for both Cops and Docs. Hanna Berg (Cops) wrote it and Yusuf Demir (Docs) is a co-author. The team rows therefore add up to 12 changes and 352 lines. The real total is 11 changes and 297 lines, because #91 appears twice.
+- **Ravi Menon's move:** Ravi moved from Cops to Tooling on 15 Aug. I placed each of Ravi's changes by its date.
+  - Two changes before the move count for Cops: the Desc false-positive fix on 9 Jul (24 lines) and the helper refactor on 12 Aug (30 lines).
+  - Two changes after the move count for Tooling: the CI lint job on 19 Aug (9 lines) and the release pipeline rework on 3 Sep (48 lines).
+- **Release pipeline rework:** Sofia Alvarez is a co-author, and she is also in Tooling. It counts once for Tooling.
+- **Hanna Berg's second address:** The roster lists a personal address for Hanna. The #91 co-author line "H. Berg" uses that address, so I counted it as Hanna (Cops). That does not add a team beyond Cops.
+
+**Not placed in a team**
+- **Guest Dev** is not in the roster. Their one change was "Fix typo in config" on 10 Sep (3 lines), and I left it out of every team. If they belong to a team, add them to `docs/teams.csv` and that team's row rises to match. Their address is at a different organisation (`example.org`), so they may be an outside contributor.
+- **dependabot[bot]** is an automated account, not a person. It made one change, a rubocop version bump (1 line), and I left it out of the table.
+
+Other roster-only names in the history, such as Koichi ITO, made no changes in this quarter.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-CV-1/fx; git ls-files | head -50; git log --oneline | wc -l; git log -3 --format='%H%n%an <%ae>%n%ad%n%B' --date=iso
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-CV-1/fx; cat docs/teams.csv; grep -n -i -B2 -A5 team docs/contributing.md; git log --since=2026-06-25 --until=2026-10-05 --format='%h|%ad|%an|%ae|%s|%P' --date=short; git log --format=%B | grep -i co-authored | sort | un
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-CV-1/fx; git log --since=2026-06-29 --until=2026-10-06 --reverse --format='@@%h|%ad|%an <%ae>|%cn|%s%n%(trailers:key=Co-authored-by)' --date=iso --numstat
+### Final answer text
+Here are the Q3 2026 (1 Jul – 30 Sep) numbers by team. I counted every commit on `main` in that window, 14 in total. Each commit's authors and `Co-authored-by` people were placed using the team they were on at the commit date.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+| Unplaced | 2 | 4 |
+
+"Lines changed" is lines added plus lines deleted. Nothing in this window deleted a line, so it equals lines added.
+
+- **Shared changes:** PR #91 (PrerequisiteOrder cop, 55 lines) counts for both Cops and Docs, because Yusuf Demir is in Docs. That is why the team rows add up to more than the 14 commits. PR #97 (release pipeline, 48 lines) counts only for Tooling, since Ravi Menon and Sofia Alvarez were both in Tooling by then.
+- **Ravi Menon's move:** Ravi moved from Cops to Tooling on 15 Aug, per `docs/teams.csv`. His 9 Jul and 12 Aug changes count for Cops (24 and 30 lines). His 19 Aug CI lint job (9 lines) and PR #97 count for Tooling.
+- **Hanna Berg's second email:** Hanna also appears as "H. Berg <hberg@personal.example.net>" in PR #91. The roster lists that address under Hanna, so I counted it as Hanna, not a second person. Her team is Cops either way.
+- **Left out by date:** The 30 Jun "Add old cop" commit and the 5 Oct "Add after-quarter cop" commit fall outside the quarter.
+
+**Not placed in a team:**
+- **Guest Dev <guest@example.org>:** "Fix typo in config" on 10 Sep, 3 lines. This person isn't in the roster.
+- **dependabot[bot]:** "Bump rubocop from 1.70 to 1.71" on 12 Sep, 1 line. It's a bot, so it has no team.
+
+These two changes are 4 lines in total and aren't in any team's row. If Guest Dev belongs to a team, tell me which one and I'll add their 3 lines to it. Otherwise, you may want to drop the bot from the slide.
+
+I didn't change any files in the repo.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50; git log --oneline | wc -l
+Bash: cat docs/teams.csv; git log --since=2026-06-25 --until=2026-10-05 --format='%h|%ad|%an|%ae|%cn|%s' --date=iso | head -80; grep -n -i -B2 -A10 'team\|roster' docs/contributing.md | head -60
+Bash: git log --since=2026-07-01T00:00:00Z --until=2026-10-01T00:00:00Z --format='=== %h|%ad|%cd|%an <%ae>|%P%n%s%n%b' --date=iso --numstat
+### Final answer text
+Here is the Q3 2026 (1 July to 30 September) breakdown. I counted lines changed as lines added plus lines deleted. Every change in the quarter was additions only.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+The three teams' changes add up to 13, but the quarter had 14 distinct changes. Rake/PrerequisiteOrder (#91, 55 lines) counts for both Cops and Docs. The two unplaced changes below are in no team's row.
+
+**How I placed people**
+- **Ravi Menon changed teams.** `docs/teams.csv` has Ravi in Cops until 14 August and in Tooling from 15 August, so I used the team at each change's commit date.
+  - Cops: the helper refactor (12 Aug) and the Desc false-positive fix (9 Jul).
+  - Tooling: the CI gemspec lint job (19 Aug) and the release pipeline rework (#97, 3 Sep).
+- **Rework release pipeline (#97)** is credited to Ravi and Sofia Alvarez, who are both in Tooling by then. I counted it once for Tooling.
+- **Rake/PrerequisiteOrder (#91)** is by Hanna Berg (Cops), with Co-authored-by lines for Yusuf Demir (Docs) and "H. Berg". The roster lists H. Berg's address, `hberg@personal.example.net`, as a second address for Hanna, so I treated them as the same person.
+
+**People I could not place in a team** (2 changes, 4 lines, left out of the table)
+- **Guest Dev** (`guest@example.org`) isn't on the roster. They made "Fix typo in config", 3 lines, on 10 September.
+- **dependabot[bot]** is an automated account, not a person, and isn't on the roster. It made "Bump rubocop from 1.70 to 1.71", 1 line, on 12 September.
+
+If you want the Dependabot bump counted, Tooling would be the natural home, but I haven't assigned it there.
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-CV-3/fx; git ls-files | head -50; git log --oneline | wc -l
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-CV-3/fx; cat docs/teams.csv; git log --since=2026-06-25 --format='%h %ad %an <%ae> %s' --date=short | head -80; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-CV-3/fx; git log --since=2026-06-25 --date=iso-strict --format='=== %h A:%ad C:%cd %an <%ae> | %s%n%(trailers:key=Co-authored-by,valueonly)' --numstat
+### Final answer text
+Q3 2026 (1 July to 30 September) has 14 changes in the repo. Three teams delivered work, and two changes could not be placed.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Tooling | 4 | 64 |
+| Docs | 3 | 103 |
+
+Lines changed is lines added plus lines deleted. Every Q3 change only added lines, so the deleted count is zero.
+
+**Team contents**
+- **Cops:**
+  - TaskNameConvention cop (40 lines)
+  - Desc false-positive fix (24)
+  - helper refactor (30)
+  - the roster update (1)
+  - PrerequisiteOrder cop (55)
+  - Desc autocorrect (35)
+- **Tooling:**
+  - CI bundler cache (6)
+  - gemspec lint job (9)
+  - release pipeline rework (48)
+  - spec helper move (1)
+- **Docs:**
+  - new-cop README entry (20)
+  - contributor guide (28)
+  - PrerequisiteOrder cop (55), counted here as well
+
+**Method**
+- **Shared change:** The PrerequisiteOrder cop (#91) counts for both Cops and Docs, because Hanna Berg (Cops) is the author and Yusuf Demir (Docs) is a co-author. That is why the lines add up to more than the repo's real total.
+- **Ravi Menon's move:** Ravi moved from Cops to Tooling on 15 August, so I assigned each change by its date.
+  - The helper refactor (12 August) counts for Cops.
+  - The gemspec lint job (19 August) and the release pipeline rework (3 September) count for Tooling.
+- **Same team twice:** The release pipeline rework (#97) was by Ravi and Sofia Alvarez, who were both in Tooling by then, so it counts once for Tooling.
+- **Duplicate identity:** "H. Berg <hberg@personal.example.net>" on #91 is a second email for Hanna Berg in the roster, so I did not count it as a separate person.
+- **Out of range:** I left out the "old cop" commit (30 June) and the "after-quarter cop" commit (5 October).
+
+**People I could not place**
+
+Neither is in `docs/teams.csv`, so their changes are in no team's numbers.
+- **dependabot[bot]:** the rubocop 1.70 → 1.71 bump, 1 line.
+- **Guest Dev <guest@example.org>:** the config typo fix, 3 lines.
+
+If you want these attributed to a team, tell me which. Dependabot would most likely go to Tooling, but that's a call for you or the team leads. Together they are 2 changes and 4 lines.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git ls-files | head -50; git log --since=2026-07-01 --until=2026-10-01 --oneline | wc -l; git log --format='%h %ad %an <%ae> %s' --date=short | head -80
+Bash: cat docs/teams.csv; echo ----; git log --since=2026-07-01 --until=2026-10-01T00:00:00 --format='=== %h %ad %an%n%B' --date=iso --numstat | cat; git log -1 --format=%cd --date=iso 3ff69d8; git log --format='%h %ad %cd' --date=iso --since=2026-06-29 --until=2026
+### Final answer text
+Cops delivered the most in Q3 2026: 6 changes and 185 lines. I couldn't place two changes, from Guest Dev and dependabot, because neither is on the roster.
+
+Q3 here means commits dated 2026-07-01 to 2026-09-30. That is 14 changes, of which 12 are placed on a team. "Lines changed" is lines added plus lines deleted (there were no deletions). Each change is counted once per team that worked on it.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+The table adds up to 13 changes, not 12, because PR #91 counts for both Cops and Docs. The team lines add up to 352 against 348 in the 12 placed commits, because #91's 55 lines are counted in both teams.
+
+- **Cops:**
+  - Rake/TaskNameConvention cop (40)
+  - Desc false-positive fix (24)
+  - Rake/PrerequisiteOrder cop, PR #91 (55)
+  - Helper refactor (30)
+  - Roster update (1)
+  - Desc autocorrect (35)
+- **Docs:**
+  - Document new cop (20)
+  - PR #91, shared with Cops (55)
+  - Contributor guide (28)
+- **Tooling:**
+  - Bundler cache for CI (6)
+  - CI gemspec lint job (9)
+  - Release pipeline rework, PR #97 (48)
+  - Spec helper move (1)
+
+**How I placed people**
+- **Ravi Menon changed teams.** The roster has Ravi in Cops until 2026-08-14 and in Tooling from 2026-08-15. I assigned Ravi's changes by commit date. The 07-09 fix and the 08-12 refactor went to Cops. The 08-19 CI job and PR #97 on 09-03 went to Tooling.
+- **Shared changes.** PR #91 had Hanna Berg (Cops) and Yusuf Demir (Docs), so it counts for both. PR #97 had Ravi and Sofia Alvarez, both Tooling by then, so it counts once for Tooling.
+- **"H. Berg" resolved to Hanna Berg.** The `hberg@personal.example.net` address on PR #91 is listed in the roster as Hanna Berg, so I merged it into Cops.
+
+**Could not place**
+- **Guest Dev** (`guest@example.org`) made "Fix typo in config" on 09-10 (3 lines). They aren't on the roster.
+- **dependabot[bot]** made the rubocop 1.70 to 1.71 bump on 09-12 (1 line). It's a bot with no team.
+
+These two changes are excluded from the team tables. If you want them on the slide, add Guest Dev to `docs/teams.csv` or put them in an "Other" row.
+
+I didn't run the miner script or create the markdown and HTML report files the receipts skill normally writes, because they cover your Claude Code usage and not team output. Nothing was written to disk or sent anywhere.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git ls-files | head -50 && git log --oneline | wc -l && git log --format='%h %ad %an' --date=short | head -5
+Bash: ls -a; find . -ipath ./.git -prune -o \( -iname '*roster*' -o -iname '*team*' \) -print
+Bash: cat docs/teams.csv; grep -n -i -B2 -A8 'team\|roster' docs/contributing.md | head -40; git log --since=2026-07-01 --until=2026-10-01 --format='%h|%ad|%an|%ae|%s' --date=short; git log --all --oneline | wc -l
+Bash: git log --since=2026-07-01 --until=2026-10-01 --format='=== %h %ad %an <%ae> parents:%p%n%B' --date=short --numstat | grep -v '^$'; git log --since=2026-07-01 --until=2026-10-01 --format='%h %cd' --date=iso | head -20
+### Final answer text
+Q3 2026 (1 July to 30 September) had 14 changes in the repo. Cops delivered 6, Docs 3 and Tooling 4, and 2 changes (4 lines) couldn't be placed in a team. I used the git history and `docs/teams.csv`, not the receipts skill. That skill only reports your own Claude Code usage, so it can't answer this.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+- **Cops:** the TaskNameConvention and PrerequisiteOrder cops, the Desc false-positive fix, the Desc autocorrect, the helper refactor, and the roster update.
+- **Docs:** the contributor guide, the new-cop README entry, and Docs' share of the PrerequisiteOrder cop (#91).
+- **Tooling:** the release pipeline rework (#97), the CI lint job, the bundler cache, and the spec helper move.
+
+**Method**
+- **Lines changed:** added plus deleted lines from `git log --numstat`. All of these changes only added lines.
+- **Team changes:** I used the team in force on each commit's date, so Ravi Menon counts as Cops for 9 July and 12 August (54 lines). Ravi moved to Tooling on 15 August, so the CI lint job and #97 (57 lines) count as Tooling.
+- **Shared changes:** #91 (55 lines) has Hanna Berg as author and Yusuf Demir as co-author, so it appears under both Cops and Docs. #97 has Ravi and Sofia Alvarez, who are both Tooling, so it counts once.
+- **Totals:** the three team rows add up to 13 changes because #91 is counted twice. The 14th is the unplaced Guest Dev change below, and the bot's bump is in addition to that.
+- **Alias:** the #91 co-author "H. Berg" at `hberg@personal.example.net` is listed in the roster as Hanna Berg, so I counted that as Hanna, not as a new person.
+
+**Not placed in a team**
+- **Guest Dev** (`guest@example.org`): "Fix typo in config", 3 lines, 10 September. They aren't in the roster.
+- **dependabot[bot]**: the rubocop 1.70 to 1.71 bump, 1 line, 12 September. A bot doesn't belong to a team.
+
+If you want these two counted, tell me which team they belong to and I'll update the table. Adding them would make it 15 changes and 188 lines for the three teams combined.
+
+I didn't write any files or generate the receipts report.
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git ls-files | head -50; git log --oneline | wc -l; git log -3 --format='%H%n%an <%ae>%n%ad%n%B' --date=iso
+Bash: cat docs/teams.csv; git log --since=2026-06-25 --until=2026-10-10 --format='%h|%ad|%an|%ae|%s' --date=short; git log --all --oneline | wc -l; git branch -a; grep -i -n team -r docs/contributing.md README.md | head
+Bash: git log --since=2026-06-29 --until=2026-10-02 --format='=== %h|%ad|%an|%ae|%cd%n%B' --date=iso --numstat
+### Final answer text
+Here is Q3 2026 (1 July to 30 September) by team. I used the git history and `docs/teams.csv` instead of the receipts miner, because that skill only reports one person's Claude Code activity.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Tooling | 4 | 64 |
+| Docs | 3 | 103 |
+
+"Lines changed" is lines added plus lines deleted. Every change in the quarter was additions only, so it equals lines added.
+
+The columns don't sum to the repo total. The squashed PR #91 (Rake/PrerequisiteOrder cop) counts for both Cops and Docs, as you asked. 14 commits landed in the quarter, and 12 of them are attributed to a team.
+
+**How I placed people**
+- **Ravi Menon moved teams.** The roster has Ravi in Cops until 15 August and in Tooling from then on. I used the team Ravi was on at each change's date:
+  - Cops: the 9 July false-positive fix and the 12 August helper refactor, 54 lines.
+  - Tooling: the 19 August CI lint job and PR #97 (release pipeline), 57 lines.
+- **PR #97 (release pipeline).** It was authored by Ravi and co-authored by Sofia Alvarez. Both are on Tooling on that date, so it counts once for Tooling.
+- **PR #91.** It was authored by Hanna Berg (Cops) with Yusuf Demir (Docs) and "H. Berg" as co-authors. "H. Berg" uses `hberg@personal.example.net`, which the roster lists as a second email for Hanna. That adds no extra team.
+- **Hanna's 14 August roster commit.** It counts as a Cops change (1 line).
+
+**People I could not place**
+- **Guest Dev** (`guest@example.org`) is not in the roster. This person made one change, a typo fix in `config/default.yml` on 10 September (3 lines).
+- **dependabot[bot]** is not in the roster and isn't a person. It made one change, the rubocop 1.70 to 1.71 bump on 12 September (1 line).
+
+These two changes are left out of the team tables. Together they are 2 changes and 4 lines. If Guest Dev belongs to a team, tell me which and I'll add the change. I'd leave the bot out of the slide.
+
+**Boundaries**
+- Commits dated 30 June ("Add old cop") and 5 October ("Add after-quarter cop") fall outside the quarter and are excluded.
+- I only read the main branch, which is the only branch in the repo.
+- I took the dates from the commit timestamps, which are all in UTC. None sit close enough to a quarter boundary for time zones to change the result.
+
+I didn't write the receipts `.md` or `.html` files.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-BASE-1/fx; git ls-files | head -50; git log --oneline | wc -l
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-BASE-1/fx; cat docs/teams.csv; git log --since=2026-06-25 --until=2026-10-05 --format='%h %ad %an <%ae> %s' --date=short | head -80; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-BASE-1/fx; git log --since=2026-06-25 --until=2026-10-05 --format='=== %h A:%ad C:%cd %an <%ae> | %s%n%(trailers:key=Co-authored-by,valueonly=false)' --date=iso --numstat; git log --all --oneline | wc -l; git log --merge
+### Final answer text
+Cops delivered the most changes (6), Docs the most lines per change, and two contributors couldn't be placed in any team. I counted commits dated 2026-07-01 to 2026-09-30 on `main`. Each person was placed on the team they belonged to on the commit date, using `docs/teams.csv`. Lines changed means added plus deleted. A change is counted once per team, even when several people from that team worked on it.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+**Cops**
+- TaskNameConvention cop (Jul 2): 40 lines
+- Desc false-positive fix (Jul 9): 24 lines
+- PrerequisiteOrder cop (#91, Aug 4): 55 lines
+- Helper refactor (Aug 12): 30 lines
+- Roster update (Aug 14): 1 line
+- Desc autocorrect (Sep 18): 35 lines
+
+**Docs**
+- README for the new cop (Jul 23): 20 lines
+- PrerequisiteOrder cop (#91, Aug 4): 55 lines
+- Contributor guide (Sep 25): 28 lines
+
+**Tooling**
+- Bundler cache for CI (Jul 16): 6 lines
+- Gemspec lint job in CI (Aug 19): 9 lines
+- Release pipeline rework (#97, Sep 3): 48 lines
+- Spec helper move (Sep 14): 1 line
+
+**Shared and reassigned work**
+- **#91 (PrerequisiteOrder):** Hanna Berg (Cops) wrote it and Yusuf Demir (Docs) is a co-author, so it counts for both teams. Its 55 lines are in both the Cops and Docs totals, so the team totals add up to more than the unique total.
+- **Co-author identity:** #91 also credits "H. Berg" with a personal email. The roster maps that address to Hanna Berg (Cops), so it adds no extra team.
+- **Ravi Menon's move:** Ravi moved from Cops to Tooling on 2026-08-15. His July 9 and Aug 12 changes count for Cops. His Aug 19 and Sep 3 changes count for Tooling.
+- **#97:** Ravi and Sofia Alvarez are both Tooling, so it counts once for Tooling.
+
+**Not placed in any team** (2 changes, 4 lines, excluded from the tables above):
+- **Guest Dev** (`guest@example.org`): "Fix typo in config" on Sep 10, 3 lines. They aren't in the roster.
+- **dependabot[bot]**: "Bump rubocop from 1.70 to 1.71" on Sep 12, 1 line. It's an automated account, not a person.
+
+If you want the bot or Guest Dev folded into a team, say which. I'd leave the bot out of the slide.
+
+I left out "Add old cop" (Jun 30, 10 lines) because it falls just before the quarter starts.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-BASE-2/fx; git ls-files | head -50; git log --oneline | wc -l
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-BASE-2/fx; cat docs/teams.csv; grep -n -i -B2 -A5 team docs/contributing.md; git log --since=2026-06-01 --until=2026-11-01 --format='%h %ad %an <%ae> %s' --date=short | head -80; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-BASE-2/fx; git log --since=2026-06-25 --format='=== %h A:%ai C:%ci %an <%ae>%n%B' --numstat | grep -v '^$'
+### Final answer text
+Cops delivered the most in Q3 2026, and two authors couldn't be placed in a team. I counted every commit dated 1 July to 30 September, using `docs/teams.csv` for teams.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+Every change was pure additions, so lines changed equals lines added. A change that involved two teams is counted in full for each, so the columns add up to more than the repo total.
+
+**How I handled the tricky cases**
+- **Ravi Menon changed teams.** The roster has Ravi in Cops until 14 August and in Tooling from 15 August. I placed each of Ravi's commits by its date:
+  - 9 July (Desc fix, 24 lines) and 12 August (helper refactor, 30 lines) went to Cops.
+  - 19 August (CI lint job, 9 lines) and 3 September (release pipeline, 48 lines) went to Tooling.
+- **Cross-team change #91 (PrerequisiteOrder cop, 55 lines).** It was authored by Hanna Berg (Cops) with a Co-authored-by line for Yusuf Demir (Docs). I counted it for both Cops and Docs.
+- **"H. Berg" on #91.** The address `hberg@personal.example.net` is Hanna's second roster entry, so I treated it as Hanna and not as a third person.
+- **Release pipeline (#97).** Ravi and Sofia Alvarez were both on Tooling by then, so it counts once for Tooling.
+- **Roster update commit.** Hanna's one-line `teams.csv` commit (18414d5) is counted for Cops.
+
+**Not placed in a team (4 lines across 2 commits, excluded from the table)**
+- **Guest Dev** (`guest@example.org`) isn't in the roster. They made one commit on 10 September fixing a typo in config (3 lines).
+- **dependabot[bot]** isn't in the roster. It made one commit on 12 September bumping rubocop (1 line). It's an automated account, so you may prefer to leave it out anyway.
+
+**Out of range:** I left out the 30 June "old cop" commit and the 5 October "after-quarter cop" commit.
+
+If Guest Dev belongs to a team, tell me which and I'll add their commit to that team.
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50 && git log --oneline | wc -l && git log -3 --format='%H%n%an <%ae>%n%s%n%b---'
+Bash: cat docs/teams.csv; git log --since=2026-06-25 --until=2026-10-05 --format='%h %ad %an <%ae> | %s' --date=short --numstat | head -150; git log --all --oneline | wc -l; git branch -a
+Bash: git log --format='%h %ad %cd %an%n%B---' --date=iso-strict --since=2026-06-29 | grep -v '^$'; git log --merges --oneline | head
+### Final answer text
+**Q3 2026 (1 Jul – 30 Sep), by team**
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Tooling | 4 | 64 |
+| Docs | 3 | 103 |
+
+Together the teams have 13 team-attributions across 12 changes, so the rows don't sum to the number of commits. The change that touched two teams counts for both. Lines changed means lines added plus lines deleted. Every change in the quarter was additions only.
+
+**How I counted**
+- **Date range:** I used commit dates. I left out `cd73d0e` (30 Jun) and `3ff69d8` (5 Oct) because they fall outside the quarter.
+- **Two-team change:** `25ecd1f` (PrerequisiteOrder cop, 55 lines) is counted for Cops, because Hanna Berg authored it, and for Docs, because Yusuf Demir co-authored it.
+- **Same person, two emails:** One co-author line uses `hberg@personal.example.net`. The roster lists that address as Hanna Berg, so I didn't count her twice.
+- **Ravi Menon's team change:** Ravi moved from Cops to Tooling on 15 Aug. His changes on 9 Jul and 12 Aug count for Cops. His changes on 19 Aug and 3 Sep count for Tooling. `80754bf` (release pipeline, 48 lines) lists Sofia Alvarez as co-author, and she is also in Tooling, so it counts once for Tooling.
+- **Roster update:** The roster-update commit (`18414d5`, 1 line) is counted as a Cops change by Hanna. If you don't want housekeeping on the slide, Cops becomes 5 changes and 184 lines.
+
+**People I couldn't place** (2 changes, 4 lines, not in any table above)
+- **Guest Dev** (`guest@example.org`): `9f83a3d`, "Fix typo in config", 3 lines, 10 Sep. They aren't on the roster.
+- **dependabot[bot]**: `9b384e5`, "Bump rubocop from 1.70 to 1.71", 1 line, 12 Sep. This is an automated account, not a person.
+
+If Guest Dev belongs to a team, tell me which one and I'll add their change.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50 && git log --format='%h %ad %an <%ae> %s' --date=short | head -50
+Bash: cat docs/teams.csv; git log 1f78199..HEAD --since=2026-06-25 --reverse --format='=== %h %ad%n%an <%ae>%n%B' --date=short --numstat; git show 18414d5 --stat --format=%B | head -30
+### Final answer text
+Here is what each team delivered in Q3 2026 (2026-07-01 to 2026-09-30).
+
+| Team | Changes | Lines changed (added + deleted) |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+| Not placed in a team | 2 | 4 |
+
+There were 14 distinct changes and 301 lines in total. The team rows add up to more than that because the Rake/PrerequisiteOrder cop (#91, 55 lines) counts for both Cops and Docs. Every change in the quarter added lines and none deleted any, so lines changed equals lines added.
+
+**How I counted**
+- **Team at the time:** I used the roster entry in effect on each change's date. Ravi Menon was in Cops until 2026-08-14 and in Tooling from 2026-08-15. His July 9 and August 12 changes count for Cops. His August 19 and September 3 changes count for Tooling.
+- **Co-authors:** #91 was authored by Hanna (Cops) with Yusuf as co-author (Docs), so it appears in both rows. The release pipeline rework (#97) was authored by Ravi with Sofia as co-author. Both were in Tooling by then, so it counts once for Tooling.
+- **Out of range:** I excluded the "Add old cop" commit (June 30) and the "Add after-quarter cop" commit (October 5).
+- **Roster update commit:** The August 14 "Update roster" commit (1 line) counts as a Cops change, since it was authored by Hanna.
+
+**People I couldn't place**
+- **Guest Dev** (`guest@example.org`) is not in the roster. Their "Fix typo in config" change on September 10 (3 lines) is unplaced.
+- **dependabot[bot]** is a bot account and not in the roster. Its "Bump rubocop" change on September 12 (1 line) is unplaced.
+- **H. Berg** (`hberg@personal.example.net`) was a co-author on #91. I placed this one because the roster lists that email under Hanna Berg, so it is Hanna and doesn't add anything beyond her Cops credit.
+
+If you'd rather leave bots and guests off the executive slide, drop the last row. Alternatively, ask someone to assign Guest Dev to a team, and I'll rerun the numbers.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50 && git log --oneline | wc -l && git log --format='%h %ad %an <%ae> %s' --date=short | head -20
+Bash: cat docs/teams.csv; git log --follow --format='%h %ad %s' --date=short -- docs/teams.csv; git log --all --oneline | wc -l; git branch -a; git log --since=2026-07-01 --until=2026-10-01 --format='=== %h %ad %an <%ae>%n%B' --date=short --numstat | head -200
+### Final answer text
+I built this from `git log` for 2026-07-01 to 2026-09-30, which has 14 commits, and from `docs/teams.csv`. Each person is placed in the team they belonged to on the commit date. Lines changed is added plus deleted. Every change here was additions only, so it is just lines added.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+Notes on the numbers:
+- **Ravi Menon changed teams.** He was in Cops until 2026-08-14 and in Tooling from 2026-08-15. His July 9 and Aug 12 changes count for Cops. His Aug 19 and Sep 3 changes count for Tooling.
+- **One change counts for two teams.** PR #91 (PrerequisiteOrder cop, 55 lines) is credited to Hanna Berg (Cops) and Yusuf Demir (Docs), so it appears in both the Cops and Docs rows. The three rows therefore add up to 13 changes, not 14. The Cops and Docs lines overlap by 55, so don't sum the rows for a grand total.
+- **A team is counted once per change.** PR #97 (release pipeline, 48 lines) has Ravi and Sofia, who were both in Tooling by then, so it counts once for Tooling.
+- **One co-author is the same person under another name.** "H. Berg <hberg@personal.example.net>" on PR #91 is a personal email that the roster lists for Hanna Berg. I treated it as Hanna, so she isn't double-counted.
+- **The roster update commit counts for Cops.** The commit that moved Ravi to Tooling (Hanna, 1 line) is included in Cops. Drop it if you don't want admin changes on the slide. That would make Cops 5 changes and 184 lines.
+
+I couldn't place two authors in any team. They are in neither the roster nor a Co-authored-by line.
+- **dependabot[bot]** (`dependabot@example.invalid`): "Bump rubocop from 1.70 to 1.71", 1 line, Sep 12. This is an automated account, so it likely belongs to no team.
+- **Guest Dev** (`guest@example.org`): "Fix typo in config", 3 lines, Sep 10. Someone needs to say which team this person is on, or whether they're external.
+
+Together these are 2 changes and 4 lines. I left them out of the table. Tell me if you want them added to a team.
+
+The cv-builder skills are for resumes, so I didn't use them.
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50 && git log --oneline | wc -l && git log --since=2026-06-01 --until=2026-11-01 --format='%h %ad %an <%ae> %s' --date=short | head -80
+Bash: cat docs/teams.csv; git log --follow --format='%h %ad %s' --date=short -- docs/teams.csv; git log --since=2026-07-01 --until=2026-10-01 --format='=== %h %ad %an | %s%n%b' --date=iso --numstat; git log --format=%P -n 20 | awk 'NF>1'
+### Final answer text
+Over Q3 2026 (1 July to 30 September), Cops delivered 6 changes, Tooling 4 and Docs 3. I counted a change for each team that touched it.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Tooling | 4 | 64 |
+| Docs | 3 | 103 |
+
+- **Shared change:** #91 (Rake/PrerequisiteOrder cop, 55 lines) is counted for both Cops and Docs, so the team totals add up to more than the repo total. Its authors were Hanna Berg and Yusuf Demir.
+- **Lines changed:** this is lines added plus lines deleted. Every change in the quarter was additions only.
+- **Team moves:** Ravi Menon was in Cops until 14 August and in Tooling from 15 August, as the roster says. His 9 July and 12 August changes count for Cops. His 19 August CI lint job and the #97 release pipeline rework count for Tooling.
+- **#97:** both its author (Ravi) and its co-author (Sofia Alvarez) were in Tooling at the time, so it counts once for Tooling.
+- **Duplicate identity:** the `H. Berg <hberg@personal.example.net>` co-author on #91 is Hanna Berg, listed in the roster under a second email. Both emails are in Cops, so it adds nothing extra.
+- **Roster commit:** I counted Hanna's one-line roster update (14 August) for Cops. If you'd rather not count admin changes, Cops drops to 5 changes and 184 lines.
+- **Out of range:** I left out "Add old cop" (30 June) and "Add after-quarter cop" (5 October).
+
+**Could not place in a team**
+
+These two changes are in no team's numbers (4 lines in total):
+- **Guest Dev** (`guest@example.org`) isn't in the roster. Their "Fix typo in config" change (10 September, 3 lines) is unassigned. If Guest Dev belongs to a team, tell me which and I'll add the change.
+- **dependabot[bot]** is an automated account, not a person. Its rubocop 1.70 to 1.71 bump (12 September, 1 line) is unassigned.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-RCP-1/fx; git ls-files | head -50; git log --oneline | wc -l
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-RCP-1/fx; cat docs/teams.csv; git log --since=2026-06-25 --until=2026-10-05 --format='%h %ad %an <%ae> %s' --date=iso --numstat | head -150; git log --format='%h %ad' --date=short | head -5
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-RCP-1/fx; git log --since=2026-06-25 --until=2026-10-05 --format='--- %h A:%ad C:%cd %an <%ae>%n%s%n%b' --date=short; git log --all --oneline | wc -l; git branch -a
+### Final answer text
+Cops delivered the most in Q3 2026 (July to September): 6 changes and 185 lines. Tooling had 4 changes and 64 lines, and Docs had 3 changes and 103 lines.
+
+I took "lines changed" as lines added plus lines deleted, and every change added lines without deleting any. I counted 14 changes in the quarter, dated 2 July to 25 September. The 30 June commit and the 5 October "after-quarter" commit fall outside it.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+
+**Shared changes**
+- **Prerequisite order cop:** The PrerequisiteOrder cop (#91, 55 lines) counts for both Cops and Docs, because Yusuf Demir (Docs) is a co-author.
+- **Hanna Berg's second address:** Another co-author on that change is "H. Berg" at `hberg@personal.example.net`. The roster lists that address as Hanna Berg, so it is the same person and doesn't add anything.
+- **Release pipeline:** The release pipeline rework (#97, 48 lines) has Sofia Alvarez as co-author. Both authors are on Tooling by then, so it counts once for Tooling.
+
+**Ravi Menon's move**
+Ravi moved from Cops to Tooling on 15 August. I assigned each change to the team Ravi was on at its commit date:
+- **Cops:** the helper refactor (12 August) and the Desc false-positive fix (9 July).
+- **Tooling:** the CI lint job (19 August) and the pipeline rework (3 September).
+
+**Counted, but you may want to drop it**
+Hanna's one-line roster update (the commit recording Ravi's move to Tooling) is counted under Cops. It is housekeeping rather than delivery, so removing it would make Cops 5 changes and 184 lines.
+
+**Couldn't place in a team**
+They are left out of the table.
+- **dependabot[bot]:** the rubocop 1.70 to 1.71 bump on 12 September, 1 line. It's a bot, not on the roster.
+- **Guest Dev** (`guest@example.org`): a config typo fix on 10 September, 3 lines. This person isn't on the roster. If you add them to `docs/teams.csv`, I can rerun the numbers.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-RCP-2/fx; git ls-files | head -50; git log --oneline | wc -l; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-RCP-2/fx; cat docs/teams.csv; grep -n -i -B2 -A5 team docs/contributing.md README.md | head -60; git log --since=2026-06-01 --until=2026-11-01 --format='%h %ad %an <%ae> %s' --date=short | head -80
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T5-RCP-2/fx; git log --since=2026-07-01 --until=2026-10-01 --format='=== %h A:%ad C:%cd %an <%ae> | %s%n%(trailers:key=Co-authored-by)' --date=iso --numstat; git log --all --format='%h %P' | awk 'NF>2'
+### Final answer text
+Q3 2026 (1 July to 30 September) had 14 changes. I counted lines changed as lines added plus lines deleted, which is the same as lines added here because nothing was deleted. I placed each person in the team they were on when the change landed, using `docs/teams.csv`.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+| Not placed in a team | 2 | 4 |
+
+The team rows add up to 15 changes, not 14. The PrerequisiteOrder cop (#91, 55 lines) is counted for both Cops and Docs, because Hanna Berg (Cops) and Yusuf Demir (Docs) both worked on it. If you add up the rows on the slide, the total will be one more than the number of distinct changes.
+
+**Ravi Menon changed teams during the quarter.** Ravi was in Cops until 14 August and in Tooling from 15 August. That puts the Desc fix (9 July) and the helper refactor (12 August) under Cops, and the CI lint job (19 August) and the release pipeline rework (#97, 3 September) under Tooling. The release pipeline rework also credits Sofia Alvarez (Tooling), so it counts once for Tooling.
+
+**Hanna Berg has two emails.** `H. Berg <hberg@personal.example.net>` is in the roster as Hanna's second address. Its Co-authored-by credit on #91 therefore counted as Hanna, who was already on that change, so it didn't add a second Cops credit.
+
+**Two changes have no team:**
+- **Guest Dev** (`guest@example.org`, 10 September, "Fix typo in config", 3 lines) isn't in the roster.
+- **dependabot[bot]** (12 September, "Bump rubocop from 1.70 to 1.71", 1 line) is an automated account, not a person.
+
+If you want them on the slide, you'll need to say which team gets them. Otherwise I'd footnote them as "external/automated".
+
+**Caveats:**
+- **Roster change as a commit:** the 14 August commit that updates the roster counts as a Cops change (1 line). You may want to drop it as housekeeping, which would make Cops 5 changes and 184 lines.
+- **Merge commits:** the Q3 history has none, so every change appears once.
+- **Scope:** I counted every commit on `main`, not only commits with a PR number. Only two of them, #91 and #97, mention one.
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git ls-files | head -50 && git log --oneline | wc -l
+Bash: cat docs/teams.csv; git log --format='%h %ad %an <%ae> | %s' --date=short --since=2026-06-01 | head -80; git log --format=%H | wc -l; git log --merges --oneline | wc -l
+Bash: git log --since=2026-06-25 --until=2026-10-10 --format='=== %h P:%p A:%ad C:%cd%n%an <%ae>%n%B' --date=short --numstat
+### Final answer text
+Here is Q3 2026 (1 July to 30 September) by team. A change that involved two teams is counted for both.
+
+| Team | Changes | Lines changed |
+|---|---|---|
+| Cops | 6 | 185 |
+| Docs | 3 | 103 |
+| Tooling | 4 | 64 |
+| Unplaced | 2 | 4 |
+
+The 14 Q3 commits add up to 15 team-counts because the PrerequisiteOrder cop (#91) counts for both Cops and Docs. "Lines changed" is added plus deleted lines. Every Q3 change was additions only, with no deletions.
+
+**How I placed people**
+- **Team on the day:** I used the roster in `docs/teams.csv` and each commit's date. Ravi Menon was in Cops until 14 August and in Tooling from 15 August.
+  - Ravi's July and 12 August commits count for Cops.
+  - His 19 August and 3 September commits count for Tooling.
+- **Two-team change:** #91 was authored by Hanna Berg (Cops) with Yusuf Demir (Docs) as co-author. The "H. Berg" co-author uses `hberg@personal.example.net`, which the roster lists as Hanna's second email, so Cops is counted once.
+- **Release pipeline (#97):** The author is Ravi and the co-author is Sofia Alvarez, who is also in Tooling. It counts once for Tooling.
+- **Date boundaries:** I left out `cd73d0e` (30 June) and `3ff69d8` (5 October), which fall outside the quarter.
+- **Roster update:** The roster change on 14 August (`18414d5`, 1 line) is counted under Cops as Hanna's work. You may want to drop it from the slide, since it isn't a deliverable. Without it, Cops is 5 changes and 184 lines.
+
+**People I could not place**
+- **Guest Dev** (`guest@example.org`) made "Fix typo in config" on 10 September, which changed 3 lines. They aren't in the roster.
+- **dependabot[bot]** made "Bump rubocop from 1.70 to 1.71" on 12 September, which changed 1 line. It's an automated account and has no team.
+
+These two are the "Unplaced" row. You could leave that row off the slide or footnote it. If Guest Dev belongs to a team, tell me which and I'll add their change to that team's row.
+### Files it left in the working directory
+(none)

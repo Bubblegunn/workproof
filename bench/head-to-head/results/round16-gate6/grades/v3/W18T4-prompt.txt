@@ -1,0 +1,768 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I need a people table for our quarterly contributor thank-you: write contributors-q3-2026.csv with one row per real person who contributed in Q3 2026, using US Pacific time for the quarter. Columns: person, every name and e-mail they used, number of commits they wrote, and number of times they were credited as co-author. Some people use two addresses, some patches came in by mailing list and a maintainer applied them, and there are bots. Don't count bots, and don't credit the person who merely applied someone else's patch."
+Ground truth: QUARTER 2026-07-01T07:00Z (= 00:00 PDT) .. 2026-10-01T07:00Z; commit date = committer date
+person | authored commits | co-authored credits | identities | work
+Beatriz Alves | 1 | 0 | Beatriz Alves <beatriz@example.invalid> | authored: Fix integer overflow in print_number
+Ewa Kowalska | 4 | 0 | Ewa Kowalska <ewa@example.invalid> | authored: Update the changelog / authored: Add a mailmap / authored: Support big numbers in cJSON_Compare (#633) / authored: Check bounds in cJSON_ParseWithLength
+Jun Takeda | 2 | 0 | Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid> | authored: Add cJSON_GetNumberValueOr / authored: Test cJSON_GetNumberValueOr
+Lucas Pereira | 1 | 0 | Lucas Pereira <lucas@example.invalid> | authored: Add Doxygen comments to cJSON.h
+Roberto Botelho | 1 | 0 | Roberto Botelho <roberto@example.invalid> | authored: Fix a leak in cJSON_ParseWithOpts
+Sana Iqbal | 2 | 1 | Sana Iqbal <sana.iqbal@uni.example.invalid>; Sana Iqbal <sana@example.invalid> | authored: Enforce the nesting limit in array parsing / co-authored: Support big numbers in cJSON_Compare (#633) / authored: Document the nesting limit
+Yusuf Demir | 0 | 1 | Yusuf Demir <yusuf@example.invalid> | co-authored: Support big numbers in cJSON_Compare (#633)
+NOT ROWS: dependabot[bot], cjson-ci-bot (bots); GitHub (committer only); Dmitri Volkov (his only commit is 30 June 17:30 PDT = Q2)
+NOTES ONLY (reported/reviewed, not counted): Hugo Lemaire (Reported-by on the print_number fix), Sana Iqbal (Reviewed-by on it)
+NOT COUNTED: 2 merge commits (one authored by Sana)
+Hazards: quarter edges in a non-UTC zone (one commit on each side); patch authored in June but applied in July by the maintainer; GitHub web committer; one person with two addresses tied by .mailmap and another with two addresses sharing a name; bots including a "-bot" account and a human whose surname contains "bot"; merge commits (one authored by a contributor); Co-authored-by vs Signed-off-by/Reported-by/Reviewed-by. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 People merged: Jun Takeda is one row with both addresses (the home address is tied only by the .mailmap) and Sana Iqbal is one row with both addresses. FAIL if either appears twice or if "jtakeda" is its own row.
+C2 Bots are not rows (dependabot[bot], cjson-ci-bot), and Roberto Botelho (a human) is present. "GitHub" is not a row. FAIL on any of these.
+C3 Credit follows the author, not the person who applied or merged: Beatriz Alves has the print_number patch (maintainer Ewa Kowalska applied it), Ewa's count is only her own commits (4 by landing date), and Yusuf Demir appears with 0 commits and 1 co-author credit (Sana has 1 co-author credit as well). FAIL if Ewa is credited with Beatriz's or Roberto's patches, or if Yusuf is missing.
+C4 The quarter is cut in Pacific time and the date convention is stated: Lucas Pereira (2026-09-30 23:30 -0700, which is 1 Oct in UTC) is in; Dmitri Volkov (2026-06-30 17:30 -0700, which is 1 Jul in UTC) is out. Beatriz is in under landing date; an answer using author date may leave her out if it says so and applies it to everyone. FAIL if either edge is wrong for the convention stated, or no convention is stated.
+C5 Counts are right under the stated convention and merge commits are not counted as commits: Jun 2, Sana 2 (plus 1 co-credit), Roberto 1, Lucas 1, Beatriz 1, Ewa 4. Reported-by/Reviewed-by are not counted as commits or co-authorship (a note is fine). FAIL if a merge commit inflates Sana or Ewa, or the numbers differ without a stated reason.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --since='2026-07-01T00:00:00-07:00' --until='2026-10-01T00:00:00-07:00' --date=iso-strict --format='%h|%an|%ae|%cn|%ce|%ad|%cd|%s' | head -200; echo; git log --all --format=%h | wc -l; ls; ls .mailmap 2>&1
+Bash: cat .mailmap; git log -8 --date=iso-strict --format='%h|%an|%ae|%ad|%P' ; echo ----; git log --all --since='2026-07-01T00:00:00-07:00' --until='2026-10-01T00:00:00-07:00' --format='%h %p%n%B---'
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails_used,commits_written,co-author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1 ; Jun Takeda,J
+### Final answer text
+I wrote `contributors-q3-2026.csv` in the repo root. It's untracked and I haven't committed it.
+
+I didn't use the receipts skill's miner for this. It reports on your own Claude Code transcripts, so it can't produce a per-person contributor table. I built the table from `git log` instead.
+
+| person | commits | co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Beatriz Alves | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The quarter runs from 2026-07-01 00:00 to 2026-10-01 00:00 US Pacific.
+
+- **Lucas Pereira's commit:** it was written at 23:30 PDT on Sep 30, which is already Oct 1 in UTC. It counts in Q3.
+- **Credit for applied patches:** I credited the author, not the person who applied the patch. Beatriz Alves's and Roberto Botelho's commits were applied by Ewa, and Ewa isn't credited for them. GitHub's web-merge account isn't credited for Sana's or Jun's commits either.
+- **Merge commits:** I excluded them. Ewa's and Sana's merges are not authored work.
+- **Bots:** I excluded dependabot and cjson-ci-bot.
+- **Two identities:** Jun Takeda appears as `jtakeda` with a home address and as `Jun Takeda` with a work address. The repo's `.mailmap` already links them. Sana Iqbal's university address isn't in the mailmap. I merged it because the name matches and she uses the same account on the same project, but please confirm.
+- **Co-authors:** Yusuf Demir and Sana are credited through the `Co-authored-by:` trailers on commit 493da49. I didn't count `Reviewed-by`, `Reported-by` or `Signed-off-by` as co-author credits. That leaves Hugo Lemaire, who reported the bug fixed in Beatriz's commit, out of the table.
+
+**Decision for you:** Beatriz's patch was written on Jun 20 but applied on Jul 8. I counted it because it landed in Q3. If you count by when the commit was written, she drops out of the table.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails_used,commits_written,co-author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Beatriz Alves,Beatriz Alves <beatriz@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --since='2026-06-25' --until='2026-10-05' --format='%H|%an|%ae|%cn|%ce|%aI|%cI|%P|%s' | awk -F'|' '{print}' | head -200; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since='2026-06-15' --format='==%h %an <%ae>%n%B' | grep -v '^$'; git config --get-regexp 'mailmap|log'
+Bash: cat > contributors-q3-2026.csv <<'E' ; person,names_and_emails_used,commits_written,coauthor_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,"Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>",2,1 ; Jun Takeda,"J
+### Final answer text
+I wrote `contributors-q3-2026.csv` in the repo root. It has six people. I didn't use the receipts skill's miner because it summarizes Claude Code usage, not git contributors, so I built the table from `git log`.
+
+| person | commits written | co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+**How I counted**
+- **Quarter:** 2026-07-01 00:00 to 2026-09-30 23:59 Pacific, judged by author date. Lucas's commit at 23:30 PDT on Sep 30 counts, even though it falls on Oct 1 in UTC. Dmitri Volkov's commit at 17:30 PDT on Jun 30 doesn't count. Ewa's "Prepare 1.7.19" commit on Oct 2 doesn't count either.
+- **Two addresses:** Sana Iqbal appears as `sana@` and `sana.iqbal@uni…`. Jun Takeda appears as "Jun Takeda" and "jtakeda", and the repo's `.mailmap` already merges those two.
+- **Applied patches:**
+  - Ewa committed Roberto's leak fix, so it counts for Roberto, not Ewa.
+  - Jun's and Sana's commits that went in through GitHub are credited to them, not to GitHub.
+- **Bots excluded:** `cjson-ci-bot` and `dependabot[bot]`.
+- **Co-author credits:** only the Aug 27 "big numbers" commit has `Co-authored-by` lines, naming Yusuf Demir and Sana Iqbal. Beatriz Alves's commit has `Reported-by` and `Reviewed-by` trailers, and I didn't count those as co-authorship.
+- **Merges excluded:** I didn't count Ewa's "Merge pull request #640" or Sana's "Merge branch 'master'" as written commits. Say if you want them included.
+
+**Beatriz Alves is not in the table.** Her overflow fix was written on Jun 20 and applied on Jul 8, so by author date it belongs to Q2. If you want people thanked for patches that landed in Q3, add her with 1 commit. That also changes Ewa's applied-patch handling only if you switch to commit date for everything.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails_used,commits_written,coauthor_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,"Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>",2,1
+Jun Takeda,"Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>",2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --since=2026-06-01 --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2026-06-15 --format='=== %h %an <%ae> | %s%n%(trailers)%n%b' | grep -v '^$' ; git branch -a; cat CONTRIBUTORS.md | head -30
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits_written,coauthor_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,"Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>",2,1 ; Jun Takeda,"Jun 
+### Final answer text
+I wrote `contributors-q3-2026.csv` in the repo root. I didn't use the receipts skill's pipeline, because it reports Claude Code usage from session transcripts and can't produce a contributor table. I built the file from `git log` instead.
+
+| person | names / e-mails | commits | co-author credits |
+|---|---|---|---|
+| Ewa Kowalska | ewa@ | 4 | 0 |
+| Sana Iqbal | sana@, sana.iqbal@uni. | 2 | 1 |
+| Jun Takeda | "Jun Takeda" (work address), "jtakeda" (home address) | 2 | 0 |
+| Roberto Botelho | roberto@ | 1 | 0 |
+| Lucas Pereira | lucas@ | 1 | 0 |
+| Yusuf Demir | yusuf@ | 0 | 1 |
+
+I counted a commit by its author, not its committer. That's why Ewa gets no credit for Roberto's patch, and Jun's and Sana's commits made through GitHub still count for them. Only `Co-authored-by` trailers count as co-author credit. `Reviewed-by` and `Reported-by` don't.
+
+The quarter runs from 2026-07-01 00:00 to 2026-09-30 23:59 Pacific, using each commit's author date. I excluded the following:
+- **Bots:** `cjson-ci-bot` and `dependabot[bot]`.
+- **Dmitri Volkov:** his commit is dated 2026-06-30 17:30 Pacific, which is already July in UTC, so it falls in Q2.
+- **Lucas Pereira:** his commit at 2026-09-30 23:30 Pacific is already October in UTC. I counted it, since it's still Q3 in Pacific time.
+- **Ewa's "Prepare 1.7.19":** it is dated 2026-10-02, so it is out of the quarter.
+- **Merge commits:** the merge of PR #640 (Ewa's) and Sana's "Merge branch 'master'" add no new work of their own.
+
+Judgment calls you may want to change:
+- **Beatriz Alves** wrote "Fix integer overflow in print_number" on June 20, and Ewa applied it on July 8. I left her out because the writing was in Q2. If you'd rather count by the date a commit landed, she gets 1 commit.
+- **Merge commits:** if you'd count them as commits, Ewa goes to 5 and Sana to 3.
+- **Sana's two addresses:** `sana@` and `sana.iqbal@uni.` are not linked in the repo's `.mailmap`, so I merged them myself. The `.mailmap` only merges Jun's two addresses. Check that the two Sana addresses really belong to one person.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_written,coauthor_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,"Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>",2,1
+Jun Takeda,"Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>",2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --since='2026-06-25' --until='2026-10-05' --format='%H|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; echo; git log --all --oneline | wc -l; ls; git branch -a; cat .mailmap 2>/dev/null
+Bash: git log --since='2026-06-25' --until='2026-10-05' --format='=== %h %an <%ae> | %aI | %cI%n%B' ; cat CONTRIBUTORS.md | head -30
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits,coauthor_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0 ; Sana Iqbal,Sana Iqbal <s
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. The quarter runs from 2026-07-01 00:00 to 2026-09-30 23:59 US Pacific (PDT, UTC-7).
+
+| person | commits | co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Jun Takeda | 2 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Lucas Pereira | 1 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The CSV also lists every name and e-mail each person used, separated by semicolons.
+
+- **People with two identities:** Jun Takeda used `jun@work…` and `jtakeda <jun.takeda@home…>`, and the repo's `.mailmap` already treats them as one person. Sana Iqbal used `sana@…` and `sana.iqbal@uni…`. I merged these two myself, because one address appears in a co-author line and the other on a commit.
+- **Bots:** I left out `cjson-ci-bot` and `dependabot[bot]`.
+- **Applied patches:** Commits are credited to the author, not the committer. Roberto's fix, which Ewa applied, counts for Roberto.
+- **Dates:** I counted commits by author date, converted to Pacific time.
+  - Lucas's commit at 23:30 PDT on Sep 30 is in.
+  - Dmitri Volkov's commit at 17:30 PDT on Jun 30 is out. It looks like July 1 in UTC, but it was written in June.
+  - Ewa's "Prepare 1.7.19" commit on Oct 2 is out.
+- **Merge commits:** I didn't count Ewa's PR #640 merge or Sana's "Merge branch 'master'". They are merges, not authored work.
+- **Co-authors:** Only `Co-authored-by:` lines count as credits. The `Reported-by` (Hugo Lemaire) and `Reviewed-by` lines on Beatriz's commit don't.
+
+Beatriz Alves is not in the table. Her overflow fix was written on Jun 20 but applied on Jul 8, so it's a June contribution by author date. If you'd rather count by the date a commit landed, add her with 1 commit, and add Dmitri if you count by UTC. Tell me which you prefer and I'll change the file.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits,coauthor_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --since="2026-06-29" --until="2026-10-03" --format='%h|%an|%ae|%cn|%ce|%ad|%cd|%P' --date=iso | head -200; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --all --since="2026-06-19" --until="2026-10-03" --format='=== %h %an <%ae> | %ad%n%B' --date=iso; git branch -a; cat CONTRIBUTORS.md | head -30
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits_authored,co_author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1 ; Jun Takeda,Jun T
+### Final answer text
+I wrote `contributors-q3-2026.csv` with one row for each of six people. I haven't committed it.
+
+| person | names and e-mails used | commits | co-author credits |
+|---|---|---|---|
+| Ewa Kowalska | ewa@ | 4 | 0 |
+| Sana Iqbal | sana@, sana.iqbal@uni | 2 | 1 |
+| Jun Takeda | "Jun Takeda" jun@work, "jtakeda" jun.takeda@home | 2 | 0 |
+| Roberto Botelho | roberto@ | 1 | 0 |
+| Lucas Pereira | lucas@ | 1 | 0 |
+| Yusuf Demir | yusuf@ | 0 | 1 |
+
+All addresses are at `example.invalid` except where shown.
+
+**How I counted**
+- **Quarter:** I used 2026-07-01 00:00 to 2026-09-30 23:59 Pacific, dated by the author date.
+  - Lucas's commit at 2026-09-30 23:30 -0700 is inside the quarter, even though it is already October in UTC.
+  - Dmitri Volkov's commit at 2026-06-30 17:30 -0700 is outside it, even though it is already July in UTC. He is not in the table.
+  - Ewa's "Prepare 1.7.19" commit (Oct 2) is also outside.
+- **Mailing-list patch:** Roberto's patch was applied by Ewa, so it counts for Roberto and not for Ewa.
+- **Bots:** I left out `cjson-ci-bot` and `dependabot[bot]`.
+- **Merge commits:** I didn't count them as written work. That excludes Ewa's PR merge and Sana's "Merge branch 'master'" commit.
+- **Two addresses:** I joined Jun's two identities. The repo's `.mailmap` already maps them to one person. Sana's two addresses are my judgment call. The repo has no mapping for them, but the same Sana is credited as co-author in the same quarter.
+- **Co-author credits:** The only `Co-authored-by` trailers are on #633, crediting Yusuf and Sana. The `Reviewed-by` and `Reported-by` trailers don't count.
+
+**Decision for you:** Beatriz Alves is not in the table. Her overflow fix was written on June 20 (Q2) and applied by Ewa on July 8 (Q3). I went by when it was written. If you want to thank her for Q3 anyway, add a row with 1 commit.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_authored,co_author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-RCP-3/fx; git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-RCP-3/fx; git log --all --since=2026-06-15 --format='=== %h | A:%an <%ae> %aI | C:%cn <%ce> %cI | parents:%p%n%B'; git branch -a; git tag | tail -3; git log --all --format=%h --since=2026-06-15 | wc -l; head -30 CONTRIBU
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-RCP-3/fx; cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits_authored,co_author_credits ; Beatriz Alves,Beatriz Alves <beatriz@example.invalid>,1,0 ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Ju
+### Final answer text
+I wrote `contributors-q3-2026.csv` with 7 people. The columns are `person`, `names_and_emails`, `commits_authored` and `co_author_credits`. Multiple names and addresses for one person are separated by `;`.
+
+| Person | Commits | Co-author credits | Notes |
+|---|---|---|---|
+| Beatriz Alves | 1 | 0 | Mailing-list patch, applied by Ewa |
+| Ewa Kowalska | 4 | 0 | |
+| Jun Takeda | 2 | 0 | Used `Jun Takeda <jun@work…>` and `jtakeda <jun.takeda@home…>` |
+| Lucas Pereira | 1 | 0 | Commit made 2026-09-30 23:30 PDT |
+| Roberto Botelho | 1 | 0 | Mailing-list patch, applied by Ewa |
+| Sana Iqbal | 2 | 1 | Used `sana@` and `sana.iqbal@uni.` |
+| Yusuf Demir | 0 | 1 | Co-author credit only |
+
+**Quarter window:** I used 2026-07-01 00:00 to 2026-09-30 23:59 PDT (UTC−7).
+- Lucas's 23:30 PDT commit on Sep 30 falls on Oct 1 in UTC, but it is in Q3 here.
+- Dmitri Volkov's commit at 17:30 PDT on Jun 30 is already Oct 1... no, July 1 in UTC, but it is Q2 in Pacific time. He is left out.
+- Ewa's "Prepare 1.7.19" commit is dated Oct 2, so it is out of the quarter.
+
+**Excluded:**
+- `cjson-ci-bot` and `dependabot[bot]` are bots.
+- The maintainer (Ewa) gets no credit for applying Beatriz's and Roberto's patches. They are credited as the authors.
+- Ewa's and Sana's merge commits are not counted. They aren't original work, so Ewa has 4 commits and Sana has 2.
+- `Reviewed-by` (Sana) and `Reported-by` (Hugo Lemaire) trailers are not co-authorship. Only the two `Co-authored-by` lines on the "big numbers" commit count.
+
+**Decision for you:** Beatriz's patch was written on Jun 20 but applied on Jul 8. I counted it in Q3 by the date it landed, as `git log --since` does. If you'd rather go by the date it was written, her row drops out. Tell me if you want that.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_authored,co_author_credits
+Beatriz Alves,Beatriz Alves <beatriz@example.invalid>,1,0
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2026-06-01 --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; git log --all --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --all --since=2026-06-15 --format='=== %h %s%n%b' ; cat CONTRIBUTORS.md | head -30; git branch -a
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits_written,coauthor_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1 ; Jun Takeda,Jun Tak
+### Final answer text
+I wrote `contributors-q3-2026.csv` with seven people. Beatriz Alves is a judgment call, explained below.
+
+| Person | Commits written | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Beatriz Alves | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The quarter runs from 2026-07-01 00:00 to 2026-09-30 23:59 US Pacific time (UTC−7), which is 07:00Z on Jul 1 to 07:00Z on Oct 1. Two commits sit on that boundary:
+- **Counted:** Lucas's commit at 23:30 PDT on Sep 30 is in Q3.
+- **Not counted:** Dmitri Volkov's commit at 17:30 PDT on Jun 30 is outside Q3, even though it falls on Jul 1 in UTC.
+
+**People and identities**
+- **Sana Iqbal:** two addresses, both listed.
+- **Jun Takeda:** two addresses and two names (`Jun Takeda` and `jtakeda`). The repo's `.mailmap` already maps them to one person.
+- **Applied patches:** I credited the patch author, not the maintainer who applied it. Roberto's and Beatriz's patches were applied by Ewa, so they count for Roberto and Beatriz, not Ewa.
+- **GitHub web commits:** where GitHub was the committer, the author gets the credit.
+- **Co-author credits:** these come only from `Co-authored-by:` lines, which appear on one commit (Yusuf and Sana). I ignored `Signed-off-by`, `Reviewed-by` and `Reported-by`, so Hugo Lemaire is not listed.
+- **Bots:** `cjson-ci-bot` and `dependabot[bot]` are excluded.
+- **Merge commits:** I didn't count merge commits as written work. That excludes Ewa's PR merge and Sana's "Merge branch 'master'". Including them would add 1 to each of their counts.
+
+**Your call: Beatriz Alves.** Her patch was written on Jun 20 but Ewa applied it on Jul 8. I counted it because it landed in Q3. If you date contributions by when they were written, drop her row.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_written,coauthor_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Beatriz Alves,Beatriz Alves <beatriz@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-BASE-2/fx; git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%cI' | head -50; git log --all --oneline | wc -l; ls; git config --get mailmap.file; ls -a | grep -i mailmap
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-BASE-2/fx; cat .mailmap; git log --all --since=2026-06-01 --format='=== %h|%an <%ae>|%aI|%cI|%P%n%B'; git branch -a; git log --all --merges --oneline | head -3
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-BASE-2/fx; cat > contributors-q3-2026.csv <<'E' ; person,names_and_emails,commits_authored,co_author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <san
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. Q3 is 2026-07-01 00:00 to 2026-10-01 00:00 US Pacific.
+
+| Person | Commits | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The CSV also lists every name and e-mail each person used.
+
+- **Dates:** I counted by author date, converted to Pacific time.
+- **Ewa Kowalska:** The "Prepare 1.7.19" commit is dated 2026-10-02, so it falls in Q4. Ewa's four commits include one patch where Roberto is the author, so I credited Roberto instead. They also include `7d27868` ("Update the changelog"), which I counted as theirs.
+- **Lucas Pereira:** I counted the Doxygen commit, which is dated 2026-09-30 at 23:30 Pacific. It is already 2026-10-01 in UTC, so a UTC cut-off would drop it.
+- **Dmitri Volkov:** I excluded his commit, dated 2026-06-30 at 17:30 Pacific. It is already 2026-07-01 in UTC, but it is still Q2 in Pacific time.
+- **Mailing-list patches:** Roberto's leak fix was applied by Ewa, so it counts for Roberto and not Ewa. I also left Ewa out of the "GitHub" committer cases.
+- **Two addresses:** I merged Sana's `sana@` and `sana.iqbal@uni` addresses. I also merged Jun Takeda's `jun@work` address and the `jtakeda` home address, which `.mailmap` already links. Merging Sana's two addresses was my judgment, because they share a name but `.mailmap` doesn't link them.
+- **Bots:** I excluded `cjson-ci-bot` and `dependabot[bot]`.
+- **Merge commits:** I excluded the two merge commits (`58786dd` by Ewa and `9828a27` by Sana), since they aren't authored work.
+- **Co-authors:** Only the `Co-authored-by:` trailers on `493da49` counted: Yusuf Demir and Sana. `Reported-by` and `Reviewed-by` don't count.
+
+**Beatriz Alves, your call:** Her overflow fix was written on 2026-06-20 and applied on 2026-07-08, so I left her out. If you'd rather count by the date a patch was applied, she gets one commit, and Dmitri and Lucas stay as they are.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_authored,co_author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --since="2026-06-30" --until="2026-10-02" --format='%H|%an|%ae|%cn|%ce|%aI|%cI' | head -200; git log --all | wc -l; git log --all --format='%an <%ae>' | sort | uniq -c | sort -rn | head -50; ls; git config --get mailmap.file; ls -a | grep mailmap
+Bash: cat .mailmap; git log --all --since="2026-06-29" --format='--- %h %an <%ae> | %aI%n%B' | head -200; git branch -a; git log --all --since=2026-06-29 --until=2026-10-03 --format=%h --no-merges | wc -l; git log --all --since=2026-06-29 --format=%h --merges
+Bash: cat > contributors-q3-2026.csv <<'E' ; person,names_and_emails,commits_written,co_author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1 ; Jun Takeda,Jun Take
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. Each person's names and e-mails share one column, separated by semicolons.
+
+| Person | Commits written | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+How I counted:
+- **Quarter:** Q3 runs from 1 July 00:00 to 30 September 23:59 US Pacific. I used each commit's author date, since that is when the person wrote it.
+- **Sana Iqbal:** She used two addresses, and I merged them into one row. One of her commits was committed through GitHub, but she is still the author.
+- **Jun Takeda:** The `.mailmap` file merges `jtakeda` into Jun Takeda. His two commits were also committed through GitHub.
+- **Roberto Botelho:** He sent his patch by mailing list, and Ewa applied it. Roberto gets the commit, and Ewa does not.
+- **Lucas Pereira:** His commit is stamped 23:30 PDT on 30 September, which is already 1 October in UTC. It is still Q3 in Pacific time, so he is counted.
+- **Yusuf Demir:** He has no commits, only one co-author credit, on commit `493da49`. Sana has the other credit on that commit.
+
+What I left out:
+- **Bots:** `cjson-ci-bot` and `dependabot[bot]`.
+- **Merge commits:** Ewa's merge `58786dd` and Sana's "Merge branch 'master'" `9828a27`, because they merge existing work rather than add new content. If you want merges counted, Ewa would be 5 and Sana 3.
+- **Dmitri Volkov:** His commit is stamped 17:30 PDT on 30 June, which is Q2.
+- **Beatriz Alves:** She wrote her patch on 20 June, and Ewa applied it on 8 July. It belongs to Q2.
+- **Ewa's "Prepare 1.7.19":** It is dated 2 October, which is Q4.
+- **Other trailers:** I ignored the `Reported-by` and `Reviewed-by` lines on Beatriz's patch, since they aren't co-author credits.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_written,co_author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 --tz America/Los_Angeles
+Bash: cat .mailmap 2>/dev/null; TZ=America/Los_Angeles git log --since='2026-06-25' --until='2026-10-05' --no-merges --date=iso-local --format='%h|A:%an <%ae>|C:%cn <%ce>|%ad|%cd|%s%n%(trailers:key=Co-authored-by,only,valueonly)' 
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails_used,commits_authored,co_author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0 ; Sana Iqba
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. The window is 2026-07-01 to 2026-09-30 in US Pacific time, and commits are counted by author date.
+
+| Person | Commits | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Jun Takeda | 2 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+- **Mailing-list patch:** Roberto's leak fix was applied by Ewa. It counts for Roberto, not Ewa.
+- **Two addresses:** Jun appears as "Jun Takeda" and "jtakeda", across a work and a home address. A `.mailmap` entry already links them.
+- **Sana Iqbal:** Please confirm that her two addresses are the same person. I joined them because they share a full name and organisation. If they are two people, her counts become 1 commit each (the second is credited to the university address).
+- **Yusuf Demir:** Yusuf has no commits of their own. They were credited as co-author on Ewa's big-numbers commit, so they have a row.
+- **Bots left out:** the version-bump bot and dependabot.
+- **Pacific time changes who is in:**
+  - Dmitri Volkov's fix was at 17:30 on June 30 Pacific, so it falls in Q2 and he is out.
+  - Lucas Pereira's Doxygen commit was at 23:30 on September 30 Pacific, so he is in.
+  - The 1.7.19 release commit is October 2 and is out.
+- **Beatriz Alves:** Her overflow fix was written on June 20 and applied on July 8. It is out under the author-date rule. If you would rather count by the date a patch landed, she belongs in Q3 with 1 commit.
+
+The CSV includes the e-mail addresses you asked for, so check who will see it before you share it.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails_used,commits_authored,co_author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 --tz America/Los_Angeles
+Bash: cat .mailmap 2>/dev/null; TZ=America/Los_Angeles git log --all --no-merges --since=2026-06-29 --until=2026-10-02 --date=iso-local --format='%h|A:%an <%ae>|C:%cn <%ce>|%ad|%cd|%s%n%b' | grep -v '^$'
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names and e-mails used,commits written,times credited as co-author ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. The quarter runs 2026-07-01 to 2026-09-30 in US Pacific time, by author date.
+
+| Person | Commits | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Jun Takeda | 2 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+- **Joined identities:**
+  - Jun Takeda is one person under two addresses and two names ("Jun Takeda" and "jtakeda"). The repository's mailmap links them.
+  - Sana Iqbal is joined by the same full name at two addresses. That join is probable, so please confirm it. Her credited co-author address is the one in the table, and only one of her two commits is proven under that address alone.
+- **Yusuf Demir:** he has no commits of his own. I included him because a commit in the quarter credits him as co-author. I found that by reading the commit messages. The tool's summary didn't list him.
+- **Merged patches:** Roberto's patch was applied by Ewa on 2026-08-11. It counts for Roberto, not Ewa.
+- **Bots:** I left out cjson-ci-bot and dependabot[bot].
+- **Time zone effects:**
+  - Dmitri Volkov's commit is dated 2026-06-30, 17:30 Pacific. That is 2026-07-01 in UTC, so he drops out of this table.
+  - Lucas Pereira's commit is dated 2026-09-30, 23:30 Pacific, so he is in.
+  - Beatriz Alves's patch was written 2026-06-20 and applied 2026-07-08. Its author date is before the quarter, so it isn't counted.
+- **Review credit:** Sana's "Reviewed-by" on that patch is not co-author credit, so it isn't counted.
+- **E-mails in the file:** you asked for them, so they're included. Remove that column before sharing the file widely.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names and e-mails used,commits written,times credited as co-author
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 --tz America/Los_Angeles 2>&1 | head -80
+Bash: TZ=America/Los_Angeles git log --since='2026-06-25' --until='2026-10-05' --date=iso-local --format='%h|A:%an <%ae>|C:%cn <%ce>|%ad|%cd|%p|%s%n%b' | grep -v '^$'; cat .mailmap 2>/dev/null
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails_used,commits_written,times_credited_as_co_author ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0 ; 
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. The quarter runs 2026-07-01 to 2026-09-30 in US Pacific time, and I placed each commit by its author date.
+
+| Person | Commits written | Credited as co-author |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Jun Takeda | 2 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+- **Two addresses:** Jun Takeda used a work address and a home address as "jtakeda". The repository's mailmap already treats these as one person. Sana Iqbal used a personal-style address and a university address.
+- **Sana is a probable match, so please confirm.** Both Sana addresses share the same full name, but nothing in the repository links them. Without the join, Sana has 1 commit of their own, plus 1 under the second address and 1 co-author credit.
+- **Applied patches:** Roberto Botelho wrote the leak fix on 11 Aug and Ewa applied it. The commit counts for Roberto, not Ewa.
+- **Yusuf Demir** appears only as a co-author on the big-numbers change of 27 Aug, so they have no commits of their own.
+- **Pacific time changes who is in:**
+  - Lucas Pereira's commit is dated 23:30 on 30 Sep, so it counts. In UTC it would fall in October.
+  - Dmitri Volkov's commit is dated 17:30 on 30 Jun, so it is out. In UTC it would fall on 1 Jul.
+- **Beatriz Alves** is not in the table. Their patch was written on 20 Jun and applied by Ewa on 8 Jul, so it counts as a Q2 contribution.
+- **Not counted:** the two bots (the CI version-bump account and dependabot), merge commits, and Ewa's 2 Oct release commit, which falls after the quarter.
+
+The CSV includes e-mail addresses because you asked for every name and e-mail. Remove that column before sharing it widely.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails_used,commits_written,times_credited_as_co_author
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-CV-1/fx; git log --all --since=2026-06-25 --until=2026-10-10 --format='%H|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; git log --all --oneline | wc -l; ls; git config --get mailmap.file; ls -a | grep -i mailmap
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-CV-1/fx; cat .mailmap; git log --all --since=2026-06-01 --format='== %h %an <%ae> | %s%n%b' | grep -v '^$'; git branch -a; git log --all --oneline | sed -n '17,19p'
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-CV-1/fx; cat > contributors-q3-2026.csv <<'E' ; person,names_and_emails,commits_written,co_author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.i
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people.
+
+| Person | Commits written | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The CSV's second column lists every name and e-mail each person used.
+
+**How I counted**
+- **Quarter:** Q3 is 2026‑07‑01 00:00 to 2026‑09‑30 23:59 Pacific, judged on each commit's author date.
+- **Merge commits:** I didn't count merges as written commits. That drops two merge commits, one by Ewa and one by Sana.
+- **Merged addresses:** I merged Sana's two addresses and Jun's two addresses, which the `.mailmap` also covers for Jun. Jun's second address shows up under the name `jtakeda`.
+- **Bots:** I excluded `cjson-ci-bot` and `dependabot[bot]`.
+- **Applied patches:** Roberto's patch counts for Roberto, not Ewa, who applied it. Beatriz's patch is the exception described below.
+- **Co-author credits:** Yusuf and Sana were each credited as co-author once, on the "Support big numbers" commit. Yusuf has no commits of his own. Reported-by and Reviewed-by trailers don't count as co-authorship.
+
+**Edge cases to check**
+- **Timezone cases:**
+  - Lucas's commit at 23:30 Pacific on 30 Sep is still Q3, though it is already 1 Oct in UTC. It counts.
+  - Dmitri Volkov's commit at 17:30 Pacific on 30 Jun is already 1 Jul in UTC, but it is Q2 in Pacific time. It doesn't count.
+  - Ewa's "Prepare 1.7.19" commit on 2 Oct is Q4, so it doesn't count.
+- **Beatriz Alves:** Her patch was written on 20 Jun, which is Q2, and Ewa applied it on 8 Jul, which is Q3. Because I counted by author date, she is left out. If you'd rather count the date a patch landed, add her row with 1 commit and 0 co-author credits, and change Ewa's merged-in count only if you also want her applying credited, which you said you don't.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_written,co_author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2026-06-25 --until=2026-10-05 --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; ls; cat .mailmap 2>/dev/null; git branch -a
+Bash: git log --since=2026-06-25 --until=2026-10-05 --format='=== %h %an <%ae> | %s%n%b' ; git log --all --oneline | wc -l; git stash list; git notes list; cat CONTRIBUTORS.md | tail -20
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_used,emails_used,commits_authored,coauthor_credits ; Ewa Kowalska,Ewa Kowalska,ewa@example.invalid,4,0 ; Sana Iqbal,Sana Iqbal,sana@example.invalid; sana.iqbal@uni.example.invalid,2,1 ; Jun Takeda,Jun Takeda; jtake
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. The columns are `person`, `names_used`, `emails_used`, `commits_authored` and `coauthor_credits`. Names and emails that belong to one person are joined with `;` inside the cell.
+
+| Person | Commits | Co-author credits | Notes |
+|---|---|---|---|
+| Ewa Kowalska | 4 | 0 | |
+| Sana Iqbal | 2 | 1 | Uses `sana@…` and `sana.iqbal@uni.…`. |
+| Jun Takeda | 2 | 0 | Appears as "Jun Takeda" and "jtakeda", with a work and a home address. The repo's `.mailmap` confirms these are one person. |
+| Roberto Botelho | 1 | 0 | Ewa applied his patch, so it counts for him and not for her. |
+| Lucas Pereira | 1 | 0 | |
+| Yusuf Demir | 0 | 1 | Credited only as co-author on #633. |
+
+I treated the quarter as 2026-07-01 00:00 to 2026-09-30 23:59 Pacific (UTC-7).
+
+- **Included late:** Lucas's commit is at 23:30 on Sep 30 Pacific, which is already October in UTC. It counts.
+- **Excluded early:** Dmitri Volkov's commit is at 17:30 on Jun 30 Pacific, which is already July in UTC. It doesn't count.
+- **Excluded after the quarter:** Ewa's "Prepare 1.7.19" commit is dated Oct 2.
+- **Bots:** `cjson-ci-bot` and `dependabot[bot]` are left out.
+- **Hugo Lemaire:** he was only credited as "Reported-by", so he isn't in the table.
+
+Two judgment calls you may want to change:
+1. **Beatriz Alves is excluded.** She wrote her overflow fix on Jun 20, and Ewa applied it on Jul 8. I counted by the date the author wrote it. If you'd rather count by the date it landed, add her as 1 commit.
+2. **Merge commits aren't counted.** That removes Ewa's "Merge pull request #640" and Sana's "Merge branch 'master'". If you want them counted, Ewa becomes 5 and Sana 3.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_used,emails_used,commits_authored,coauthor_credits
+Ewa Kowalska,Ewa Kowalska,ewa@example.invalid,4,0
+Sana Iqbal,Sana Iqbal,sana@example.invalid; sana.iqbal@uni.example.invalid,2,1
+Jun Takeda,Jun Takeda; jtakeda,jun@work.example.invalid; jun.takeda@home.example.invalid,2,0
+Roberto Botelho,Roberto Botelho,roberto@example.invalid,1,0
+Lucas Pereira,Lucas Pereira,lucas@example.invalid,1,0
+Yusuf Demir,Yusuf Demir,yusuf@example.invalid,0,1
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-CV-3/fx; git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' --since=2026-06-29 --until=2026-10-03 | head -200; git log --all --oneline | wc -l; ls; ls -a | head -30
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-CV-3/fx; cat .mailmap; git log --all --since=2026-06-19 --format='=== %h %p | %an <%ae> | %cn | %aI%n%B' ; git branch -a; git config --get-regexp 'log|mailmap'; head -40 CONTRIBUTORS.md
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T4-CV-3/fx; cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits,coauthor_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,5,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@un
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. Each row has the person, every name and e-mail they used, their commit count, and their co-author count.
+
+| Person | Commits | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 5 | 0 |
+| Sana Iqbal | 3 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+**How I counted**
+- **Quarter:** 2026-07-01 00:00 to 2026-09-30 23:59 US Pacific (PDT), using each commit's author date.
+- **One person, two addresses:** Sana has `sana@` and `sana.iqbal@uni`. Jun Takeda appears as "Jun Takeda" (work address) and "jtakeda" (home address), which the repo's `.mailmap` also merges.
+- **Applied patches:** For Roberto's patch, Ewa applied it, so only Roberto is credited. Ewa only gets her own commits.
+- **Bots:** I left out `cjson-ci-bot` and `dependabot[bot]`.
+- **Not co-author credits:** Trailers like `Reviewed-by` and `Reported-by` aren't counted.
+- **Co-authors:** The `Co-authored-by` trailers on the big-numbers commit (`493da49`) credit Yusuf and Sana.
+
+**Edge cases you may want to overrule**
+- **Dmitri Volkov** is out. His commit is 17:30 PDT on Jun 30, which is Q2 even though it's already Jul 1 in UTC.
+- **Lucas Pereira** is in. His commit is 23:30 PDT on Sep 30, which is already Oct 1 in UTC.
+- **Ewa's "Prepare 1.7.19"** commit is out because it's dated Oct 2.
+- **Beatriz Alves** is out. She wrote her overflow fix on Jun 20, and Ewa only applied it on Jul 8. I counted by when the patch was written. If you'd rather count by when it landed, she gets a row with 1 commit.
+- **Merge commits** count as commits, so Ewa's 5 includes her PR merge and Sana's 3 includes her "Merge branch 'master'". Without merges, Ewa has 4 and Sana has 2.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits,coauthor_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,5,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,3,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%cn|%ce|%aI|%cI|%P' | awk -F'|' '$6>="2026-06-29" && $6<="2026-10-03" || $7>="2026-06-29" && $7<="2026-10-03"' ; git log --all --oneline | wc -l; git branch -a; ls; cat .mailmap 2>/dev/null
+Bash: git log --format='--- %h %an <%ae> | %aI%n%B' 604894c^..596298b; cat CONTRIBUTORS.md | tail -20
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits,co_author_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1 ; Jun Takeda,Jun Takeda <ju
+### Final answer text
+I wrote `contributors-q3-2026.csv` with six people. The cv-builder skills are for resumes, so I didn't use them.
+
+| Person | Commits | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The quarter runs from 2026-07-01 00:00 to 2026-09-30 23:59 Pacific, and I dated each commit by its author date. Here is how I handled the awkward cases:
+- **Two addresses:** Sana Iqbal (`sana@` and `sana.iqbal@uni`) and Jun Takeda (`jun@work` and `jtakeda`/`jun.takeda@home`) each appear as one row with all their names and addresses. The repo's `.mailmap` already merges Jun's two. Sana's two addresses are my own judgement.
+- **Patch applied by a maintainer:** Roberto Botelho's leak fix was written by him and applied by Ewa Kowalska. It counts for Roberto only.
+- **Bots:** `dependabot[bot]` and `cjson-ci-bot` are excluded.
+- **Quarter edges:**
+  - Lucas Pereira's commit at 2026-09-30 23:30 -07:00 is already Oct 1 in UTC, but it is Q3 in Pacific time, so I counted it.
+  - Dmitri Volkov's commit at 2026-06-30 17:30 -07:00 is Jul 1 in UTC, but it is Q2 in Pacific time, so I left it out.
+  - Ewa's "Prepare 1.7.19" commit is dated Oct 2, so I left it out.
+- **Beatriz Alves:** her fix was written Jun 20 and only applied on Jul 8. By author date it belongs to Q2, so she is out. If you'd rather date commits by when they landed, she gets 1 commit.
+- **Merge commits:** I didn't count Ewa's PR merge or Sana's "Merge branch 'master'" commit, because neither contains new work.
+- **Credits:** only the `Co-authored-by` trailers on the big-numbers commit count: Yusuf Demir and Sana Iqbal. The Reported-by and Reviewed-by lines on Beatriz's commit are not co-author credits.
+
+The second column, `names_and_emails`, lists every name and address as `Name <email>`, separated by semicolons.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits,co_author_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an <%ae>|%cn <%ce>|%aI|%cI|%P' --since=2026-06-25 --until=2026-10-05 | head -200; ls; cat .mailmap 2>/dev/null; git branch -a
+Bash: git log --format='=== %h %an <%ae> | %aI%n%B' 604894c^..HEAD; git log --format='%h %G?' | head -3; cat CONTRIBUTORS.md | head -30
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_used,emails_used,commits_authored,coauthor_credits ; Ewa Kowalska,Ewa Kowalska,ewa@example.invalid,4,0 ; Sana Iqbal,Sana Iqbal,sana@example.invalid; sana.iqbal@uni.example.invalid,2,1 ; Jun Takeda,Jun Takeda; jtake
+### Final answer text
+I wrote `contributors-q3-2026.csv` in the repo root. It has six people. I didn't use the cv-builder skills, since they're for resumes and not for git history.
+
+| Person | Commits | Co-author credits |
+|---|---|---|
+| Ewa Kowalska | 4 | 0 |
+| Sana Iqbal | 2 | 1 |
+| Jun Takeda | 2 | 0 |
+| Roberto Botelho | 1 | 0 |
+| Lucas Pereira | 1 | 0 |
+| Yusuf Demir | 0 | 1 |
+
+The CSV also lists every name and e-mail each person used. Sana has two addresses. Jun has two addresses and two names (`Jun Takeda` and `jtakeda`).
+
+How I counted:
+- **Quarter:** 2026-07-01 00:00 to 2026-09-30 23:59 Pacific, judged by author date. Lucas's Doxygen commit (`d696d73`) was made at 23:30 on Sep 30 Pacific, which is already Oct 1 in UTC. It counts. Dmitri Volkov's commit (`604894c`) was at 17:30 on Jun 30 Pacific, which is already Jul 1 in UTC. It's outside the quarter.
+- **Applied patches:** Roberto's patch was applied by Ewa, and it counts for Roberto only, not Ewa. Ewa is the committer on that commit, and I credited authors only.
+- **Bots:** I left out `cjson-ci-bot` and `dependabot[bot]`.
+- **Merge commits:** I didn't count the two merges (`58786dd` and `9828a27`), since they carry no authored change.
+- **Co-authors:** Credits come from `Co-authored-by:` trailers. The only commit with them is `493da49`, which credits Yusuf and Sana.
+- **Reviewers and reporters:** I didn't count `Reviewed-by` or `Reported-by` as co-author credit.
+
+Beatriz Alves is the one judgment call. Her overflow fix (`0b1913d`) was written on Jun 20 and applied by Ewa on Jul 8. I went by author date, so she's excluded. If you'd rather count patches by when they landed, add her with 1 commit.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_used,emails_used,commits_authored,coauthor_credits
+Ewa Kowalska,Ewa Kowalska,ewa@example.invalid,4,0
+Sana Iqbal,Sana Iqbal,sana@example.invalid; sana.iqbal@uni.example.invalid,2,1
+Jun Takeda,Jun Takeda; jtakeda,jun@work.example.invalid; jun.takeda@home.example.invalid,2,0
+Roberto Botelho,Roberto Botelho,roberto@example.invalid,1,0
+Lucas Pereira,Lucas Pereira,lucas@example.invalid,1,0
+Yusuf Demir,Yusuf Demir,yusuf@example.invalid,0,1
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --since="2026-06-30" --until="2026-10-02" --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P' | head -100; ls; cat .mailmap 2>/dev/null; git log --all --format=%h | wc -l
+Bash: git branch -a; git log --all --since="2026-06-19" --until="2026-10-02" --format='==%h %an <%ae>%n%B'; git config user.name
+Bash: cat > contributors-q3-2026.csv <<'EOF' ; person,names_and_emails,commits_authored,coauthor_credits ; Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0 ; Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0 ; Lucas Pereira,L
+### Final answer text
+I wrote `contributors-q3-2026.csv` in the repo root. I didn't use the cv-builder skills, because they're for resumes and this was a git-history task.
+
+| person | names and e-mails | commits | co-author credits |
+|---|---|---|---|
+| Ewa Kowalska | ewa@example.invalid | 4 | 0 |
+| Jun Takeda | `Jun Takeda <jun@work…>`; `jtakeda <jun.takeda@home…>` | 2 | 0 |
+| Lucas Pereira | lucas@example.invalid | 1 | 0 |
+| Roberto Botelho | roberto@example.invalid | 1 | 0 |
+| Sana Iqbal | sana@example.invalid; sana.iqbal@uni.example.invalid | 2 | 1 |
+| Yusuf Demir | yusuf@example.invalid | 0 | 1 |
+
+**How I counted**
+- **Quarter:** 2026-07-01 00:00 to 2026-09-30 23:59 Pacific (PDT). Lucas's commit at 23:30 PDT on Sep 30 is already Oct 1 in UTC, but I counted it as Q3. Dmitri's commit at 17:30 PDT on Jun 30 is Q2 in Pacific time, even though it falls in July in UTC, so I left it out.
+- **Author, not committer:** I counted commits by author. Ewa applied Roberto's patch as committer, so it counts for Roberto only. The GitHub web-UI commits (Jun, Sana) count for the author.
+- **Bots:** I excluded `cjson-ci-bot` and `dependabot[bot]`.
+- **Merged identities:** The repo's `.mailmap` joins Jun's two addresses. I merged Sana's two addresses because the name is the same.
+- **Merge commits:** I left them out because they aren't authored work. That removes Ewa's PR #640 merge and Sana's "Merge branch 'master'". Counting them would give Ewa 5 and Sana 3.
+- **Co-authors:** Only `Co-authored-by:` trailers count, and only one commit has them: 493da49 credits Yusuf and Sana. `Reviewed-by` and `Reported-by` are not co-authorship, so Hugo Lemaire and Sana's review credit don't count.
+
+**Decision for you:** Beatriz Alves's "Fix integer overflow in print_number" (0b1913d) was written on Jun 20 but applied on Jul 8, so it landed in Q3. I dated commits by author date, so it counts as Q2 and she has no row. If you'd rather count when it landed, add this row:
+
+`Beatriz Alves,Beatriz Alves <beatriz@example.invalid>,1,0`
+
+I haven't committed the file.
+### Files it left in the working directory
+--- contributors-q3-2026.csv
+person,names_and_emails,commits_authored,coauthor_credits
+Ewa Kowalska,Ewa Kowalska <ewa@example.invalid>,4,0
+Jun Takeda,Jun Takeda <jun@work.example.invalid>; jtakeda <jun.takeda@home.example.invalid>,2,0
+Lucas Pereira,Lucas Pereira <lucas@example.invalid>,1,0
+Roberto Botelho,Roberto Botelho <roberto@example.invalid>,1,0
+Sana Iqbal,Sana Iqbal <sana@example.invalid>; Sana Iqbal <sana.iqbal@uni.example.invalid>,2,1
+Yusuf Demir,Yusuf Demir <yusuf@example.invalid>,0,1

@@ -1,0 +1,923 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P|%s' | head -200; git log --first-parent main --format=%h | wc -l; git rev-parse --is-shallow-repository; git config --get core.logallrefupdates; git reflo
+Bash: git log 03be3fc..db716af --format='%h|%an|%aI|%cI|%P|%s' --no-merges | head; echo; git log --format='%h|%an|%aI|%cI|%s' db716af^2 -5; git branch -a; git reflog main | head -5; git log -1 --format=%B db716af; git log --first-parent main --format='%h %cI' | sed 
+### Final answer text
+Eight changes reached main outside the window between 1 January and 30 June 2026. I worked this out from `git log --first-parent main`, using the committer date converted to New York time (EST/EDT). Commit dates are written by the committer's own machine, so they are claims, not server records. There is no server-side push log or usable reflog in this clone.
+
+## Changes outside the window
+
+| # | Commit | Person | NY day and time | Subject |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan, 22:10 | Fix typo in doc comment |
+| 2 | 8111864 | Joon Park | Sat 14 Feb, 11:00 | Add plan9 note |
+| 3 | dfea546 | Ana Kim | Fri 20 Feb, 20:00:00 | Refresh example output |
+| 4 | c09f4bd | Mara Ruiz | Mon 9 Mar, 20:30 | Add windows console test note |
+| 5 | c5c560b | Ana Kim | Sat 18 Apr, 22:00 | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | dependabot[bot] | Mon 4 May, 03:00 | Bump golang.org/x/sys 0.28.0 to 0.29.0 |
+| 7 | 8c81dc4 | Joon Park | Sun 17 May, 10:00 | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Tomas Berg | Wed 20 May, 03:00 as recorded (real time unknown) | Remove unused helper |
+
+**Count per person** (by author):
+- Ana Kim: 3 (2 if you treat 20:00:00 as inside the window)
+- Joon Park: 2
+- Mara Ruiz: 1
+- Tomas Berg: 1, and its time is unreliable (see below)
+- dependabot[bot]: 1 (committed through GitHub)
+
+**How I counted:**
+- **Landing time, not authoring time.** I used the committer date on main's first-parent line.
+  - c5c560b was authored Tue 14 Apr at 14:00 but landed Sat 18 Apr at 22:00. It is a violation.
+  - 433be1b was authored Sun 19 Apr at 23:00 but landed Mon 20 Apr at 10:00. It is not a violation.
+- **The PR #88 commit (b2b10c3).** Joon wrote it on Sat 30 May at 23:00, but it reached main through the merge db716af on Mon 1 Jun at 09:00. It is not a violation.
+- **Dates outside the range.** I excluded f4cf610 (Wed 31 Dec 2025, 19:30 NY) and 974c8db (Wed 1 Jul, 00:10 NY). Both fall outside the period, though 974c8db is only ten minutes past it.
+- **Boundaries.** I treated 08:00:00 as inside and 20:00:00 as outside. If your policy counts 20:00:00 as inside, drop dfea546.
+  - 982e510 landed Mon 23 Feb at 08:00:00 and counts as compliant.
+  - d065cf6 landed Fri 20 Feb at 19:59:59 and counts as compliant.
+- **DST.** I converted with EST before 8 March and EDT after it. bb704f9 (2026-03-09T12:30Z) is therefore 08:30 EDT, which is compliant.
+- **Time zones.** 18935bd carries a −07:00 offset (Mara, 30 June 20:30 local). That is 19:30 EDT on Tue 30 Jun, which is compliant.
+
+## Timestamps I would not rely on
+
+1. **03be3fc (Tomas Berg, "20 May 03:00").** It sits on main directly after b91bc0c, which is dated 26 May, so it cannot have landed before 26 May. Its date is wrong, probably from a skewed clock or a hand-set date. The 03:00 time and the violation itself are unverified. Confirm it against the hosting provider's push or audit log.
+2. **dfea546 and d065cf6 (Ana Kim, 20:00:00 and 19:59:59 on 20 Feb).** The two commits are one second apart on either side of the cutoff. That looks like a hand-set or edited date. Treat their placement as uncertain.
+3. **c5c560b (Ana Kim).** The committer date is four days after the author date. That points to a rebase or cherry-pick, so the author date is useless for this audit. The committer date is still self-reported.
+4. **The merge db716af (1 Jun, 09:00:00).** This is the landing time for both the merge and Joon's PR commit. It is on the hour, which looks hand-set, and it is the only 
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%ad|%cd|%cn|%s' --date=iso-strict | cat; echo; git log main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ad|%cd|%P' --date=iso-strict | wc -l; git reflog show mai
+Bash: git log --graph --format='%h %p | %an | A:%ad | C:%cd | %s' --date=iso-strict main | head -40; git show -s --format=%B db716af; git log --format='%h %ad' --date=iso-strict db716af^1..db716af^2 | cat; git branch -a
+Bash: git log main --first-parent --format='%h|%an|%cI|%aI|%s' | while IFS='|' read h an c a s; do printf '%s|%s|C:%s|A:%s|%s|%s\n' "$h" "$an" "$(TZ=America/New_York date -d "$c" '+%a %F %T %Z' 2>/dev/null || TZ=America/New_York gdate -d "$c" '+%a %F %T %Z')" "$(TZ=
+Bash: TZ=America/New_York git log main --first-parent -22 --format='%h|%an|C:%cd|A:%ad|%s' --date='format-local:%a %Y-%m-%d %H:%M:%S %Z'
+### Final answer text
+Nine changes reached main outside the window between 1 Jan and 30 Jun 2026 (New York dates), counting two that are doubtful. I didn't use the receipts skill's miner. It reports Claude Code session activity, not when commits landed on main, so I read `git log --first-parent main` directly.
+
+**Method:** I took the committer date as the landing time and converted it to America/New_York, with daylight saving applied (it began 8 Mar). A commit that arrived through a merged PR counts at the merge time, not the author time. The window is Mon–Fri, 08:00–20:00, with 08:00 inside and 20:00 outside. The repo has no remote and an empty reflog, so there is no push record to check these times against.
+
+**Outside the window**
+
+| # | Commit | Person | NY day and time | Change |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan, 22:10 EST | Fix typo in doc comment |
+| 2 | 8111864 | Joon Park | Sat 14 Feb, 11:00 EST | Add plan9 note |
+| 3 | dfea546 | Ana Kim | Fri 20 Feb, 20:00:00 EST | Refresh example output (on the boundary) |
+| 4 | c09f4bd | Mara Ruiz | Mon 9 Mar, 20:30 EDT | Add windows console test note |
+| 5 | c5c560b | Ana Kim | Sat 18 Apr, 22:00 EDT | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | dependabot[bot] | Mon 4 May, 03:00 EDT | Bump golang.org/x/sys |
+| 7 | 8c81dc4 | Joon Park | Sun 17 May, 10:00 EDT | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Tomas Berg | Wed 20 May, 03:00 EDT | Remove unused helper (timestamp unreliable, see below) |
+| 9 | 18935bd | Mara Ruiz | Tue 30 Jun, 23:30 EDT | Prepare 0.0.21 notes |
+
+**Count per person**
+- Ana Kim: 3. Item 3 sits exactly on the 20:00 cutoff, so it is 2 if you treat 20:00 as inside.
+- Joon Park: 2
+- Mara Ruiz: 2
+- Tomas Berg: 1, with the doubtful timestamp
+- dependabot[bot]: 1, an automated account you may want to list separately
+
+The total is 9, or 8 if you drop the boundary case.
+
+**Calls that depend on how you read "landed"**
+- **b2b10c3, Joon's freebsd pty change.** Joon wrote it on Sat 30 May at 23:00, which would be out of hours. It landed through Ana's merge db716af on Mon 1 Jun at 09:00 EDT, which is in hours. I did not count it.
+- **433be1b, Mara's bsd constants tidy.** Authored Sun 19 Apr 23:00, but committed Mon 20 Apr 10:00. That is in hours, so I did not count it.
+- **c5c560b, Ana's docs rework.** Authored Tue 14 Apr 14:00 (in hours) but committed Sat 18 Apr 22:00. I used the committer date, which suggests a rebase or amend. I counted it as out of hours.
+- **974c8db, Ana's post-release housekeeping.** Wed 1 Jul 00:10 EDT, so outside your date range. In UTC it would still look like 30 Jun.
+- **UTC date shifts.** d10f9c7 shows 13 Jan in UTC but 12 Jan in New York. c09f4bd shows 10 Mar in UTC but 9 Mar in New York.
+
+**Timestamps I would not rely on**
+1. **1757c4b (Tomas, "Update LICENSE year", current tip of main).**
+   - Its committer date is 2 Mar 2027, which is after today (25 Oct 2026), so it cannot be right.
+   - Its author date is 2 Jun 2026, 10:00 EDT, which is a Tuesday in hours.
+   - The true landing time is unknown. It could fall inside the audit range or after it, so I did not count it. Check it against the hosting platform's records.
+2. **03be3fc (Tomas, 20 May 03:00).**
+   - It sits above b91bc0c (26 May) in main's history, so it landed after 26 May, yet its date is six days earlier.
+   - Either the clock was wrong or the commit was rewritten. The 03:00 is suspect and the real landing time is somewhere between 26 May and 1 Jun.
+3. **The ordering of the other
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --first-parent main --format='%h|%p|%an|%ae|%ad|%cn|%cd|%s' --date=iso-strict | awk -F'|' '{print}' | head -80; echo; git log --first-parent main --oneline | wc -l; git reflog -1 2>&1 | head -2
+Bash: git log --format='%h|%an|%ad|%cn|%cd|%s' --date=iso-strict db716af^1..db716af^2 ; echo ---; git log --format='%h|%an|%cd|%s' --date=iso-strict b2b10c3 -3; echo ---; git branch -a; git remote -v; git config core.logAllRefUpdates; git reflog show main 2>&1 | hea
+### Final answer text
+I didn't run the receipts skill's miner or write its report files. It summarizes Claude Code session usage and has no data on when commits landed on main. This answer comes straight from `git log --first-parent main`. Each time is the committer date, or the merge commit's date for a PR, converted to New York time with DST applied. I treated the window as 08:00 up to but not including 20:00, Monday to Friday.
+
+## Changes on main outside the window (1 Jan – 30 Jun 2026, NY dates)
+
+| # | Commit | NY landing time | Why it's outside | Person | Subject |
+|---|---|---|---|---|---|
+| 1 | d10f9c7 | Mon 12 Jan 2026, 22:10 EST | after 20:00 | Ana Kim | Fix typo in doc comment |
+| 2 | 8111864 | Sat 14 Feb 2026, 11:00 EST | Saturday | Joon Park | Add plan9 note |
+| 3 | dfea546 | Fri 20 Feb 2026, 20:00:00 EST | exactly 20:00 (see boundary note) | Ana Kim | Refresh example output |
+| 4 | c09f4bd | Mon 9 Mar 2026, 20:30 EDT | after 20:00 | Mara Ruiz | Add windows console test note |
+| 5 | c5c560b | Sat 18 Apr 2026, 22:00 EDT | Saturday, after 20:00 | Ana Kim | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | Mon 4 May 2026, 03:00 EDT | before 08:00 | dependabot[bot] | Bump golang.org/x/sys |
+| 7 | 8c81dc4 | Sun 17 May 2026, 10:00 EDT | Sunday | Joon Park | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Wed 20 May 2026, 03:00 EDT (recorded) | before 08:00, but the timestamp is unreliable | Tomas Berg | Remove unused helper |
+| 9 | 18935bd | Tue 30 Jun 2026, 23:30 EDT | after 20:00 | Mara Ruiz | Prepare 0.0.21 notes |
+
+**Count per person:**
+- Ana Kim: 3 (one of them is the 20:00:00 boundary case)
+- Joon Park: 2
+- Mara Ruiz: 2
+- Tomas Berg: 1, with an unreliable timestamp
+- dependabot[bot]: 1. The merge was done by GitHub, so the person who actually merged it isn't recorded.
+
+That is 9 in total, or 7 if you drop the boundary case and the unreliable one.
+
+**Boundary note:** dfea546 landed at exactly 20:00:00, and the commit before it landed at 19:59:59. If your policy treats 20:00 as inclusive, drop #3. I counted it as outside.
+
+**Joon Park:** commits appear under two emails, `joon@example.kr` and `joon.park@example.com`. I assumed the same person. Check that before the workpaper goes out.
+
+## Landing time versus authoring time
+
+- **PR #88 (db716af):** Joon wrote it on Sat 30 May at 23:00, but it landed through a merge on Mon 1 Jun at 09:00. That is inside the window, so it isn't listed. The merge is credited to Ana Kim.
+- **433be1b:** its author date is Sun 19 Apr 23:00, but it landed Mon 20 Apr at 10:00. That is inside the window, so it isn't listed.
+- **c5c560b:** its author date is 14 Apr, but it landed on Saturday 18 Apr at 22:00. That is a violation, so it is listed.
+
+## Edge cases I excluded or handled
+
+- **f4cf610** (Ana Kim): landed Wed 31 Dec 2025 at 19:30 EST. That is before the period, so it's excluded.
+- **974c8db** (Ana Kim): landed 1 Jul 2026 at 00:10 EDT. That is one day after the period, so it's excluded. It is also outside hours, which matters if the period is extended.
+- **bb704f9:** the timestamp is 12:30 UTC on 9 Mar. DST started on 8 Mar, so that is 08:30 EDT on Monday and inside the window. Using EST would wrongly give 07:30.
+- **982e510:** landed Mon 23 Feb at 08:00, the start of the window, so it is inside.
+
+## Timestamps I wouldn't rely on
+
+1. **03be3fc, recorded as 20 May 03:00.** Its parent b91bc0c is dated 26 May, so a child can't be older than its parent. The real landing time is somewhere between 26 May 10:00 and 1 Jun 09:00. W
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --since=2025-12-25 --format='%h|%an|%ae|A:%aI|C:%cI|%cn|%p|%s' | head -100; echo; git log main --oneline | wc -l; git reflog show main 2>&1 | head -5
+Bash: git log 03be3fc..b2b10c3 --format='%h|%an|A:%aI|C:%cI|%s' ; echo; git log db716af^1..db716af --oneline|head; git log --format='%h|%an|A:%aI|C:%cI|%s' -n 200 | awk -F'|' '1' | sed -n 1,0p; git log --merges --format='%h %s'|head; git for-each-ref; git log -1 --f
+Bash: git log --first-parent main --format='%h|%an|%ct|%at|%s' | while IFS='|' read h n ct at s; do ;  l=$(TZ=America/New_York date -r $ct '+%Y-%m-%d %a %H:%M:%S %Z'); a=$(TZ=America/New_York date -r $at '+%Y-%m-%d %a %H:%M %Z'); echo "$h|$n|$l|author:$a|$s"; done | s
+### Final answer text
+I didn't use the cv-builder skills, since they're for resumes. Everything below comes from the git history on `main`.
+
+**Method.** A change "reached main" when its commit joined the first-parent line of `main`. I used the committer date, not the author date, and converted it to America/New_York with DST applied. That means Joon's PR #88 commit counts at its merge, not when it was written. The window is Mon–Fri, 08:00 to before 20:00. I treated 20:00:00 as outside and 08:00:00 as inside. The range is 1 Jan to 30 Jun 2026, New York dates.
+
+## Out-of-window changes (9)
+
+| # | Commit | Person | NY day and time of landing | Subject |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan 2026, 22:10 EST | Fix typo in doc comment |
+| 2 | 8111864 | Joon Park | Sat 14 Feb 2026, 11:00 EST | Add plan9 note |
+| 3 | dfea546 | Ana Kim | Fri 20 Feb 2026, 20:00:00 EST (exactly at the boundary) | Refresh example output |
+| 4 | c09f4bd | Mara Ruiz | Mon 9 Mar 2026, 20:30 EDT | Add windows console test note |
+| 5 | c5c560b | Ana Kim | Sat 18 Apr 2026, 22:00 EDT | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | dependabot[bot] | Mon 4 May 2026, 03:00 EDT | Bump golang.org/x/sys to 0.29.0 |
+| 7 | 8c81dc4 | Joon Park | Sun 17 May 2026, 10:00 EDT | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Tomas Berg | Wed 20 May 2026, 03:00 EDT (recorded; unreliable, see below) | Remove unused helper |
+| 9 | 18935bd | Mara Ruiz | Tue 30 Jun 2026, 23:30 EDT (stored as 20:30 at -07:00) | Prepare 0.0.21 notes |
+
+**Count per person**
+- Ana Kim: 3 (2 if you treat 20:00:00 as inside the window).
+- Joon Park: 2.
+- Mara Ruiz: 2.
+- Tomas Berg: 1, and its time is unreliable.
+- dependabot[bot]: 1.
+- Total: 9.
+
+**Inside the window, so not listed.** Joon's "Detect ptys on freebsd" (b2b10c3) was written Sat 30 May at 23:00, but it landed through Ana's merge db716af on Mon 1 Jun at 09:00 EDT. Mara's 433be1b was authored Sun 19 Apr at 23:00 but landed Mon 20 Apr at 10:00. Also inside the window: bb704f9 (Mon 9 Mar, 08:30 EDT), 982e510 (Mon 23 Feb, 08:00:00 EST), d065cf6 (Fri 20 Feb, 19:59:59 EST), ae3c2f5 and 954e011 (Joon's, committed at +09:00 but 09:15 Wed 7 Jan in New York).
+
+**Excluded as outside the date range.**
+- f4cf610 (Ana) is 19:30 EST on 31 Dec 2025. It is 1 Jan in UTC but still 2025 in New York.
+- 974c8db (Ana) is 00:10 EDT on 1 Jul 2026.
+- 1757c4b (Tomas) sits after 974c8db in the history, so it cannot have landed in H1 (see below).
+
+## Timestamps I would not rely on
+
+1. **1757c4b, "Update LICENSE year" (Tomas).**
+   - Its committer date is 2 Mar 2027, which is in the future relative to today (25 Oct 2026).
+   - Its author date is 2 Jun 2026.
+   - It sits after the 1 Jul commit in the chain, so it did not land in H1. Neither date is trustworthy.
+2. **03be3fc, "Remove unused helper" (Tomas).**
+   - It is dated 20 May, but it sits in the chain after b91bc0c (26 May) and before the 1 Jun merge.
+   - The date is out of order, which suggests a rebase or cherry-pick that kept the old date.
+   - It actually landed somewhere between 26 May 10:00 and 1 Jun 09:00 EDT, and I can't tell whether that was inside the window.
+   - I listed it using its recorded time, but I'd treat it as unverified.
+3. **c5c560b (Ana).** The author date is 14 Apr and the committer date is 18 Apr. I used 18 Apr, but it also looks like a rebase or amend, so the exact landing time is only as good as the committer clock.
+4. **All committer dates in general.**
+   - They are set by the committer's machine 
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --format='%H|%an|%ae|%cn|%ad|%cd|%P|%s' --date=iso-strict | head -300; git log --oneline | wc -l; git log --first-parent --oneline | wc -l
+Bash: git log --format='%h|%an|%cn|%ad|%cd|%P|%s' --date=iso-strict db716af^1..db716af^2 ; echo ---; git log --format='%h|%an|%cn|%ad|%cd|%P|%s' --date=iso-strict 03be3fc..b2b10c3; echo; git reflog -n 20; git branch -a; git tag | tail -3; git notes list 2>&1 | head;
+### Final answer text
+I read `git log --first-parent main` and used each commit's committer date as the time it landed on main. I converted those dates to New York time (EST/EDT, with the 8 March 2026 DST change). Author dates are only used where they conflict. No reflog or remote refs exist in this clone, so I couldn't check these times against anything else.
+
+## Changes that landed outside Mon–Fri 08:00–20:00 NY (1 Jan – 30 Jun 2026)
+
+| # | Commit | Person | Landed on main (NY) | Why outside the window |
+|---|---|---|---|---|
+| 1 | d10f9c7 Fix typo in doc comment | Ana Kim | Mon 12 Jan 2026, 22:10 EST | After 20:00 (committed 13 Jan 03:10 UTC) |
+| 2 | 8111864 Add plan9 note | Joon Park | Sat 14 Feb 2026, 11:00 EST | Saturday |
+| 3 | c09f4bd Add windows console test note | Mara Ruiz | Mon 9 Mar 2026, 20:30 EDT | After 20:00 (committed 10 Mar 00:30 UTC) |
+| 4 | c5c560b Rework tiocgwinsz helper docs | Ana Kim | Sat 18 Apr 2026, 22:00 EDT | Saturday night; the author date of Tue 14 Apr 14:00 is not when it landed |
+| 5 | 1dfc991 Bump golang.org/x/sys (dependabot) | dependabot[bot] | Mon 4 May 2026, 03:00 EDT | Before 08:00 |
+| 6 | 8c81dc4 Add fuzz seed for fd checks | Joon Park | Sun 17 May 2026, 10:00 EDT | Sunday |
+| 7 | 18935bd Prepare 0.0.21 notes | Mara Ruiz | Tue 30 Jun 2026, 23:30 EDT | After 20:00 (stamped 20:30 −07:00) |
+
+I'm treating these two as separate from the seven above:
+- **dfea546 Refresh example output (Ana Kim)** landed Fri 20 Feb 2026 at 20:00:00 EST, exactly on the closing time. I treated the window as ending at 20:00:00, so this is outside. Its parent, d065cf6, landed at 19:59:59 and is inside. If your policy treats 20:00:00 as inside, drop this one.
+- **03be3fc Remove unused helper (Tomas Berg)** is stamped Wed 20 May 2026, 03:00 EDT, which is outside the window. But it sits on top of b91bc0c (26 May) and under the 1 June merge, so that stamp can't be when it landed. Its real landing time is somewhere between 26 May and 1 June and can't be recovered from this history. Treat it as unresolved.
+
+## Count per person
+
+| Person | Firm | Plus boundary | Plus unresolved |
+|---|---|---|---|
+| Ana Kim | 2 (#1, #4) | 3 (+dfea546) | 3 |
+| Joon Park | 2 (#2, #6) | 2 | 2 |
+| Mara Ruiz | 2 (#3, #7) | 2 | 2 |
+| dependabot[bot] | 1 (#5) | 1 | 1 |
+| Tomas Berg | 0 | 0 | 1 (03be3fc) |
+| **Total** | **7** | **8** | **9** |
+
+Joon Park appears under two emails (joon@example.kr and joon.park@example.com). I counted them as one person by name, so confirm that's right. For dependabot the committer is GitHub, so this history doesn't show who merged it.
+
+## Commits that look like violations but are not
+
+- **b2b10c3 Detect ptys on freebsd (Joon Park)** was written Sat 30 May at 23:00 EDT. It landed through merge db716af on Mon 1 Jun at 09:00 EDT, which is inside the window.
+- **433be1b Tidy bsd constants (Mara Ruiz)** was authored Sun 19 Apr at 23:00 EDT. It was committed Mon 20 Apr at 10:00 EDT, which is inside the window.
+- **f4cf610 (Ana Kim)** is 31 Dec 2025, 19:30 EST, which is 1 Jan in UTC. The New York date is before the period, so it's excluded.
+- **974c8db (Ana Kim)** is 1 Jul 2026, 00:10 EDT. That's after the period, so it's excluded.
+- **bb704f9 (Mara Ruiz)** is 12:30 UTC on 9 Mar, which is 08:30 EDT because DST had started on 8 March. It's inside the window.
+
+## Timestamps I would not rely on
+
+1. **1757c4b Update LICENSE year** has a committer date of 2 Mar 2027, which is in the future (today is 25 Oct 2026). Its author date is 2 Jun 2026, yet it sits 
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline | wc -l && git log main --first-parent --since=2025-12-30 --format='%h|%an|%ae|%cn|%ad|%cd|%p|%s' --date=iso-strict | head -100; git reflog main 2>&1 | head -5; git remote -v
+Bash: git log db716af^1..db716af^2 --format='%h|%an|%cn|%ad|%cd|%p|%s' --date=iso-strict; echo; git log 03be3fc..b2b10c3 --format='%h %s' ; git merge-base 03be3fc b2b10c3; git log --all --oneline | wc -l; git branch -a; git log -3 --format='%h %B' db716af | head -20
+Bash: git log main --first-parent --reverse --format='%h|%an|%ct|%at|%s' | while IFS='|' read h n ct at s; do printf '%s|%s|C:%s|A:%s|%s\n' $h "$n" "$(TZ=America/New_York date -r $ct '+%a %Y-%m-%d %H:%M:%S %Z')" "$(TZ=America/New_York date -r $at '+%a %Y-%m-%d %H:%M
+### Final answer text
+I used the committer date of each commit on main's first-parent line as the landing time, converted to New York time. A commit that came in through a merge landed at the merge's time. The repo has no remote and no reflog, so these dates are only what the commits say about themselves. They are not server-side push times.
+
+## Changes outside Mon–Fri 08:00–20:00 NY, 1 Jan – 30 Jun 2026
+
+| # | Commit | Person | Landed on main (NY) | Subject |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan 2026 22:10 EST | Fix typo in doc comment |
+| 2 | 8111864 | Joon Park | Sat 14 Feb 2026 11:00 EST | Add plan9 note |
+| 3 | dfea546 | Ana Kim | Fri 20 Feb 2026 20:00:00 EST | Refresh example output |
+| 4 | c09f4bd | Mara Ruiz | Mon 9 Mar 2026 20:30 EDT | Add windows console test note |
+| 5 | c5c560b | Ana Kim | Sat 18 Apr 2026 22:00 EDT | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | dependabot[bot] | Mon 4 May 2026 03:00 EDT | Bump golang.org/x/sys |
+| 7 | 8c81dc4 | Joon Park | Sun 17 May 2026 10:00 EDT | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Tomas Berg | Wed 20 May 2026 03:00 EDT (stamped, see below) | Remove unused helper |
+| 9 | 18935bd | Mara Ruiz | Tue 30 Jun 2026 23:30 EDT | Prepare 0.0.21 notes |
+
+Notes on specific rows:
+- **#3** lands exactly at 20:00:00. I counted it as outside, treating 20:00 as the end of the window. The commit before it, d065cf6 at 19:59:59, is inside.
+- **#4** shows as 12:30Z on 9 Mar in the raw data, but it is 20:30 EDT because daylight saving began on 8 Mar.
+- **#9** is stored with a -07:00 offset, which reads as 20:30 on 30 Jun. In New York it is 23:30 on 30 Jun, so it is outside the window and still inside your date range.
+- **#6** was authored and committed by GitHub for the bot. I counted it under the bot, not under a person.
+
+## Count per person
+
+| Person | Count |
+|---|---|
+| Ana Kim | 3 (2 if 20:00:00 counts as inside) |
+| Joon Park | 2 |
+| Mara Ruiz | 2 |
+| dependabot[bot] | 1 |
+| Tomas Berg | 1 (unreliable timestamp, see below) |
+| **Total** | **9** |
+
+## Cases that look odd but are not violations
+
+- **b2b10c3 (Joon Park, "Detect ptys on freebsd")** was authored Sat 30 May 23:00 EDT. It landed through Ana Kim's merge db716af on Mon 1 Jun 09:00 EDT, which is inside the window. Joon is not counted.
+- **433be1b (Mara Ruiz)** was authored Sun 19 Apr 23:00 EDT. It landed Mon 20 Apr 10:00 EDT, so it is inside the window.
+- **c5c560b (Ana Kim)** was authored Tue 14 Apr 14:00 EDT, which is inside the window. It landed Sat 18 Apr 22:00 EDT, so it is counted (#5).
+- **974c8db (Ana Kim)** landed Wed 1 Jul 00:10 EDT, which is after your range. 1757c4b is also excluded, as explained below.
+
+## Timestamps I would not rely on
+
+1. **03be3fc (Tomas Berg).** It is stamped Wed 20 May 03:00 EDT. In the history, though, it comes after b91bc0c (26 May) and before the 1 Jun merge. A commit cannot land before its parent, so the date is wrong or the commit was rewritten or the clock was off. It is in the table only because its stamp falls outside the window. Its real landing time is somewhere between 26 May and 1 Jun, and I can't pin it down from this repo. Check the platform's push or merge log.
+2. **1757c4b (Tomas Berg, "Update LICENSE year").** Its committer date is 2 Mar 2027, which is in the future. The author date is 2 Jun 2026 10:00 EDT, but that is not when it landed. It sits after the 1 Jul commit in the history, so it most likely landed after 30 Jun. I excluded it from the range, but its true date is unknown.
+
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --format='%h|%an|%ae|%ad|%cd|%cn|%p|%s' --date=iso-strict | head -80; git log --first-parent main --oneline | wc -l; git log main --oneline | wc -l; git reflog -n 5 2>&1 | head
+Bash: git log main --graph --format='%h|%an|%ad|%cd|%cn|%s' --date=iso-strict f4cf610^..main | head -40; git branch -a; git tag | tail -5; git remote -v; git notes list | head; git log -1 --format=%B 1757c4b; git show -s --format='%B' db716af; git log --format='%h %
+Bash: for h in ae3c2f5 954e011 d10f9c7 8111864 d065cf6 dfea546 982e510 bb704f9 c09f4bd c5c560b 433be1b 1dfc991 8c81dc4 b91bc0c 03be3fc b2b10c3 db716af 18935bd 974c8db 1757c4b; do t=$(git log -1 --format=%ct $h); a=$(git log -1 --format=%at $h); echo "$h $(git log -1
+### Final answer text
+Eight commits reached main outside the window between 1 January and 30 June 2026 (New York dates). One of them, `03be3fc`, has a timestamp I don't trust, and one more, `dfea546`, sits exactly on the 20:00 boundary.
+
+I used the committer date as the landing time. For the one merged pull request I used the merge commit's time instead of the branch commit's time. I converted every time to America/New_York, so EST applies up to 7 March and EDT from 8 March.
+
+## Changes outside the window
+
+| # | Commit | Person | NY day and time | Note |
+|---|---|---|---|---|
+| 1 | `d10f9c7` Fix typo in doc comment | Ana Kim | Mon 12 Jan 2026, 22:10 EST | After 20:00 |
+| 2 | `8111864` Add plan9 note | Joon Park | Sat 14 Feb 2026, 11:00 EST | Weekend |
+| 3 | `c09f4bd` Add windows console test note | Mara Ruiz | Mon 9 Mar 2026, 20:30 EDT | The raw stamp reads 10 Mar 00:30 UTC |
+| 4 | `c5c560b` Rework tiocgwinsz helper docs | Ana Kim | Sat 18 Apr 2026, 22:00 EDT | Weekend. Written Tue 14 Apr 14:00, so the author date would hide it |
+| 5 | `1dfc991` Bump golang.org/x/sys 0.28.0 to 0.29.0 | dependabot[bot] | Mon 4 May 2026, 03:00 EDT | Bot commit, committer is GitHub |
+| 6 | `8c81dc4` Add fuzz seed for fd checks | Joon Park | Sun 17 May 2026, 10:00 EDT | Weekend |
+| 7 | `03be3fc` Remove unused helper | Tomas Berg | Wed 20 May 2026, 03:00 EDT | **Timestamp is suspect** (see below) |
+| 8 | `18935bd` Prepare 0.0.21 notes | Mara Ruiz | Tue 30 Jun 2026, 23:30 EDT | Stamped 20:30 at -07:00, so it looks in-window if you read the local time |
+
+`dfea546` (Ana Kim, Fri 20 Feb 2026, 20:00:00 EST) is exactly on the boundary. I treated 20:00:00 as inside the window. If your policy means "before 20:00", it becomes a ninth item. The commit just before it, `d065cf6`, landed at 19:59:59 and is in the window either way.
+
+## Count per person
+
+- **Ana Kim:** 2 (3 if `dfea546` counts)
+- **Joon Park:** 2
+- **Mara Ruiz:** 2
+- **dependabot[bot]:** 1
+- **Tomas Berg:** 1, resting on the doubtful timestamp
+
+Joon Park appears under two emails: `joon@example.kr` and `joon.park@example.com`. I counted them as one person, which is an assumption you should confirm.
+
+## Items I checked and excluded
+
+- **`b2b10c3` (Joon Park, Sat 30 May 23:00 EDT):** this was written on a side branch, but it reached main through the merge `db716af` on Mon 1 Jun 2026, 09:00 EDT, which is inside the window. It isn't a violation.
+- **`433be1b` (Mara Ruiz):** written Sun 19 Apr 23:00, landed Mon 20 Apr 10:00 EDT, so it is in the window.
+- **`bb704f9` (Mara Ruiz):** the raw UTC stamp is 12:30, but it is Mon 9 Mar 08:30 EDT, so it is in the window.
+- **`954e011` (Joon Park):** stamped 23:15 at +09:00, which is Wed 7 Jan 09:15 EST, so it is in the window.
+- **`974c8db` (Ana Kim, Wed 1 Jul 00:10 EDT):** this is outside the window but also outside your date range.
+- **`1757c4b` (Tomas Berg, the tip commit):** I left it out, because its landing time can't be determined (see below).
+
+## Timestamps I would not rely on
+
+1. **`1757c4b` Update LICENSE year:** the committer date is 2 Mar 2027, which is after today's date (25 Oct 2026), so it can't be real. The author date is 2 Jun 2026, but the commit sits above a 1 Jul commit in history, so it landed after 1 Jul if the order is honest. The author date can't be its landing time either way. I can't place this commit in your range, and it needs a source outside git.
+2. **`03be3fc` Remove unused helper:** it is dated 20 May, but its parent is `b91bc0c` dated 26 May, so the dates ru
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --format='%h|%an|%ae|%cn|%ai|%ci|%P|%s' --since=2025-12-30 --until=2026-07-02 | cat; echo; git log --first-parent main --format='%h' | wc -l; git reflog show main 2>&1 | head -20; git log main --format='%h|%an|%ai|%ci|%s' --since=20
+Bash: git log 03be3fc..b2b10c3 --format='%h|%an|%ai|%ci|%cn|%P|%s' | cat; echo; git log 03be3fc --format='%h' -1; git merge-base 03be3fc b2b10c3; git reflog -5 2>&1|cat; git remote -v; git tag | tail -3; git for-each-ref | head; TZ=America/New_York date -d@0 2>/dev/
+Bash: git log --first-parent main --format='%h|%an|%cI|%aI|%s' --since=2025-12-30 --until=2026-07-02 | python3 -I -c ' ; import sys,datetime as d ; from zoneinfo import ZoneInfo ; for l in sys.stdin: ;     h,n,c,a,s=l.rstrip().split("|",4) ;     t=d.datetime.fromisoformat(c).
+### Final answer text
+**Basis:** I used the first-parent history of `main` (19 commits dated 31 Dec 2025 to 1 Jul 2026), at each commit's committer timestamp converted to America/New_York with DST applied. The repo is a local copy with no reflog and no tags. It has no push or merge-event log, so the committer timestamp is the closest evidence of when a change reached `main`. A change that came in through a merge counts at the merge time, not at its author date.
+
+## Changes on main outside Mon–Fri 08:00–20:00 NY, 1 Jan – 30 Jun 2026
+
+| # | Commit | Person | NY landing time | Why outside |
+|---|---|---|---|---|
+| 1 | d10f9c7 Fix typo in doc comment | Ana Kim | Mon 12 Jan 2026 22:10 EST | after 20:00 |
+| 2 | 8111864 Add plan9 note | Joon Park | Sat 14 Feb 2026 11:00 EST | weekend |
+| 3 | dfea546 Refresh example output | Ana Kim | Fri 20 Feb 2026 20:00:00 EST | exactly at the closing time (boundary case, see note) |
+| 4 | c09f4bd Add windows console test note | Mara Ruiz | Mon 9 Mar 2026 20:30 EDT | after 20:00 |
+| 5 | c5c560b Rework tiocgwinsz helper docs | Ana Kim | Sat 18 Apr 2026 22:00 EDT | weekend |
+| 6 | 1dfc991 Bump golang.org/x/sys | dependabot[bot] | Mon 4 May 2026 03:00 EDT | before 08:00 |
+| 7 | 8c81dc4 Add fuzz seed for fd checks | Joon Park | Sun 17 May 2026 10:00 EDT | weekend |
+| 8 | 03be3fc Remove unused helper | Tomas Berg | Wed 20 May 2026 03:00 EDT (as recorded; see below) | before 08:00 |
+| 9 | 18935bd Prepare 0.0.21 notes | Mara Ruiz | Tue 30 Jun 2026 23:30 EDT | after 20:00 |
+
+**Count per person:**
+- Ana Kim: 3 (2 if the 20:00:00 boundary case is treated as inside the window)
+- Joon Park: 2
+- Mara Ruiz: 2
+- Tomas Berg: 1
+- dependabot[bot]: 1 (automated account)
+- **Total: 9** (8 without the boundary case)
+
+**Notes on the list:**
+- **Boundary case (dfea546):** The policy says "08:00 to 20:00". I read 20:00:00 as outside the window. The previous commit, d065cf6, landed at 19:59:59 on the same day, which is inside the window, so I excluded it.
+- **Joon Park:** Joon appears under two emails, `joon@example.kr` and `joon.park@example.com`. I treated them as the same person. Please confirm that.
+- **dependabot:** The committer is GitHub, and the timestamp is 07:00 UTC.
+
+## Not out of window, despite how it looks
+- **b2b10c3 "Detect ptys on freebsd" (Joon):** It was authored on Sat 30 May 23:00 EDT. It reached `main` through the merge db716af on Mon 1 Jun 2026 09:00 EDT, which is inside the window, so it isn't a violation. The merge was done by Ana Kim.
+- **433be1b "Tidy bsd constants" (Mara):** It was authored on Sun 19 Apr 23:00 EDT. It was committed on Mon 20 Apr 10:00 EDT, which is inside the window.
+- **bb704f9 (Mara):** It landed Mon 9 Mar 08:30 EDT, inside the window. It would look like 07:30 if converted with the winter offset. DST began on 8 Mar.
+
+## Timestamps I would not rely on
+1. **03be3fc (Tomas Berg), Wed 20 May 03:00.** Its parent is b91bc0c, which is dated 26 May. A child cannot have landed six days before its parent, so the date is wrong. It is probably a skewed clock, a backdated commit or a rebase. Its real landing time is somewhere between 26 May and 1 Jun, and I can't tell whether it was in or out of the window. Its place on the list is provisional, and its 03:00 time shouldn't go in the workpaper as fact.
+2. **All timestamps in general.** Git timestamps come from the committer's own machine and can be set to anything. This history has no server-side record of when each push or merge happened. To confirm any of them, use the 
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --format='%h|%an|%ae|%ad|%cd|%cn|%p|%s' --date=iso-strict | head -100; git log --oneline main | wc -l; git log --first-parent --oneline main | wc -l; git reflog -5 2>&1 | head; git branch -a
+Bash: git log --first-parent main --since=2025-12-30 --format='%h|%cI|%aI' | while IFS='|' read h c a; do echo "$h $(TZ=America/New_York date -d "$c" '+%a %F %T %Z' 2>/dev/null || TZ=America/New_York gdate -d "$c" '+%a %F %T %Z')"; done; echo; git log b2b10c3 --not 
+Bash: git log --first-parent main --since=2025-12-30 --format='%h|%cI|%aI|%cn|%an|%s' | python3 -I -c ' ; import sys ; from datetime import datetime ; from zoneinfo import ZoneInfo ; ny=ZoneInfo("America/New_York") ; for l in sys.stdin: ;     h,c,a,cn,an,s=l.rstrip().split("|",
+### Final answer text
+I found 9 commits on main's first-parent history with a landing time outside Monday to Friday, 08:00 to 20:00 New York time, between 1 January and 30 June 2026. Three of them rest on timestamps I'd treat with caution (see the end).
+
+For "when it landed on main" I used the committer timestamp of each commit on main's first-parent chain, converted to America/New_York. For the one merge in the period, that is the merge commit's own time. Author dates are ignored. I read the history from the local repository only, which has no reflog, so none of these times is a server-side push or merge time.
+
+## Out-of-window changes (NY local time)
+
+| # | Commit | Person | Landed (NY) | Subject |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan 2026 22:10 EST | Fix typo in doc comment |
+| 2 | 8111864 | Joon Park | Sat 14 Feb 2026 11:00 EST | Add plan9 note |
+| 3 | dfea546 | Ana Kim | Fri 20 Feb 2026 20:00:00 EST | Refresh example output |
+| 4 | c09f4bd | Mara Ruiz | Mon 9 Mar 2026 20:30 EDT | Add windows console test note |
+| 5 | c5c560b | Ana Kim | Sat 18 Apr 2026 22:00 EDT | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | dependabot[bot] | Mon 4 May 2026 03:00 EDT | Bump golang.org/x/sys 0.28.0 to 0.29.0 |
+| 7 | 8c81dc4 | Joon Park | Sun 17 May 2026 10:00 EDT | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Tomas Berg | Wed 20 May 2026 03:00 EDT (unreliable) | Remove unused helper |
+| 9 | 18935bd | Mara Ruiz | Tue 30 Jun 2026 23:30 EDT | Prepare 0.0.21 notes |
+
+How I read the edge cases:
+- **#1:** The UTC stamp is Tuesday 13 Jan 03:10. In New York it is still Monday evening. It is out either way, but the day you record should be Monday.
+- **#3:** It landed at exactly 20:00:00. I treated 20:00 as the end of the window, so it is out. The previous commit, d065cf6, landed at 19:59:59 and is in. If your policy counts 20:00:00 as inside, drop #3.
+- **#9:** It was stamped 20:30 at UTC-7. That is 23:30 in New York.
+
+## Count per person
+
+| Person | Count |
+|---|---|
+| Ana Kim | 3 (#1, #3, #5) |
+| Joon Park | 2 (#2, #7) |
+| Mara Ruiz | 2 (#4, #9) |
+| dependabot[bot] | 1 (#6) |
+| Tomas Berg | 1 (#8, unreliable timestamp) |
+| **Total** | **9** |
+
+Joon Park appears under two emails (`joon@example.kr` and `joon.park@example.com`). I assumed they are the same person. If they aren't, #2 belongs to a separate person.
+
+## Not counted, and why
+
+- **974c8db** (Ana Kim): landed Wed 1 Jul 2026 00:10 EDT, 10 minutes after the period ends.
+- **b2b10c3** (Joon Park, "Detect ptys on freebsd"): written Saturday 30 May 23:00, but it reached main through the merge db716af on Mon 1 Jun 2026 09:00 EDT. That is inside the window, so it is not a violation.
+- **433be1b** (Mara Ruiz): authored Sunday 19 Apr 23:00, but it landed Mon 20 Apr 10:00 EDT, which is inside the window.
+- **1757c4b** (Tomas Berg, the current HEAD): its landing time can't be established (see below), so I left it out.
+
+## Timestamps I would not rely on
+
+- **1757c4b, "Update LICENSE year":**
+  - **Committer date:** 2 Mar 2027, which is in the future (today is 25 Oct 2026).
+  - **Author date:** 2 Jun 2026, which is earlier than its parent 974c8db (1 Jul 2026), so it cannot have landed on that date.
+  - **Landing time:** by position it sits after the 1 Jul commit, so it probably falls outside your period. Check this against the hosting platform's records.
+- **03be3fc, "Remove unused helper" (#8):**
+  - **Committer date:** 20 May 2026.
+  - **Parent:** b91bc0c, stamped 26 May.
+  - **Landing time:** a child can'
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%cn|%ad|%cd|%p|%s' --date=iso-strict | head -200; git log --first-parent main --format=%h | wc -l; git reflog -n 3 2>&1 | head
+Bash: git log --graph --format='%h|%an|%ad|%cd|%s' --date=iso-strict 03be3fc..db716af | head; echo; git log main --not 03be3fc --format='%h|%an|%ad|%cd|%s' --date=iso-strict; echo; git reflog show main | head; git notes list | head; git log --first-parent main --for
+Bash: git log --first-parent main --format='%h|%an|%ct|%at|%s' | while IFS='|' read h a ct at s; do d=$(TZ=America/New_York date -r $ct '+%a %Y-%m-%d %H:%M:%S %Z'); echo "$h|$a|$d|$s"; done | grep -E '2026-0[1-6]|2025-12-3|2026-07-0'
+### Final answer text
+I found 7 changes that landed on main outside the window, with 1 more on the boundary and 1 more whose timestamp I can't trust. The dates come from git commit metadata, which is the best evidence available here, and the caveats are at the end.
+
+**Method:** I walked main's first-parent history, so a branch merged in counts when the merge landed, not when its commits were written. I used the committer timestamp, converted to New York time with DST applied. I did not use the author date, because it records when the work was first written.
+
+## Changes outside the window (1 Jan – 30 Jun 2026, NY time)
+
+| Commit | Person | NY day and time | Subject |
+|---|---|---|---|
+| d10f9c7 | Ana Kim | Mon 12 Jan 2026, 22:10 EST | Fix typo in doc comment |
+| 8111864 | Joon Park | Sat 14 Feb 2026, 11:00 EST | Add plan9 note |
+| c09f4bd | Mara Ruiz | Mon 9 Mar 2026, 20:30 EDT | Add windows console test note |
+| c5c560b | Ana Kim | Sat 18 Apr 2026, 22:00 EDT | Rework tiocgwinsz helper docs |
+| 1dfc991 | dependabot[bot] | Mon 4 May 2026, 03:00 EDT | Bump golang.org/x/sys 0.28.0 → 0.29.0 |
+| 8c81dc4 | Joon Park | Sun 17 May 2026, 10:00 EDT | Add fuzz seed for fd checks |
+| 18935bd | Mara Ruiz | Tue 30 Jun 2026, 23:30 EDT | Prepare 0.0.21 notes |
+
+**Count per person (firm):**
+- Ana Kim: 2
+- Joon Park: 2
+- Mara Ruiz: 2
+- dependabot[bot]: 1
+- Tomas Berg: 0
+
+**Items to decide:**
+- **Boundary:** dfea546 (Ana Kim, "Refresh example output") landed Fri 20 Feb 2026 at exactly 20:00:00 EST. If 20:00 is outside the window, Ana's count becomes 3. The commit just before it (d065cf6) is at 19:59:59, which is inside.
+- **Disputed:** 03be3fc (Tomas Berg, "Remove unused helper") is stamped Wed 20 May 2026, 03:00 EDT. If you take that at face value, it is a violation and Tomas has 1. I don't trust the stamp (see below).
+
+## Dates that look like violations but aren't
+- **433be1b** (Mara Ruiz) was written Sun 19 Apr at 23:00, but it landed Mon 20 Apr at 10:00 EDT, which is inside the window.
+- **b2b10c3** (Joon Park) was written Sat 30 May at 23:00. It reached main through the PR #88 merge (db716af) on Mon 1 Jun at 09:00 EDT, which is inside the window.
+- **954e011** (Joon Park) shows 23:15 +09:00 in the log. In New York that is Wed 7 Jan at 09:15, which is inside the window.
+- **Raw UTC dates:** d10f9c7 and c09f4bd show as 13 Jan and 10 Mar in UTC, but their New York dates are 12 Jan and 9 Mar.
+- **bb704f9** (Mara Ruiz) was committed at 12:30 UTC on 9 Mar. DST had started the day before, so it is 08:30 EDT and inside the window. Using EST would put it at 07:30 by mistake.
+
+## Out of scope
+- **f4cf610** (31 Dec 2025, 19:30 EST) is before the period.
+- **974c8db** (1 Jul 2026, 00:10 EDT) is after it.
+- **1757c4b** (Tomas Berg, "Update LICENSE year") sits on top of 974c8db, so it landed after 1 Jul.
+
+## Timestamps I would not rely on
+1. **03be3fc (Tomas Berg, 20 May):** it is stamped six days before its parent b91bc0c (26 May 10:00). A commit can't land before its parent, so either the author's clock was wrong or the history was rewritten. All I can say is that it landed between 26 May 10:00 and 1 Jun 09:00 EDT, so I can't say whether it was in the window.
+2. **1757c4b (Tomas Berg, LICENSE):** the author date is 2 Jun 2026, but the committer date is 2 Mar 2027, which is after today (25 Oct 2026). Its parent is dated 1 Jul, so neither date is credible. It is outside the period either way, but the dates show a bad clock or a rewrite.
+3. **c5c560b (Ana Kim):** written 14 Apr, committe
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%cn|%ad|%cd|%P|%s' --date=iso-strict | head -200; echo; git log --first-parent main | wc -l; git reflog -n 5 2>&1 | head
+Bash: git log 03be3fc..db716af^2 --format='%h|%an|%ae|%ad|%cd|%s' --date=iso-strict | head; echo ---; git log db716af^1..db716af^2 --format='%h|%an|%cn|%ad|%cd|%s' --date=iso-strict; echo ---; cat .mailmap 2>/dev/null; git log --first-parent main --format='%h %an <%
+### Final answer text
+Eight changes reached main between 1 January and 30 June 2026 outside the Monday to Friday, 08:00 to 20:00 New York window.
+
+I read the first-parent history of `main` and converted each timestamp to New York time, with daylight saving applied (it began 8 March 2026). I used each commit's committer date as the landing time, because the author date only records when the change was first written. The one exception is the PR #88 merge, covered below. I treated Joon Park's two author emails (`joon@example.kr` and `joon.park@example.com`) as one person. Please confirm that they are.
+
+**Out-of-window changes (8)**
+
+| # | Commit | Person | New York day and time | Why it is outside the window | Subject |
+|---|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan 2026, 22:10 EST | After 20:00 (the commit says 13 Jan 03:10Z) | Fix typo in doc comment |
+| 2 | 8111864 | Joon Park | Sat 14 Feb 2026, 11:00 EST | Saturday | Add plan9 note |
+| 3 | c09f4bd | Mara Ruiz | Mon 9 Mar 2026, 20:30 EDT | After 20:00 (the commit says 10 Mar 00:30Z) | Add windows console test note |
+| 4 | c5c560b | Ana Kim | Sat 18 Apr 2026, 22:00 EDT | Saturday (committer date; author date is 14 Apr) | Rework tiocgwinsz helper docs |
+| 5 | 1dfc991 | dependabot[bot] | Mon 4 May 2026, 03:00 EDT | Before 08:00 (the commit says 07:00Z) | Bump golang.org/x/sys 0.28.0 to 0.29.0 |
+| 6 | 8c81dc4 | Joon Park | Sun 17 May 2026, 10:00 EDT | Sunday | Add fuzz seed for fd checks |
+| 7 | 03be3fc | Tomas Berg | Wed 20 May 2026, 03:00 EDT | Before 08:00 (timestamp suspect, see below) | Remove unused helper |
+| 8 | 18935bd | Mara Ruiz | Tue 30 Jun 2026, 23:30 EDT | After 20:00 (the commit says 20:30 at -07:00) | Prepare 0.0.21 notes |
+
+**Count per person**
+- Ana Kim: 2
+- Joon Park: 2
+- Mara Ruiz: 2
+- Tomas Berg: 1
+- dependabot[bot]: 1
+- Total: 8
+
+**Items I treated as in-window**
+- **PR #88 (b2b10c3, "Detect ptys on freebsd").**
+  - Joon Park wrote it on Saturday 30 May at 23:00 EDT.
+  - It reached main through the merge db716af on Monday 1 June at 09:00 EDT, which is in the window. It does not count against Joon.
+- **Boundary cases.**
+  - dfea546 (Ana Kim) landed on Friday 20 Feb at exactly 20:00:00. I counted the end of the window as inclusive. If it is exclusive, add one for Ana, making her 3 and the total 9.
+  - 982e510 (Mara Ruiz) landed on Monday 23 Feb at exactly 08:00:00, which is in the window.
+  - d065cf6 landed at 19:59:59 the same Friday, which is in the window.
+- **Outside the audit period.**
+  - f4cf610 (Ana Kim, 31 Dec 2025, 19:30 EST) is before 1 January, so I left it out.
+  - 974c8db (Ana Kim, 1 Jul, 00:10 EDT) is after 30 June, so I left it out.
+- **Time-zone conversions.** 954e011 (Joon Park) says 7 Jan 23:15 at +09:00, which is 09:15 EST on Wednesday 7 Jan, so it is in the window. bb704f9 (Mara Ruiz) says 9 Mar 12:30Z, which is 08:30 EDT on Monday, so it is in the window.
+
+**Timestamps I would not rely on**
+- **All of them, in general.** Git timestamps are set by the committer's own machine, and nothing here is signed or checked against a server. They show what the committer's clock said, not when the change reached `main`. The real landing times are in the hosting platform's push and merge events, and I did not have access to those. Use them to confirm the list.
+- **03be3fc (row 7).** It is dated 20 May, but its parent b91bc0c is dated 26 May. A child commit cannot be older than its parent, so the clock was wrong or the commit was rewritten. The real landing time could be
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W17T2-BASE-3/fx; git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%p|%an|%ae|%cn|%ad|%cd|%s' --date=iso-strict | head -100; git log main --format=%h | wc -l; git remote -v; git reflog main | head
+Bash: cd /private/tmp/wp-r16/gate6/runs/W17T2-BASE-3/fx; git log 03be3fc..b2b10c3 --format='%h|%p|%an|%cn|%ad|%cd|%s' --date=iso-strict; echo; git log db716af^1..db716af --format=%h | head; git log --all --oneline | wc -l; git branch -a; git tag | tail -3; git notes
+### Final answer text
+Nine changes reached main outside the window between 1 January and 30 June 2026 (New York dates). Four of the nine have timestamps I wouldn't rely on, which I flag below.
+
+**Method**
+- I used the first-parent history of `main` (`git log --first-parent`) and the committer date of each commit as its landing time. I converted each to America/New_York, applying the daylight-saving change on 8 March 2026.
+- The window is Monday to Friday, 08:00 to 20:00, with 08:00:00 inside and 20:00:00 outside. Your policy doesn't say whether 20:00 counts, so please confirm.
+- For the merged pull request (#88), I used the merge time, not the time the branch commit was written.
+
+**Changes outside the window**
+
+| # | Commit | NY day and time | Person | Subject |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Mon 12 Jan 2026, 22:10 EST | Ana Kim | Fix typo in doc comment |
+| 2 | 8111864 | Sat 14 Feb 2026, 11:00 EST | Joon Park | Add plan9 note |
+| 3 | dfea546 | Fri 20 Feb 2026, 20:00:00 EST | Ana Kim | Refresh example output |
+| 4 | c09f4bd | Mon 9 Mar 2026, 20:30 EDT | Mara Ruiz | Add windows console test note |
+| 5 | c5c560b | Sat 18 Apr 2026, 22:00 EDT | Ana Kim | Rework tiocgwinsz helper docs |
+| 6 | 1dfc991 | Mon 4 May 2026, 03:00 EDT | dependabot[bot] | Bump golang.org/x/sys 0.28.0 to 0.29.0 |
+| 7 | 8c81dc4 | Sun 17 May 2026, 10:00 EDT | Joon Park | Add fuzz seed for fd checks |
+| 8 | 03be3fc | Wed 20 May 2026, 03:00 EDT (as recorded, unreliable) | Tomas Berg | Remove unused helper |
+| 9 | 18935bd | Tue 30 Jun 2026, 23:30 EDT | Mara Ruiz | Prepare 0.0.21 notes |
+
+- **dfea546** is the boundary case. It landed at exactly 20:00:00, and the commit before it landed at 19:59:59. If 20:00 counts as inside, it drops out of the list.
+- **c09f4bd** is stored as 2026-03-10 00:30 UTC. That is still Monday evening in New York.
+- **18935bd** is stored as 20:30 at UTC-7, which is 23:30 in New York.
+
+**Count per person**
+- Ana Kim: 3 (d10f9c7, dfea546, c5c560b)
+- Joon Park: 2 (8111864, 8c81dc4)
+- Mara Ruiz: 2 (c09f4bd, 18935bd)
+- Tomas Berg: 1 (03be3fc, with the caveat below)
+- dependabot[bot]: 1 (an automated account, so you may want to count it separately)
+- Total: 9
+
+**Changes that look outside the window but aren't**
+- **b2b10c3** ("Detect ptys on freebsd") was written on Saturday 30 May at 23:00 EDT. It reached main through the merge db716af on Monday 1 June at 09:00 EDT, which is inside the window. It is not counted.
+- **433be1b** ("Tidy bsd constants") has an author date of Sunday 19 April at 23:00. Its committer date is Monday 20 April at 10:00, which is inside the window. It is not counted.
+
+**Timestamps I wouldn't rely on**
+1. **Every timestamp is a client-supplied value.**
+   - Git lets the committer set these dates freely. The repository has no signatures, no remote and no reflog entries for `main`.
+   - Nothing here records when a commit was pushed or merged, so every landing time is an inference. For a firm audit, take the push or merge times from the hosting platform's audit log or branch-protection events.
+2. **03be3fc (Tomas Berg) has an impossible date.**
+   - It is dated 20 May, but its parent b91bc0c is dated 26 May. A child can't land before its parent, so the true landing time is somewhere between 26 May and 1 June 09:00.
+   - It may well have landed inside the window. Don't treat the "Wed 03:00" as fact.
+3. **c5c560b (Ana Kim) has two different dates.**
+   - The author date is Tue 14 April 14:00 and the committer date is Sat 18 April 22:00, which suggests
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --format='%h|%an|%ae|%ad|%cn|%cd|%p|%s' --date=iso-strict | head -100; git log --first-parent main --oneline | wc -l; git log --oneline | wc -l; git reflog -n 5 2>&1 | head; git remote -v
+Bash: git log --graph --format='%h|%an|%ad|%cd|%s' --date=iso-strict a7c0235..main; git branch -a; git tag | tail -5; git reflog show main 2>&1 | head; git log -3 --format='%h %G? %s' main
+Bash: python3 -I - <<'E' ; from datetime import datetime ; from zoneinfo import ZoneInfo ; n=ZoneInfo("America/New_York") ; for h,t in [("ae3c2f5","2026-01-05T09:00:00-05:00"),("954e011","2026-01-07T23:15:00+09:00"),("d10f9c7","2026-01-13T03:10:00+00:00"),("8111864","2026-0
+### Final answer text
+**Out-of-window changes on main, 1 Jan – 30 Jun 2026 (New York time)**
+
+I used the committer timestamp, or the merge commit's timestamp for merged work. That is when the commit was applied to main, not when it was first written. I took the window as Monday–Friday, with 08:00:00 inside and 20:00:00 outside.
+
+| # | Commit | Person | NY local day and time | Why it's out of window |
+|---|---|---|---|---|
+| 1 | d10f9c7 "Fix typo in doc comment" | Ana Kim | Mon 12 Jan 22:10 EST | After 20:00. The stamp is 13 Jan 03:10Z, so the NY date is 12 Jan. |
+| 2 | 8111864 "Add plan9 note" | Joon Park | Sat 14 Feb 11:00 EST | Saturday. |
+| 3 | dfea546 "Refresh example output" | Ana Kim | Fri 20 Feb 20:00:00 EST | Exactly on the 20:00 boundary. Counted here as outside; see the note below. |
+| 4 | c09f4bd "Add windows console test note" | Mara Ruiz | Mon 9 Mar 20:30 EDT | After 20:00. The stamp is 10 Mar 00:30Z, so the NY date is 9 Mar. |
+| 5 | c5c560b "Rework tiocgwinsz helper docs" | Ana Kim | Sat 18 Apr 22:00 EDT | Saturday night. It was authored on Tue 14 Apr 14:00, but it landed on 18 Apr. |
+| 6 | 1dfc991 Dependabot bump of golang.org/x/sys | dependabot[bot] | Mon 4 May 03:00 EDT | Before 08:00. The stamp is 07:00Z. |
+| 7 | 8c81dc4 "Add fuzz seed for fd checks" | Joon Park | Sun 17 May 10:00 EDT | Sunday. |
+| 8 | 03be3fc "Remove unused helper" | Tomas Berg | Wed 20 May 03:00 EDT (as stamped) | Before 08:00 as stamped, but the timestamp is unreliable. See the list below. |
+| 9 | 18935bd "Prepare 0.0.21 notes" | Mara Ruiz | Tue 30 Jun 23:30 EDT | After 20:00. The stamp is 20:30 at -07:00, so the NY time is 23:30. |
+
+**Count per person**
+- Ana Kim: 3 (d10f9c7, dfea546, c5c560b). It is 2 if the 20:00:00 boundary is treated as inside.
+- Joon Park: 2. His two author emails, joon@example.kr and joon.park@example.com, look like one person. I counted them together, so please confirm.
+- Mara Ruiz: 2 (c09f4bd, 18935bd).
+- Tomas Berg: 1 (03be3fc), with the caveat above.
+- dependabot[bot]: 1. It is a bot, not a person.
+- Total: 9, or 8 if the boundary case is inside.
+
+**Commits that look out of window but are not**
+- b2b10c3 "Detect ptys on freebsd" (Joon Park) was written Sat 30 May 23:00. It reached main through the merge db716af, made by Ana Kim on Mon 1 Jun 09:00 EDT. That merge is in window, so it is not a violation. The audit counts the merge, and it is Ana's.
+- 433be1b was authored Sun 19 Apr 23:00 but landed Mon 20 Apr 10:00 EDT, which is in window.
+- bb704f9 landed Mon 9 Mar 08:30 EDT. A fixed -05:00 offset would wrongly give 07:30. Daylight saving began on 8 Mar.
+- Boundary cases: d065cf6 (Fri 20 Feb 19:59:59) and 982e510 (Mon 23 Feb 08:00:00) are both inside.
+
+**Out of scope**
+- 974c8db "Post-release housekeeping" (Ana Kim) is dated Wed 1 Jul 00:10 EDT. That is 1 July in New York, so it is outside your range.
+- f4cf610 (31 Dec 2025, 19:30 EST) is also before the range.
+- 1757c4b "Update LICENSE year" is also out of scope. Its position in the history says it landed after 974c8db, so after 1 July. Its timestamps are unreliable (see below).
+
+**Timestamps I would not rely on**
+1. **1757c4b (Tomas Berg).**
+   - Its committer date is 2 Mar 2027, which is in the future. Today is 25 Oct 2026.
+   - Its author date is 2 Jun 2026, but it sits on top of the 1 Jul commit.
+   - Neither date can be right. I excluded it from the range based on its position, but its true landing time is unknown.
+2. **03be3fc (Tomas Berg).** It is dated 20 May, but it comes after b91bc0c
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%cn|%ad|%cd|%p|%s' --date=iso-strict | head -300; git log --oneline | wc -l; git log main --format=%h | wc -l; git reflog -3 2>&1 | head
+Bash: git log --graph --format='%h|%an|%cn|%ad|%cd|%s' --date=iso-strict 03be3fc..db716af b2b10c3 -8 ; echo; git log db716af^1..db716af^2 --format='%h|%an|%cn|%ad|%cd|%s' --date=iso-strict; echo; git log --format='%h' -1 --merges; git log --merges --format='%h %s'|h
+Bash: git log --first-parent main --format='%h|%an|%ct|%at|%s' | while IFS='|' read h n ct at s; do printf '%s|%s|C %s|A %s|%s\n' $h "$n" "$(TZ=America/New_York date -r $ct '+%Y-%m-%d %a %H:%M:%S %Z')" "$(TZ=America/New_York date -r $at '+%Y-%m-%d %a %H:%M %Z')" "$s
+### Final answer text
+**Method.** I used `main`'s first-parent history and each commit's committer date, converted to America/New_York with DST applied. DST began on 8 March 2026. For a commit that came in through a merge, I used the merge commit's time. I treated the window as Mon–Fri, 08:00 to 20:00.
+
+**Changes outside the window (7)**
+
+| # | Commit | Landed on main (NY) | Person | Subject |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Mon 12 Jan 2026, 22:10 EST | Ana Kim | Fix typo in doc comment |
+| 2 | 8111864 | Sat 14 Feb 2026, 11:00 EST | Joon Park | Add plan9 note |
+| 3 | c09f4bd | Mon 9 Mar 2026, 20:30 EDT | Mara Ruiz | Add windows console test note |
+| 4 | c5c560b | Sat 18 Apr 2026, 22:00 EDT | Ana Kim | Rework tiocgwinsz helper docs |
+| 5 | 1dfc991 | Mon 4 May 2026, 03:00 EDT | dependabot[bot] | Bump golang.org/x/sys |
+| 6 | 8c81dc4 | Sun 17 May 2026, 10:00 EDT | Joon Park | Add fuzz seed for fd checks |
+| 7 | 18935bd | Tue 30 Jun 2026, 23:30 EDT | Mara Ruiz | Prepare 0.0.21 notes |
+
+Notes on individual rows:
+- **d10f9c7:** it is stored as 03:10 UTC on 13 Jan, but that is still Monday evening in New York.
+- **c5c560b:** Ana authored it on Tue 14 Apr, but it landed on Saturday night. I used the landing time, as you asked.
+- **18935bd:** it is stored as 20:30 at UTC-7, which is 23:30 in New York.
+
+**Count per person (firm)**
+- Ana Kim: 2
+- Joon Park: 2
+- Mara Ruiz: 2
+- dependabot[bot]: 1 (committed through GitHub)
+- Tomas Berg: 0
+
+**Items that need a decision**
+- **Boundary: dfea546** (Ana Kim) landed Fri 20 Feb at exactly 20:00:00 EST. It is a violation if 20:00 is the end of the window, and compliant if 20:00 is allowed. Its parent d065cf6 landed at 19:59:59, one second earlier, so both timestamps look suspiciously precise. If it counts, Ana's total is 3 and the overall total is 8.
+- **Unresolved: 03be3fc** (Tomas Berg, "Remove unused helper") is stamped Wed 20 May, 03:00 EDT. On its face that is a violation. I left it out of the counts because the timestamp is not credible (see below).
+
+**Correctly inside the window, though they look off**
+- **b2b10c3** (Joon Park, PR #88) was written Saturday 30 May at 23:00. It reached main through merge db716af on Mon 1 Jun at 09:00 EDT, so it is not a violation. The merge was done by Ana.
+- **433be1b** (Mara Ruiz) was authored Sunday 19 Apr at 23:00. It landed Mon 20 Apr at 10:00, so it is compliant.
+- **954e011** (Joon Park) is stamped 23:15 at UTC+9, which is 09:15 Wed in New York, so it is compliant.
+- **bb704f9** is stamped 12:30 UTC on 9 Mar, which is 08:30 EDT, so it is compliant. Using EST would wrongly make it 07:30.
+- **974c8db** is dated 1 Jul at 00:10 EDT, which is outside your date range. The same goes for f4cf610 on 31 Dec 2025.
+
+**Timestamps I would not rely on**
+1. **03be3fc** is dated 20 May, but its parent b91bc0c is dated 26 May. A child cannot be earlier than its parent, so the clock or date is wrong. By order, it landed sometime between 26 May and 1 Jun. Its day and time are unknown.
+2. **1757c4b** ("Update LICENSE year") has a committer date of 2 Mar 2027, which is in the future. Its author date is 2 Jun 2026. It sits after 974c8db (1 Jul), so by order it is outside your period. Its real landing time is unknown.
+3. **Every date in the history is self-reported.** Git stores the committer's local clock, and I found no server push log, reflog or remote to confirm when a commit actually reached main. Anyone could have a wrong clock, a rebase or an amend that resets the date. The timestamps are evide
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --oneline | wc -l && git log --first-parent --oneline | wc -l && git log --merges --oneline | wc -l && git log -3 --format='%h|%an|%ae|%ad|%cn|%cd|%s' --date=iso && git reflog -5 2>&1 | head; git remote -v; git branch -a | head
+Bash: git log --first-parent --format='%h|%p|%an|%ae|A:%ad|C:%cn|%ce|%cd|%s' --date=iso | awk -F'|' '{print}' | cat
+Bash: git log a7c0235..main --format='%h|%p|%an|A:%aI|C:%cn|%cI|%s' ; echo; git log --first-parent --format=%h a7c0235..main | wc -l; git tag -l --format='%(refname:short) %(creatordate:iso)' | tail -5; git notes list 2>&1|head -3; git config user.name; git log -1 -
+Bash: git log a7c0235..main --format='%h|%an|%cI|%aI' | python3 -I -c ' ; import sys ; from datetime import datetime ; from zoneinfo import ZoneInfo ; ny=ZoneInfo("America/New_York") ; for l in sys.stdin: ;     h,n,c,a=l.strip().split("|") ;     d=datetime.fromisoformat(c.replace
+### Final answer text
+I found 7 changes that landed on main outside the window, plus 1 recorded as outside whose real landing time I can't establish and 1 exactly on the 20:00 boundary. All times below are New York local time, converted with the IANA zone rules. That means EST until 8 March 2026 and EDT after it. I read only the git history. It has no push or reflog data, so "landed" means the committer timestamp, or the merge commit's timestamp for work brought in through a merge.
+
+## Out-of-window changes that landed on main (1 Jan – 30 Jun 2026)
+
+| Commit | NY landing time | Person | Subject | Why it's outside the window |
+|---|---|---|---|---|
+| d10f9c7 | Mon 12 Jan 2026, 22:10 EST | Ana Kim | Fix typo in doc comment | After 20:00. The commit is stamped 13 Jan 03:10 UTC. |
+| 8111864 | Sat 14 Feb 2026, 11:00 EST | Joon Park | Add plan9 note | Saturday |
+| c09f4bd | Mon 9 Mar 2026, 20:30 EDT | Mara Ruiz | Add windows console test note | After 20:00. The commit is stamped 10 Mar 00:30 UTC. |
+| c5c560b | Sat 18 Apr 2026, 22:00 EDT | Ana Kim | Rework tiocgwinsz helper docs | Saturday night. The author date is Tue 14 Apr 14:00, which would look compliant, but the commit landed later. |
+| 1dfc991 | Mon 4 May 2026, 03:00 EDT | dependabot[bot] | Bump golang.org/x/sys 0.28.0 → 0.29.0 | Before 08:00. The commit is stamped 07:00 UTC. |
+| 8c81dc4 | Sun 17 May 2026, 10:00 EDT | Joon Park | Add fuzz seed for fd checks | Sunday |
+| 18935bd | Tue 30 Jun 2026, 23:30 EDT | Mara Ruiz | Prepare 0.0.21 notes | After 20:00. It is stamped 20:30 -0700, which is 23:30 New York. |
+
+**Count per person (7 changes):**
+- Ana Kim: 2
+- Joon Park: 2
+- Mara Ruiz: 2
+- dependabot[bot]: 1
+- Tomas Berg: 0 firm
+
+Two further items sit outside that count:
+- **03be3fc (Tomas Berg, "Remove unused helper"):** it is recorded as Wed 20 May 2026, 03:00 EDT, which is outside the window. I haven't counted it because that timestamp can't be right (see below). Including it would make Tomas 1 and the total 8.
+- **dfea546 (Ana Kim, "Refresh example output"):** it landed Fri 20 Feb 2026 at exactly 20:00:00 EST. Whether "to 20:00" includes 20:00:00 is a policy-wording question. If it does not, Ana has 3 and the total is 8.
+
+## Landing time versus authoring time
+
+- **b2b10c3 (Joon Park, "Detect ptys on freebsd"):** authored Sat 30 May, 23:00. It reached main through the PR #88 merge (db716af) on Mon 1 Jun 2026, 09:00 EDT. That is inside the window, so I did not count it. Both the author and the merge dates are in this history, so the 09:00 landing time is the one the audit should use.
+- **433be1b (Mara Ruiz, "Tidy bsd constants"):** authored Sun 19 Apr, 23:00, but its committer date is Mon 20 Apr, 10:00 EDT. It is inside the window, so I did not count it.
+- **bb704f9 (Mara Ruiz, "Clarify solaris build tag"):** stamped 12:30 UTC on 9 Mar, which is 08:30 EDT because daylight saving began on 8 March. Using EST would wrongly give 07:30.
+- **The July commits:** 974c8db landed Wed 1 Jul, 00:10 EDT, which is outside the audit period. It would have been a violation if it had fallen in June.
+
+## Timestamps I would not rely on
+
+1. **03be3fc (recorded 20 May 03:00).** It is a descendant of b91bc0c (26 May) but carries an earlier date, so it can't have landed on 20 May. It landed some time between 26 May 10:00 and the 1 Jun merge. The clock was wrong or the timestamp was altered, and I can't say whether the real landing time was in the window.
+2. **1757c4b (Tomas Berg, "Update LICENSE year").** The committer date is 2 Mar
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-01-01 --until 2026-06-30 --tz America/New_York 2>&1 | head -50; git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%ad|%cn|%cd|%s|%p' --date=iso-strict
+Bash: git log --graph --format='%h|%an|%ad|%cd|%s' --date=iso-strict --since=2025-12-01 | head -40; git log --merges --format='%h %p %s' | head; git reflog -5 2>&1 | head; git branch -a; git remote -v
+### Final answer text
+**Audit of changes that reached main, 1 Jan to 30 Jun 2026 (New York time), outside Mon–Fri 08:00–20:00**
+
+I used the committer date as the landing time. For a branch merged by pull request, the landing time is the merge commit's time. I converted every timestamp to New York time with daylight saving, which began on 8 Mar 2026. I treated the window as 08:00 inclusive and 20:00 exclusive.
+
+| # | Commit | Person | Landed on main (NY) | Why it is outside |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan, 22:10 | after 20:00 |
+| 2 | 8111864 | Joon Park | Sat 14 Feb, 11:00 | Saturday |
+| 3 | dfea546 | Ana Kim | Fri 20 Feb, 20:00:00 | exactly at the cut-off (boundary case) |
+| 4 | c09f4bd | Mara Ruiz | Mon 9 Mar, 20:30 | after 20:00 |
+| 5 | c5c560b | Ana Kim | Sat 18 Apr, 22:00 | Saturday |
+| 6 | 1dfc991 | dependabot[bot] | Mon 4 May, 03:00 | before 08:00 |
+| 7 | 8c81dc4 | Joon Park | Sun 17 May, 10:00 | Sunday |
+| 8 | 03be3fc | Tomas Berg | Wed 20 May, 03:00 as stamped | before 08:00, but the stamp is unreliable (see below) |
+| 9 | 18935bd | Mara Ruiz | Tue 30 Jun, 23:30 | after 20:00 |
+
+**Count per person**
+- **Ana Kim:** 2 firm (#1, #5). With the boundary case #3 it is 3.
+- **Mara Ruiz:** 2 firm (#4, #9).
+- **Joon Park:** 2 (#2, #8c81dc4 above, i.e. #2 and #7). Joon Park's two addresses are joined as a probable single person because the name is the same at two organisations, so please confirm. If they are two people, it is 1 each: #2 is on the example.com address and #7 is on the example.kr address.
+- **Tomas Berg:** 0 firm. #8 is 1 if you accept its stamped time.
+- **dependabot[bot]:** 1 (#6). This is a bot, not a person.
+- **Firm total:** 7 (excluding the boundary case, #8 and the bot). It is 8 with the boundary case, 9 with #8 too, and 10 with the bot.
+
+**Where landing time differs from authoring time**
+- **c5c560b (Ana):** written Tue 14 Apr at 14:00, which looks in-hours, but it landed on Sat 18 Apr at 22:00. It is a violation.
+- **433be1b (Mara):** written Sun 19 Apr at 23:00 but landed Mon 20 Apr at 10:00. It is compliant.
+- **b2b10c3 (Joon, freebsd pty):** written Sat 30 May at 23:00 but landed through the merge on Mon 1 Jun at 09:00. It is compliant.
+- **db716af (Ana's merge of the above):** Mon 1 Jun at 09:00. It is compliant.
+
+**Left out of the count**
+- **f4cf610 (Ana):** landed Wed 31 Dec 2025 at 19:30 NY. That is 1 Jan in UTC but still 2025 in New York, so it is out of range.
+- **974c8db (Ana):** landed 1 Jul at 00:10 NY, so it is out of range.
+- **1757c4b (Tomas):** its author date is 2 Jun, but it sits on top of the 1 Jul commit, so it landed after the audit period. Its committer date is 2 Mar 2027, which is in the future. It is out of range and its real time is unknown.
+
+**Timestamps I would not rely on**
+1. **03be3fc (Tomas):** it is stamped 20 May, but its parent b91bc0c is stamped 26 May. A child cannot be older than its parent, so the clock or the date was wrong. It can only have landed between 26 May 10:00 and the 1 Jun 09:00 merge, so its real time is unknown. That is why I did not count it as firm.
+2. **1757c4b (Tomas):** the committer date is 2 Mar 2027, later than today (25 Oct 2026). The author date of 2 Jun conflicts with its position in history.
+3. **c5c560b and 433be1b:** the author and committer dates differ by days. The commits were rebased or replayed, so I used the committer dates.
+4. **dfea546 and d065cf6:** they are stamped 20:00:00 and 19:59:59 on the same Friday. Those are suspiciously close
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W17T2-OURS-2/fx; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-01-01 --until 2026-06-30 --tz America/New_York 2>&1 | head -40; git log --first-parent main --since=2025-12-30 --until=2026-07-02 --form
+Bash: cd /private/tmp/wp-r16/gate6/runs/W17T2-OURS-2/fx; git log main --since=2025-12-25 --format='%h|%an|%ad|%cd|%p|%s' --date=format-local:'%Y-%m-%d %a %H:%M %z' | head -5; echo; git log --graph --format='%h %p | %an | A:%aI | C:%cI | %s' main -30; git log main --
+### Final answer text
+I counted 9 changes on main between 1 January and 30 June 2026 that landed outside Monday to Friday, 08:00 to 20:00 New York time. One of them is uncertain, and one is a bot commit.
+
+I dated each change by when it reached main. That is the committer date, or the merge commit's date for work merged from a branch. I converted all times to New York time with daylight saving applied. I ran the workproof `people` tool for the per-person commit totals, which use author dates, and worked out the landing times from the git history myself. I treated the window as 08:00:00 up to, but not including, 20:00:00, and I did not apply a US holiday calendar. None of the in-window commits fall on a holiday.
+
+| Commit | Person | Landed on main (New York) | Why outside |
+|---|---|---|---|
+| d10f9c7 | Ana Kim | Mon 12 Jan 22:10 | after 20:00 |
+| 8111864 | Joon Park | Sat 14 Feb 11:00 | weekend |
+| dfea546 | Ana Kim | Fri 20 Feb 20:00:00 | exactly at close (boundary case) |
+| c09f4bd | Mara Ruiz | Mon 9 Mar 20:30 | after 20:00 |
+| c5c560b | Ana Kim | Sat 18 Apr 22:00 | weekend and after 20:00 |
+| 1dfc991 | dependabot[bot] | Mon 4 May 03:00 | before 08:00 |
+| 8c81dc4 | Joon Park | Sun 17 May 10:00 | weekend |
+| 03be3fc | Tomas Berg | Wed 20 May 03:00 | before 08:00 (date doubtful, see below) |
+| 18935bd | Mara Ruiz | Tue 30 Jun 23:30 | after 20:00 |
+
+**Count per person**
+- Ana Kim: 3. This is 2 if you count the 20:00:00 commit (dfea546) as inside the window.
+- Joon Park: 2.
+- Mara Ruiz: 2.
+- Tomas Berg: 1, on a timestamp I don't trust.
+- dependabot[bot]: 1. This is a bot, not a person, so keep it separate.
+
+Joon Park has two addresses (example.com and example.kr). The tool joined them as "probable" because the full name matches. Each address has one of the two out-of-window commits, so if they are two different people it is 1 each.
+
+**Excluded as inside the window despite appearances**
+- b2b10c3 (Joon Park) was written on Sat 30 May at 23:00. It reached main through the merge db716af on Mon 1 June at 09:00, so it is inside the window.
+- 433be1b (Mara Ruiz) was written on Sun 19 April at 23:00. It landed Mon 20 April at 10:00, so it is inside the window.
+- 954e011 (Joon Park) is stamped 23:15 in a +09:00 timezone. That is Wed 7 January at 09:15 New York time, so it is inside the window.
+- The window starts at exactly 08:00:00, so 982e510 (Mon 23 Feb 08:00) counts as inside.
+- 974c8db (1 July, 00:10) is after the audit period.
+- f4cf610 (31 December, 19:30) is before the audit period.
+
+**Timestamps I would not rely on**
+- **1757c4b (Tomas Berg, "Update LICENSE year"):** its committer date is 2 March 2027, which is after today's date (25 October 2026), so it is impossible. Its author date of 2 June 2026 at 10:00 would be inside the window. However, it sits on top of 974c8db, which is dated 1 July, so it cannot have landed within the audit period on any reading. I left it out of the table.
+- **03be3fc (Tomas Berg):** it is stamped 20 May, but its parent b91bc0c is stamped 26 May. A child commit dated before its parent means the clock or the date was wrong. The real landing time is unknown, so don't use the 03:00 entry as proof.
+- **c5c560b and 433be1b:** the committer date is days after the author date (4 days and 11 hours respectively). That points to a rebase or amend. The committer date is the better evidence for when each landed, but it is still not a record of the push.
+- **dfea546:** it is stamped 20:00:00, and its parent d065cf6 is stamped 19:59:59, one sec
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js --help 2>&1 | head -40; git log --first-parent main --since=2025-12-30 --until=2026-07-02 --format='%h|%an|%ae|%cn|A:%ai|C:%ci|%p|%s' | cat
+Bash: git log 03be3fc..b2b10c3 --format='%h|%an|%ae|A:%ai|C:%ci|%p|%s' | head; echo; git log 03be3fc..db716af --format='%h|%an|A:%ai|C:%ci|%s'|head -20; echo; git rev-list --count main; git reflog -5 2>&1|cat; git log main --since=2026-05-01 --format='%h %an %ci %s'
+Bash: for h in $(git log --first-parent main --format=%h --since=2025-12-30); do t=$(git show -s --format=%ct $h); echo "$(TZ=America/New_York date -r $t '+%Y-%m-%d %a %H:%M:%S %Z') $h $(git show -s --format='%an | %s' $h)"; done | sort; node /private/tmp/wp-r16/arm
+Bash: git show -s --format='%h A:%ai C:%ci' 1757c4b 18935bd 974c8db; git log --first-parent main --format='%h %ct' | awk 'NR>1&&$2>p{print "parent older than child skew:",$1} {p=$2}' | head
+### Final answer text
+**Audit: changes to main outside Monday–Friday 08:00–20:00 New York time, 1 Jan – 30 Jun 2026**
+
+Each time is when the change landed on main, in New York local time. For a commit made straight on main, that is its committer date. For a change brought in through a merge, it is the merge's date. I did not use author dates.
+
+**Outside the window (8 changes)**
+
+| # | Commit | Person | Landed on main (New York) | Note |
+|---|---|---|---|---|
+| 1 | d10f9c7 | Ana Kim | Mon 12 Jan 2026, 22:10 | Recorded as 13 Jan 03:10 UTC, so a UTC reading gives the wrong day. |
+| 2 | 8111864 | Joon Park | Sat 14 Feb 2026, 11:00 | Weekend. |
+| 3 | c09f4bd | Mara Ruiz | Mon 9 Mar 2026, 20:30 | Recorded as 10 Mar 00:30 UTC. |
+| 4 | c5c560b | Ana Kim | Sat 18 Apr 2026, 22:00 | The author date is Tue 14 Apr 14:00, which would have been inside the window. It landed four days later. |
+| 5 | 1dfc991 | dependabot[bot] | Mon 4 May 2026, 03:00 | Automated account, not a person. |
+| 6 | 8c81dc4 | Joon Park | Sun 17 May 2026, 10:00 | Weekend. |
+| 7 | 03be3fc | Tomas Berg | Wed 20 May 2026, 03:00 | The timestamp is doubtful (see below). |
+| 8 | 18935bd | Mara Ruiz | Tue 30 Jun 2026, 23:30 | Recorded as 20:30 at −0700. |
+
+**Count per person**
+- Ana Kim: 2
+- Mara Ruiz: 2
+- Joon Park: 2
+- Tomas Berg: 1
+- dependabot[bot]: 1, listed apart as a bot
+- Total: 7 by people, 8 including the bot
+
+**Boundary case.** dfea546 (Ana Kim) landed Fri 20 Feb 2026 at exactly 20:00:00. I treated 20:00:00 as inside the window. If you treat it as outside, Ana's count is 3 and the total is 9. Its parent d065cf6 landed one second earlier, at 19:59:59, which looks like a time set to sit on the edge. The same applies at the other end: 982e510 (Mara Ruiz) landed Mon 23 Feb at exactly 08:00:00 and I counted it as inside.
+
+**Inside the window, but easy to misread**
+- b2b10c3 (Joon Park) was written Sat 30 May at 23:00. It landed through Ana Kim's merge of PR #88 on Mon 1 Jun at 09:00, so it is compliant.
+- 433be1b (Mara Ruiz) was written Sun 19 Apr at 23:00. It landed Mon 20 Apr at 10:00, so it is compliant.
+- 974c8db (Ana Kim) landed at 00:10 on 1 Jul, so it is outside your date range.
+- f4cf610 landed on 31 Dec 2025, also outside your date range.
+
+**Joon Park.** Two addresses, one at example.com and one at example.kr, are joined as one person only because the full name matches (probable). If they are two people, each has one of the two items above: 8111864 is the example.com address and 8c81dc4 is the example.kr address. Please confirm whether they are the same person.
+
+**Timestamps I would not rely on**
+- **03be3fc (Tomas Berg, "20 May 03:00"):** it sits directly on top of b91bc0c, which is dated 26 May. A commit cannot have landed before its parent, so the real landing was no earlier than 26 May. The actual time can't be recovered from this history, so treat this finding as unproven.
+- **1757c4b (Tomas Berg, "Update LICENSE year"):** its committer date is 2 Mar 2027, which is in the future. Its author date is Tue 2 Jun 2026 at 10:00. It is outside your range by the recorded date, but its real landing time is unknown and could fall inside it.
+- **c5c560b and 433be1b:** the committer date differs from the author date, which suggests they were rebased or amended. I used the committer date as the landing time.
+- **d065cf6 and dfea546:** the one-second gap at the 20:00 edge (see the boundary case above).
+- **18935bd:** it uses a −0700 (US Pacific) offset, which differs from the −0400 used elsewhere. The 
+### Files it left in the working directory
+(none)

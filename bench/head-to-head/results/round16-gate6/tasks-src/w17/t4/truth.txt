@@ -1,0 +1,28 @@
+Key-level changes in config/policy.toml (commit | author | date | key old->new | direction | back-out?)
+72d9a89c5b | Hana Sato | 2025-03-17 | auth.max_age_days 90->30 | STRONGER | new value | msg: Tighten token age to 30 days
+e0b30544b0 | Eli Brandt | 2025-04-01 | auth.mfa true->false | WEAKER | new value | msg: Disable mfa check temporarily for CI
+72c5768836 | Hana Sato | 2025-04-03 | auth.mfa false->true | STRONGER | BACK-OUT of earlier value | msg: Revert "Disable mfa check temporarily for CI"
+42367d1085 | Eli Brandt | 2025-05-12 | auth.max_age_days 30->90 | WEAKER | BACK-OUT of earlier value | msg: Align max age with docs
+83f3062ae8 | Hana Sato | 2025-07-01 | signing.allow_unsigned None->false | STRONGER | new value | msg: Refuse unsigned releases
+183a58a316 | Eli Brandt | 2025-08-12 | signing.allow_unsigned false->None | WEAKER | BACK-OUT of earlier value | msg: Simplify config
+0e50733f19 | Eli Brandt | 2025-09-10 | auth.mfa true->false | WEAKER | BACK-OUT of earlier value | msg: Revert "Revert "Disable mfa check temporarily for CI""
+ec78ec445f | Hana Sato | 2026-02-02 | auth.mfa false->true | STRONGER | BACK-OUT of earlier value | msg: CI fixed, mfa back on
+
+Durations (days between recorded commits):
+  auth.max_age_days: state 30 from 72d9a89c5b (2025-03-17) to 42367d1085 (2025-05-12): 56 days
+  auth.max_age_days: state 90 from 42367d1085 (2025-05-12) to HEAD (still in force at HEAD)
+  auth.mfa: state false from e0b30544b0 (2025-04-01) to 72c5768836 (2025-04-03): 2 days
+  auth.mfa: state true from 72c5768836 (2025-04-03) to 0e50733f19 (2025-09-10): 160 days
+  auth.mfa: state false from 0e50733f19 (2025-09-10) to ec78ec445f (2026-02-02): 145 days
+  auth.mfa: state true from ec78ec445f (2026-02-02) to HEAD (still in force at HEAD)
+  signing.allow_unsigned: state false from 83f3062ae8 (2025-07-01) to 183a58a316 (2025-08-12): 42 days
+  signing.allow_unsigned: state None from 183a58a316 (2025-08-12) to HEAD (still in force at HEAD)
+
+Commits since 2025-03-01 whose message contains 'revert' (case-insensitive; two upstream 2023-24 reverts are before the window):
+  a81605a | Hana Sato | 2025-10-15T10:00:00Z | Revert "Add badge to README"
+  bd3cdcb | Hana Sato | 2025-10-01T10:00:00Z | Revert comment wording in policy header
+  0e50733 | Eli Brandt | 2025-09-10T10:00:00Z | Revert "Revert "Disable mfa check temporarily for CI""
+  72c5768 | Hana Sato | 2025-04-03T10:00:00Z | Revert "Disable mfa check temporarily for CI"
+Of these, NOT a value back-out of policy.toml: the comment-wording commit (comments only, no key changed) and the README revert (different file).
+Back-outs that never use the word revert: the max_age_days 30->90 commit, the [signing] removal, and the final mfa false->true commit.
+Cannot be shown by history: whether the setting was enforced by anything outside this file; force-pushed or squashed intermediate states; real-world time the config was deployed.

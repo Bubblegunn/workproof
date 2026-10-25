@@ -1,0 +1,701 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%s' | head -300; echo; git shortlog -sne --since=2025-10-24; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='--- %h %ad%n%B' --date=short | grep -v '^$'; git log --until=2025-10-24 -1 --format=%ad
+Bash: git log --format='%h %ad | %cd | %an' --date=short --since=2025-10-01 | grep -E '57777f7|dc88d4d|e6b0594'; git show --stat --format=%h 57777f7 dc88d4d 148b381 | head -40
+Bash: cat > CONTRIBUTORS-LAST-YEAR.md <<'EOF' ; # Contributors, 24 Oct 2025 – 24 Oct 2026 ;  ; Thank you to everyone who contributed code, docs or tests over the last 12 months, listed alphabetically by first name. ;  ; - **Abbott Reyes**: fixed a broken link in the changelog
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people, one line each. I haven't committed it.
+
+I built it from the git history since 24 Oct 2025, and these were the judgment calls:
+
+- **Same person, different identities:**
+  - "Li Wei" and "Wei Li" share one email address, so I listed them once as Wei Li.
+  - Two of Priya Raman's commits came from a GitHub noreply address, which the repo's `.mailmap` maps to her.
+  - "M. Oyelaran" and "Marcus Oyelaran" are the same email, so they appear once as Marcus Oyelaran.
+- **Work landed by someone else:** several commits were committed by Gareth Imani but written by others. I credited the authors: Abbott Reyes, Hana Kobayashi and Marcus Oyelaran.
+- **Co-authors:** the `URLSafeSerializer` padding fix (#412) was committed by Gareth. Its message credits Tomasz Nowak and Priya Raman as co-authors, so both are credited. Tomasz appears only because of that credit.
+- **Bots left out:** dependabot, pre-commit-ci and github-actions. The padding fix also lists dependabot as a co-author, which looks like a mistake, so I left it out.
+- **Edge case:** Marcus's empty-secret-key fix was written in Oct 2025 but landed on 2 Nov 2025, so it falls inside the window.
+- **Gareth's entry:** it only covers his own changes. I left out the release bump, the merge commit and the mailmap commit, since those are housekeeping.
+
+The page lists people alphabetically by first name and doesn't link to GitHub profiles, because I couldn't tell them reliably from the commit data.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 – 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the last 12 months, listed alphabetically by first name.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, and pinned the docs build requirements.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for it.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix.
+- **Wei Li**: added a test for loads with an empty payload and fixed a README typo.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --format='--- %h %ad %an%n%B' --date=short | head -200; git log --format='%ad' --date=short | tail -1
+Bash: git log --since=2025-10-24 --format='%h %ad | %cd' --date=short | grep -E '57777f7|dc88d4d'; for h in 57777f7 148b381 e77aa3e 14afb34 97b914e dcf4baf 304aeb9 bd6d766 d8dcc04 dc88d4d b8cab9a 60276be; do echo "== $h"; git show --stat --format='%s' $h | tail -n +
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-BASE-2/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with 8 people for 24 Oct 2025 to 24 Oct 2026, one line each, sorted by surname.
+
+How I handled the name problems:
+- **Same person, different names:**
+  - "Li Wei" and "Wei Li" share one address, so they are one entry.
+  - "M. Oyelaran" and "Marcus Oyelaran" are one entry.
+  - The `priyar` noreply address is Priya Raman. The repo's `.mailmap` already maps it, and I matched it by hand too.
+- **Credit for co-authors:** Tomasz Nowak has no commits of his own. He is credited as a co-author on the padding fix (#412), which Gareth committed. Priya is credited there too.
+- **Work committed by someone else:** Abbott Reyes, Marcus Oyelaran, Hana Kobayashi and Wei Li had commits that Gareth or GitHub committed for them. They are credited as authors.
+- **Bots left out:** dependabot, pre-commit-ci and github-actions. Dependabot was also listed as a co-author on #412, and I left that out too.
+- **Marcus's date:** his empty-key error was written on 10 Oct 2025, before the window, but it landed on 2 Nov 2025, so I counted it. His test for it landed in Feb 2026.
+- **Ines Duarte:** her docs commit is from March 2025, so she is outside the window and not listed.
+
+Because the commits are one-line changes, I kept the descriptions to what the commit titles and changed files say.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 to 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the past year.
+
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer` (#412), trimmed the CI Python matrix, pinned the docs build requirements, and handled release housekeeping.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation (#430).
+- **Wei Li**: added a test for `loads` with an empty payload and fixed a README typo.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix (#412).
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for it.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix (#412).
+- **Abbott Reyes**: fixed a broken link in the changelog.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%s' | head -300; echo; git log --since=2025-10-24 --format='%an <%ae>' | sort | uniq -c | sort -rn; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='=== %h %ad %an%n%b' --date=short --stat | head -200; git log --format='%h %ad %s' --date=short | sed -n '20,40p'
+Bash: cat > CONTRIBUTORS-LAST-YEAR.md <<'EOF' ; # Contributors, October 2025 – October 2026 ;  ; Thank you to everyone who contributed code, docs or tests to the project in the last 12 months (24 Oct 2025 – 24 Oct 2026). Listed alphabetically by first name. ;  ; - **Abbott Re
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people, one line each, listed alphabetically by first name. I haven't committed it.
+
+How I handled the cases you flagged:
+- **Same person under different names:** "Wei Li" and "Li Wei" share one email, so they're one entry. "Marcus Oyelaran" and "M. Oyelaran" are likewise one. The `priyar` noreply address was already mapped to Priya Raman in `.mailmap`. I listed Li Wei as "Li Wei" because I couldn't tell which name order they prefer. Please check that.
+- **Work landed under someone else's name:** Abbott Reyes authored the changelog fix, but Gareth Imani committed it. Hana Kobayashi's and Marcus's docs and code commits were also committed by Gareth. I credited the authors.
+- **Co-authored or squashed work:** the base64 padding fix (#412) went in as Gareth's squash commit. Its trailers credit Tomasz Nowak and Priya Raman, so both are in the list. Tomasz has no commits of his own, so he would have been missed otherwise.
+- **Bots left out:** dependabot, github-actions and pre-commit-ci. dependabot was also a co-author trailer on #412, which I ignored.
+
+Marcus's empty-secret-key commit has an author date of 10 Oct 2025, which is before your window. It landed in the window, and his empty-secret-key test is from February 2026, so I counted him either way.
+
+I didn't change `.mailmap`. Adding Wei Li / Li Wei and Marcus Oyelaran / M. Oyelaran entries would make future lists come out cleanly.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, October 2025 – October 2026
+
+Thank you to everyone who contributed code, docs or tests to the project in the last 12 months (24 Oct 2025 – 24 Oct 2026). Listed alphabetically by first name.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, pinned the docs build requirements, added a mailmap, and handled the dev-version bump and PR merges.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Li Wei**: added a test for loads with an empty payload and fixed a typo in the README.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for that error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the URL-safe padding fix.
+- **Tomasz Nowak**: co-authored the URL-safe padding fix.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='=== %h %ad %an%n%b' --date=short --stat | grep -v '^$'; git log -1 --format=%ad --until=2025-10-24; git log --since=2025-10-24 --format=%ad --date=short | sort | sed -n '1p;$p'
+Bash: git log --since=2025-10-24 --format='%h %ad | %cd' --date=short | tail -4; git show 148b381 --format=%B -s; git log --all --oneline | wc -l; git branch -a
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-RCP_I-1/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight contributors, covering 24 Oct 2025 to 24 Oct 2026. I didn't use the receipts skill's mining script. It builds a personal Claude Code usage report from session transcripts, not a contributor list, so I worked from `git log` instead.
+
+The eight people are Abbott Reyes, Gareth Imani, Hana Kobayashi, Marcus Oyelaran, Omar Haddad, Priya Raman, Tomasz Nowak and Wei Li.
+
+- **Different names and addresses:** I merged people by email address and the repo's `.mailmap`. "Li Wei" and "Wei Li" are one person, as are "M. Oyelaran" and "Marcus Oyelaran". Priya's GitHub noreply address is also folded into her entry.
+- **Landed under someone else's name:** Abbott's, Marcus's and Hana's docs commits were committed by Gareth, and Wei's and Omar's by the GitHub web UI. I credited the author in each case.
+- **Co-authored work:** the padding fix (#412) has `Co-authored-by` trailers for Tomasz and Priya. Tomasz's only contribution in the window is that co-authored commit, so he's credited for it.
+- **Bots left out:** dependabot, pre-commit-ci and github-actions. The padding fix also lists dependabot as a co-author, which I ignored.
+- **Merge commit:** Gareth's merge of PR #430 is credited to Hana, who wrote the change.
+- **Window edge:** Marcus's empty-secret-key fix was authored on 10 Oct 2025, before the window. It landed on 2 Nov 2025, so I included it.
+
+The page ends with a short "How this list was made" section that says all of this. Remove it if you only want the thank-you list.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 – 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the past 12 months (alphabetical by first name).
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, added a mailmap, pinned the docs build requirements, and prepared the next development version. Gareth also merged several contributions below.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for that error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix.
+- **Wei Li**: fixed a README typo and added a test for loads with an empty payload.
+
+## How this list was made
+
+- Built from `git log` on `main` for 24 Oct 2025 – 24 Oct 2026, using the commit's landing date. Marcus's empty-secret-key fix was authored on 10 Oct 2025 but landed on 2 Nov 2025, so it is included.
+- People are merged by email address, including `.mailmap` aliases: "Li Wei" and "Wei Li", "M. Oyelaran" and "Marcus Oyelaran", and Priya's GitHub noreply address.
+- Credit goes to the commit author, not the committer. Several commits were committed by Gareth or through the GitHub web UI on behalf of someone else.
+- `Co-authored-by` trailers are credited, which is how Tomasz appears. His only contribution in this window is that co-authored commit.
+- Bots are left out: dependabot, pre-commit-ci and github-actions.
+- Gareth's merge commit for PR #430 is counted as Hana's work, since Hana wrote the change.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-10-24 --until=2026-10-25 --format='%h|%an|%ae|%cn|%ce|%s' | head -400; echo; git log --since=2025-10-24 --format='%an <%ae>' | sort | uniq -c | sort -rn; echo; git log --since=2025-10-24 --format=%B | grep -i 'co-authored-by' | sort | uniq
+Bash: git log --since=2025-10-24 --until=2026-10-25 --format='--- %h %ad %an' --date=short --name-only | head -120; echo ====; git log --since=2025-10-24 --format='--- %h %an%n%b' | grep -v '^$' ; git log --format='%h %ad' --date=short | tail -2
+Bash: git log --since=2025-10-24 --format='--- %h %an | author %ad | commit %cd%n%b' --date=short | grep -v '^$'; git log -1 --format='%h %ad %cd' --date=short 57777f7; git log --format='%h %ad %an %s' --date=short | sed -n '20,40p'
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-RCP_I-2/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people. It covers 24 Oct 2025 to 24 Oct 2026. I didn't use the receipts skill's miner, because it reports one person's Claude Code usage and can't tell you who contributed. I used `git log` instead.
+
+How I handled the cases you raised:
+- **Same person, different identities:** "Marcus Oyelaran" and "M. Oyelaran" share an email, so they are one person. "Wei Li" and "Li Wei" also share one. "priyar" (a GitHub no-reply address) is Priya Raman, which matches the repo's `.mailmap`.
+- **Work landed under the maintainer's name:** Gareth Imani committed Abbott Reyes's, Hana Kobayashi's and Marcus Oyelaran's changes. I credited the authors, not the committer.
+- **Squashed or co-authored work:** the padding fix (#412) has `Co-authored-by` trailers for Priya Raman and Tomasz Nowak. Tomasz appears nowhere else in the history, so the trailer is the only reason they're listed.
+- **Bots:** Dependabot, pre-commit.ci and GitHub Actions aren't listed. The page has one closing line that mentions them without crediting them.
+- **Edge of the window:** Marcus's empty-secret-key fix has an author date of 10 Oct 2025. It was committed on 2 Nov 2025, so it counts.
+
+Hana's docs navigation merge (#430) and the version bump are Gareth's merge and release commits. I credited the docs work to Hana and the release work to Gareth.
+
+I haven't committed the file.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, last 12 months
+
+Thank you to everyone who contributed code, docs or tests between 24 October 2025 and 24 October 2026. Names are listed alphabetically by first name.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, pinned the docs build requirements, added a `.mailmap`, and handled releases and merges.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error and added a test for it.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the `URLSafeSerializer` padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix.
+- **Wei Li**: fixed a README typo and added a test for loads with an empty payload.
+
+Automated accounts (Dependabot, pre-commit.ci, GitHub Actions) also keep the project's dependencies and CI up to date. They are not counted above.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2025-10-24 --format='%H|%an|%ae|%cn|%ce|%s' | wc -l; git log --since=2025-10-24 --format='%an <%ae>' | sort | uniq -c | sort -rn; echo ---; git log --since=2025-10-24 --format='%b' | grep -iE 'co-authored-by|signed-off' | sort | uniq -c; echo; 
+Bash: git log --since=2025-10-24 --date=short --format='%h|%ad|%an|%cn|%s%n%b---' --stat=100 | grep -v '^$'; git log -1 --format=%ad --date=short; git log --since=2025-10-24 --merges --format='%h %s'
+Bash: git log --format='%h author=%ad commit=%cd' --date=short 57777f7 -1; git log --since=2025-10-24 --until=2026-10-25 --format=%h | wc -l; git log --format='%h %an %ad' --date=short --until=2025-10-24 | head -5
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-RCP_I-3/fx/CONTRIBUTORS-LAST-YEAR.md
+Bash: python3 - <<'E' ; p='CONTRIBUTORS-LAST-YEAR.md' ; L=open(p).read().split('\n') ; b=[l for l in L if l.startswith('- **')] ; order=['Omar','Gareth','Hana','Wei','Tomasz','Marcus','Priya','Abbott'] ; b=sorted(b,key=lambda l:order.index(l[4:].split()[0])) ; i=L.index(next(l 
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight contributors, covering 24 Oct 2025 to 24 Oct 2026.
+
+I didn't use the receipts skill's own workflow. It builds a personal Claude Code usage report from session transcripts, which isn't what a contributors page needs. I built the page from `git log` instead.
+
+How I handled the cases you raised:
+- **Same person under different names:** I merged Wei Li and Li Wei (same email), Marcus Oyelaran and M. Oyelaran (same email), and Priya Raman and her `priyar` GitHub noreply identity (the repo's `.mailmap` already maps those).
+- **Work landed by someone else:** I credited the author, not the committer. Gareth Imani applied commits from Abbott Reyes, Hana Kobayashi and Marcus Oyelaran, and each of them is credited for their own work.
+- **Co-authors:** Tomasz Nowak appears only as a `Co-authored-by` on the padding fix (#412), so I credited him for that. Priya is also a co-author on it.
+- **Bots:** I left out dependabot, pre-commit.ci and github-actions, including dependabot's co-author trailer.
+- **Window edge:** Marcus's empty-secret-key commit was authored on 10 Oct 2025 but landed on 2 Nov 2025, so I counted it as in range.
+
+Contributors are listed alphabetically by surname. I took "Wei Li" as the surname Li, but the repo doesn't say which name is the family name. Check that one, and anyone else whose name order might differ.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, last 12 months
+
+Thank you to everyone who contributed code, docs or tests between 24 Oct 2025 and 24 Oct 2026, listed alphabetically by surname.
+
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, added a `.mailmap`, pinned the docs build requirements and handled the development-version bump.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Wei Li**: added a test for `loads` with an empty payload and fixed a typo in the README.
+- **Tomasz Nowak**: co-authored the base64 padding fix (#412).
+- **Marcus Oyelaran**: made an empty secret key raise a clear error and added the test for it.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe` and co-authored the base64 padding fix (#412).
+- **Abbott Reyes**: fixed a broken link in the changelog.
+
+Automated commits from dependabot, pre-commit.ci and GitHub Actions are not listed.
+
+*Compiled from git history by author and `Co-authored-by` trailers, not by committer. Several people's commits were applied by a maintainer or through the GitHub web UI. Names and addresses that belong to the same person are merged (for example, Wei Li and Li Wei; Marcus Oyelaran and M. Oyelaran; and Priya Raman's GitHub noreply address).*
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --until=2026-10-25 --no-merges --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git shortlog -sne --since=2025-10-24 | head -50; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --until=2026-10-25 --format='--- %h %an <%ae> merge=%p%n%s%n%b' | grep -iE '^---|co-authored|squash|thanks|original|Signed|^[A-Z(]' | head -150; echo ====; git log --since=2025-10-24 --no-merges --stat --format='## %h %an: %s' | head
+Bash: git log --since=2025-10-24 --no-merges --stat --format='## %h %ad %an: %s' --date=short | head -100; git show -s --format=%B 148b381 95caeda; git log -1 --format=%ad --date=short 3d32e75
+Bash: git log --since=2025-10-20 --no-merges --format='%h A:%ad C:%cd %an' --date=short | tail -6; git log --format='%h %an %ae' | grep -iE 'abbott|tomasz|oyelaran' | sort -u -k2 | head; git show 97b914e | tail -8
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-CV_I-1/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with 8 people, one line each. I didn't use the cv-builder skills, because they're for resumes and this was a git-history job.
+
+**Who is listed**
+- **Abbott Reyes:** fixed a changelog link. Gareth Imani committed it, so the history shows Gareth as the committer.
+- **Gareth Imani:** the #412 padding fix and the CI, docs-pin and release housekeeping.
+- **Hana Kobayashi:** the key rotation docs and the docs navigation reorganization.
+- **Marcus Oyelaran:** the empty-secret-key error and its test.
+- **Omar Haddad:** the timestamp edge-case tests.
+- **Priya Raman:** `Signer.derive_key` speed-up, `loads_unsafe` typing, and co-credit on #412.
+- **Tomasz Nowak:** co-credit on #412. He has no commits of his own, only a `Co-authored-by` line on the squashed fix.
+- **Wei Li:** a README typo fix and a test for `loads` with an empty payload.
+
+**How I handled the identity and attribution questions**
+- **Authors, not committers:** I credited each commit's author. Gareth committed Abbott's, Hana's and Marcus's work, so crediting committers would have dropped them.
+- **Priya Raman:** one commit used the name `priyar` with a GitHub noreply address. The repo's `.mailmap` maps that address to Priya, so I merged the two.
+- **Marcus Oyelaran:** `M. Oyelaran` and `Marcus Oyelaran` share one email, so I merged them.
+- **Wei Li:** `Li Wei` and `Wei Li` share one email, so I merged them. The file uses "Wei Li", the newer form, so please check which order they prefer.
+- **Window edge:** Marcus's empty-key commit was authored 10 Oct 2025 but landed 2 Nov 2025, so I counted it.
+- **Bots left out:** dependabot, pre-commit-ci, github-actions, and the dependabot `Co-authored-by` line on #412.
+
+I counted Gareth's version bump and docs-pin commits as housekeeping rather than separate contributions. I described the second line of his entry ("handled releases and repo upkeep") loosely, so edit it if you want something more specific.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 to 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests in the last 12 months (alphabetical by first name).
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, pinned the docs build requirements, and handled releases and repo upkeep.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for that error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix (#412).
+- **Wei Li**: fixed a README typo and added a test for `loads` with an empty payload.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --until=2026-10-25 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --format='%an <%ae>' | sort | uniq -c | sort -rn; ls; cat .mailmap 2>/dev/null; git log -1 --format=%cd
+Bash: git log --since=2025-10-24 --format='=== %h %ad %an%n%B' --date=short | grep -v '^$'; echo ----; git log --format='%h %ad %an %s' --date=short --until=2025-10-24 | head; git log --since=2025-10-24 --stat --format='## %h %s' | head -120
+Bash: git log --format='%h %ad | %cd | %an' --date=short 57777f7 -1; git log --format='%h %ad | %cd | %an' --date=short dc88d4d -1; git show 148b381 | head -40; git show 97b914e 57777f7 | grep -E '^(\+|commit)' 
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-CV_I-2/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people for 24 Oct 2025 to 24 Oct 2026, sorted by surname. I didn't use the cv-builder skills, because they're for resumes and don't fit a contributors page. I worked from the git history instead.
+
+- **Same person under different names:** Wei Li and Li Wei, Marcus Oyelaran and M. Oyelaran, and Priya Raman and her `priyar` GitHub account each appear as one entry. I matched them by email address. Your `.mailmap` only covered Priya, so the other two would have shown up twice.
+- **Work landed under someone else's name:** Gareth committed Abbott Reyes's changelog fix, Hana Kobayashi's key-rotation docs, and Marcus's empty-key fix. The credit goes to the original authors.
+- **Co-authors:** the squashed padding fix (#412) is under Gareth, but its `Co-authored-by` trailers also credit Tomasz Nowak and Priya Raman, so both are listed. Tomasz has no commits of his own in the window.
+- **Bots:** I left out Dependabot, pre-commit.ci and GitHub Actions. That includes the Dependabot co-author line on #412.
+- **Marcus's date:** his empty-key commit was written on 10 Oct 2025 but only landed on 2 Nov 2025. I counted it as inside the window.
+- **Gareth's entry:** it's there because of the padding fix and the CI change. Release and merge commits are noted as handling, not as separate code.
+
+Every change in the window is a one-line edit, so the "what they did" lines reflect small contributions. PR #430 is only a merge commit here, and it's credited to Hana through her underlying commit.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 – 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the last 12 months, in alphabetical order by surname.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, and handled releases and merges.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Wei Li**: fixed a README typo and added a test for `loads` with an empty payload.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix (#412).
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added the test for it.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix (#412).
+
+## How this list was compiled
+
+- Covers commits that landed between 24 Oct 2025 and 24 Oct 2026.
+- Names that appeared under more than one form are merged by email address: Wei Li and Li Wei, Marcus Oyelaran and M. Oyelaran, and Priya Raman and the `priyar` GitHub account.
+- Where a maintainer committed someone else's work, the credit goes to the original author (for example Abbott Reyes, Hana Kobayashi and Marcus Oyelaran).
+- `Co-authored-by` trailers on squashed commits are credited.
+- Bots (Dependabot, pre-commit.ci, GitHub Actions) are left out.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='=== %h %an: %s%n%b' --stat | grep -v '^$' | head -200; git log --since=2025-10-24 --format=%B | grep -i -E 'co-authored|thanks|squash|original|author' 
+Bash: git log --format='%h %ad %an' --date=short | head -30
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-CV_I-3/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people. I didn't use the cv-builder skills, since they're for resumes. I built the page from `git log` for 24 Oct 2025 to 24 Oct 2026 instead.
+
+**Merging identities**
+- **Priya Raman:** I merged "priyar" (a GitHub noreply address) into Priya Raman, as the repo's `.mailmap` already does.
+- **Wei Li:** "Li Wei" and "Wei Li" share one email, so I treated them as one person and used "Wei Li" (the name on their latest commit).
+- **Marcus Oyelaran:** "M. Oyelaran" and "Marcus Oyelaran" share one email, so I merged them.
+
+**Credit for work landed under another name**
+- **Abbott Reyes:** Their changelog fix was committed by Gareth, so I credited Abbott as the author.
+- **Padding fix:** Gareth squashed the `URLSafeSerializer` padding fix with `Co-authored-by` trailers. I credited Tomasz Nowak, who appears nowhere else in the history, and Priya alongside Gareth.
+- **Hana Kobayashi:** I credited the docs navigation work to Hana. Gareth only merged her PR #430.
+
+**Left out**
+- **Bots:** I excluded dependabot, pre-commit-ci and github-actions. The padding fix's co-author list includes dependabot, which I also left out.
+
+**Check before publishing**
+- **Gareth Imani:** I included Gareth for the padding fix and CI work. If you'd rather credit maintainers separately, that's an easy change. I also gave Gareth a "releases and docs build maintenance" mention based on the version bump and docs pin commits.
+- **Marcus's first commit:** His empty-key error commit has an author date of 10 Oct 2025, before the window, but it landed on 28 Oct (the committer date) and he has a February 2026 test commit too. He's included either way.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, October 2025 to October 2026
+
+Thank you to everyone who contributed code, docs or tests to the project in the 12 months up to 24 October 2026.
+
+- **Gareth Imani**: Fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, and handled releases and docs build maintenance.
+- **Hana Kobayashi**: Documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: Made an empty secret key raise a clear error and added a test for that error.
+- **Priya Raman**: Sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix.
+- **Tomasz Nowak**: Co-authored the `URLSafeSerializer` padding fix.
+- **Omar Haddad**: Added tests for timestamp edge cases.
+- **Wei Li**: Fixed a typo in the README and added a test for loads with an empty payload.
+- **Abbott Reyes**: Fixed a broken link in the changelog.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='=== %h %an | %ad%n%B' --date=short; git log --since=2025-10-24 --format='%h' --shortstat | grep -v '^$' | paste - - ; git log --since=2025-10-24 --name-only --format='-- %h' | head -80; git log -1 --format=%ad --date=short 
+Bash: git log --format='%h %an | author %ad | commit %cd' --date=short | sed -n 1,30p; git show 57777f7 dc88d4d --stat --format='%h %s' | head; git show 148b381 | tail -15; git log --all --oneline | wc -l
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-CV-1/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people for 24 Oct 2025 – 24 Oct 2026. I haven't committed it.
+
+**Merged identities**
+- **Priya Raman:** The `priyar` noreply address is the same person. The repo's mailmap already maps it to Priya.
+- **Li Wei:** "Wei Li" and "Li Wei" share one email address, so I listed them once. I used "Li Wei", and you may want to confirm which order they prefer.
+- **Marcus Oyelaran:** "M. Oyelaran" and "Marcus Oyelaran" share one email address.
+
+**Credit for work that landed under someone else**
+- **Tomasz Nowak:** He appears only as a `Co-authored-by` on the padding fix (#412). That commit was made by Gareth, so I credited Tomasz and Priya for it as well.
+- **Abbott Reyes, Hana Kobayashi, Marcus Oyelaran:** I credited each as the author of their commits. Gareth committed those, and Hana's PR #430 was merged by Gareth.
+
+**Left out**
+- **Bots:** I didn't list Dependabot, pre-commit.ci or github-actions, and the page says so. That includes the Dependabot `Co-authored-by` on #412.
+
+**Date edge case**
+- Marcus's empty-secret-key commit has an author date of 10 Oct 2025, but it landed on 2 Nov 2025. I counted it because it landed inside the window.
+
+The commits are small, and some of the change lines look like placeholder edits. The one-line descriptions therefore come from the commit messages and the files touched, so check them if you want more precise wording.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 – 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the last 12 months.
+
+- **Gareth Imani**: Fixed base64 padding handling in `URLSafeSerializer` (#412, a squashed co-authored change), and maintained CI, docs build pins, the mailmap and the dev version.
+- **Hana Kobayashi**: Documented key rotation in the signing guide and reorganized the docs navigation (#430).
+- **Priya Raman**: Sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix (#412).
+- **Marcus Oyelaran**: Made an empty secret key raise a clear error and added a test for that error.
+- **Li Wei**: Added a test for loads with an empty payload and fixed a README typo.
+- **Omar Haddad**: Added tests for timestamp edge cases.
+- **Tomasz Nowak**: Co-authored the padding fix for `URLSafeSerializer` (#412), which landed under Gareth's name.
+- **Abbott Reyes**: Fixed a broken link in the changelog.
+
+Automated contributions from bots (Dependabot, pre-commit.ci, GitHub Actions) are not listed.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='--- %h %ad %s%n%b' --date=short | grep -v '^$'; git log -3 --until=2025-10-24 --format='%h %ad %an %s' --date=short; for h in 148b381 e77aa3e 14afb34 97b914e 8157290; do echo == $h; git show --stat --format= $h; done
+Bash: for h in 148b381 e77aa3e 14afb34 97b914e dcf4baf c4257c8 bd6d766 dc88d4d d8dcc04 60276be; do echo == $h; git show --stat --format= $h; done; git log --since=2025-10-24 --format='%h %ad' --date=short -1 57777f7; git show -s --format='%ad %cd' 57777f7
+Bash: for h in 148b381 e77aa3e 14afb34 97b914e dcf4baf c4257c8 bd6d766 dc88d4d d8dcc04 60276be; do echo "# $h"; git show --stat --format= $h; done; git show -s --format='%ad | %cd' 57777f7
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-CV-2/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people. It covers 24 Oct 2025 to 24 Oct 2026. I haven't committed it.
+
+**People whose work was under more than one identity**
+- **Priya Raman** also appears as `priyar`, a GitHub noreply address. The repo's `.mailmap` links the two, and the page credits her once.
+- **Wei Li** also appears as "Li Wei", with the same email. I merged them into one entry.
+- **Marcus Oyelaran** also appears as "M. Oyelaran", with the same email. I merged them too.
+
+**Credit that isn't visible on the commit author**
+- **Abbott Reyes** wrote the changelog link fix, but Gareth committed it. Reyes gets the credit.
+- **Hana Kobayashi**'s key-rotation docs also landed with Gareth as committer. Hana is credited.
+- **Tomasz Nowak** appears only as a `Co-authored-by` trailer on the padding fix (#412), which Gareth committed as a squash. Priya is also a co-author on that commit. I credited both.
+
+**Left out**
+- I left out `github-actions`, `pre-commit-ci` and `dependabot`. Dependabot is also a co-author trailer on #412, and I left it out there as well.
+
+**Judgement calls**
+- Gareth's line mentions the CI matrix, mailmap, dev-version bump and docs pin. If you'd rather list maintainers separately, or leave off the housekeeping, it's a quick edit.
+- Marcus's empty-key fix has an author date of 10 Oct 2025, before the window. It landed on 2 Nov 2025, inside it, so I counted it.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 – 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the last 12 months. Names are in alphabetical order by first name.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: maintained the project, trimmed the CI Python matrix, added a mailmap, merged the docs navigation work, and started the next development version. Also pinned the docs build requirements.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for that error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the `URLSafeSerializer` padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix (#412).
+- **Wei Li**: fixed a README typo and added a test for loads with an empty payload.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ad|%s' --date=short | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='=== %h author:%ad commit:%cd%n%an%n%B' --date=short | grep -v '^$'; git log --all --oneline | wc -l; git branch -a
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-CV-3/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people, based on the git history from 24 Oct 2025 to 24 Oct 2026. I didn't commit it.
+
+- **Same person, different names:** "Marcus Oyelaran" and "M. Oyelaran" share an email, so they're one entry. So do "Wei Li" and "Li Wei", and "priyar" and "Priya Raman". The `.mailmap` only covers Priya. I wrote "Wei Li" for that contributor, so please confirm which order they prefer.
+- **Committed by someone else:** Hana's, Abbott's and Marcus's work was committed by Gareth, and Omar's, Wei's and Priya's by GitHub. Credit goes to the original author in each case, and Abbott's changelog link fix is under Abbott's name.
+- **Co-authors:** the padding fix (#412) was committed under Gareth's name with Tomasz Nowak and Priya Raman as co-authors. I credited both of them, and Tomasz appears only for that.
+- **Landed late:** Marcus's empty-secret-key commit was written on 10 Oct 2025 but landed on 2 Nov 2025, so I counted it.
+- **Left out:** dependabot, pre-commit-ci and github-actions, including the dependabot co-author line on #412.
+- **Gareth's entry:** I included Gareth's code, CI and docs-build work and left out the merge and release-housekeeping commits. Cut the "handled releases and merges" wording if you'd rather not list that.
+
+The history only shows commits, so anyone who contributed through review or issues, or whose work was squashed in without a co-author line, won't appear.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, last 12 months
+
+Thank you to everyone who contributed code, docs or tests between 24 Oct 2025 and 24 Oct 2026.
+
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer` (#412), trimmed the CI Python matrix, pinned the docs build requirements, and handled releases and merges.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: raised a clear error for an empty secret key and added a test for it.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix (#412).
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Wei Li**: fixed a typo in the README and added a test for loads with an empty payload.
+- **Tomasz Nowak**: co-authored the padding fix (#412).
+- **Abbott Reyes**: fixed a broken link in the changelog.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --format='%an <%ae>' | sort | uniq -c | sort -rn; ls -a; cat .mailmap 2>/dev/null
+Bash: git log --format='--- %h %ad %an%n%B' --date=short | head -150; git log --since=2025-10-24 --oneline | wc -l; git log --oneline | wc -l; git show --stat --format=%h 148b381 97b914e c4257c8 dc88d4d | head -50
+Bash: git log --format='%h %ad | %cd' --date=short 57777f7 -1; git show --stat --format=%h 57777f7 e6b0594 e77aa3e 14afb34 dcf4baf 3f4d531 304aeb9 bd6d766 d8dcc04 60276be | grep -v '^$'; git show 148b381 | tail -30
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-RCP-1/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people, one line each.
+
+**How I handled the tricky cases**
+- **Same person, several identities:**
+  - Priya Raman's `priyar` noreply address is covered by the repo's `.mailmap`.
+  - "Marcus Oyelaran" and "M. Oyelaran" share one email, so they are one entry.
+  - "Wei Li" and "Li Wei" also share one email, so they are one entry. I used "Wei Li" as the name, so you may want to confirm which form they prefer.
+- **Work landed under someone else's name:**
+  - Abbott Reyes, Marcus Oyelaran, Hana Kobayashi and Priya Raman had commits that Gareth committed or that GitHub merged. I credited the authors.
+  - Tomasz Nowak only appears as a `Co-authored-by` on the #412 padding fix, so he's credited for that.
+- **Window edge:** Marcus's empty-secret-key fix was authored on 10 Oct 2025 but landed on 2 Nov 2025, so I counted it.
+- **Left out:**
+  - The bots: dependabot, github-actions and pre-commit-ci. Dependabot also appears as a `Co-authored-by` on #412, and I didn't credit it there.
+  - Ines Duarte (March 2025) and David Lord (2024), because their work is outside the window.
+
+**Gaps**
+- I only had the git history to go on. Anyone who helped through issues, reviews or PRs that were squashed under someone else's name without a `Co-authored-by` line won't show up.
+- Gareth's entry covers their own commits, including release housekeeping, but not their merge and committer work for others. Drop the entry if you'd rather list only outside contributors.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 – 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the last 12 months.
+
+- **Gareth Imani**: Fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, added the mailmap, pinned the docs build requirements, and handled release housekeeping.
+- **Hana Kobayashi**: Documented key rotation in the signing guide and reorganized the docs navigation.
+- **Priya Raman**: Sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the URL-safe padding fix.
+- **Marcus Oyelaran**: Made an empty secret key raise a clear error, and added the test for that error.
+- **Omar Haddad**: Added tests for timestamp edge cases.
+- **Wei Li**: Added a test for loads with an empty payload and fixed a typo in the README.
+- **Abbott Reyes**: Fixed a broken link in the changelog.
+- **Tomasz Nowak**: Co-authored the URL-safe padding fix (#412).
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T1-RCP-2/fx; git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls -a; cat .mailmap 2>/dev/null
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T1-RCP-2/fx; git log --since=2025-10-24 --format='=== %h %ad%n%B' --date=short --stat | grep -v '^$'; git log --all --oneline | wc -l; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W18T1-RCP-2/fx; git log -1 --format='%ad | %cd' --date=short 57777f7 ; cat > CONTRIBUTORS-LAST-YEAR.md <<'EOF' ; # Contributors, last 12 months ;  ; Thank you to everyone who contributed code, docs or tests between 24 Oct 2025 and 24 
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight contributors, one line each. The window is 24 Oct 2025 to 24 Oct 2026.
+
+- **Same person, different names:**
+  - "Li Wei" and "Wei Li" share one email address, so they appear once as Wei Li.
+  - "M. Oyelaran" and "Marcus Oyelaran" appear once as Marcus Oyelaran.
+  - The `priyar` GitHub no-reply address maps to Priya Raman through your `.mailmap`.
+- **Work landed under someone else's name:**
+  - Abbott Reyes, Marcus Oyelaran and Hana Kobayashi each have commits that Gareth Imani committed, so they're credited as the authors.
+  - Tomasz Nowak has no commits of his own. He appears only as a `Co-authored-by` on the #412 padding fix, which Gareth committed, and he's credited for that.
+  - Priya is credited as a co-author on #412 as well as for her own commits.
+- **Left out:** dependabot, pre-commit.ci and github-actions. That includes dependabot's co-author trailer on #412.
+- **Marcus's empty-secret-key error:** the commit's author date is 10 Oct 2025, before the window, but it was committed on 2 Nov 2025, so I counted it. His empty-secret-key test is in the window too.
+- **Gareth's line:** it lists his own #412 fix, CI trim and `.mailmap`. It also mentions release housekeeping, meaning the next-version bump and the docs-requirements pin. Trim that if you'd rather not credit maintainer chores.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, last 12 months
+
+Thank you to everyone who contributed code, docs or tests between 24 Oct 2025 and 24 Oct 2026.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed padding handling in `URLSafeSerializer` (#412), trimmed the CI Python matrix, and set up the `.mailmap`. Also did release housekeeping and pinned the docs build requirements.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation (#430).
+- **Marcus Oyelaran**: added a clear error for an empty secret key, with a test for it.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix in #412.
+- **Tomasz Nowak**: co-authored the padding fix for `URLSafeSerializer` in #412.
+- **Wei Li**: fixed a typo in the README and added a test for loads with an empty payload.
+
+*Compiled from git history, merging identities that appear under different names or addresses and crediting `Co-authored-by` trailers. Automated accounts (dependabot, pre-commit.ci, github-actions) are left out.*
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --since=2025-10-24 --format='%h|%an|%ae|%cn|%ce|%s' | head -300; echo; git log --since=2025-10-24 --oneline | wc -l; ls; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='--- %h %ad%n%an%n%B' --date=short; git log -1 --format=%ad --date=short --until=2025-10-24
+Bash: git log --since=2025-10-24 --format='%h A:%ad C:%cd' --date=short | grep -E '57777f7|dc88d4d|e6b0594'; git show --stat --format=%h 148b381 97b914e 14afb34 e77aa3e; git log --all --oneline | wc -l
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-RCP-3/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I've written `CONTRIBUTORS-LAST-YEAR.md` with eight people, listed alphabetically with one line each. I haven't committed it. I built it from `git log` on `main` (19 commits in the window), including commit trailers and the committer as well as the author.
+
+How I handled the cases you mentioned:
+- **Same person under different names:**
+  - "Li Wei" and "Wei Li" share one address, so they're one person, listed as Wei Li.
+  - "M. Oyelaran" and "Marcus Oyelaran" share one address, so they're one person, listed as Marcus Oyelaran.
+  - "priyar" (a GitHub noreply address) is Priya Raman. The existing `.mailmap` already maps it.
+- **Work landed by someone else:** Abbott Reyes, Marcus Oyelaran and Hana Kobayashi each had commits that Gareth Imani committed, and I credited them as the authors. Gareth keeps credit for his own commits.
+- **Co-authors:** The padding fix (#412) was committed by Gareth with `Co-authored-by` trailers for Tomasz Nowak and Priya Raman. Tomasz has no commits of his own, so he's only listed because of that trailer.
+- **Bots left out:** dependabot, pre-commit-ci, and github-actions. dependabot was also a co-author trailer on #412, so I dropped it there too.
+
+Marcus's "Raise a clear error for an empty secret key" commit was authored on 10 Oct 2025, before the window, but it landed on 2 Nov 2025, so I counted it. He also has a test commit from February 2026, so he's in either way.
+
+Some things to check:
+- I counted Gareth's CI-matrix trim and `.mailmap` addition as code or docs-adjacent work. I left out "Start the next development version" and the merge commit as release housekeeping. I only mentioned them in a general "release housekeeping and merges" phrase.
+- `.mailmap` doesn't yet cover the Li Wei/Wei Li and M. Oyelaran/Marcus Oyelaran duplicates. Adding those two lines would keep future shortlogs consistent.
+- Git history only shows what landed as commits. It can't show work that was squashed in without a trailer, or review and issue triage. If you know of other cases, tell me and I'll add them.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 25 October 2025 to 24 October 2026
+
+Thank you to everyone who contributed code, docs or tests over the last year, listed alphabetically by first name.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, pinned the docs build requirements, added the mailmap, and handled release housekeeping and merges.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Marcus Oyelaran**: made an empty secret key raise a clear error, and added a test for that error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the `URLSafeSerializer` padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix.
+- **Wei Li**: fixed a typo in the README and added a test for loads with an empty payload.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2025-10-24 --until 2026-10-24 2>&1 | head -100
+Bash: git log --since=2025-10-24 --until=2026-10-25 --no-merges --format='%h|%an|%ae|%cn|%ad|%s' --date=short; echo; git log --since=2025-10-24 --merges --format='%h|%an|%cn|%ad|%s' --date=short; cat .mailmap 2>/dev/null
+Bash: git log --since=2025-10-24 --format='%h %an%n%b---' | grep -iE 'co-authored|^[0-9a-f]{7} |thanks|squash|based on|from ' ; git show --stat --format='%h %s' 148b381 dc88d4d b8cab9a 60276be d8dcc04 14afb34 e77aa3e 3f4d531 e6b0594 | grep -v '^$'
+Bash: git log -1 --format=%B 148b381; git log --since=2025-10-24 --format='%h %an' --grep='Co-authored' -i; git log -1 --format=%B 97b914e 304aeb9 e6b0594
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-OURS-1/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people for 24 Oct 2025 to 24 Oct 2026, one line each. I haven't committed it.
+
+How I handled the cases you raised:
+- **Same person, different names:** "Li Wei" and "Wei Li" share one address, and "M. Oyelaran" and "Marcus Oyelaran" share one address, so each is one entry. The project's mailmap also joins Priya Raman's GitHub-style address to her own.
+- **Co-authored work:** Tomasz Nowak has no commit of his own. He is credited as co-author on the padding fix (#412), which landed under Gareth's name, so he is listed with that note. Priya is also a co-author on that commit.
+- **Work landed under someone else's name:** Marcus's, Hana's, and Abbott's commits were committed by Gareth, and Li's and Omar's by GitHub. In every case the author field names the real contributor, so they are credited as authors.
+- **Bots:** I left out github-actions, pre-commit-ci and dependabot. The padding fix also lists dependabot as a co-author, which I skipped too.
+- **Outside the window:** Marcus's first commit (10 Oct 2025) is earlier than the window. I only counted his February 2026 test.
+
+All the contributions are tiny, one or two changed lines each, so the lines are accurate but say nothing about effort. Gareth's entry also covers maintenance work such as the CI matrix, mailmap and version bump, so trim it if you'd rather list only code, docs and tests.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 to 24 Oct 2026
+
+Thank you to everyone who contributed code, docs or tests over the last 12 months.
+
+- **Gareth Imani**: fixed padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, added a mailmap, pinned the docs build requirements, prepared the next development version, and merged the docs navigation work.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the `URLSafeSerializer` padding fix.
+- **Tomasz Nowak**: co-authored the `URLSafeSerializer` padding fix (credited in the commit, which landed under Gareth's name).
+- **Li Wei**: fixed a README typo and added a test for loads with an empty payload.
+- **Marcus Oyelaran**: added a test for the empty secret key error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Abbott Reyes**: fixed a broken link in the changelog.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2025-10-24 --until 2026-10-24 2>&1 | head -150
+Bash: git log --since=2025-10-24 --until=2026-10-25 --no-merges --format='%h|%an <%ae>|%cn|%ad|%s%n%b---' --date=short --stat | head -200; echo; cat .mailmap 2>/dev/null; git log --since=2025-10-24 --merges --format='%h|%an|%cn|%ad|%s' --date=short
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-OURS-2/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md` with eight people, covering 24 Oct 2025 to 24 Oct 2026. I haven't committed it.
+
+How I handled the cases you raised:
+- **Tomasz Nowak:** he has no commits of his own in the window. He's credited as co-author of the padding fix (#412), which Gareth Imani squashed in. A plain commit count would have left him out.
+- **Priya Raman:** two of her commits were under a GitHub noreply address. The repo's mailmap maps that address to her main one, so I counted them as one person. She's also a co-author on #412.
+- **Li Wei:** one commit shows "Wei Li" and another "Li Wei", both with the same address. I treated them as one person.
+- **Marcus Oyelaran:** he appears as "Marcus Oyelaran" and "M. Oyelaran", with the same address. His empty-secret-key fix is dated 10 Oct 2025, which is before the window, so I only credited his Feb 2026 test. If you want the fix thanked too, widen the window by two weeks.
+- **Commits landed by someone else:** Hana Kobayashi, Abbott Reyes and Marcus Oyelaran have commits where Gareth Imani was the committer. They're credited as the authors.
+- **Bots:** I left out GitHub Actions, pre-commit.ci and Dependabot, including Dependabot's co-author tag on #412. The page ends with a line saying automated accounts aren't listed.
+
+I took the line summaries from commit subjects and changed files, not from reading every diff. Check the wording for anything you'd phrase differently. I left email addresses out of the page.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, last 12 months
+
+Thank you to everyone who contributed code, docs or tests between 24 October 2025 and 24 October 2026.
+
+- **Abbott Reyes**: fixed a broken link in the changelog.
+- **Gareth Imani**: fixed base64 padding handling for compressed payloads in `URLSafeSerializer`, trimmed the CI Python matrix, added a mailmap, pinned the docs build requirements, and prepared the next development version.
+- **Hana Kobayashi**: documented key rotation in the signing guide and reorganized the docs navigation.
+- **Li Wei**: fixed a README typo and added a test for `loads` with an empty payload.
+- **Marcus Oyelaran**: added a test for the empty secret key error.
+- **Omar Haddad**: added tests for timestamp edge cases.
+- **Priya Raman**: sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix.
+- **Tomasz Nowak**: co-authored the padding fix in `URLSafeSerializer` (landed in a commit by Gareth Imani).
+
+Automated accounts (dependency updates, pre-commit updates, lock-file refreshes) are not listed.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2025-10-24 --until 2026-10-24 2>&1 | head -100
+Bash: git log --since=2025-10-24 --until=2026-10-25 --no-merges --format='%h|%ad|%an <%ae>|%cn|%s%n%b---' --date=short --stat; echo; cat .mailmap 2>/dev/null; git log --since=2025-10-24 --merges --format='%h %ad %an|%cn|%s' --date=short
+Write: /private/tmp/wp-r16/gate6/runs/W18T1-OURS-3/fx/CONTRIBUTORS-LAST-YEAR.md
+### Final answer text
+I wrote `CONTRIBUTORS-LAST-YEAR.md`. It lists eight people for 24 Oct 2025 to 24 Oct 2026, one line each. I left the file uncommitted. I took the dates and commit counts from the repository history.
+
+- **Joined identities:** Li Wei and Wei Li are one person, as are Marcus Oyelaran and M. Oyelaran. Both pairs share an email address. Priya Raman's GitHub username is joined to her by the project's `.mailmap`.
+- **Credit for work under another name:** Tomasz Nowak and Priya Raman are credited as co-authors of the base64 padding fix (#412), which landed under Gareth's name. Abbott Reyes, Hana Kobayashi and Marcus Oyelaran are credited for commits that Gareth committed on their behalf.
+- **Bots:** I left out Dependabot, pre-commit.ci and GitHub Actions. Dependabot is also tagged as a co-author on #412, and I left it out there too.
+- **Window edge:** Marcus's first commit, the clear error for an empty secret key, is dated 10 Oct 2025. That is before the window, so his line only mentions his Feb 2026 test.
+- **Small commits:** Most commits are one or two lines, so the page credits people for what they did, not for how much.
+- **Names to check:** I haven't confirmed that "Tomasz Nowak" and "Abbott Reyes" are the names these people want shown. Tomasz appears only in the co-author trailer.
+### Files it left in the working directory
+--- CONTRIBUTORS-LAST-YEAR.md
+# Contributors, 24 Oct 2025 to 24 Oct 2026
+
+Thank you to everyone who contributed code, documentation or tests over the last 12 months.
+
+- **Gareth Imani**: Fixed base64 padding handling in `URLSafeSerializer`, trimmed the CI Python matrix, added a mailmap, pinned the docs build requirements, started the next development version, and merged contributors' pull requests.
+- **Hana Kobayashi**: Documented key rotation in the signing guide and reorganized the docs navigation.
+- **Li Wei**: Fixed a typo in the README and added a test for `loads` with an empty payload.
+- **Priya Raman**: Sped up `Signer.derive_key`, added typing for `Serializer.loads_unsafe`, and co-authored the padding fix.
+- **Tomasz Nowak**: Co-authored the `URLSafeSerializer` padding fix, which landed under Gareth's name.
+- **Abbott Reyes**: Fixed a broken link in the changelog.
+- **Marcus Oyelaran**: Added a test for the empty secret key error.
+- **Omar Haddad**: Added tests for timestamp edge cases.
+
+## Notes
+
+- Some people committed under more than one name or address (Li Wei also appears as Wei Li; Marcus Oyelaran also appears as M. Oyelaran; Priya Raman also appears under a GitHub username). Each is listed once.
+- Bots (Dependabot, pre-commit.ci, GitHub Actions) are not listed. Dependabot is also tagged as a co-author on the padding fix, and was left out for the same reason.
+- Several changes were committed by Gareth on behalf of the author (the changelog link, the key rotation docs, the empty secret key test). They are credited to the people who wrote them.

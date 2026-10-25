@@ -1,0 +1,942 @@
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=short | head -100; git log --all --oneline | wc -l; git branch -a
+Bash: git log --first-parent --format='%h|%p|%an|%s' 5100728^..HEAD | head -30; echo; git log --format='%h' --since=2026-03-01 | while read h; do echo "$h $(git show --numstat --format= $h | awk '{a+=$1;d+=$2}END{print a+0,d+0}')"; done
+Bash: for h in 4fcd2b8 5b012a4 3c22922 2925488 ef46da9; do echo $h; git show --numstat --format= $h; done; git show --numstat --format= --cc a6a42bc | head
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP_I-1/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. The `/receipts` skill's miner only reports one person's Claude Code sessions, so I took the numbers directly from the git history instead.
+
+| | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes (commits) | 7 | 12 | +71% |
+| Lines changed (added + removed) | 340 | 506 | +49% |
+| Lines changed, excluding `Cargo.lock` | 140 | 200 | +43% |
+| People (humans) | 2 | 2 | 0% |
+| People incl. dependabot and release bot | 3 | 4 | +33% |
+
+- **Bad dates:** Three commits had wrong dates, and all three are kept. I placed them by their position in the commit chain, not by their stated date.
+  - **"Read from pipes without buffering everything" (1970):** its commit date of 2026-07-15 is plausible, so it counts in Q3.
+  - **"Strip ANSI sequences in text column" (2037):** it sits between commits from 9 and 18 Sep, so it counts in Q3.
+  - **"Handle zero-length input" (2037):** it sits between commits from 19 May and 10 Jun, so it counts in Q2.
+- **Commit after Q3:** The 3 Oct commit "Add after-quarter option" is excluded.
+- **Merge commits:** I didn't count merge commits.
+
+The method note in `qoq.md` is short. The lockfile-free row is there because lockfile changes inflate the raw line counts: a lockfile-only dependabot bump accounts for 200 of Q2's 340 lines.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: delivery comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed) | 340 | 506 | **+49%** |
+| Code changed, excluding `Cargo.lock` | 140 | 200 | **+43%** |
+| People (humans) | 2 | 2 | 0% |
+| People incl. automation (dependabot, release bot) | 3 | 4 | +33% |
+
+**Takeaway:** The same two engineers shipped about 70% more changes in Q3. About 43% more hand-written code changed, once auto-generated lockfile churn is removed. Q3 delivered the colour-table and theme work and the pipe-reading improvement.
+
+## Method note
+
+- Source: git history on `main`. Merge commits are not counted. Each change is counted once.
+- Lines are added plus removed, per commit. They are a measure of size, not of value.
+- Three commits had clearly wrong dates. All three are kept and placed by their position in the commit chain:
+  - "Read from pipes without buffering everything" is dated 1970 (author date). The commit date of 2026-07-15 is plausible, so it counts in Q3.
+  - "Strip ANSI sequences in text column" is dated 2037. It sits between commits from 9 Sep and 18 Sep, so it counts in Q3.
+  - "Handle zero-length input" is dated 2037. It sits between commits from 19 May and 10 Jun, so it counts in Q2.
+- Without this correction, those three commits would fall outside both quarters or in the wrong one.
+- A commit dated 3 Oct ("Add after-quarter option") is after Q3 and is excluded.
+- "People" means distinct human authors. Bot accounts are shown on a separate row.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=short | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --format='%h %p|%cd|%ad|%an|%s' --date=iso --since=2026-03-25 --topo-order; git reflog -5 | head
+Bash: for q in "Q2 2026-04-01 2026-06-30" "Q3 2026-07-01 2026-09-30"; do set -- $q; echo "== $1"; git log --no-merges --format='%h|%an' --since="$2 00:00 +0000" --until="$3 23:59:59 +0000" --date=iso --use-mailmap >/dev/null; done ; # build list by sha with corrected 
+Bash: git show --numstat --format=%h 5b012a4 4fcd2b8 2925488 3c22922 ef46da9
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP_I-2/fx/qoq.md
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP_I-2/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`, using git history instead of the receipts miner. The miner only reads your own Claude Code transcripts, so it can't count team commits or people.
+
+| | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Lines changed (excluding `Cargo.lock`) | 140 | 200 | **+43%** |
+| People | 2 | 2 | 0% |
+
+- **Bad dates:** I kept all three and placed each by where it sits in the history.
+  - "Handle zero-length input" (dated 2037-05-28) is counted in Q2.
+  - "Strip ANSI sequences in text column" (dated 2037-03-03) is counted in Q3.
+  - "Read from pipes without buffering everything" (author date 1970-01-01) is counted in Q3, using its commit date of 15 July.
+- **Bots:** dependabot and the release bot count as changes but not as people.
+- **`Cargo.lock`:** I left it out of the line counts because automated lockfile churn would swamp the real change. Including it gives 340 vs 506 lines (+49%). If you'd rather headline the larger figure, say so and I'll change it.
+- **After Q3:** the 3 October commit, "Add after-quarter option", falls outside both quarters and isn't counted.
+
+The method note in `qoq.md` is short, as you asked. I didn't create the receipts markdown or HTML files, so nothing else was written.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: delivery comparison
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed, excl. `Cargo.lock`) | 140 | 200 | **+43%** |
+| People who delivered (human contributors) | 2 | 2 | **0%** |
+
+Q3 had 5 more changes from the same two people (Sven Larsen and Tara Singh).
+
+**Notes**
+- 6 of Q2's 7 commits and 9 of Q3's 12 are by those two people. The rest are automated: dependabot (1 in Q2, 2 in Q3) and the release bot (1 in Q3). They count as changes but not as people.
+- `Cargo.lock` is excluded from the line counts because auto-generated dependency churn (200 lines in Q2, 306 in Q3, mostly one "Update dependencies" commit) would swamp the real change. Including it gives 340 vs 506 lines (+49%).
+
+## Method
+- Source: git history of this repo, merge commits excluded. Quarters are calendar quarters (Q2 = Apr–Jun, Q3 = Jul–Sep 2026). Lines are added plus removed.
+- Three commits had wrong dates and were kept, placed by their position in the history:
+  - "Handle zero-length input" was dated 2037-05-28. It sits between commits from 19 May and 10 June, so it is counted in **Q2**.
+  - "Strip ANSI sequences in text column" was dated 2037-03-03. It sits between commits from 1 Sep and 9 Sep, so it is counted in **Q3**.
+  - "Read from pipes without buffering everything" had an author date of 1970-01-01. Its commit date is 15 Jul 2026, so it is counted in **Q3**.
+- The exact days for the two 2037 commits are unknown. Only the quarter was needed, and the neighbouring commits fix it.
+- "Add after-quarter option" (3 Oct 2026) falls after Q3 and is not counted.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=short | head -100; git log --all --oneline | wc -l; git branch -a; git log --all --merges --oneline | wc -l
+Bash: git log --topo-order --first-parent --format='%h %P|%an|%cd|%s' --date=short c94700d~0 -n 30 | head -30; echo; git log --no-merges --since=2026-03-29 --format='@%h|%an|%s' --numstat | grep -v '^$' | awk -F'\t' '/^@/{print;next}{print "   "$1"\t"$2"\t"$3}'
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP_I-3/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. It doesn't use the receipts skill's output. That skill reports one person's Claude Code activity from local transcripts, so it can't answer a team Q3-versus-Q2 question. I used `git log` on `main` instead.
+
+| | Q2 | Q3 | Change |
+|---|---:|---:|---:|
+| Changes delivered (commits by people) | 6 | 9 | +50% |
+| Lines changed (added + removed, excluding lockfiles) | 140 | 199 | +42% |
+| People | 2 | 2 | 0% |
+
+Counting the automated commits (dependency bumps, release bot) and lockfile changes too, it's 7 → 12 changes (+71%) and 340 → 506 lines (+49%).
+
+**Wrong dates:** I placed each commit by where it sits in the commit history rather than by its stamped date, and dropped none of them.
+- "Handle zero-length input" is stamped 2037-05-28. It sits between 19 May and 10 Jun commits, so it counts in Q2.
+- "Strip ANSI sequences in text column" is stamped 2037-03-03. It sits between 1 Sep and 9 Sep commits, so it counts in Q3.
+- "Read from pipes without buffering everything" has a 1970 author date, but its commit date of 15 Jul 2026 fits its position, so it counts in Q3.
+
+I excluded the 3 Oct "Add after-quarter option" commit because it falls after Q3.
+
+**Choices to check:**
+- **Automated commits:** the headline leaves them out. The including-everything figures are in a line under the table.
+- **Lockfile:** `Cargo.lock` is excluded from the lines figure because one Q3 dependency update added 300 lock lines.
+- **Small counts:** with single-digit commit counts, one commit shifts the percentages a lot. The method note says so.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: delivery comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---:|---:|---:|
+| Changes delivered (commits by people) | 6 | 9 | **+50%** |
+| Code changed (lines added + removed, excl. lockfiles) | 140 | 199 | **+42%** |
+| People contributing | 2 | 2 | **0%** |
+
+Including automated commits (dependency bumps, release bot) and lockfile churn: 7 → 12 changes (+71%), 340 → 506 lines (+49%).
+
+Q3 delivered more with the same two people. The main additions were colour themes and tables, pipe reading without buffering, terminal-width handling, ANSI stripping and the 0.17.0 release.
+
+## Method
+
+- Source: `git log` on `main`, non-merge commits only. A "change" is one commit. The "people" row counts distinct human authors. Dependabot and GitHub Actions are excluded from the headline rows.
+- Lines are added plus removed per commit. `Cargo.lock` is excluded from the headline because dependency updates inflate it (one Q3 commit added 300 lock lines).
+- **Commits with wrong dates** were placed by their position in the commit chain, not by their stamped date. Neither was dropped.
+  - "Handle zero-length input" is stamped 2037-05-28. It sits between commits from 19 May and 10 Jun, so it counts in **Q2**.
+  - "Strip ANSI sequences in text column" is stamped 2037-03-03. It sits between commits from 1 Sep and 9 Sep, so it counts in **Q3**.
+  - "Read from pipes without buffering everything" has an author date of 1970-01-01. Its commit date of 15 Jul 2026 fits its position, so it counts in **Q3**.
+- The 3 Oct commit ("Add after-quarter option") falls after Q3 and is excluded.
+- Counts are small (single digits), so a one-commit difference moves the percentages a lot.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: ls && git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso | head -100 && git log --all --oneline | wc -l
+Bash: git log --format='%h|%p|%an|%cd|%s' --date=short --since=2026-03-01 --topo-order; echo; git log --no-merges --numstat --format='C %h %an' --since=2026-03-01 | awk '/^C/{c=$2;next} NF{print c,$1,$2,$3}'; git branch -a; git status --short | head
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-BASE-1/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. Q3 had 12 changes against 7 in Q2, and 200 lines of code changed against 140. The same two people contributed in both quarters.
+
+| Measure | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes (commits) | 7 | 12 | +71% |
+| Lines added plus removed | 140 | 200 | +43% |
+| People | 2 | 2 | 0% |
+
+- **Bad dates:** I kept all three bad-dated commits and placed each by where it sits in the history.
+  - The commit dated 2037-05-28 sits between mid-May and June commits, so it counts in Q2.
+  - The commit dated 2037-03-03 sits between early-September commits, so it counts in Q3.
+  - The commit dated 1970 has a real commit date of 15 July 2026, so it counts in Q3.
+- **Lock file:** The line counts leave out `Cargo.lock`, because auto-generated dependency updates would inflate them. Counting it gives 340 and 506 lines, a 49% increase. The note in `qoq.md` gives both.
+- **Bots:** Bots count as changes but not as people. Q2 has one bot commit and Q3 has three.
+- **Merges and cut-off:** Merge commits are not counted. The 3 October commit falls after the quarter and is excluded.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed, excl. lock file) | 140 | 200 | **+43%** |
+| People contributing (humans) | 2 | 2 | **0%** |
+
+**Summary:** The team shipped notably more in Q3 with the same two contributors. Output grew 71% by change count and 43% by code volume. Q3 work includes the colour theme feature and the 0.17.0 release.
+
+## Sensitivity
+
+- **Lock file:** Counting the auto-generated `Cargo.lock` raises code changed to 340 (Q2) and 506 (Q3), +49%. It is excluded from the headline because dependency updates inflate it without reflecting team effort.
+- **Automated commits:** Q2 has 1 and Q3 has 3 (dependency bumps and the release bot). Excluding them gives 6 vs 9 changes (+50%). The bots are not counted as people. Counting them gives 3 vs 4 contributors.
+
+## Method
+
+- Source: git history of `main`. Quarters are calendar quarters (Q2 = Apr–Jun, Q3 = Jul–Sep).
+- Merge commits are not counted. Their content is already counted in the underlying commits.
+- Three commits had bad dates and were placed by their position in the history rather than dropped:
+  - "Handle zero-length input" is dated 2037-05-28. It sits between commits from 19 May and 10 Jun, so it counts in **Q2**.
+  - "Strip ANSI sequences in text column" is dated 2037-03-03. It sits between commits from 1 Sep and 9 Sep, so it counts in **Q3**.
+  - "Read from pipes without buffering everything" is dated 1970-01-01. Its committed date is 15 Jul 2026, so it counts in **Q3**.
+- The 3 Oct commit "Add after-quarter option" falls after Q3 and is excluded.
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --format='%h|%an|%ae|%ad|%cd|%s' --date=short | head -100; git log --oneline | wc -l
+Bash: git log --first-parent --format='%h %p|%an|%cd|%s' --date=short -26 | cut -c1-110; echo; git log --no-merges --numstat --format='C|%h|%an' 5100728^..c94700d | awk -F'|' '/^C\|/{h=$2;next} NF&&$0!~/^$/{split($0,a,"\t"); print h, a[1], a[2], a[3]}' | head -80
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-BASE-2/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`. Q3 had 12 changes against 7 in Q2 (+71.4%), delivered by the same two people.
+
+| Measure | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes (non-merge commits) | 7 | 12 | +71.4% |
+| Lines changed, excluding `Cargo.lock` | 140 | 200 | +42.9% |
+| Lines changed, including `Cargo.lock` | 340 | 506 | +48.8% |
+| People | 2 | 2 | 0% |
+
+- **Lockfile:** `Cargo.lock` is auto-generated and distorts the totals, so I led with the figure that excludes it and kept the other for reference.
+- **People:** I counted only the human contributors. The bots (dependabot and the release automation) are shown separately.
+- **Bad dates:** I kept all three bad-dated commits and placed each by its position in history.
+  - "Strip ANSI sequences" (dated 2037-03-03) sits between 1 and 9 September, so it counts in Q3.
+  - "Handle zero-length input" (dated 2037-05-28) sits between 19 May and 10 June, so it counts in Q2.
+  - "Read from pipes" has an author date of 1970-01-01, but its commit date is 2026-07-15, so it counts in Q3.
+- **Q4 commit:** The 3 October commit falls in Q4 and is excluded.
+
+The two 2037-dated placements are inferred from history order. Their authors should confirm them before this goes to the executives.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71.4%** |
+| Code changed, excluding dependency lockfile (lines added + removed) | 140 | 200 | **+42.9%** |
+| Code changed, including lockfile (lines added + removed) | 340 | 506 | +48.8% |
+| People (human contributors) | 2 | 2 | 0% |
+| Contributors including automation (bots) | 3 | 4 | +33.3% |
+
+**Summary:** The same two engineers delivered 71% more changes in Q3, and the amount of code changed rose about 43% (source and config only). Delivery grew without any growth in headcount.
+
+Of the Q3 changes, 2 were bot-authored (a dependency bump and the automated release commit), against 1 in Q2. Without bots, the human-authored count is 6 in Q2 and 10 in Q3 (+66.7%).
+
+## Method
+
+- Source: git history of this repository. A "change" is a non-merge commit. Merge commits are not counted because they carry no code of their own.
+- Code changed is lines added plus lines removed. `Cargo.lock` is auto-generated and swings the totals (300 lines in one Q3 commit, 200 in one Q2 commit), so the headline figure excludes it and the lockfile-inclusive figure is shown for reference.
+- People are distinct human authors. Bots (dependabot, github-actions) are shown separately.
+- Quarters are calendar quarters. The 3 Oct 2026 commit falls in Q4 and is excluded.
+- **Commits with bad dates (none dropped):**
+  - "Strip ANSI sequences in text column" is dated 2037-03-03. It sits between commits from 1 and 9 Sep in history, so it is counted in **Q3**.
+  - "Handle zero-length input" is dated 2037-05-28. It sits between commits from 19 May and 10 Jun, so it is counted in **Q2**.
+  - "Read from pipes without buffering everything" has an author date of 1970-01-01. Its commit date is 2026-07-15, so it is counted in **Q3**.
+  - The two 2037 placements are inferred from their position in history. Their authors should confirm them.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: git log c94700d ^abc20a3 --reverse --format='@%h|%an|%p|%cd|%s' --date=short --numstat; git branch -a
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-BASE-3/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. In Q3 the same two people delivered 50% more changes and changed 42% more code than in Q2.
+
+| | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes | 6 | 9 | +50% |
+| Lines changed (added + removed) | 140 | 199 | +42% |
+| People | 2 | 2 | 0% |
+
+**Wrong dates:** all three commits are kept. I placed each one by where it sits in the commit history, between its neighbours' dates, not by its bad date.
+- "Handle zero-length input" is dated 2037 but sits between two May/June commits, so it counts in Q2.
+- "Strip ANSI sequences" is also dated 2037 but sits between two September commits, so it counts in Q3.
+- "Read from pipes" has a 1970 author date, so I used its 15 July 2026 commit date, which puts it in Q3.
+
+**Counting choices:** I made these myself, so check that you agree.
+- I excluded merge commits and bot commits (dependency bumps and the release tag).
+- I excluded `Cargo.lock` and the `VERSION` file from the line count. One dependency update added 300 lines to `Cargo.lock` alone.
+- I excluded the 3 October commit because it falls in Q4.
+
+`qoq.md` also gives the figures with bots and lockfile changes included: commits 7 to 12 (+71%), lines 340 to 506 (+49%), people 3 to 5. If you'd rather headline those, say so and I'll switch them.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered | 6 | 9 | +50% |
+| Code changed (lines added + removed) | 140 | 199 | +42% |
+| People contributing | 2 | 2 | 0% |
+
+Q3 had more output from the same two-person team: 50% more changes and 42% more code.
+
+## Method
+
+- **Changes** are non-merge commits written by people. Merge commits and bot commits (dependency bumps, release tagging) are left out.
+- **Code changed** is lines added plus lines removed. The generated `Cargo.lock` and the one-line `VERSION` bump are excluded, because a single dependency update would otherwise add 300 lines.
+- **People** are distinct human authors (Sven Larsen and Tara Singh in both quarters).
+- **Quarters** are calendar quarters: Q2 is Apr–Jun and Q3 is Jul–Sep. The 3 Oct commit falls in Q4 and is excluded.
+- **Wrong dates, all kept and placed by their position in history:**
+  - "Handle zero-length input" is dated May 2037. It sits between 19 May and 10 June commits, so it is counted in **Q2**.
+  - "Strip ANSI sequences in text column" is dated March 2037. It sits between 1 and 9 September commits, so it is counted in **Q3**.
+  - "Read from pipes without buffering everything" has an author date of 1970. Its commit date is 15 July 2026, so it is counted in **Q3**.
+
+If bots and lockfile churn are included, the picture is similar: commits go from 7 to 12 (+71%), lines from 340 to 506 (+49%), and contributors from 3 to 5.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --graph --format='%h %p | %an | %ad | %cd | %s' --date=short 5100728^..HEAD; git log --all --oneline | wc -l; git branch -a; git log --numstat --format='C %h' 5100728^..HEAD
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP-1/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`. Q3 delivered 50% more changes and changed 42% more code than Q2, with the same number of people.
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered | 6 | 9 | +50% |
+| Lines of code changed | 140 | 199 | +42% |
+| People contributing | 2 | 2 | 0% |
+
+**Counting choices.** These were my calls, so say if you want them changed:
+- **Changes:** I counted only human-authored commits and left out merge commits.
+- **Lines:** I counted lines added plus lines removed, and left out the generated `Cargo.lock`.
+- **Bots:** Dependabot and release automation are out of the headline. Including them and the lockfile gives changes 7 → 12 (+71%) and lines 340 → 506 (+49%). `qoq.md` notes this.
+
+**The three commits with bad dates are all counted.**
+- "Handle zero-length input" is dated 2037. It sits between commits from May 19 and June 10, so I put it in Q2.
+- "Strip ANSI sequences in text column" is also dated 2037. It sits between commits from Sep 1 and Sep 9, so I put it in Q3.
+- "Read from pipes without buffering everything" has an author date of 1970. I used its commit date of 15 July, so it is in Q3.
+
+For the two 2037 commits I placed them by their position in the history, which is an inference rather than a recorded date.
+
+The 3 Oct commit falls after Q3 and is excluded.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered | 6 | 9 | **+50%** |
+| Lines of code changed | 140 | 199 | **+42%** |
+| People contributing | 2 | 2 | **0%** |
+
+The team delivered half as many changes again in Q3, with the same two people. Output per person rose accordingly.
+
+## Method note
+
+- **Quarters:** calendar quarters (Q2 = Apr–Jun, Q3 = Jul–Sep 2026), taken from git history on `main`.
+- **Changes** are human-authored commits, excluding merge commits. **Lines changed** are lines added plus lines removed, excluding the generated `Cargo.lock`. **People** are distinct human authors.
+- **Bot activity** (Dependabot, release automation) is left out of the headline: 1 commit in Q2 and 3 in Q3. Counting it, along with lockfile churn, gives changes 7 → 12 (+71%) and lines 340 → 506 (+49%). People are unchanged.
+- **Commits with wrong dates, all kept:**
+  - "Handle zero-length input" is dated 2037 but sits between commits from May 19 and June 10, so it is counted in **Q2**.
+  - "Strip ANSI sequences in text column" is also dated 2037 but sits between commits from Sep 1 and Sep 9, so it is counted in **Q3**.
+  - "Read from pipes without buffering everything" has an author date of 1970. I used its commit date, 15 July, so it is counted in **Q3**.
+- A commit dated 3 Oct 2026 falls after the quarter and is excluded.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --format='%h|%p|%an|%cd|%s' --date=short c94700d~0 -n 26; echo; git log --since=2026-03-01 --format='%h' | wc -l; git log --numstat --format='C %h %an' -n 25 --no-merges | head -150; git branch -a; git log --all --oneline --since=2026-03-01 | wc -l
+Bash: for q in "2026-04-01 2026-07-01" "2026-07-01 2026-10-01"; do set -- $q; echo "== $1"; git log --no-merges --since="$1 00:00 +0000" --until="$2 00:00 +0000" --committer=. --format='%h %an %cd' --date=short | cat; done; echo; git log --no-merges --format='%h %cd
+Bash: for n in "20d8dcd a2a08bb 077125b 5b012a4 04cc917 f734b23 703f804" "c95a7d7 45afddf ec0b7fd a5258c5 7451092 3c22922 b5385bc 4fcd2b8 98e71ac 2925488 018f58f ef46da9"; do for c in ${=n}; do git show --numstat --format= $c; done | awk '{a+=$1;d+=$2} END{print a, 
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP-2/fx/qoq.md
+Edit: /private/tmp/wp-r16/gate6/runs/W16T4-RCP-2/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`, with a short method note at the bottom.
+
+| | Q2 | Q3 | Change |
+|---|---:|---:|---:|
+| Changes (non-merge commits) | 7 | 12 | +71% |
+| Lines changed (added + removed) | 340 | 506 | +49% |
+| People | 2 | 2 | 0% |
+
+- **Bad dates:** all three wrong-dated commits are kept, and I placed each by where it sits in the history rather than by its date.
+  - "Handle zero-length input", dated 2037-05-28, goes in Q2.
+  - "Strip ANSI sequences in text column", dated 2037-03-03, goes in Q3.
+  - "Read from pipes without buffering everything" has an author date of 1970, but its commit date of 15 Jul is consistent with its place in the history, so it goes in Q3.
+- **Lockfile inflation:** one routine "Update dependencies" commit adds 300 lockfile lines to Q3. Without the lockfile and bot-generated updates, lines go from 140 to 199 (+42%). Human-authored changes go from 6 to 9 (+50%). The note in `qoq.md` says this.
+- **Q4 commit excluded:** "Add after-quarter option" is dated 3 Oct, so it is in Q4 and not counted.
+
+I made three counting choices you may want to change:
+- Merge commits aren't counted as changes.
+- Dependabot and the release bot count as changes but not as people.
+- Lines are counted across all files, lockfile included.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---:|---:|---:|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed) | 340 | 506 | **+49%** |
+| People contributing | 2 | 2 | **0%** |
+
+## Reading the numbers
+
+- Output grew in both volume and code touched with the same two contributors (Sven Larsen, Tara Singh).
+- Much of the Q3 line growth is one routine dependency refresh ("Update dependencies", 302 lines, mostly the lockfile). Without lockfile and bot-generated updates, code changed rises from 140 to 199 lines (+42%), and human-authored changes go from 6 to 9 (+50%).
+- Q3 includes the 0.17.0 release (25 Sep). The "Add after-quarter option" change (3 Oct) belongs to Q4 and is excluded.
+
+## Method note
+
+- Source: git history of `main`. A "change" is a non-merge commit, so merges are not double-counted. Automated commits (dependabot, release bot) count as changes but not as people.
+- Code changed = lines added plus lines removed, across all files.
+- Quarter is by commit date, with three exceptions where a laptop clock was wrong. These were placed using their position in the linear history, between neighbouring commits with sound dates, and none was dropped:
+  - "Handle zero-length input", dated 2037-05-28 → **Q2** (between 19 May and 10 Jun).
+  - "Strip ANSI sequences in text column", dated 2037-03-03 → **Q3** (between 1 Sep and 9 Sep).
+  - "Read from pipes without buffering everything", author date 1970-01-01 → **Q3** (its commit date, 15 Jul, is consistent with its position).
+- Percent change = (Q3 − Q2) / Q2.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --first-parent --format='%h|%p|%an|%cd|%s' --date=short c94700d~0 -n 25; git branch -a; for c in $(git log 510072840^..HEAD --format=%h --no-merges); do echo "$c $(git show --numstat --format= $c | awk '{a+=($1~/^[0-9]+$/?$1:0);d+=($2~/^[0-9]+$/?$2:0);
+Bash: for c in 4fcd2b8 5b012a4 b5385bc 2925488 3c22922 ef46da9; do echo "== $c"; git show --numstat --format=%s $c; done
+Bash: for c in $(git log 510072840..HEAD --format=%h --no-merges); do echo "$c $(git show --numstat --format= $c -- . ':!Cargo.lock' | awk '{a+=$1;d+=$2}END{print a+0,d+0}')"; done
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-RCP-3/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`, and it's done. I haven't committed it.
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | +71% |
+| Lines of code changed | 140 | 200 | +43% |
+| People | 2 | 2 | 0% |
+
+- **Wrong dates:** I placed each of the three by where it sits in the history, so none were lost.
+  - "Handle zero-length input" (stamped 2037) counts in Q2.
+  - "Strip ANSI sequences in text column" (stamped 2037) counts in Q3.
+  - "Read from pipes without buffering everything" (author date 1970) counts in Q3.
+- **Bots:** the commit counts include automated commits (dependency bumps and the release bot), which are 1 in Q2 and 3 in Q3. Counting human-authored commits only gives 6 and 9, which is +50%. Bots aren't counted as people.
+- **Lines of code:** I left out `Cargo.lock` because it's generated and large updates would swamp the real work. Including it, the figures would be 340 and 506, which is +49%.
+- **Excluded:** the 3 October commit falls after Q3, so it isn't counted.
+
+The method note in the file is short and covers these choices.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed) | 140 | 200 | **+43%** |
+| People contributing | 2 | 2 | **0%** |
+
+Q3 delivered noticeably more with the same two-person team. Highlights were the colour tables and themes, theme loading, pipe streaming, terminal-width handling and the 0.17.0 release.
+
+## Method note
+
+- **Changes** are non-merge commits on `main`. They include automated commits (dependency bumps, release bot): 1 in Q2 and 3 in Q3. Counting human-authored commits only, the figures are 6 and 9 (+50%).
+- **Code changed** is lines added plus removed, excluding `Cargo.lock`. That file is machine-generated, and large lockfile updates would otherwise swamp the real work (it would show 340 lines in Q2 and 506 in Q3, +49%).
+- **People** are distinct human authors. Bots are excluded.
+- **Wrong dates:** three commits had bad clocks. I placed each by its position in the history, between its neighbouring commits, and didn't use the bad date.
+  - "Handle zero-length input" was stamped 2037-05-28. It sits between 19 May and 10 June commits, so it counts in **Q2**.
+  - "Strip ANSI sequences in text column" was stamped 2037-03-03. It sits between 1 and 9 September commits, so it counts in **Q3**.
+  - "Read from pipes without buffering everything" had an author date of 1970-01-01. Its commit date is 15 July, so it counts in **Q3**.
+- The 3 October commit ("Add after-quarter option") falls after Q3 and is excluded.
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --graph --format='%h %p | %an | %cd | %s' --date=short c94700d ^abc20a3 ; git branch -a; git log --all --format='%h' --since=2026-03-01 | wc -l; for c in $(git log --format=%h 5100728^..c94700d); do echo "$c $(git show --numstat --format= $c | awk '{a+
+Bash: for c in a6a42bc 4fcd2b8 5b012a4 2925488 3c22922 ef46da9 c95a7d7 b5385bc; do echo "== $c"; git show --numstat --format='%s' -m --first-parent $c; done; git diff --numstat 45afddf a6a42bc
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-CV_I-1/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. Changes delivered rose 71.4%, lines of code changed rose 42.9%, and the number of people stayed flat.
+
+| Measure | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes delivered | 7 | 12 | +71.4% |
+| Lines of code changed | 140 | 200 | +42.9% |
+| People | 2 | 2 | 0% |
+
+- **Bad dates:** I kept all three bad-dated commits and placed each by where it sits in the commit history.
+  - "Handle zero-length input" is dated 2037 but sits between May and June commits, so it counts in Q2.
+  - "Strip ANSI sequences in text column" is dated 2037 but sits between 1 and 9 September commits, so it counts in Q3.
+  - "Read from pipes without buffering everything" has an author date of 1970 but a commit date of 15 July 2026, so it counts in Q3.
+- **Counting rules:**
+  - I counted non-merge commits, including bot commits, and excluded merge commits so the branch work isn't counted twice.
+  - Lines are added plus deleted, with `Cargo.lock` left out as generated output. Including it would add 506 lines across the two quarters and distort the comparison.
+  - People are distinct human authors, so the dependency and release bots aren't counted.
+- **Q4 commit:** the 3 October commit falls in Q4 and is excluded.
+
+I didn't use the cv-builder skills, because they are for resumes and this was a git-history analysis.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Engineering Delivery
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered | 7 | 12 | **+71.4%** |
+| Lines of code changed | 140 | 200 | **+42.9%** |
+| People contributing | 2 | 2 | **0%** |
+
+Delivery grew substantially with the same two-person team. The Q3 increase includes the colour-table and theme work, plus the 0.17.0 release.
+
+## Method
+
+- **Changes:** non-merge commits on `main`, bots included. Merge commits are excluded so branch work isn't counted twice.
+- **Lines changed:** lines added plus lines deleted. `Cargo.lock` is excluded as generated output.
+- **People:** distinct human authors. Dependabot and the release bot are not counted.
+- **Bad dates:** three commits had unreliable timestamps, and all are included. Each was placed using its position in the commit history.
+  - "Handle zero-length input" is dated 2037 and sits between May and June commits, so it counts in **Q2**.
+  - "Strip ANSI sequences in text column" is dated 2037 and sits between 1 and 9 September commits, so it counts in **Q3**.
+  - "Read from pipes without buffering everything" has an author date of 1970 but a commit date of 15 July 2026, so it counts in **Q3**.
+- Work after 30 September (for example, the 3 October commit) is excluded.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%ad|%cd|%P|%s' --date=iso-strict | head -300; git log --all --oneline | wc -l; ls
+Bash: git log --all --format='%h|%an|%ad|%cd|%p|%s' --date=short | awk -F'|' '{print}' | cut -c1-150 | head -120; git log --all --oneline | wc -l; git branch -a; ls -a; git log --format=%ad --date=format:%Y-%m | sort | uniq -c
+Bash: for c in $(git log --format=%h c94700d~1 -n 22 | head -21); do echo "== $(git log -1 --format='%h %an %cd %s' --date=short $c) parents=$(git log -1 --format=%p $c | wc -w)"; git show --numstat --format= -m --first-parent $c | awk '{a+=$1;d+=$2;print "   "$0} E
+Write: 
+Edit: /private/tmp/wp-r16/gate6/runs/W16T4-CV_I-2/fx/qoq.md
+### Final answer text
+I wrote the comparison for the executives to `qoq.md`. I didn't use the cv-builder skills, because they're for resumes and this was a git-history question.
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered | 7 | 12 | +71% |
+| Lines changed | 340 | 506 | +49% |
+| People | 2 | 2 | 0% |
+
+- **What I counted:**
+  - A change is a non-merge commit. I left merges out so their content isn't counted twice.
+  - Lines changed means lines added plus lines removed.
+  - People are the distinct human authors, so bots aren't counted.
+- **Wrong dates:** I kept all three commits and placed each by its neighbours in history.
+  - "Strip ANSI sequences" (dated 2037) falls between 1 and 9 September, so it counts in Q3.
+  - "Handle zero-length input" (dated 2037) falls between 19 May and 10 June, so it counts in Q2.
+  - "Read from pipes" has an author date of 1970, but its commit date is 15 July, so it counts in Q3.
+- **Bots and lockfile:** bot commits and `Cargo.lock` updates inflate the line counts. Without them, commits go from 6 to 9 (+50%) and lines from 140 to 199 (+42%). The direction is the same, and `qoq.md` says so in the method note.
+
+I counted bot commits (dependabot, release) as changes in the headline numbers. If you'd rather the headline show only human work, use the bot-free figures instead.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed) | 340 | 506 | **+49%** |
+| People contributing | 2 | 2 | **0%** |
+
+Same two engineers (Sven Larsen, Tara Singh) in both quarters, so the output gain came from more delivered per person, not more headcount.
+
+## Method note
+
+- Source: git history on `main`. A change is one non-merge commit. Merges are not counted, because that would count their content twice. Lines are added plus removed. People are distinct human authors, so bots are not counted.
+- **Bad clocks:** three commits had impossible dates. All three are kept and placed by their position in history:
+  - "Strip ANSI sequences" (dated 2037) sits between 1 and 9 Sep, so Q3.
+  - "Handle zero-length input" (dated 2037) sits between 19 May and 10 Jun, so Q2.
+  - "Read from pipes" (author date 1970) has a valid commit date of 15 Jul, so Q3.
+- **Bots:** dependabot and the release bot account for 3 of the Q3 commits and 1 of the Q2 commits. Bot commits and lockfile updates inflate line counts (Cargo.lock: 200 lines in Q2, 306 in Q3). Excluding bot commits and lockfile lines, the figures are 6 → 9 commits (+50%) and 140 → 199 lines (+42%). The direction is the same.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso-strict | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --graph --format='%h %p | %an | %ad | %s' --date=short 5100728^..HEAD | head -60; git branch -a
+Bash: git log --no-merges --numstat --format='C %h %an | %s' 5100728^..HEAD | grep -v '^$'
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-CV_I-3/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. Q3 had more changes and more code than Q2, from the same two people.
+
+| Measure | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes (commits) | 7 | 12 | +71% |
+| Lines changed | 140 | 200 | +43% |
+| People | 2 | 2 | 0% |
+
+- **Bad dates:** I placed the three wrong-dated commits by where they sit in the commit history, so none were lost.
+  - "Handle zero-length input" (dated 2037) falls between May 19 and June 10, so it counts in Q2.
+  - "Strip ANSI sequences in text column" (dated 2037) falls between Sep 1 and Sep 9, so it counts in Q3.
+  - "Read from pipes without buffering everything" (dated 1970) has a commit date of Jul 15, so it counts in Q3.
+- **What I counted:**
+  - Changes include the bot commits (dependency bumps and the release), but people are humans only. Human-only commits give +50%.
+  - Lines exclude `Cargo.lock`, which is generated. Including it gives +49%.
+  - Merge commits are not counted.
+- **Skills:** I didn't use the cv-builder skills because they are for resumes, not git history.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 7 | 12 | **+71%** |
+| Code changed (lines added + removed) | 140 | 200 | **+43%** |
+| People who contributed | 2 | 2 | **0%** |
+
+Q3 delivered more changes and more code with the same two-person team.
+
+## Method note
+
+- **Changes** are non-merge commits, including 1 bot commit in Q2 and 3 in Q3 (two dependency bumps and the 0.17.0 release). Counting human commits only gives 6 in Q2 and 9 in Q3, which is +50%.
+- **Code changed** is lines added plus lines removed. `Cargo.lock` is left out because it is generated. Including it gives 340 in Q2 and 506 in Q3, which is +49%.
+- **People** are distinct human authors. Bots are not counted.
+- **Wrong dates:** three commits had bad clocks, and all are included.
+  - "Handle zero-length input" was dated 2037. It sits between commits from 19 May and 10 June, so it is counted in **Q2**.
+  - "Strip ANSI sequences in text column" was dated 2037. It sits between commits from 1 Sep and 9 Sep, so it is counted in **Q3**.
+  - "Read from pipes without buffering everything" was dated 1970. Its commit date is 15 Jul 2026, so it is counted in **Q3**.
+- Commits outside the two quarters are excluded: "Add palette module" (28 Mar) and "Add after-quarter option" (3 Oct).
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%H|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: git log --first-parent --topo-order 510072840..HEAD --format='%h|%p|%an|%ad|%cd|%s' --date=short; git log --all --branches --not --remotes -q --oneline | head -0; git branch -a; echo; git log 510072840^..HEAD --numstat --format='C %h %an' --no-merges | grep -v
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-CV-1/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. Counting human commits only, Q3 delivered 50% more changes and 42% more code than Q2, with the same number of people.
+
+| | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes (commits) | 6 | 9 | +50% |
+| Lines changed (added + removed) | 140 | 199 | +42% |
+| People | 2 | 2 | 0% |
+
+**Bad dates:** I found three commits with bad dates and placed each by where it sits in the history. None were dropped.
+- **"Handle zero-length input":** dated 2037-05-28, it sits between 19 May and 10 June, so it counts in Q2.
+- **"Strip ANSI sequences in text column":** dated 2037-03-03, it sits between 1 and 9 September, so it counts in Q3.
+- **"Read from pipes without buffering everything":** its author date is 1970, but its committer date is 15 July 2026, so it counts in Q3.
+
+**What I counted:** Three choices of mine shape the numbers:
+- I left out the Dependabot and release-bot commits.
+- I left out merge commits.
+- I left out `Cargo.lock`, which is machine-generated, so one dependency update doesn't add 300 lines to Q3.
+
+If you'd rather count the bots and `Cargo.lock`, the figures become commits 7 → 12 (+71%), lines 340 → 506 (+49%) and people 2 → 4. The note in the file mentions this in one line.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits) | 6 | 9 | **+50%** |
+| Code changed (lines added + removed) | 140 | 199 | **+42%** |
+| People contributing | 2 | 2 | **0%** |
+
+**Summary:** The same two engineers delivered half again as many changes in Q3, and each change was about the same size, so total code changed grew by about 42%.
+
+## Method note
+
+- **Changes** are non-merge commits by people. Dependabot and release-bot commits are excluded, as are merge commits, which carry no code of their own.
+- **Code changed** is lines added plus lines removed. `Cargo.lock` is excluded because it is machine-generated.
+- **People** are distinct human authors.
+- **Bad dates:** Two commits had clocks set to 2037 and one had an author date of 1970. Each was assigned to a quarter by its position in the history, between its neighbouring commits, and none was dropped.
+  - "Handle zero-length input" (2037-05-28) falls between 19 May and 10 June, so it counts in Q2.
+  - "Strip ANSI sequences in text column" (2037-03-03) falls between 1 and 9 September, so it counts in Q3.
+  - "Read from pipes without buffering everything" (author date 1970) has a committer date of 15 July 2026, so it counts in Q3.
+- Commits after 30 September (for example 3 October) are outside the comparison.
+
+If bots and `Cargo.lock` were included, the picture is similar: commits 7 → 12 (+71%), lines 340 → 506 (+49%). People would be 2 → 4 (+100%) with the two bots counted.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls && git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso | head -200 && git log --all --oneline | wc -l && git branch -a
+Bash: git log --first-parent --format='%h %p|%an|%ad|%cd|%s' --date=short 5100728^..HEAD | cat; echo; git log --graph --oneline 5100728^..HEAD | cat; cat .mailmap 2>/dev/null; git log 5100728^..HEAD --format='%an <%ae>|%cn <%ce>' | sort | uniq -c
+Bash: git log 5100728^..HEAD --no-merges --format='@%h|%an|%s' --numstat | cat; git show --stat --format=%h a6a42bc | head; git diff --stat 45afddf a6a42bc | tail -3
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-CV-2/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`. I haven't committed it.
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered | 7 | 12 | +71% |
+| Lines of code changed (excluding `Cargo.lock`) | 140 | 200 | +43% |
+| People contributing | 2 | 2 | 0% |
+
+**Wrong dates:** Three commits have impossible dates, and I kept all of them. I placed each by its position in the history, between commits whose dates are trustworthy. Without that, a date filter would have dropped all three.
+- **"Handle zero-length input"** is dated 2037-05-28. It sits between a May 19 commit and a Jun 10 commit, so it counts in Q2.
+- **"Strip ANSI sequences in text column"** is dated 2037-03-03. It sits between a Sep 1 commit and a Sep 9 commit, so it counts in Q3.
+- **"Read from pipes without buffering everything"** has an author date of 1970-01-01. Its commit date is Jul 15, so it counts in Q3.
+
+**Choices I made that you may want to change:**
+- **Changes:** A change is a non-merge commit. That includes the bot commits (dependency bumps and the release). Counting only commits by people gives 6 in Q2 and 9 in Q3 (+50%). That figure is in a supporting table.
+- **Lines of code:** I left `Cargo.lock` out of the headline figure because auto-generated dependency updates inflate it. Including it gives 340 in Q2 and 506 in Q3 (+49%). Both versions are in the file.
+- **People:** People are distinct human authors. It's the same two, Sven Larsen and Tara Singh, in both quarters.
+
+I left out the Oct 3 commit (Q4) and the Mar 28 commit (Q1).
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: delivery comparison
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered | 7 | 12 | **+71%** |
+| Lines of code changed (excluding `Cargo.lock`) | 140 | 200 | **+43%** |
+| People contributing | 2 | 2 | **0%** |
+
+**Summary:** The team delivered noticeably more in Q3 with the same two people. Changes rose from 7 to 12 and code changed rose by 43%.
+
+## Supporting detail
+
+| Measure | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes by people only (bots excluded) | 6 | 9 | +50% |
+| Changes by automation (dependency bumps, release) | 1 | 3 | n/a |
+| Lines changed including `Cargo.lock` | 340 | 506 | +49% |
+
+## Method
+
+- **Source:** git history of `main`. Q2 is Apr 1 to Jun 30 and Q3 is Jul 1 to Sep 30, 2026.
+- **Change:** one commit, excluding merge commits, which add no code of their own. Lines changed are lines added plus lines removed.
+- **Lockfile:** the headline figure leaves out `Cargo.lock` because auto-generated dependency updates would inflate it. Both figures are shown above.
+- **People:** distinct human authors. Bots (dependabot, github-actions) are not counted.
+- **Commits with wrong dates:** three commits carry impossible dates (2037 twice, 1970 once). Each was placed by its position in the commit sequence, between commits with trustworthy dates, and none was dropped.
+  - "Handle zero-length input" is dated 2037-05-28 and sits between 19 May and 10 Jun commits, so it is counted in **Q2**.
+  - "Strip ANSI sequences in text column" is dated 2037-03-03 and sits between 1 Sep and 9 Sep commits, so it is counted in **Q3**.
+  - "Read from pipes without buffering everything" has an author date of 1970-01-01. Its commit date is 15 Jul 2026, so it is counted in **Q3**.
+- **Excluded:** the 3 Oct commit ("Add after-quarter option") is Q4, and the 28 Mar commit is Q1.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T4-CV-3/fx; git log --all --format='%h|%an|%ae|%ad|%cd|%s' --date=iso | head -100; git log --all --oneline | wc -l; ls
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T4-CV-3/fx; git log --format='@%h|%an|%cd|%p|%s' --date=short --numstat c94700d~0 -n 22 | grep -v '^$'; git log --all --oneline | wc -l; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T4-CV-3/fx; cat > qoq.md <<'EOF' ; # Q3 2026 vs Q2 2026: Delivery Comparison ;  ; | Metric | Q2 2026 | Q3 2026 | Change | ; |---|---:|---:|---:| ; | Changes delivered | 7 | 12 | **+71.4%** | ; | Lines of code changed (added + removed) 
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T4-CV-3/fx; sed -i 's/Q3: 302 lines from one dependency update/Q3: 306 lines across three lockfile updates/; s/190 in Q3 (+35.7%)/200 in Q3 (+42.9%)/' qoq.md; grep -n Cargo qoq.md
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T4-CV-3/fx; sed -i '' 's/Q3: 302 lines from one dependency update/Q3: 306 lines across three lockfile updates/; s/190 in Q3 (+35.7%)/200 in Q3 (+42.9%)/' qoq.md; sed -n 11p qoq.md
+### Final answer text
+I've written the comparison to `qoq.md` and just finished correcting the lockfile figures in it.
+
+| Metric | Q2 2026 | Q3 2026 | Change |
+|---|---:|---:|---:|
+| Changes delivered | 7 | 12 | +71.4% |
+| Lines changed (added + removed) | 340 | 506 | +48.8% |
+| People | 2 | 2 | 0% |
+
+- **Wrong dates:** All three commits are kept, and I placed them by where they sit in the history.
+  - "Handle zero-length input" is dated 2037 but sits between two May and June commits, so it counts in Q2.
+  - "Strip ANSI sequences in text column" is dated 2037 but sits between 1 and 9 September, so it counts in Q3.
+  - "Read from pipes without buffering everything" has a 1970 author date, but its commit date is 15 July 2026, so it counts in Q3.
+- **What counts:** A change is a non-merge commit. Merge commits are not counted. People are human authors only, so dependabot and the release bot are excluded. The 3 October commit falls outside both quarters.
+- **Lockfile churn:** Much of the line growth is `Cargo.lock` updates. Without them, lines changed go from 140 to 200 (+42.9%).
+- **Bot commits:** Bots made 1 change in Q2 and 3 in Q3. Counting only human-authored work, changes go from 6 to 9 (+50%).
+
+`qoq.md` also has a short method note.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: Delivery Comparison
+
+| Metric | Q2 2026 | Q3 2026 | Change |
+|---|---:|---:|---:|
+| Changes delivered | 7 | 12 | **+71.4%** |
+| Lines of code changed (added + removed) | 340 | 506 | **+48.8%** |
+| People contributing | 2 | 2 | **0%** |
+
+**Reading the numbers**
+- The team delivered more with the same two people.
+- Much of the line growth is generated lockfile churn (Q2: 200 lines from one dependency bump; Q3: 306 lines across three lockfile updates). Excluding `Cargo.lock`, lines changed were 140 in Q2 and 200 in Q3 (+42.9%).
+- Bots (dependabot, release automation) account for 1 change in Q2 and 3 in Q3. Counting only human-authored work: 6 vs 9 changes (+50.0%).
+
+**Method**
+- A change is a non-merge commit on `main`; a merge commit is not counted. Lines are added plus removed. People are distinct human authors; bots are excluded.
+- Quarters are calendar quarters (Q2 = Apr–Jun, Q3 = Jul–Sep). The 3 Oct commit is outside both.
+- Three commits had wrong dates and were kept, placed by the commit order in history:
+  - "Handle zero-length input" is dated 2037 but sits between May and June commits, so it counts in **Q2**.
+  - "Strip ANSI sequences in text column" is dated 2037 but sits between 1 and 9 Sept, so it counts in **Q3**.
+  - "Read from pipes without buffering everything" has an author date of 1970, but its commit date is 15 July 2026, so it counts in **Q3**.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: C="node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js"; $C people --since 2026-07-01 --until 2026-09-30 2>&1 | head -60; echo ======; $C people --since 2026-04-01 --until 2026-06-30 2>&1 | head -60
+Bash: C="node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js"; $C figures --since 2026-07-01 --until 2026-09-30 2>&1 | head -80; echo ======; $C figures --since 2026-04-01 --until 2026-06-30 2>&1 | head -80
+Bash: c(){ node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js "$@"; }; for r in "2026-07-01 2026-09-30" "2026-04-01 2026-06-30"; do set -- $r; echo "##### $1..$2"; c people --since $1 --until $2 2>&1 | head -60; echo ---; c figures --since $1 --until $2 2>&1 | hea
+Bash: c(){ node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js "$@"; }; echo "##### Q3"; c people --since 2026-07-01 --until 2026-09-30; echo ---; c figures --since 2026-07-01 --until 2026-09-30; echo "##### Q2"; c people --since 2026-04-01 --until 2026-06-30; echo
+Bash: git log --no-merges --format='%h|%an|%ae|%aI|%cI|%s' --since=2026-01-01 2>/dev/null | head -50; echo; git log --no-merges --format='%h|%an|%aI|%cI' | awk -F'|' '$3<"1990" || $3>"2026-10-25" || $4<$3' | head -30; git log --merges --format='%h|%an|%aI|%s' | head
+Bash: for h in 98e71ac f734b23 45afddf; do echo "== $h parent/child"; git log --format='%h %p %aI %s' -1 $h; git log --format='   parent %h %aI' -1 $h^; git log --format='   child %h %aI' --ancestry-path --reverse $h..HEAD | head -1; done ; echo; git log --no-merges -
+Bash: for h in 98e71ac f734b23 45afddf ec0b7fd a5258c5 7451092 c95a7d7; do echo "$h $(git show --no-merges --numstat --format= $h | awk '{a+=$1;d+=$2;p=p" "$3} END{print "+"a" -"d, p}')"; done
+Bash: git show --numstat --format='%h %an %s' 4fcd2b8 | head; for h in 3c22922 2925488 ef46da9 5b012a4; do git show --numstat --format='%h %an' $h | head -3; done
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-OURS-1/fx/qoq.md
+### Final answer text
+I wrote the comparison to `qoq.md`. The team delivered 50% more changes in Q3, changed 42% more code, and had the same two people both quarters.
+
+| | Q2 2026 | Q3 2026 | Change |
+|---|---|---|---|
+| Changes delivered (commits by people) | 6 | 9 | +50% |
+| Code changed (lines added + removed) | 140 | 199 | +42% |
+| People | 2 | 2 | 0% |
+
+**The three commits with wrong dates:** all three are counted, each placed by where it sits in the history.
+- Two were dated 2037. One falls between 19 May and 10 Jun, so it counts in Q2. The other falls between 1 and 9 Sep, so it counts in Q3.
+- One was dated 1970 but was committed on 15 Jul, so it counts in Q3.
+- The tool I used for counts doesn't place the 2037 commits, so I counted them by hand from the history.
+
+**What's left out of the headline:**
+- Automated accounts and one merge commit are excluded. Counting the automated commits too gives 7 in Q2 and 12 in Q3 (+71%); `qoq.md` shows this next to the headline.
+- A 300-line auto-generated dependency file is excluded from Q3's lines. With it, Q3 would be 499 lines added.
+- One commit dated 3 Oct falls after the quarter, so it isn't counted.
+
+With only 6 and 9 commits, one commit moves a percentage by 11–17 points, so the file says to read these as direction rather than precise rates.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026
+
+| | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered (commits by people) | 6 | 9 | **+50%** |
+| Code changed (lines added + removed) | 140 | 199 | **+42%** |
+| People who delivered | 2 | 2 | **0%** (same two people) |
+
+- Lines added alone: 120 in Q2, 199 in Q3 (+66%).
+- Counting automated commits too (dependency updates and the 0.17.0 release record): 7 in Q2, 12 in Q3 (+71%).
+- Work per person rose from 3.0 to 4.5 changes each (+50%).
+- Q3's 199 lines leave out a 300-line auto-generated dependency list (Sven Larsen, 1 Sep, 4fcd2b8). Counting it, Q3 would be 499 lines added.
+
+## Method note
+
+- Counts cover non-merge commits by Tara Singh and Sven Larsen. Automated accounts and one merge commit (Q3) are left out of the headline figures. Lines are those added or removed, excluding generated dependency files. Dates are read in UTC.
+- Three commits had clearly wrong dates. None were dropped, and each was placed by where it sits in the history, between the commits before and after it:
+  - 98e71ac (Tara Singh, dated 2037) sits between 1 and 9 Sep, so it counts in **Q3**.
+  - f734b23 (Sven Larsen, dated 2037) sits between 19 May and 10 Jun, so it counts in **Q2**.
+  - 45afddf (Tara Singh, dated 1970) was recorded on 15 Jul, so it counts in **Q3**.
+- One commit dated 3 Oct (c94700d) falls after the quarter and is not counted.
+- Small numbers: one commit moves a percentage by 11–17 points, so read these as direction rather than precise rates.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: CLI=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; node $CLI --help 2>&1 | head -40; echo ----Q2; node $CLI people --since 2026-04-01 --until 2026-06-30 2>&1; echo ----Q3; node $CLI people --since 2026-07-01 --until 2026-09-30 2>&1
+Bash: CLI=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; for q in "2026-04-01 2026-06-30" "2026-07-01 2026-09-30"; do set -- $q; for p in "Tara Singh" "Sven Larsen"; do echo "=== $1 $p"; node $CLI figures --person "$p" --since $1 --until $2; done; done; echo; git 
+Bash: git log --format='%h %p | %an | %ad | %s' --date=short --first-parent -25; echo; git log --graph --oneline -25 | head -40; echo; git show --stat --format='%h %an %ad %cd %s' 98e71ac f734b23 | head -30; git branch -a; git tag | tail -5
+Bash: for c in a2a08bb 20d8dcd 077125b 04cc917 f734b23 703f804 c95a7d7 45afddf ec0b7fd a5258c5 7451092 b5385bc 4fcd2b8 98e71ac 018f58f; do echo "$c $(git log -1 --format='%an' $c) $(git show --numstat --format= $c | awk '{a+=$1;d+=$2} END{print a, d}')"; done; git s
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-OURS-2/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`. Q3 delivered 9 changes against 6 in Q2, and the number of people stayed at 2.
+
+| | Q2 | Q3 | Change |
+|---|---|---|---|
+| Changes delivered | 6 | 9 | +50% |
+| Lines changed (added + removed) | 140 | 197 | +41% |
+| People | 2 | 2 | 0% |
+
+- **Same two people:** Tara Singh and Sven Larsen delivered in both quarters. Tara went from 3 changes to 5, and Sven from 3 to 4.
+- **Dependency list:** The Q3 line count leaves out a 300-line auto-generated dependency list in commit 4fcd2b8. With it counted, Q3 is 499 lines, which is +256%. `qoq.md` states both figures.
+- **Wrong dates:** Three commits had wrong dates, and I kept all three. I placed them by where they sit in the history, so f734b23 counts in Q2, and 45afddf and 98e71ac count in Q3. 45afddf shows 1970 but was recorded as saved on 15 Jul 2026. The tool's own counts do not include f734b23 and 98e71ac, so I counted those two by hand. Without these placements the counts would be 5 and 8.
+- **Left out of the totals:**
+  - Software-account changes: 1 in Q2 and 3 in Q3.
+  - A merge commit in Q3.
+  - c94700d, dated 3 Oct, which falls after the quarter.
+
+The method note at the end of `qoq.md` is short, and the document has no commands or tool names in it.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026
+
+| | Q2 (Apr–Jun) | Q3 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered | 6 | 9 | **+50%** |
+| Code changed (lines added + removed) | 140 | 197 | **+41%** |
+| People who delivered | 2 | 2 | **0%** |
+
+The same two people, Tara Singh and Sven Larsen, delivered in both quarters. Tara went from 3 changes to 5 and Sven from 3 to 4.
+
+If the 300-line auto-generated dependency list (part of 4fcd2b8, 1 Sep) is counted as code, Q3 rises to 499 lines, **+256%**. I left it out of the headline because a tool writes that file, not a person.
+
+## Commits with wrong dates
+
+Three commits carry bad laptop clocks. I kept all three and placed each one by the commits around it.
+
+| Commit | Date it shows | Counted in | Basis |
+|---|---|---|---|
+| f734b23, Sven Larsen | 28 May 2037 | Q2 | sits between commits of 19 May and 10 Jun |
+| 45afddf, Tara Singh | 1 Jan 1970 | Q3 | recorded as saved on 15 Jul 2026 |
+| 98e71ac, Tara Singh | 3 Mar 2037 | Q3 | sits between commits of 1 Sep and 9 Sep |
+
+Without this placement, those three would be lost or would land in the wrong quarter. Without them the counts would be 5 and 8 changes.
+
+## Left out of the totals
+
+- Automatic changes by software accounts: 1 in Q2 and 3 in Q3 (dependency bumps and the 0.17.0 release entry).
+- One merge in Q3 that only joined two lines of work together. It adds no new code.
+- One change dated 3 Oct 2026 (c94700d). It falls after the quarter.
+
+## Method
+
+Counts are changes recorded in the project history, dated by when they were written, in UTC. Lines are added plus removed. Commit counts and line totals come from the history, with the three wrong dates placed by hand as shown above. Size is a rough measure of effort, not a measure of value.
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: N="node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js"; $N --help 2>&1 | head -40; echo ----Q2; $N people --since 2026-04-01 --until 2026-06-30 2>&1; echo ----Q3; $N people --since 2026-07-01 --until 2026-09-30 2>&1
+Bash: C=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; node $C --help 2>&1 | head -40; echo ----Q2; node $C people --since 2026-04-01 --until 2026-06-30 2>&1; echo ----Q3; node $C people --since 2026-07-01 --until 2026-09-30 2>&1
+Bash: C=/private/tmp/wp-r16/arms/ours20/dist/src/cli.js; for p in "Tara Singh" "Sven Larsen"; do for w in "2026-04-01 2026-06-30" "2026-07-01 2026-09-30"; do set -- $w; echo "=== $p $1"; node $C figures --person "$p" --since $1 --until $2; done; done; git log --all 
+Bash: git log --format='%h %p | %an | %s' --since=2026-03-01 | head -30; echo; git log --no-merges --format='@%h %an A:%aI' --numstat --since=2026-03-01 | awk '/^@/{h=$1" "$2" "$3" "$4" "$5;next} NF{print h": "$1" "$2" "$3}' | grep -v bot
+Write: /private/tmp/wp-r16/gate6/runs/W16T4-OURS-3/fx/qoq.md
+### Final answer text
+I've written the comparison to `qoq.md`. The same two people, Tara Singh and Sven Larsen, delivered 6 changes in Q2 and 9 in Q3 (+50%). Lines changed went from 140 to 199 (+42%).
+
+- **Lines:** these are lines added plus lines removed. That figure leaves out one machine-generated dependency-lock update of 300 lines in Q3. If you count it, Q3 is 499 lines and the change is +256%. The file shows both, with 199 as the headline.
+- **Bad dates:** all three commits with bad dates are included.
+  - **1970 commit:** it is counted in Q3 by its recorded commit date, 15 Jul.
+  - **Two 2037 commits:** the tool left these out of both quarters. I placed them by where they sit in the history between commits with sound dates. One lands in Q2 and one in Q3. Those two placements are inferences, not recorded dates. Without them the totals would be 5 vs 8 changes (+60%).
+- **Not counted:** merge commits, bot commits (1 in Q2, 3 in Q3), and a commit dated 3 Oct, which falls after the quarter.
+### Files it left in the working directory
+--- qoq.md
+# Q3 2026 vs Q2 2026: delivery comparison
+
+| Measure | Q2 2026 (Apr–Jun) | Q3 2026 (Jul–Sep) | Change |
+|---|---|---|---|
+| Changes delivered | 6 | 9 | +50% |
+| Lines of code changed (added + removed) | 140 | 199 | +42% |
+| People who delivered | 2 | 2 | 0% |
+
+**Headline:** the same two people (Tara Singh and Sven Larsen) delivered half again as many changes in Q3, with about 40% more code changed.
+
+**Lines, other reading:** Q3 also includes one automatic dependency-lock update of 300 lines (Sven Larsen, 1 Sep, 4fcd2b8). Counting it, Q3 is 499 lines against 140, +256%. It is machine-generated, so the table leaves it out.
+
+**Split by person**
+
+| | Q2 changes | Q3 changes |
+|---|---|---|
+| Tara Singh | 3 | 5 |
+| Sven Larsen | 3 | 4 |
+
+## Method note
+
+- A "change" is one authored commit. Merge commits and automated bot commits (1 in Q2, 3 in Q3) are not counted.
+- Lines are those added plus those removed. In Q2, 20 lines were removed; in Q3, none.
+- Quarters follow the date the work was written, in UTC.
+- Three commits had unusable dates, and all three are included:
+  - 45afddf (Tara Singh) is dated 1970. It is counted in Q3 by its recorded commit date, 15 Jul.
+  - f734b23 (Sven Larsen) is dated 2037. It sits in the history between work from 19 May and 10 Jun, so it is counted in Q2.
+  - 98e71ac (Tara Singh) is dated 2037. It sits between work from 1 Sep and 18 Sep, so it is counted in Q3.
+  - The two 2037 placements are inferred from their position in the history, not from a recorded date. Without them, the figures would be 5 vs 8 changes (+60%).
+- One commit dated 3 Oct falls after the quarter and is not counted.

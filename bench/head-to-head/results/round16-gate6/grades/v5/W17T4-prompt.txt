@@ -1,0 +1,850 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "For an audit I need to know whether any security setting in config/policy.toml was loosened, switched off or removed and later put back, or tightened or added and then quietly taken out again, since 1 March 2025. Do not rely on the word "revert" in commit messages; people don't always say it. For each case give the commits (short hash, author, date), what changed, how long the weaker or stronger state lasted, and how you know it was a back-out. Also say what the history cannot show me about this file."
+Ground truth: Key-level changes in config/policy.toml (commit | author | date | key old->new | direction | back-out?)
+72d9a89c5b | Hana Sato | 2025-03-17 | auth.max_age_days 90->30 | STRONGER | new value | msg: Tighten token age to 30 days
+e0b30544b0 | Eli Brandt | 2025-04-01 | auth.mfa true->false | WEAKER | new value | msg: Disable mfa check temporarily for CI
+72c5768836 | Hana Sato | 2025-04-03 | auth.mfa false->true | STRONGER | BACK-OUT of earlier value | msg: Revert "Disable mfa check temporarily for CI"
+42367d1085 | Eli Brandt | 2025-05-12 | auth.max_age_days 30->90 | WEAKER | BACK-OUT of earlier value | msg: Align max age with docs
+83f3062ae8 | Hana Sato | 2025-07-01 | signing.allow_unsigned None->false | STRONGER | new value | msg: Refuse unsigned releases
+183a58a316 | Eli Brandt | 2025-08-12 | signing.allow_unsigned false->None | WEAKER | BACK-OUT of earlier value | msg: Simplify config
+0e50733f19 | Eli Brandt | 2025-09-10 | auth.mfa true->false | WEAKER | BACK-OUT of earlier value | msg: Revert "Revert "Disable mfa check temporarily for CI""
+ec78ec445f | Hana Sato | 2026-02-02 | auth.mfa false->true | STRONGER | BACK-OUT of earlier value | msg: CI fixed, mfa back on
+
+Durations (days between recorded commits):
+  auth.max_age_days: state 30 from 72d9a89c5b (2025-03-17) to 42367d1085 (2025-05-12): 56 days
+  auth.max_age_days: state 90 from 42367d1085 (2025-05-12) to HEAD (still in force at HEAD)
+  auth.mfa: state false from e0b30544b0 (2025-04-01) to 72c5768836 (2025-04-03): 2 days
+  auth.mfa: state true from 72c5768836 (2025-04-03) to 0e50733f19 (2025-09-10): 160 days
+  auth.mfa: state false from 0e50733f19 (2025-09-10) to ec78ec445f (2026-02-02): 145 days
+  auth.mfa: state true from ec78ec445f (2026-02-02) to HEAD (still in force at HEAD)
+  signing.allow_unsigned: state false from 83f3062ae8 (2025-07-01) to 183a58a316 (2025-08-12): 42 days
+  signing.allow_unsigned: state None from 183a58a316 (2025-08-12) to HEAD (still in force at HEAD)
+
+Commits since 2025-03-01 whose message contains 'revert' (case-insensitive; two upstream 2023-24 reverts are before the window):
+  a81605a | Hana Sato | 2025-10-15T10:00:00Z | Revert "Add badge to README"
+  bd3cdcb | Hana Sato | 2025-10-01T10:00:00Z | Revert comment wording in policy header
+  0e50733 | Eli Brandt | 2025-09-10T10:00:00Z | Revert "Revert "Disable mfa check temporarily for CI""
+  72c5768 | Hana Sato | 2025-04-03T10:00:00Z | Revert "Disable mfa check temporarily for CI"
+Of these, NOT a value back-out of policy.toml: the comment-wording commit (comments only, no key changed) and the README revert (different file).
+Back-outs that never use the word revert: the max_age_days 30->90 commit, the [signing] removal, and the final mfa false->true commit.
+Cannot be shown by history: whether the setting was enforced by anything outside this file; force-pushed or squashed intermediate states; real-world time the config was deployed.
+Hazards: reverts without the word "revert", revert of a revert, revert wording on commits that change no value, README revert outside the file, tightening taken out by a "docs alignment" commit, a whole block removed, upstream reverts older than the window. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The reader receives all five back-outs by value, each with commit, author and date: mfa back on (72c5768, explicit revert), max_age_days 30->90 (42367d1, "Align max age with docs"), [signing] allow_unsigned removed (183a58a, "Simplify config"), mfa off again (0e50733, revert of the revert), mfa on again (ec78ec4, "CI fixed, mfa back on"). FAILS if either of the two quiet ones (42367d1, 183a58a) is missing.
+C2 Commits named "Revert ..." that are not back-outs of this file are not reported as such: "Revert comment wording in policy header" (comment only) and "Revert 'Add badge to README'" (another file) are excluded or explicitly cleared, and the 2023-24 upstream reverts are not reported. FAILS if any is presented as a back-out of policy.toml.
+C3 Durations are correct and use stated dates: mfa off 2025-04-01 to 2025-04-03 (2 days), mfa off again 2025-09-10 to 2026-02-02 (145 days), max_age_days 30 in force 2025-03-17 to 2025-05-12 (56 days), allow_unsigned in force 2025-07-01 to 2025-08-12 (42 days). FAILS if any figure is off by more than a day without a stated reason, or if the 145-day period is merged into the first.
+C4 The revert-of-revert is handled correctly: 0e50733 re-disables mfa (a loosening) even though its message says Revert, and the answer gives the final state at HEAD (mfa on, max_age_days 90, no signing block). FAILS if it describes 0e50733 as restoring security or gives a wrong current state.
+C5 The answer states limits of the history for this file (commit dates are recording times, not deployment times; enforcement outside the file is unknown; squashed or force-pushed intermediate states are invisible; the message text is not evidence of what was done). FAILS if no limitation is given or if it claims the history proves the periods the control was really off.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; git log --all --oneline | wc -l; git branch -a; git log --oneline --all -- config/policy.toml | wc -l
+Bash: git log --reverse --format='=== %h %an %ad %cd %s' --date=short -p -M -- config/policy.toml; git log --all --oneline --diff-filter=DR --name-status -- config | head; git log --format='%h %an %ad %s' --date=short --since=2025-03-01 -- . ':!config/policy.toml' |
+### Final answer text
+Since 1 March 2025, `config/policy.toml` has four cases where a setting was changed and then put back. Two of them are the same MFA switch, loosened twice. The file has 10 commits, all of them in the window, and I read every diff. Only one of the four back-outs says "revert" in its message.
+
+| # | Setting | Weakened or strengthened | Back-out | Duration |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | Loosened | `72c5768` | 2 days |
+| 2 | `auth.max_age_days` | Tightened | `42367d1` | 56 days |
+| 3 | `[signing] allow_unsigned = false` | Added | `183a58a` | 42 days |
+| 4 | `auth.mfa` | Loosened | `ec78ec4` | 145 days |
+
+**1. MFA switched off for two days**
+- **Off:** `e0b3054`, Eli Brandt, 2025-04-01, "Disable mfa check temporarily for CI". It changed `mfa = true` to `false`.
+- **Back on:** `72c5768`, Hana Sato, 2025-04-03, "Revert …". It changed `mfa = false` back to `true`.
+- **Duration:** the weaker state lasted 2 days.
+- **How I know it was a back-out:** the diff is the exact inverse of the earlier one, and the file's content hash after it matches the one before `e0b3054`. The message also says "revert", but I didn't rely on that.
+
+**2. Token age tightened, then quietly relaxed**
+- **Tightened:** `72d9a89`, Hana Sato, 2025-03-17, "Tighten token age to 30 days". It changed `max_age_days` from 90 to 30.
+- **Taken out:** `42367d1`, Eli Brandt, 2025-05-12, "Align max age with docs". It changed `max_age_days` from 30 back to 90.
+- **Duration:** the stricter state lasted 56 days.
+- **How I know it was a back-out:** the message doesn't say revert. But the file after it is byte-identical to the original `9ef42cd` version, so 30 days was undone completely. Nothing in the history says whether 30 days was ever wrong or whether the docs were the thing to fix.
+
+**3. Signing rule added, then removed**
+- **Added:** `83f3062`, Hana Sato, 2025-07-01, "Refuse unsigned releases". It added `[signing] allow_unsigned = false`.
+- **Removed:** `183a58a`, Eli Brandt, 2025-08-12, "Simplify config". It deleted the whole `[signing]` section.
+- **Duration:** the rule was in force for 42 days.
+- **How I know it was a back-out:** the diff deletes exactly the lines `83f3062` added, and the file is byte-identical to its pre-July state. The message gives no hint of a security change. Because the section is gone rather than set to `true`, whatever reads this file would fall back to its own default for unsigned releases. **That rule is still absent today.**
+
+**4. MFA switched off again for about five months**
+- **Off:** `0e50733`, Eli Brandt, 2025-09-10, `Revert "Revert "Disable mfa check temporarily for CI""`. It changed `mfa = true` to `false`.
+- **Back on:** `ec78ec4`, Hana Sato, 2026-02-02, "CI fixed, mfa back on". It changed `mfa = false` to `true`.
+- **Duration:** the weaker state lasted 145 days, and the "temporary" label in the original message did not hold.
+- **How I know it was a back-out:** the diff is the inverse of the loosening, and the file went from `mfa = false` to `true`. The message is explicit, and `ec78ec4` matches `72c5768`'s change. The "revert of a revert" in `0e50733` is a re-loosening, not a restoration, so the wording there is misleading.
+
+**Not a case:** `bd3cdcb` ("Revert comment wording in policy header", 2025-10-01) changed only the header comment, to `# Repository policy (owner: platform team)`. No setting changed, despite the word "revert".
+
+**Current state:** `require_review = true`, `mfa = true`, `max_age_days = 90`, and no `[signing]` secti
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso --since=2025-03-01 --reverse -- config/policy.toml; echo; git log --format='%h|%an|%ad|%s' --date=iso -1 --before=2025-03-01 -- config/policy.toml; git log --all --oneline | wc -l; git branch -a; git status 
+Bash: for c in $(git log --follow --format=%h --since=2025-03-01 --reverse -- config/policy.toml); do echo "=== $c"; git show $c --format='%h %an %ad%n%B%P' --date=iso -- config/policy.toml; done; git log --oneline | wc -l; git log --format='%h|%an|%ad|%cn|%cd|%s' -
+### Final answer text
+Since 1 March 2025 there are four cases. The file was created on 2025-03-03 (`9ef42cd`), so there is nothing earlier to check. I read the full diff of all 10 commits that touched it, and the cases come from the content changes, not the commit messages. Author and committer are the same person on every commit. Durations are measured between commit timestamps.
+
+| # | Setting | Direction | Lasted |
+|---|---|---|---|
+| 1 | `auth.mfa` | loosened, then restored | 2 days |
+| 2 | `auth.max_age_days` | tightened, then undone | 56 days |
+| 3 | `[signing] allow_unsigned = false` | added, then removed | 42 days |
+| 4 | `auth.mfa` | loosened again, then restored | 145 days |
+
+**1. MFA switched off, then restored (loosened)**
+- `e0b3054`, Eli Brandt, 2025-04-01: `mfa = true` became `false` ("Disable mfa check temporarily for CI").
+- `72c5768`, Hana Sato, 2025-04-03: `mfa` set back to `true`.
+- It was weaker for 2 days.
+- I know it was a back-out because the diff is the exact inverse of `e0b3054`. The blob hash `128a0fe` is identical before and after. The message is also a formal `git revert`.
+
+**2. Token age tightened, then quietly undone**
+- `72d9a89`, Hana Sato, 2025-03-17: `max_age_days` went from 90 to 30.
+- `42367d1`, Eli Brandt, 2025-05-12: `max_age_days` went from 30 back to 90 ("Align max age with docs").
+- The stricter state lasted 56 days.
+- I know it was a back-out because the file's blob hash after `42367d1` is `e43509e`, byte-identical to the original in `9ef42cd`. The message says nothing about security or about removing the 30-day limit.
+
+**3. Unsigned-release ban added, then removed**
+- `83f3062`, Hana Sato, 2025-07-01: added `[signing] allow_unsigned = false` ("Refuse unsigned releases").
+- `183a58a`, Eli Brandt, 2025-08-12: removed the whole section ("Simplify config").
+- The control existed for 42 days.
+- I know it was a back-out because the file hash returned to `e43509e` again. The diff is the exact inverse of `83f3062`. Removing the section also drops the explicit `false`, and the file now says nothing about unsigned releases. Whether unsigned releases are then allowed depends on the tool's default, which the file doesn't show.
+
+**4. MFA switched off again, then restored (loosened)**
+- `0e50733`, Eli Brandt, 2025-09-10: `mfa` set to `false` again. The message is `Revert "Revert ..."`, and it re-applies `e0b3054`'s change.
+- `ec78ec4`, Hana Sato, 2026-02-02: `mfa` set back to `true` ("CI fixed, mfa back on").
+- It was weaker for 145 days. This is the longest and most notable case.
+- I know it was a back-out because the diff is the inverse of `0e50733`. The content matches the pre-September state, apart from the comment change below.
+- The "temporary" justification from case 1 was reused here with no end date.
+
+**Not a security change:** `bd3cdcb` (Hana Sato, 2025-10-01) is titled "Revert comment wording". It only changed the header comment to "(owner: platform team)" and touched no setting. Despite the title, it reverts nothing. It is also why the current file differs slightly from the original.
+
+**State now:** `mfa = true`, `max_age_days = 90`, `require_review = true`, and no signing section. Compared with 3 March 2025, the only differences are the header comment and the (unchanged) absence of a signing rule.
+
+**What the history can't show you**
+- **Enforcement:** it shows what was committed, not what was deployed or enforced. Whether MFA was actually off from 10 September to 2 February depends on when CI or other systems picked
+### Files it left in the working directory
+(none)
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso --since=2025-03-01 -- config/policy.toml; echo; git log --all --oneline | wc -l; git branch -a; git log --format='%h %ad' --date=iso -1 --until=2025-03-01 -- config/policy.toml; git rev-parse --is-shallow-re
+Bash: git log --follow -p --reverse --format='=== %h %an %ad %s' --date=iso -- config/policy.toml; git log --oneline --merges | head; git log --diff-filter=DR --name-status --oneline -- config | head
+### Final answer text
+Four security settings in `config/policy.toml` were weakened or tightened and later backed out. I read the full patch history from `git log --follow -p`, so these findings come from the diffs, not the commit messages. The file's first commit is 9ef42cd on 3 Mar 2025, and `main` is the only branch.
+
+The baseline in 9ef42cd (Hana Sato, 2025-03-03) was `require_review = true`, `mfa = true` and `max_age_days = 90`.
+
+## Cases
+
+**1. MFA switched off, then back on (short)**
+- **Commits:** e0b3054 (Eli Brandt, 2025-04-01) set `mfa = true` to `false`. 72c5768 (Hana Sato, 2025-04-03) set it back to `true`.
+- **Duration:** the weaker state lasted 2 days (48 hours).
+- **How I know it was a back-out:** the 72c5768 diff is the exact inverse of e0b3054, and the file blob is identical to the pre-April one (`128a0fe`). Its message also says "Revert".
+
+**2. Token age tightened, then quietly relaxed (no "revert" wording)**
+- **Commits:** 72d9a89 (Hana Sato, 2025-03-17, "Tighten token age to 30 days") changed `max_age_days` from 90 to 30. 42367d1 (Eli Brandt, 2025-05-12, "Align max age with docs") changed it back to 90.
+- **Duration:** the stricter state lasted 56 days.
+- **How I know it was a back-out:** the file after 42367d1 is byte-identical to the file before 72d9a89 (blob `e43509e`). The message presents it as a docs alignment and doesn't mention the 30-day tightening. Whether the docs or the policy was right is not something the history can tell you.
+
+**3. Unsigned releases refused, then quietly removed (no "revert" wording)**
+- **Commits:** 83f3062 (Hana Sato, 2025-07-01, "Refuse unsigned releases") added a `[signing]` section with `allow_unsigned = false`. 183a58a (Eli Brandt, 2025-08-12, "Simplify config") deleted the section.
+- **Duration:** the control existed for 42 days.
+- **How I know it was a back-out:** the file after 183a58a is again byte-identical to its state before 83f3062 (blob `e43509e`). The removal is described as a simplification.
+- **Open question:** deleting the key removes the explicit `false`. What the tooling does with no value is not in this repo.
+
+**4. MFA switched off again, then back on (still open until Feb 2026)**
+- **Commits:**
+  - 0e50733 (Eli Brandt, 2025-09-10, `Revert "Revert "Disable mfa check temporarily for CI""`) set `mfa = false`.
+  - bd3cdcb (Hana Sato, 2025-10-01) only changed the header comment and left MFA off. Despite its "Revert" title, it reverts nothing and isn't a security change.
+  - ec78ec4 (Hana Sato, 2026-02-02, "CI fixed, mfa back on") set `mfa = true`.
+- **Duration:** MFA was off for 145 days (2025-09-10 to 2026-02-02).
+- **How I know it was a back-out:** the diff in ec78ec4 flips `false` back to `true`. The only difference from the earlier compliant state is the header comment added in bd3cdcb.
+- **Caveat on the message:** the double-revert message hides that this commit disables MFA. It did so as a permanent change, with no "temporary" wording this time.
+
+## What the history cannot show
+
+- **Enforcement:** it records what was committed on `main`, not what was deployed or enforced. I can't tell whether CI or any tool read these values, or whether MFA was actually off in practice.
+- **Approval:** it doesn't show who reviewed or approved each change. Review and merge records live on the hosting platform, not in git.
+- **Trusting the dates and names:** author names and dates are self-reported and can be set freely. I used author dates, all at 10:00 UTC, which look synthetic, so durations are only 
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; git log --oneline | wc -l; git status --short | head; git log --all --oneline | wc -l
+Bash: git log --follow -p --reverse --format='=== %h %an %ad %s' --date=iso -- config/policy.toml; git log --format='%h %ad' --date=short -1 --diff-filter=A -- config/policy.toml; git log --all --diff-filter=D --oneline -- config/policy.toml; git log --merges --onel
+### Final answer text
+Yes. I found four cases in `config/policy.toml` since 1 March. The file was created on 2025-03-03 (9ef42cd), so there is no earlier history. I read every commit that touched it, with `--follow` and all refs. Times are as recorded in the commits.
+
+| # | Setting | Weaker or stronger state | Duration |
+|---|---|---|---|
+| 1 | `auth.mfa` | off | 2 days |
+| 2 | `auth.max_age_days` | 30 (stronger) | 56 days |
+| 3 | `signing.allow_unsigned = false` | present (stronger) | 42 days |
+| 4 | `auth.mfa` | off again | 145 days |
+
+**1. MFA switched off, then restored (April 2025)**
+- Off: e0b3054, Eli Brandt, 2025-04-01. It changed `mfa = true` to `false`, "temporarily for CI".
+- Back on: 72c5768, Hana Sato, 2025-04-03.
+- The weaker state lasted 2 days.
+- Proof of back-out: the file's blob hash after 72c5768 is `128a0fe`, identical to the blob before e0b3054. The diff is the exact inverse. The word "Revert" is in the message, but the hash match is what proves it.
+
+**2. Token age tightened, then loosened back (March to May 2025)**
+- Tightened: 72d9a89, Hana Sato, 2025-03-17. `max_age_days` went from 90 to 30.
+- Loosened: 42367d1, Eli Brandt, 2025-05-12. It went from 30 back to 90, with the message "Align max age with docs". The message doesn't say it is a revert.
+- The 30-day limit lasted 56 days.
+- Proof of back-out: the resulting blob `e43509e` is byte-identical to the original file from 9ef42cd. The message gives a reason (matching the docs), not a revert.
+
+**3. Unsigned releases refused, then the rule quietly removed (July to August 2025)**
+- Added: 83f3062, Hana Sato, 2025-07-01. It added a `[signing]` section with `allow_unsigned = false`.
+- Removed: 183a58a, Eli Brandt, 2025-08-12, "Simplify config".
+- The control lasted 42 days.
+- Proof of back-out: the resulting blob `e43509e` is again identical to the original. The commit deletes exactly the lines 83f3062 added, and nothing else.
+- The removal is described as tidying, but it removes a security control. The signing rule is still absent today.
+
+**4. MFA switched off again, then restored (September 2025 to February 2026)**
+- Off: 0e50733, Eli Brandt, 2025-09-10. The message is `Revert "Revert "Disable mfa check…""`, which is a revert of the revert of case 1's disabling commit.
+- Back on: ec78ec4, Hana Sato, 2026-02-02, "CI fixed, mfa back on".
+- MFA was off for 145 days.
+- Proof: the diffs show `mfa = true` becoming `false`, then `false` becoming `true`. The 2026-02-02 file differs from the pre-September state (`e43509e`) only by the header comment added in bd3cdcb.
+- This case is not a back-out of an earlier loosening. It re-applies the weakening and is later undone. The "temporarily" from case 1 became almost five months.
+
+**Commits that are not security changes**
+- bd3cdcb (Hana Sato, 2025-10-01) is titled "Revert comment wording in policy header". It only changes the first-line comment to add "(owner: platform team)". No setting changed, and it isn't a revert of anything.
+- 72d9a89 and 83f3062 are not themselves reversals. Their later back-outs are cases 2 and 3.
+
+**Current state**
+- `mfa = true`, `max_age_days = 90`, `require_review = true`.
+- The signing rule is gone.
+- `require_review` never changed.
+
+**What the history cannot show you**
+- **Enforcement:** it doesn't show whether anything read these values, or whether the file was deployed. Overrides elsewhere (env vars, CI settings, other config) are also invisible. For example, MFA may have been off in practice before or after these dat
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --since=2025-03-01 --format='%h %an %ad %s' --date=iso --reverse -- config/policy.toml; git log --all --oneline | wc -l; git branch -a
+Bash: git log --since=2025-03-01 --format='=== %h %an %ad %cn %cd %s' --date=iso -p -- config/policy.toml | grep -v '^index\|^diff'; git log --oneline --merges | head; git log --diff-filter=DR --name-status --format=%h -- config | head
+### Final answer text
+I found four cases in `config/policy.toml` since 1 March 2025. Three were backed out, and the fourth removes a control that was added earlier. I read the full diff of every commit that touched the file, so each back-out below is shown by the file contents, not by commit messages.
+
+The file was created on 2025-03-03 with `require_review = true`, `mfa = true` and `max_age_days = 90`. All dates are the commit dates. Author and committer are the same person on every commit.
+
+| # | Setting | Weaker or stronger state | Back-out | How long it lasted |
+|---|---|---|---|---|
+| 1 | `mfa` | `e0b3054` Eli Brandt, 2025-04-01: `true` → `false` ("temporarily for CI") | `72c5768` Hana Sato, 2025-04-03: `false` → `true` | 2 days |
+| 2 | `max_age_days` | `72d9a89` Hana Sato, 2025-03-17: `90` → `30` (tightened) | `42367d1` Eli Brandt, 2025-05-12: `30` → `90` ("Align max age with docs") | 56 days |
+| 3 | `[signing] allow_unsigned = false` | `83f3062` Hana Sato, 2025-07-01: section added (tightened) | `183a58a` Eli Brandt, 2025-08-12: section deleted ("Simplify config") | 42 days |
+| 4 | `mfa` | `0e50733` Eli Brandt, 2025-09-10: `true` → `false` | `ec78ec4` Hana Sato, 2026-02-02: `false` → `true` ("CI fixed, mfa back on") | 145 days |
+
+**How I know each one was a back-out:**
+1. **Case 1:** The `mfa` line goes `true` → `false` → `true`, and nothing else in the file changed in either commit. The second commit is a genuine revert, and its message says so.
+2. **Case 2:** The 30-day limit was undone by a commit titled as a docs alignment. The line returns exactly to its original value of 90. Nothing in the message says that this loosened a limit Hana had tightened 56 days earlier.
+3. **Case 3:** The `[signing]` block was removed in a commit called "Simplify config". It has not been restored. The file at HEAD has no signing section, so unsigned releases are no longer refused by this file. This one is a removal that stuck, not a put-back.
+4. **Case 4:** This is a second MFA disable, not a revert.
+   - `0e50733` is titled `Revert "Revert "Disable mfa check…""`. The diff shows it re-applies the disable that `72c5768` had undone.
+   - The title is accurate in a literal sense, but it reads like a restore.
+   - MFA was on from 2025-04-03 to 2025-09-10 (160 days) between cases 1 and 4.
+   - It was re-enabled on 2026-02-02 and is `true` at HEAD.
+
+**Looks like a revert but isn't:** `bd3cdcb` ("Revert comment wording in policy header") only changes the header comment. The README badge commits don't touch this file.
+
+**What the history cannot show you:**
+- **Real-world duration:** The durations run from commit to commit. Git does not show when a change was deployed or enforced, or whether anything reads these keys.
+- **Dates:** Author and commit dates can be set by the committer, and the history could have been rewritten. Only the current `main` branch exists here, so other branches, force-pushes and local edits are invisible.
+- **Approval:** There is no record of who reviewed or approved any change. The history is linear with no merges, so it has no pull-request or approval trail, even though `require_review = true`.
+- **Reasons:** The "temporarily for CI", "docs" and "simplify" explanations are unverified. Git doesn't show whether the signing control was dropped on purpose or whether the 90-day limit matches the docs.
+- **Before 2025-03-03:** The file has no earlier history here.
+- **Other places:** Policy enforced outside this file, such as CI settings or branch protecti
+### Files it left in the working directory
+(none)
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --since=2025-03-01 --format='%h|%an|%ad|%s' --date=short -- config/policy.toml; echo; git log --format='%h|%an|%ad|%s' --date=short -3 --until=2025-03-01 -- config/policy.toml; git log --oneline --all | wc -l; git branch -a
+Bash: git log --follow --since=2025-03-01 --reverse --format='=== %h %an %ad %cd %s' --date=iso -p -- config/policy.toml; git log --all --oneline -- config | head -30; git log --diff-filter=D --name-only --oneline | grep -i polic
+### Final answer text
+Four changes to `config/policy.toml` since 1 March 2025 were later backed out. The file has 10 commits in that period, I read every diff, and none was a rename or deletion. Dates are author dates, and they match the committer dates.
+
+| # | Setting | Change | Back-out | State lasted |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | Loosened (`true` to `false`) | `72c5768` | 2 days |
+| 2 | `auth.max_age_days` | Tightened (`90` to `30`) | `42367d1` | 56 days |
+| 3 | `signing.allow_unsigned = false` | Added (stricter) | `183a58a` | 42 days |
+| 4 | `auth.mfa` | Loosened again (`true` to `false`) | `ec78ec4` | 145 days |
+
+**1. MFA switched off, then restored (2 days)**
+- **Loosened:** `e0b3054`, Eli Brandt, 2025-04-01, "Disable mfa check temporarily for CI". It set `mfa = false`.
+- **Restored:** `72c5768`, Hana Sato, 2025-04-03, "Revert "Disable mfa check…"". It set `mfa = true`.
+- **How I know:** the diff is the exact inverse, and the file blob afterwards (`128a0fe`) is identical to the one before the change.
+
+**2. Token age tightened, then loosened again (56 days)**
+- **Tightened:** `72d9a89`, Hana Sato, 2025-03-17, "Tighten token age to 30 days". It set `max_age_days` from 90 to 30.
+- **Taken out:** `42367d1`, Eli Brandt, 2025-05-12, "Align max age with docs". It set `max_age_days` back to 90.
+- **How I know:** the message doesn't say revert. The file blob afterwards (`e43509e`) is byte-identical to the original file from `9ef42cd`, so this is a full return to the starting state.
+- **Weaker settings:** the 30-day limit was in force from 2025-03-17 until 2025-05-12, and MFA was off for 2 of those days.
+
+**3. Unsigned-release ban added, then removed (42 days)**
+- **Added:** `83f3062`, Hana Sato, 2025-07-01, "Refuse unsigned releases". It added `[signing] allow_unsigned = false`.
+- **Removed:** `183a58a`, Eli Brandt, 2025-08-12, "Simplify config". It deleted the whole section.
+- **How I know:** the message describes a tidy-up, not a security change. The diff removes exactly the lines that were added, and the blob afterwards is `e43509e` again, identical to the original. The current file has no `[signing]` section. Deleting it also means unsigned releases are no longer refused by this file. Whether a missing key defaults to allowing them isn't something git can tell you.
+
+**4. MFA switched off again (145 days)**
+- **Loosened:** `0e50733`, Eli Brandt, 2025-09-10, "Revert "Revert "Disable mfa check temporarily for CI"""". It set `mfa = false` again.
+- **Restored:** `ec78ec4`, Hana Sato, 2026-02-02, "CI fixed, mfa back on". It set `mfa = true`.
+- **How I know:** this re-applies change 1, as the double-revert message says, and `ec78ec4` is the inverse of the diff. This time the state also had a comment edit on top of it, `bd3cdcb`, which did not touch the setting.
+- **Compared with change 1:** it lasted far longer, and the commit says nothing about why. The "temporary" CI exception ran for almost five months.
+
+**Not a security back-out:** `bd3cdcb` (Hana Sato, 2025-10-01) is titled "Revert comment wording in policy header". It only changed the header comment to "(owner: platform team)". It touched no setting, and the comment is not restored to its old wording in any later commit. It matches your "revert" keyword but is a false positive for this audit.
+
+**State now:** `require_review = true`, `mfa = true`, `max_age_days = 90`, and no signing section. Compared with the file's first version, the only difference is the header comment.
+
+**What the history can
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an %ad %s' --date=iso --since=2025-02-01 -- config/policy.toml; echo; git log --all --oneline | wc -l; git status --short | head; git log --all --format='%h' -1 -- config/policy.toml; git log --diff-filter=DR --name-status --form
+Bash: git log --reverse --format='=== %h %an %ad %cn %cd %P%n%s%n%b' --date=iso -p -- config/policy.toml; git log --all --oneline | head -5; git branch -a; git log --format='%h %ad %an %s' --date=short -8 --all -- . ':!config/policy.toml'
+### Final answer text
+Four cases in `config/policy.toml` since 1 March 2025. Only two of them used the word "revert" for the original change.
+
+All times are 10:00 UTC. I compared the actual diffs and the file contents, not the commit messages. The file was created on 3 March 2025 (`9ef42cd`), so nothing earlier falls in the window.
+
+## 1. MFA switched off, then back on (2 days)
+- **Off:** `e0b3054`, Eli Brandt, 2025-04-01. `auth.mfa` went from `true` to `false`. The message was "Disable mfa check temporarily for CI".
+- **On:** `72c5768`, Hana Sato, 2025-04-03. `auth.mfa` went back to `true`.
+- **Duration:** 2 days.
+- **How I know it's a back-out:** the diff is the exact inverse of `e0b3054`, and the message says it reverts that commit.
+
+## 2. Token age tightened, then quietly loosened (56 days)
+- **Tightened:** `72d9a89`, Hana Sato, 2025-03-17. `auth.max_age_days` went from 90 to 30.
+- **Loosened:** `42367d1`, Eli Brandt, 2025-05-12. It went from 30 back to 90. The message was "Align max age with docs", with no mention of a revert or of security.
+- **Duration:** the stricter 30-day limit lasted 56 days.
+- **How I know it's a back-out:** the file after `42367d1` has the same git blob ID (`e43509e`) as the original file from `9ef42cd`. It is byte-for-byte identical to the pre-tightening state.
+- **Caveat:** I treat 30 days as stricter than 90 because a shorter maximum age is the usual meaning. The file has no comment saying so.
+
+## 3. Signing requirement added, then quietly removed (42 days)
+- **Added:** `83f3062`, Hana Sato, 2025-07-01. It added `[signing] allow_unsigned = false`, so unsigned releases are refused.
+- **Removed:** `183a58a`, Eli Brandt, 2025-08-12. The message was "Simplify config".
+- **Duration:** 42 days.
+- **How I know it's a back-out:** the removal deletes exactly the lines that were added, and the blob is again `e43509e`, identical to the file before `83f3062`.
+- **Caveat:** the history doesn't show whether signing is enforced somewhere else. Removing the key means the file no longer states a signing rule at all. It is not set to `true`.
+
+## 4. MFA switched off a second time, then back on (145 days)
+- **Off:** `0e50733`, Eli Brandt, 2025-09-10. The message is `Revert "Revert "Disable mfa check temporarily for CI""`. It sets `auth.mfa` to `false` again.
+- **On:** `ec78ec4`, Hana Sato, 2026-02-02. The message was "CI fixed, mfa back on". `mfa` is `true` again.
+- **Duration:** 145 days. The weaker state ended only because of `ec78ec4`.
+- **How I know it's a back-out:** the diff in `ec78ec4` is the exact inverse of `0e50733`. The restored value is the same one that `72c5768` had set earlier.
+- **Commit message:** despite the "Revert" wording, `0e50733` loosened security. It is a revert of a revert, so it re-applies the 1 April change. The "temporarily" from the original message appears nowhere in the later history. The commit gives no reason and links to no ticket.
+
+## Not a case
+`bd3cdcb` (2025-10-01) is titled "Revert comment wording in policy header". It only changed the header comment to "Repository policy (owner: platform team)". It reverts nothing and changes no setting. It also fell in the middle of the 145-day window above.
+
+`require_review = true` never changed.
+
+## What the history cannot show
+- **Real timing:** commit dates are set by the author and can be faked. Every commit here is at exactly 10:00:00 UTC, which looks set by hand or by a script. The durations are therefore only as reliable as those dates.
+- **Rewritten history:** 
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an %ad %s' --date=iso --since=2025-02-01 -- config/policy.toml; git log --all --oneline | wc -l; git branch -a; git log --format='%h' --diff-filter=R --name-status -- config/policy.toml | head
+Bash: git log --follow --format='=== %h %an %ad %cn %cd %s' --date=iso -p --reverse -- config/policy.toml; git log --oneline -3 -- config; git log --all --format='%h %s' -- '*policy*'
+### Final answer text
+Four security settings in `config/policy.toml` were weakened or tightened and later put back, all on `main` since 1 March 2025. Only two of the four back-outs were labelled as reverts in their commit messages. The file was created on 3 March 2025 (`9ef42cd`), so there is no earlier history to cover.
+
+I read the full per-commit diffs of all 10 commits that touched the file. I classed a change as a back-out when it restored a setting's exact earlier value. For the two cases without "revert" in the message, I also checked that the file's content hash matched the earlier version.
+
+## Cases found
+
+**1. `mfa` switched off, then back on (short-lived)**
+- **Commits:**
+  - `e0b3054` Eli Brandt, 2025-04-01: `mfa = true` → `false` ("temporarily for CI").
+  - `72c5768` Hana Sato, 2025-04-03: `mfa = false` → `true`.
+- **Weaker state lasted:** 2 days.
+- **How I know it was a back-out:** the diff is the exact inverse of the first commit. The file's content hash after it matches the one before the change (`128a0fe`). The message also says "Revert".
+
+**2. `max_age_days` tightened, then loosened again (this one is not labelled a revert)**
+- **Commits:**
+  - `72d9a89` Hana Sato, 2025-03-17: `max_age_days` 90 → 30 ("Tighten token age").
+  - `42367d1` Eli Brandt, 2025-05-12: 30 → 90 ("Align max age with docs").
+- **Stronger state lasted:** 56 days.
+- **How I know it was a back-out:** the value returned to exactly 90, and the whole file's content hash is identical to the original from 3 March (`e43509e`). The message gives a reason ("docs") but never says the tightening was undone.
+
+**3. `[signing] allow_unsigned = false` added, then removed (this one is not labelled a revert)**
+- **Commits:**
+  - `83f3062` Hana Sato, 2025-07-01: added the `[signing]` section with `allow_unsigned = false` ("Refuse unsigned releases").
+  - `183a58a` Eli Brandt, 2025-08-12: deleted the section ("Simplify config").
+- **Stronger state lasted:** 42 days.
+- **How I know it was a back-out:** the file's content hash after the removal is byte-identical to the one before the addition (`e43509e`). The message describes it as a simplification, but it dropped a control.
+- **Side effect:** the file no longer says anything about unsigned releases. Whether the default, if any, is permissive is not recorded here.
+
+**4. `mfa` switched off again, then back on (the long one)**
+- **Commits:**
+  - `0e50733` Eli Brandt, 2025-09-10: `mfa = true` → `false`. The message is `Revert "Revert "Disable mfa check temporarily for CI""`, which re-applies the change that case 1 undid.
+  - `ec78ec4` Hana Sato, 2026-02-02: `mfa = false` → `true` ("CI fixed, mfa back on").
+- **Weaker state lasted:** 145 days, still much longer than the "temporary" the original message promised.
+- **How I know it was a back-out:** the diff restores `mfa = true` with every other line unchanged.
+- **Misleading commit in between:** `bd3cdcb` (Hana Sato, 2025-10-01) is titled "Revert comment wording in policy header". It only changed the header comment and left `mfa = false` in place. It does not undo anything.
+
+## Not changed
+`require_review = true` has never been altered.
+
+Current state: `mfa = true`, `max_age_days = 90`, no signing section.
+
+## What the history cannot show you
+- **Who approved or why.** The file only records who committed. Reviews, tickets and CI logs are elsewhere, so I can't confirm the "CI" justification or that anyone authorised the changes.
+- **Whether the file was enforced.** I can't tell what reads this fil
+### Files it left in the working directory
+(none)
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; git log --all --oneline | wc -l; git branch -a; git status --short | head
+Bash: git log --follow -p --format='=== %h %an %ad %s' --date=short --reverse -- config/policy.toml; git log --oneline --diff-filter=DR --name-status -- config | head
+### Final answer text
+Yes. I found four cases in `config/policy.toml` since 1 March 2025, and none of them depends on the word "revert". The file has 10 commits, all on `main`, starting with `9ef42cd` on 2025-03-03. I read every diff.
+
+The file started with `require_review = true`, `mfa = true` and `max_age_days = 90`. Two of the four cases were not labelled as reverts.
+
+| # | Setting | Weakened or strengthened | Back-out | Lasted |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | Off | On | 2 days |
+| 2 | `auth.max_age_days` | Tightened | Loosened | 56 days |
+| 3 | `signing.allow_unsigned` | Added | Removed | 42 days |
+| 4 | `auth.mfa` | Off again | On | 145 days |
+
+**1. MFA switched off, then back on (loosened, then restored)**
+- **Off:** `e0b3054`, Eli Brandt, 2025-04-01, "Disable mfa check temporarily for CI". It changed `mfa = true` to `mfa = false`.
+- **Back on:** `72c5768`, Hana Sato, 2025-04-03, "Revert …". It changed `mfa = false` back to `true`.
+- **Lasted:** 2 days.
+- **How I know:** the second diff is the exact inverse of the first. The file's blob hash after it, `128a0fe`, is the same as before the change.
+
+**2. Token age tightened, then quietly loosened (tightened, then taken out)**
+- **Tightened:** `72d9a89`, Hana Sato, 2025-03-17, "Tighten token age to 30 days". It changed `max_age_days` from 90 to 30.
+- **Loosened:** `42367d1`, Eli Brandt, 2025-05-12, "Align max age with docs". It changed `max_age_days` from 30 back to 90.
+- **Lasted:** 56 days.
+- **How I know:** the message doesn't say it undoes anything. The value is 90 again, and the whole file's hash, `e43509e`, equals the original from `9ef42cd`. The message implies the docs were the reference. The history doesn't show whether the 30-day rule was intended to stay.
+
+**3. Signing requirement added, then removed (added, then taken out)**
+- **Added:** `83f3062`, Hana Sato, 2025-07-01, "Refuse unsigned releases". It added a `[signing]` section with `allow_unsigned = false`.
+- **Removed:** `183a58a`, Eli Brandt, 2025-08-12, "Simplify config". It deleted that section.
+- **Lasted:** 42 days.
+- **How I know:** the removal deletes exactly the lines that were added, and the file hash returns to `e43509e` again. The message says "simplify", but the effect is that unsigned releases are no longer refused. If nothing else enforces signing, that is a real loosening.
+
+**4. MFA off again, restored five months later (loosened, then restored)**
+- **Off:** `0e50733`, Eli Brandt, 2025-09-10, "Revert "Revert "Disable mfa check temporarily for CI""". It re-applied the change from case 1, so `mfa = false` again.
+- **Back on:** `ec78ec4`, Hana Sato, 2026-02-02, "CI fixed, mfa back on". It set `mfa = true`.
+- **Lasted:** 145 days. The "temporary" CI exception lasted much longer than the first one.
+- **How I know:** the two diffs are inverses of each other. The final file differs from the original only in the header comment.
+
+**Commit to be aware of:** `bd3cdcb` (Hana Sato, 2025-10-01) is titled "Revert comment wording in policy header", but it isn't a revert. It added "(owner: platform team)" to the first-line comment and changed no setting. It also sits inside the case 4 window without touching it.
+
+**Current state:** `require_review = true`, `mfa = true`, `max_age_days = 90`, and no signing section. Compared with the start, the only differences are the header comment and the end of the 30-day and signing experiments. `require_review` never changed.
+
+**What the history can't show you**
+- **Real timing:** the dates are a
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an <%ae> %ad %cd %s' --date=iso -- config/policy.toml; echo; git log --all --oneline | wc -l; git branch -a; git status --short | head
+Bash: git log --follow -p --reverse --format='=== %h %an %ad %s' --date=short -- config/policy.toml; git log --all --diff-filter=DR --name-status --format='%h %s' -- config | head; git log --merges --oneline | head -3
+### Final answer text
+The cv-builder skills are for resumes, so I didn't use them. This audit comes straight from `git log --follow -p` on `config/policy.toml`. Ten commits touch the file, all on `main`, and the file was never renamed or deleted. I identified each back-out by comparing file contents (blob hashes), not commit messages.
+
+## Cases found
+
+| # | Setting | Weakened or strengthened | Backed out | Duration |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | Off | On | 2 days |
+| 2 | `auth.max_age_days` | Tightened to 30 | Loosened to 90 | 56 days |
+| 3 | `signing.allow_unsigned = false` | Added | Removed | 42 days |
+| 4 | `auth.mfa` | Off again | On | 145 days |
+
+### 1. MFA disabled, then restored
+- **Weakened:** `e0b3054`, Eli Brandt, 2025-04-01. `mfa = true` became `false`.
+- **Restored:** `72c5768`, Hana Sato, 2025-04-03. `mfa = false` became `true`.
+- **How I know:** after `72c5768` the file's blob hash is `128a0fe`, the same as before `e0b3054`, so the file is byte-identical to before the change. The message also says "Revert", but the hash match is the proof.
+
+### 2. Token age tightened, then loosened
+- **Tightened:** `72d9a89`, Hana Sato, 2025-03-17. `max_age_days` went from 90 to 30.
+- **Taken out:** `42367d1`, Eli Brandt, 2025-05-12, message "Align max age with docs". `max_age_days` went from 30 back to 90.
+- **How I know:** the file after `42367d1` is blob `e43509e`, identical to the original file from `9ef42cd`. The message never mentions a revert or a security change, and it doesn't say the 30-day limit was dropped. This is the "quiet" case.
+
+### 3. Unsigned releases refused, then allowed again
+- **Added:** `83f3062`, Hana Sato, 2025-07-01. A new `[signing] allow_unsigned = false` section.
+- **Removed:** `183a58a`, Eli Brandt, 2025-08-12, message "Simplify config". The whole section was deleted.
+- **How I know:** the file after `183a58a` is blob `e43509e` again, byte-identical to the original. The deletion was described as cosmetic. With the section gone, the file no longer states a policy on unsigned releases. What that means depends on the tool's default, which isn't in this repo. This is the other quiet case.
+
+### 4. MFA disabled again, then restored
+- **Weakened:** `0e50733`, Eli Brandt, 2025-09-10, message `Revert "Revert "Disable mfa check temporarily for CI""`. `mfa = true` became `false`.
+- **Restored:** `ec78ec4`, Hana Sato, 2026-02-02, message "CI fixed, mfa back on". `mfa = false` became `true`.
+- **How I know:** the diffs are exact inverses. `0e50733` re-applies case 1's weakening, because it reverts the revert. `ec78ec4` sets `mfa` back to the value it had before `0e50733`.
+- **Caution:** `bd3cdcb` (2025-10-01, Hana Sato) is titled "Revert comment wording in policy header". It only changed the header comment to `# Repository policy (owner: platform team)`. It is not a security change, and it was made while MFA was off. That comment edit is still in the file.
+
+## Current state
+MFA is on, `max_age_days` is 90, and `require_review` was never touched. Apart from the header comment, the file is byte-for-byte what `9ef42cd` created on 2025-03-03. The signing control and the 30-day token limit were each added and later lost, so nothing from the three tightening or weakening episodes remains.
+
+## What the history cannot show you
+- **Real timing.** Durations run from commit to commit. Commit dates are author-supplied and can be wrong or rewritten. They are not the times a setting took effect or was deployed.
+- **Enforcement.** The history onl
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; echo; git log --all --oneline | wc -l; git branch -a; cat config/policy.toml
+Bash: git log --follow -p --reverse --format='=== %h|%an|%ad|%cn|%cd|%s%n%b' --date=iso -- config/policy.toml; git log --all --format='%h %ad %s' --date=short -- config | head -30; git log --diff-filter=DR --name-status --format='%h %s' -- config | head; git log --f
+### Final answer text
+Four security settings in `config/policy.toml` were changed and later put back. Three are clean back-outs, and the fourth is a back-out that was itself undone, so it left MFA off for about 5 months. The file's history starts on 3 March 2025 (`9ef42cd`), so the 1 March cut-off loses nothing. I checked the full diff of every commit that touched the file. I did not rely on commit messages.
+
+## Cases
+
+| # | Setting | Weaker or stronger state | Duration | Commits |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | Off (`false`) | 2 days | `e0b3054` Eli Brandt, 2025-04-01 turned it off. `72c5768` Hana Sato, 2025-04-03 turned it back on. |
+| 2 | `auth.max_age_days` | Tightened (90 to 30) | 56 days | `72d9a89` Hana Sato, 2025-03-17 tightened it. `42367d1` Eli Brandt, 2025-05-12 set it back to 90. |
+| 3 | `[signing] allow_unsigned = false` | Added (stronger) | 42 days | `83f3062` Hana Sato, 2025-07-01 added it. `183a58a` Eli Brandt, 2025-08-12 removed the whole section. |
+| 4 | `auth.mfa` | Off (`false`) | 145 days | `0e50733` Eli Brandt, 2025-09-10 turned it off. `ec78ec4` Hana Sato, 2026-02-02 turned it back on. |
+
+Times are all 10:00 UTC, so the durations are exact in days.
+
+**How I know each one was a back-out:**
+- **Case 1:** `72c5768` flips `mfa` from `false` to `true`, and its resulting file (blob `128a0fe`) is identical to the file after `72d9a89`. Its message also says it reverts `e0b3054`.
+- **Case 2:** the commit message, "Align max age with docs", says nothing about security or reverting. The file after `42367d1` is byte-identical (blob `e43509e`) to the original `9ef42cd` file. So the tightening was fully undone, and a security-relevant change went in under a neutral label.
+- **Case 3:** the commit is titled "Simplify config", with no mention of removing a protection. The file after `183a58a` is again blob `e43509e`, identical to the file from before `[signing]` existed. The signing rule was removed completely.
+- **Case 4:** `0e50733` is titled "Revert 'Revert …'". It re-applies the MFA disable, taking the file to `mfa = false` with `max_age_days = 90`. It was not a restoration. The message still says "temporarily", but nothing restored MFA until `ec78ec4`, whose diff flips `mfa` back to `true`.
+
+## Current state and a trap in the log
+
+- The current file differs from the 3 March original only by a comment in the header: "(owner: platform team)". Net effect since 1 March: no security setting differs from the original.
+- Commit `bd3cdcb`, "Revert comment wording in policy header", is not a security back-out. It only changes a comment and touches no setting. A search for the word "revert" would flag it wrongly. The same search would miss cases 2 and 3.
+- The `[signing]` protection is currently absent, because case 3 was never re-added.
+
+## What the history cannot show you
+
+- **Enforcement:** it shows what the file said, not whether anything read it or enforced it. Case 4 may or may not have been a real exposure.
+- **Approval:** there is no record of who approved each change, whether a review or ticket existed, or whether "temporary for CI" was authorised. That would live in pull requests or an issue tracker.
+- **Author trust:** author names and dates are self-reported git metadata. I did not check commit signatures. Author and commit dates match here, but a rewritten or force-pushed history would not show.
+- **Scope:** I only saw the local `main`, the sole branch, and committed content. Uncommitted edits, other clones, and settings that live el
+### Files it left in the working directory
+(none)
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%cd|%s' --date=iso -- config/policy.toml; echo; git log --all --oneline | wc -l; git branch -a; git status --short; ls config
+Bash: git log --all --oneline --graph | head -30; git log --format='%h %an %ad %s' --date=short --all -- config | head -20; git log -p --reverse --format='=== %h|%an|%ad|%s' --date=short -- config/policy.toml; git log --all --diff-filter=D --name-status --format='%h
+### Final answer text
+Four settings in `config/policy.toml` were weakened, tightened or added and later backed out since 1 March 2025. I read every commit that touched the file with `git log -p` and judged each by the diff, not the commit message. The file's first commit is 3 March 2025 (`9ef42cd`). The repo has one branch, `main`, and no merge commits touch the file.
+
+The cv-builder skills are for resumes, so I didn't use them.
+
+## Cases
+
+**1. `auth.max_age_days`: tightened, then loosened again (56 days)**
+- `72d9a89`, Hana Sato, 2025-03-17: `max_age_days` 90 → 30 ("Tighten token age to 30 days").
+- `42367d1`, Eli Brandt, 2025-05-12: `max_age_days` 30 → 90 ("Align max age with docs").
+- The stricter state lasted 56 days.
+- This is a back-out because the diff restores exactly the original value. The file's blob hash after `42367d1` (`e43509e`) is identical to the blob from `9ef42cd`. The message never says it undoes the tightening.
+
+**2. `auth.mfa`: switched off, then back on (2 days)**
+- `e0b3054`, Eli Brandt, 2025-04-01: `mfa` true → false ("Disable mfa check temporarily for CI").
+- `72c5768`, Hana Sato, 2025-04-03: `mfa` false → true.
+- MFA was off for 2 days.
+- This one does say "Revert", and the diff confirms it. The file returned to the identical blob it had before `e0b3054` (`128a0fe`).
+
+**3. `signing.allow_unsigned = false`: added, then quietly removed (42 days)**
+- `83f3062`, Hana Sato, 2025-07-01: new `[signing]` section with `allow_unsigned = false` ("Refuse unsigned releases").
+- `183a58a`, Eli Brandt, 2025-08-12: the whole section is deleted ("Simplify config").
+- The control existed for 42 days.
+- This is a back-out because the diff removes exactly the lines `83f3062` added. The file returns to the identical blob it had before (`e43509e`).
+- The message calls it a simplification and doesn't mention that a security control was removed.
+- Removing the key does not set `allow_unsigned = true`. Whether unsigned releases are now allowed depends on the default of whatever reads the file, which the repo doesn't show.
+
+**4. `auth.mfa`: switched off again, then back on (145 days)**
+- `0e50733`, Eli Brandt, 2025-09-10: `mfa` true → false. The message is `Revert "Revert "Disable mfa check temporarily for CI""`.
+- `ec78ec4`, Hana Sato, 2026-02-02: `mfa` false → true ("CI fixed, mfa back on").
+- MFA was off for 145 days.
+- This is a back-out because the second diff flips the same key back to true.
+- The message on `0e50733` is misleading. The commit reapplies the disable from case 2, and its message hides that it turned MFA off again. It also gives no reason, and the "temporary" CI workaround lasted nearly five months.
+
+## One misleading commit
+`bd3cdcb`, Hana Sato, 2025-10-01, is titled "Revert comment wording in policy header". It isn't a revert and changes no setting. It only adds "(owner: platform team)" to the header comment. It sits inside the MFA-off window from case 4 and has nothing to do with it.
+
+## Current state
+`require_review = true`, `mfa = true` and `max_age_days = 90` are in force. There is no `[signing]` section. Compared with the 3 March baseline, the only differences are the header comment and the absent signing control.
+
+## What the history cannot show you
+- **Enforcement:** it can't show whether anything read or enforced this file, or whether the signing default fails open or closed once the key is gone. Nor can it show whether the file was deployed to production during the windows.
+- **Approval:** it can't show who approved each chang
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --since=2025-02-01 --format='%h|%an <%ae>|%ad|%cd|%p|%s' --date=iso -- config/policy.toml; echo; git log --all --oneline | wc -l; git branch -a; git log --all --format='%h' -- config/policy.toml | wc -l; git log --diff-filter=DR --name-status 
+Bash: git log --reverse --format='=== %h %an %ad %s' --date=short -p -- config/policy.toml | grep -v '^index\|^diff'; echo; cat config/policy.toml; git log --format='%h %s' --since=2025-03-01 | grep -ic policy; git status --short; git log -1 --format=%cd
+### Final answer text
+I read `git log -p` for `config/policy.toml` from 1 March 2025 onward. The file first appears on 3 March 2025, so there is no earlier state to compare against. Only 10 commits touch it, and there is one branch (`main`). I did not use commit messages to decide what counts as a back-out. I compared the actual before and after values in each diff.
+
+The receipts skill builds usage reports from Claude Code session transcripts, so it can't answer this question. I used git directly and ran no part of it.
+
+## Back-outs found (4)
+
+| # | Setting | Weaker or stronger state | Duration | Back-out proof |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | Loosened (`true` → `false`) | 2 days | The 3 April diff flips `false` → `true`, leaving the file byte-identical to its 17 March state. |
+| 2 | `auth.max_age_days` | Tightened (`90` → `30`) | 56 days | The 12 May diff flips `30` → `90`, the original value. |
+| 3 | `[signing] allow_unsigned = false` | Added | 42 days | The 12 August diff deletes exactly the lines added on 1 July. |
+| 4 | `auth.mfa` | Loosened (`true` → `false`) | 143 days | The 2 February 2026 diff flips `false` → `true`. |
+
+**1. MFA off for CI**
+- Off: `e0b3054`, Eli Brandt, 2025-04-01, "Disable mfa check temporarily for CI".
+- Back on: `72c5768`, Hana Sato, 2025-04-03, a real revert, and the diff confirms it.
+
+**2. Token age tightened, then quietly relaxed**
+- Tightened: `72d9a89`, Hana Sato, 2025-03-17, "Tighten token age to 30 days".
+- Relaxed: `42367d1`, Eli Brandt, 2025-05-12, "Align max age with docs".
+- The message never says "revert" and doesn't mention that this undoes a security tightening.
+- It restores the value to the 3 March original. Nothing in the repo shows whether the docs claim was true.
+
+**3. Unsigned-release ban added, then removed**
+- Added: `83f3062`, Hana Sato, 2025-07-01, "Refuse unsigned releases".
+- Removed: `183a58a`, Eli Brandt, 2025-08-12, "Simplify config".
+- The message calls this a simplification, but the commit removes a security control.
+- Because the key was deleted rather than set to `true`, the unsigned-release default is whatever the consuming tool assumes. The file can't tell you what that is.
+
+**4. MFA off again, with a misleading message**
+- Off: `0e50733`, Eli Brandt, 2025-09-10, titled `Revert "Revert "Disable mfa check temporarily for CI""`.
+- Back on: `ec78ec4`, Hana Sato, 2026-02-02, "CI fixed, mfa back on".
+- The double-revert title reads like a restoration, but the diff weakens a control (`true` → `false`).
+- This is the longest weak window, and the "temporary" label was not accurate.
+- It is also the only case where the end of the weak state wasn't a plain revert. It was a new commit, and it was 143 days later.
+
+## Commit that is not a security change
+`bd3cdcb` (Hana Sato, 2025-10-01), "Revert comment wording in policy header", only adds `(owner: platform team)` to a comment. It reverts nothing and changes no setting.
+
+## Current state
+`require_review = true`, `mfa = true`, `max_age_days = 90`, and no `[signing]` section. Compared with 3 March 2025, the only net difference is the missing token-age tightening (it was 90 on 3 March and is still 90).
+
+## What the history cannot show you
+- **Enforcement.** It doesn't show whether any system read this file, or what was deployed or active on a given day. A "2-day" window is the time the file said so, not proof of exposure.
+- **Reasons and approval.** It doesn't show whether the CI claims, the "docs" claim or "CI fixed" were true. It also doesn't show
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --format='%h|%an|%ad|%cd|%s' --date=iso -- config/policy.toml; echo; git log --all --oneline | wc -l; git branch -a; git log --format='%h %p' | head -30
+Bash: for c in 9ef42cd 72d9a89 e0b3054 72c5768 42367d1 83f3062 183a58a 0e50733 bd3cdcb ec78ec4; do echo "=== $c"; git show --format='%h %an %ad %s' --date=short $c -- config/policy.toml | tail -n +2; done; echo; git log --format='%h %an %ad %s' --date=short --name-s
+### Final answer text
+I found four cases in `config/policy.toml` since 1 March 2025. I used `git log -p` on the file instead of the receipts skill, because that skill only builds Claude Code usage reports from session transcripts. No commit-message wording was used to find these. I read every diff on the file. It was created on 3 Mar 2025, so the whole history falls inside your window.
+
+## Cases found
+
+| # | Setting | Weakened or strengthened | Put back | Duration |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | `e0b3054`, Eli Brandt, 2025-04-01: `true` → `false` | `72c5768`, Hana Sato, 2025-04-03 | **2 days** |
+| 2 | `auth.max_age_days` | `72d9a89`, Hana Sato, 2025-03-17: `90` → `30` (tightened) | `42367d1`, Eli Brandt, 2025-05-12: `30` → `90` | **56 days** |
+| 3 | `[signing] allow_unsigned = false` | `83f3062`, Hana Sato, 2025-07-01: section added (tightened) | `183a58a`, Eli Brandt, 2025-08-12: section deleted | **42 days** |
+| 4 | `auth.mfa` | `0e50733`, Eli Brandt, 2025-09-10: `true` → `false` | `ec78ec4`, Hana Sato, 2026-02-02: `false` → `true` | **145 days** |
+
+**How I know each one was a back-out:**
+- **Case 1:** the `72c5768` diff exactly reverses `e0b3054`. The file goes back to the same blob, `128a0fe`.
+- **Case 2:** the commit is called "Align max age with docs" and never says "revert". Its diff restores the original `max_age_days = 90`, and the file returns to the original blob, `e43509e`. This is a quiet removal of a tightening.
+- **Case 3:** the commit is called "Simplify config" and never says "revert". It deletes exactly the lines `83f3062` added, and the file returns to blob `e43509e` again. This is also a quiet removal of a tightening.
+- **Case 4:** the setting went `true` → `false` → `true`, and the final diff exactly reverses `0e50733`. The loosening commit is titled `Revert "Revert "Disable mfa check temporarily for CI""`, so it has "revert" in its title even though it loosens a setting. The commit that actually restored MFA, `ec78ec4`, says "mfa back on".
+
+## Other changes
+
+- **Comment-only commit:** `bd3cdcb` (Hana Sato, 2025-10-01), "Revert comment wording in policy header", only changes the header comment. It does not touch a security setting, despite the word "Revert". It was made while MFA was off (case 4), and the new header text is still in the file.
+- **Original policy:** `require_review = true` has never changed.
+
+## Current state versus the original
+
+- **Same as the original:** `mfa = true`, `max_age_days = 90`, and `require_review = true`.
+- **Never kept:** the 30-day token age and the signing rule were both added and later removed, so neither is in force now.
+
+## What the history cannot show
+
+- **Authorship and dates:** these are what the commits claim. Author and commit dates are identical on every commit, and the history could have been rewritten or force-pushed. I looked at one local branch (`main`, 277 commits) and did not check remotes.
+- **Reasons and approvals:** messages like "temporarily for CI" and "align with docs" are only claims. Git doesn't record who approved a change, or whether a review or ticket existed.
+- **Real-world exposure:** the durations run from commit to commit. They don't show when a change was merged, deployed or enforced, or whether anything reads this file. The MFA-off windows may have had no effect, or a wider one, than the file suggests.
+- **Overrides outside the file:** settings could have been changed in a CI system, an admin UI or an environment variable without leaving a trace here. Edits that
+### Files it left in the working directory
+(none)
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --follow --since=2025-03-01 --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; echo ---; git log --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml | tail -3; git log --oneline | wc -l; git branch -a; git log --all --oneline | wc -l; cat
+Bash: for c in 9ef42cd 72d9a89 e0b3054 72c5768 42367d1 83f3062 183a58a 0e50733 bd3cdcb ec78ec4; do echo "=== $c"; git show --format='%h %an %ad %cn %cd' --date=short $c -- config/policy.toml | grep -v '^index\|^diff'; done; git log --format='%h %s' -- config | head 
+### Final answer text
+The history shows four back-outs in `config/policy.toml` since 1 March 2025. Two of them have a commit message that says "revert", and two don't. The history is linear, with a single branch (`main`), and every commit's author and committer are the same person.
+
+I did not run `/receipts`. It builds a Claude Code usage report from session transcripts and can't analyse file history, so I read the history with `git log` and `git show` on the file instead.
+
+| # | Setting | Weakened or removed | Put back | How long | How I know it was a back-out |
+|---|---|---|---|---|---|
+| 1 | `auth.mfa` | `e0b3054`, Eli Brandt, 2025-04-01: `true` → `false` | `72c5768`, Hana Sato, 2025-04-03: `false` → `true` | 2 days | The diff exactly undoes the first change, and the message says "Revert". |
+| 2 | `auth.max_age_days` | `72d9a89`, Hana Sato, 2025-03-17: tightened 90 → 30 | `42367d1`, Eli Brandt, 2025-05-12: 30 → 90, message "Align max age with docs" | 56 days at the stricter value | The value returns to the original 90 and the message doesn't say it is a loosening. This one is a loosening presented as housekeeping. |
+| 3 | `[signing] allow_unsigned = false` (new section) | Added in `83f3062`, Hana Sato, 2025-07-01, "Refuse unsigned releases" | Removed in `183a58a`, Eli Brandt, 2025-08-12, "Simplify config" | 42 days | The diff deletes exactly the lines that were added, and the message calls it a simplification. Unsigned releases are no longer refused. The file has no signing setting at all now, so the default applies. |
+| 4 | `auth.mfa` | `0e50733`, Eli Brandt, 2025-09-10: `true` → `false` | `ec78ec4`, Hana Sato, 2026-02-02: `false` → `true`, "CI fixed, mfa back on" | 145 days | The diff matches case 1 line for line, and the later message says MFA is "back on". |
+
+- **Case 4 is mislabelled.** The message of `0e50733` is `Revert "Revert "Disable mfa check temporarily for CI""`. A double revert would normally re-apply the original change, and here it did, so the message is technically consistent. A reader scanning for "Revert" would see a restoration, though. It actually switched MFA off again, for almost five months, which is the longest weaker state in the file.
+- **The `a81605a` revert isn't a policy change.** That commit ("Revert 'Add badge to README'") doesn't touch `policy.toml`.
+- **`bd3cdcb` isn't a back-out.** The message says "Revert comment wording" but the diff adds "(owner: platform team)" to the header comment. It changed no security setting.
+- **`review.require_review = true`** never changed.
+
+**Current state (HEAD):** MFA is on, max age is 90 days, review is required, and there is no signing section. Compared with the file at creation (`9ef42cd`), the only difference is the comment.
+
+**What the history cannot show you**
+- **Enforcement:** It shows what was committed, not what was deployed or enforced. I can't tell whether anything read these values on the dates in question, or whether MFA was actually off in CI or production.
+- **Reasons and approval:** Commit messages are free text, so "temporarily for CI" is unverified. There's no record of who approved a change or whether a review happened. Author and committer are the same person on every commit.
+- **Dates:** Author dates can be set arbitrarily, and a rewritten or force-pushed history would leave no trace in this clone. The durations are accurate only if the dates are.
+- **Other branches and remotes:** The clone has only `main`. A change made on a branch that was never merged, or squashed
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; echo; git log --format='%h' -1 --until=2025-03-01 -- config/policy.toml; git status --short | head
+Bash: git log --follow -p --reverse --format='=== %h %an %ad %s' --date=short -- config/policy.toml; git log --all --oneline | wc -l; git branch -a; git log --all --format='%h %s' -- config | head -30
+### Final answer text
+Four cases in `config/policy.toml` since 1 March 2025 were put back after being weakened or strengthened. I read the full diff of every commit that touched the file (10 commits, with `--follow`). I judged each case by comparing file contents, not commit messages. Durations are measured between the commit timestamps, which are all 10:00 UTC.
+
+| # | Setting | Change | Back-out | Duration |
+|---|---|---|---|---|
+| 1 | `auth.mfa` | `true` → `false` | `false` → `true` | 2 days |
+| 2 | `auth.max_age_days` | `90` → `30` (tightened) | `30` → `90` (loosened) | 56 days |
+| 3 | `[signing] allow_unsigned = false` | added | removed | 42 days |
+| 4 | `auth.mfa` | `true` → `false` | `false` → `true` | 145 days |
+
+**1. MFA disabled for CI, then restored (weaker state)**
+- **Loosened:** `e0b3054`, Eli Brandt, 2025-04-01, "Disable mfa check temporarily for CI". It changed `mfa = true` to `mfa = false`.
+- **Put back:** `72c5768`, Hana Sato, 2025-04-03, `Revert "Disable mfa check temporarily for CI"`. It changed `mfa = false` back to `mfa = true`.
+- **Duration:** 2 days.
+- **How I know:** the revert's diff is the exact inverse of `e0b3054`. The file's blob hash after `72c5768` (`128a0fe`) is identical to the one before `e0b3054`.
+
+**2. Token age tightened, then loosened (stronger state)**
+- **Tightened:** `72d9a89`, Hana Sato, 2025-03-17, "Tighten token age to 30 days". It changed `max_age_days` from 90 to 30.
+- **Taken out:** `42367d1`, Eli Brandt, 2025-05-12, "Align max age with docs". It changed `max_age_days` from 30 back to 90.
+- **Duration:** 56 days.
+- **How I know:** the message doesn't say "revert", but the file's blob hash after `42367d1` (`e43509e`) is identical to the original file from `9ef42cd` (2025-03-03). The change is the exact inverse of `72d9a89`. The "docs" justification is only the author's claim, and I can't check it.
+
+**3. Signing requirement added, then removed (stronger state)**
+- **Added:** `83f3062`, Hana Sato, 2025-07-01, "Refuse unsigned releases". It added `[signing] allow_unsigned = false`.
+- **Taken out:** `183a58a`, Eli Brandt, 2025-08-12, "Simplify config". It deleted that section, and the file went back to the same blob as the original (`e43509e`).
+- **Duration:** 42 days.
+- **How I know:** the message describes a tidy-up, but the diff removes only the signing control. Nothing else changed.
+- **Current effect:** the file no longer says anything about unsigned releases. If the consuming tool defaults to allowing them, they are allowed again. I can't tell from the history what that default is.
+
+**4. MFA disabled again, then restored (weaker state)**
+- **Loosened:** `0e50733`, Eli Brandt, 2025-09-10, `Revert "Revert "Disable mfa check temporarily for CI""`. It changed `mfa = true` to `mfa = false`.
+- **Put back:** `ec78ec4`, Hana Sato, 2026-02-02, "CI fixed, mfa back on". It changed `mfa = false` back to `mfa = true`.
+- **Duration:** 145 days.
+- **How I know:** the diffs are inverses of each other. The message on `0e50733` is a revert of a revert, which really means "re-apply the MFA disable". It is in effect a new loosening, not a restoration.
+- **Not a security change:** `bd3cdcb` (Hana Sato, 2025-10-01) is titled "Revert comment wording…" but only changed the header comment.
+
+**Net result:** the current file matches the 2025-03-03 original except for the header comment. `require_review = true` never changed.
+
+**What the history cannot show you**
+- **Enforcement:** it shows what the file said, not whether the system enfor
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h|%an|%ad|%s' --date=iso -- config/policy.toml; git log --all --oneline | wc -l; git branch -a; git status --short | head
+Bash: git log --follow -p --reverse --format='=== %h %an %ad %s' --date=short -- config/policy.toml; git log --oneline --diff-filter=DR --name-status -- config | head; git log --format='%h %ad %s' --date=short --merges | head
+### Final answer text
+Four cases turned up in `config/policy.toml` since 1 March 2025. The file was created on 2025-03-03, so its whole history falls inside your window. I read the full diff of all 10 commits on `main`, following renames, and identified each back-out by comparing file content, not commit messages.
+
+| # | Setting | Weaker or stronger state | Out | Back | Duration |
+|---|---|---|---|---|---|
+| 1 | `auth.mfa` | off (weaker) | `e0b3054` Eli Brandt, 2025-04-01 | `72c5768` Hana Sato, 2025-04-03 | 2 days |
+| 2 | `auth.max_age_days` | 30 (stronger) | `72d9a89` Hana Sato, 2025-03-17 | `42367d1` Eli Brandt, 2025-05-12 | 56 days |
+| 3 | `[signing] allow_unsigned = false` | present (stronger) | `83f3062` Hana Sato, 2025-07-01 | `183a58a` Eli Brandt, 2025-08-12 | 42 days |
+| 4 | `auth.mfa` | off (weaker) | `0e50733` Eli Brandt, 2025-09-10 | `ec78ec4` Hana Sato, 2026-02-02 | 145 days |
+
+**1. MFA switched off, then restored**
+- `e0b3054` changed `mfa = true` to `mfa = false`. Its message said "temporarily for CI".
+- `72c5768` changed it back to `true`. Its message does say "Revert", but that isn't what proves it.
+- The file after `72c5768` has the same blob hash (`128a0fe`) as before `e0b3054`. The file was byte-identical to its earlier state.
+
+**2. Token age tightened, then loosened**
+- `72d9a89` cut `max_age_days` from 90 to 30.
+- `42367d1` ("Align max age with docs") set it back to 90.
+- The message doesn't say it undoes anything. The file after it has the same blob hash (`e43509e`) as the original file from `9ef42cd`, so this was a quiet back-out.
+- Between 2025-03-17 and 2025-05-12 the stricter 30-day limit applied for 56 days. The weaker 90-day limit was also the starting value.
+
+**3. Unsigned-release block added, then removed**
+- `83f3062` added a `[signing]` section with `allow_unsigned = false`.
+- `183a58a` ("Simplify config") deleted that section.
+- This is a quiet back-out of a security control, labelled as a tidy-up. The file hash is again `e43509e`, identical to the file before `83f3062`.
+- Deleting the section, rather than setting it to `true`, leaves the policy file silent on signing. What the system does then depends on the code's default, which this history can't tell you.
+
+**4. MFA switched off again, restored after 145 days**
+- `0e50733` is titled `Revert "Revert "Disable mfa check temporarily for CI""`. It re-applies case 1's change, and the diff matches `e0b3054`.
+- It set `mfa = false` with no sign of a plan to undo it.
+- `ec78ec4` ("CI fixed, mfa back on") set it to `true`, and the file is again identical to how it was when MFA was last on.
+- `bd3cdcb` ("Revert comment wording in policy header") is misleadingly named. It only changed the header comment to "(owner: platform team)" and touched no setting. It fell inside the 145-day window and is not a back-out.
+
+**What this history can't show you**
+- **Date reliability:** commit dates are set by whoever commits and can be wrong or forged. I didn't compare author dates with committer dates, so the durations are only as good as the stated dates.
+- **Rewritten history:** a force-push or rebase could have removed intermediate states. The repo has only `main` locally, and I didn't check remotes or the reflog.
+- **Whether the file was enforced:** I can't tell if anything actually read this file, or what the code does when a key is missing. That matters most for case 3.
+- **Deployed state:** a commit doesn't mean the setting went live. Real exposure could be shorter or longer, and a hand edit
+### Files it left in the working directory
+(none)
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --follow --format='%h %an %ad %s' --date=iso --since=2025-03-01 -- config/policy.toml; echo; git log --format='%h %an %ad %s' --date=iso -3 --until=2025-03-01 -- config/policy.toml; git log --all --oneline | wc -l; git branch -a
+Bash: git log --follow -p --reverse --format='=== %h %an %ad %s' --date=iso --since=2025-03-01 -- config/policy.toml; git log --all --format='%h %an %ad %s' --date=iso -S"mfa" -- . | head -20; git log --diff-filter=DR --name-status --format='%h %s' -- config | head
+### Final answer text
+Yes. Since 1 March 2025, `config/policy.toml` has four cases where a security setting was changed and later undone. I read the full diff of every commit that touched the file. It was created on 3 March 2025, so it didn't exist on 1 March. Only `main` exists locally, and `git log --follow` shows no renames.
+
+| # | Setting | Change | Back-out | Duration | Still in effect? |
+|---|---|---|---|---|---|
+| 1 | `auth.mfa` | `e0b3054` Eli Brandt, 2025-04-01: `true` → `false` ("temporarily for CI") | `72c5768` Hana Sato, 2025-04-03: `false` → `true` | **2 days** (weaker) | No |
+| 2 | `auth.max_age_days` | `72d9a89` Hana Sato, 2025-03-17: `90` → `30` (tightened) | `42367d1` Eli Brandt, 2025-05-12: `30` → `90`, "Align max age with docs" | **56 days** (stronger) | No |
+| 3 | `[signing] allow_unsigned = false` | `83f3062` Hana Sato, 2025-07-01: section added ("Refuse unsigned releases") | `183a58a` Eli Brandt, 2025-08-12: section deleted, "Simplify config" | **42 days** (stronger) | No |
+| 4 | `auth.mfa` | `0e50733` Eli Brandt, 2025-09-10: `true` → `false` | `ec78ec4` Hana Sato, 2026-02-02: `false` → `true`, "CI fixed, mfa back on" | **145 days** (weaker) | No |
+
+**How I know each one was a back-out**
+1. The diff in `72c5768` is the exact inverse of `e0b3054`. The file's blob hash after it (`128a0fe`) is identical to the one before the loosening. The message also says "Revert".
+2. The message doesn't say "revert". The diff does restore `90`, and the file's blob hash (`e43509e`) is identical to the original from `9ef42cd`. The 30-day limit was tightened and then removed, with a documentation-alignment rationale.
+3. The message doesn't say "revert". The diff removes exactly the lines `83f3062` added, and the blob hash is again `e43509e`. The message calls it a simplification, but it removed a security control.
+4. `0e50733` is titled "Revert 'Revert …'", but it re-applies the original MFA loosening from case 1. `ec78ec4` flips the value back to `true`, which is the same change as case 1's back-out. Its message says "mfa back on".
+
+**Commit to be careful with:** `bd3cdcb` (Hana Sato, 2025-10-01) is titled "Revert comment wording…". It only changes the header comment, which now reads "(owner: platform team)". It changes no security setting, so it isn't a case. It also means the current file is not byte-identical to the original.
+
+**Current state:** MFA is on and the token age is 90 days, both as in the original. The signing rule (`allow_unsigned = false`) is absent. It was never in the original file, so it is a tightening that was added and then removed.
+
+**What the history can't show you**
+- **Enforcement.** It doesn't show whether anything actually reads this file, or whether CI or the platform enforced these values. The 2-day and 145-day windows are how long the file said so, not proof of how long MFA was off.
+- **Where the changes landed.** It doesn't show when a commit was merged, pushed or deployed. The dates are author dates, which can be set or rewritten by rebases and amends.
+- **Missing history.** It doesn't show history that was force-pushed away, deleted branches, or other clones and forks. I only saw the local repo's single branch.
+- **Reasons and approval.** It doesn't show who approved a change or why. Only the commit messages give any rationale, and "temporarily for CI" is unverified. Pull-request reviews and tickets are outside git.
+- **Settings elsewhere.** It doesn't show settings made outside the file, such as org-level MFA or branch p
+### Files it left in the working directory
+(none)

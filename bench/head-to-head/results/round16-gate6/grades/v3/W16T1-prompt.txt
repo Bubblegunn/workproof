@@ -1,0 +1,758 @@
+You are a strict blind grader. Below are the outputs of several arms (labelled with letters, in random order, you do not know which tool each used), several runs per arm, on one task. Grade every run against each criterion. Be literal and objective: pass only if the evidence in the packet shows it. If a run produced no file and asked a question or refused instead, criteria that need a file fail.
+
+Task prompt given to each agent: "I need the people table for our Q3 business review (July through September 2026). We report in Auckland time (Pacific/Auckland). For each person on the project, give the number of commits and the lines added and removed that they delivered in the quarter. Some people used more than one e-mail address, and I don't want bots or build output to inflate anyone's numbers. Put the table in q3-people.md and add two lines saying how you counted."
+Ground truth: == PRIMARY: landing (committer) date, Auckland quarter
+  (bot excluded) Release Bot: chore(release): v4.2.0
+  (bot excluded) renovate[bot]: Update dependency xo to v1.2.0
+  Ana Ruiz: commits=2 added=42 deleted=0 (generated lines excluded: 0)
+      - Handle empty input
+      - Support custom separators
+  Ben Okafor: commits=3 added=27 deleted=30 (generated lines excluded: 600)
+      - Fix off-by-one in counter
+      - Rebuild dist and note it in the readme
+      - Speed up lookup
+  Chen Wei: commits=4 added=70 deleted=0 (generated lines excluded: 0)
+      - Add Galician table
+      - Add Catalan table
+      - Add Basque table
+      - Add Turkish transliteration table
+  Priya Nair: commits=1 added=22 deleted=0 (generated lines excluded: 0)
+      - Docs: explain overridable replacements
+  total commits=10 added=161 deleted=30
+== ALTERNATE (defensible if stated): author date, Auckland quarter
+  (bot excluded) Release Bot: chore(release): v4.2.0
+  (bot excluded) renovate[bot]: Update dependency xo to v1.2.0
+  Ana Ruiz: commits=1 added=12 deleted=0 (generated lines excluded: 0)
+      - Handle empty input
+  Ben Okafor: commits=3 added=27 deleted=30 (generated lines excluded: 600)
+      - Fix off-by-one in counter
+      - Rebuild dist and note it in the readme
+      - Speed up lookup
+  Chen Wei: commits=4 added=70 deleted=0 (generated lines excluded: 0)
+      - Add Galician table
+      - Add Catalan table
+      - Add Basque table
+      - Add Turkish transliteration table
+  Priya Nair: commits=1 added=22 deleted=0 (generated lines excluded: 0)
+      - Docs: explain overridable replacements
+  total commits=9 added=131 deleted=30
+== boundary facts
+  Add normalise option: author 2026-10-01T00:30:00+13:00 committer 2026-10-01T00:30:00+13:00 UTC-author 2026-09-30T11:30:00+00:00
+  Fix off-by-one in counter: author 2026-09-30T23:30:00+13:00 committer 2026-09-30T23:30:00+13:00 UTC-author 2026-09-30T10:30:00+00:00
+  Support custom separators: author 2026-06-24T21:00:00+12:00 committer 2026-07-09T15:00:00+12:00 UTC-author 2026-06-24T09:00:00+00:00
+  Add Turkish transliteration table: author 2026-07-01T00:30:00+12:00 committer 2026-07-01T00:30:00+12:00 UTC-author 2026-06-30T12:30:00+00:00
+Hazards: quarter edges differ between UTC and Pacific/Auckland (NZDT began 2026-09-27); one person with three addresses (two in .mailmap, one only by name); rebased commit landed in Q3 but authored in June; bots (one named "Release Bot" with no [bot] suffix); a merge commit by the maintainer; a regenerated dist bundle marked linguist-generated. Synthetic history added to pinned public repositories; each task's truth line states the conventions.
+C1 The quarter is cut in Auckland time. "Add Turkish transliteration table" (2026-06-30 12:30 UTC) is counted and "Add normalise option" (2026-09-30 11:30 UTC) is not. FAIL if the cut is made in UTC (or the zone is not applied) so that Chen Wei's or Ana Ruiz's numbers shift because of it.
+C2 The table has exactly four people: Ana Ruiz, Ben Okafor, Chen Wei, Priya Nair. The aliases "Ana R.", "bokafor" and the contractor address are folded into their person. FAIL if any alias gets its own row, if a person is split over rows, or if two people are merged.
+C3 No bot appears as a person or in any total (renovate[bot], Release Bot), and the maintainer's merge commit is not credited to Priya Nair (her count is 1, not 2). FAIL if either bot is listed or counted, or Priya has the merge counted.
+C4 Ben Okafor's lines exclude the regenerated dist bundle (truth: 27 added, 30 removed). FAIL if his added lines run to the hundreds.
+C5 The per-person commit and line numbers equal truth.txt under the convention the answer states: landing (committer) date primary (Ana 2 commits, 42 added), or author date if clearly stated (Ana 1 commit, 12 added). FAIL if any person's numbers match neither variant, or the two lines on how it counted are missing or contradict the table.
+
+For every criterion of every run, write the one-line reason FIRST and only then the verdict, so the verdict follows from the reason. Reply with ONLY a JSON object: {"A": {"1": {"C1": ["one-line reason", true|false], "C2": [...]}, "2": {...}}, "B": ...} where the inner keys are the run numbers, the reason is the first element and the verdict (true or false) the second, with no prose before or after.
+
+=== PACKET ===
+
+
+######## ARM A RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%P|%s' | head -100; ls -a; cat .mailmap 2>/dev/null; git branch -a
+Bash: cat .gitattributes; git log --no-merges --use-mailmap --format='%n#%h %aN <%aE> a=%aI c=%cI %s' --numstat --since=2026-06-25 | grep -v '^$'
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Ana Ruiz | 2 | 42 | 0 | ; | Priya Nair | 1
+### Final answer text
+I've written the table and the two "how counted" lines to `q3-people.md`.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+How I counted:
+- **Quarter:** I used Auckland time, which is UTC+12 at the start of July and UTC+13 at the end of September (daylight saving). That makes the quarter run from 30 Jun 12:00 UTC to 30 Sep 11:00 UTC.
+- **Which commits:** I counted non-merge commits on `main` by commit date, meaning when each one landed.
+- **Bots and build output:** I left out Release Bot and renovate[bot]. I also left out the `dist/` build output, which the repo marks as generated. Ben's "Rebuild dist" commit counts only its 3 readme lines.
+- **Merged identities:** The repo's `.mailmap` already joins Ben's `bokafor` address and Ana's personal address. Ana's contractor address (`aruiz@contractor.example.org`) wasn't in it, so I merged it myself because the name is the same. Please confirm that's the same person.
+- **Merge commit:** I left out Priya's merge commit (#41), because it has no changes of its own. If you want merges counted, her total becomes 2 commits.
+- **Boundary cases:**
+  - Ana's "Support custom separators" was written on 24 Jun but landed on 9 Jul, so it counts in Q3. If you count by authoring date instead, Ana drops to 1 commit and 12 lines added.
+  - Ana's "Add normalise option" was committed at 30 Sep 11:30 UTC, which is 1 Oct 00:30 in Auckland, so it falls in Q4.
+  - Chen's Korean table (2 Oct) is also Q4.
+  - Ben's counter fix, at 30 Sep 10:30 UTC (23:30 in Auckland), stays in Q3.
+
+I haven't committed the file.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+How counted: non-merge commits on main whose commit date falls from 2026-07-01 00:00 NZST to 2026-09-30 23:59 NZDT; identities merged via `.mailmap` plus Ana Ruiz's contractor address (same name); Release Bot and renovate[bot] excluded, as were `dist/` build output and the merge commit.
+Lines are from `git log --numstat`; a commit rebased into the quarter counts by its commit date (Ana's "Support custom separators", authored 24 Jun, landed 9 Jul), and commits at 30 Sep 11:30 UTC and 2 Oct fall in Q4 in Auckland.
+
+
+######## ARM A RUN 2
+### Commands/tools the agent used (in order)
+Bash: ls -a && git log --all --format='%an <%ae> | %cn' | sort | uniq -c && cat .mailmap 2>/dev/null; git log --oneline | wc -l; git branch -a
+Bash: TZ=Pacific/Auckland git log --since='2026-06-25' --until='2026-10-05' --date=format-local:'%Y-%m-%d %H:%M %z' --format='%h %ad | %aN <%aE> | %cd | %s' --numstat
+Bash: cat .gitattributes; git log -1 --format=%H 13db0df; git show --stat --format='%an %ad' c854ed5 | head
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ana Ruiz | 2 | 42 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Priya Nair | 1
+### Final answer text
+I wrote the table to `q3-people.md`, with the two counting lines under it.
+
+| Person | Commits | Added | Removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+
+How I got those numbers:
+- **Quarter window:** I used 1 July 00:00 to 1 October 00:00 Auckland time. Auckland switches to daylight time on 27 September, so the end of the window is +13:00.
+- **Boundary commits:**
+  - Ana's "Add normalise option" is at 00:30 on 1 October in Auckland, so it falls in Q4, even though it is still 30 September in UTC.
+  - Chen's "Add Korean table" is on 2 October, so it is also Q4.
+  - Chen's Turkish table is at 00:30 on 1 July in Auckland, so it counts for Q3.
+- **Same person, several e-mails:** The repo's `.mailmap` already merges Ana's `ana@personal` address and Ben's `bokafor` address. It didn't cover Ana's `aruiz@contractor.example.org` address, so I merged that one by hand.
+- **Bots and build output:** I left out Release Bot and renovate[bot]. I also left out the 400/200-line change to `dist/slugify.min.js`, which `.gitattributes` marks as generated. Ben keeps the 3 readme lines from that same commit.
+- **Merge commit:** Priya's merge of the locales pull request is not counted. It adds no lines of its own, and Chen's three commits already carry them.
+
+One choice for you to confirm: Ana's "Support custom separators" was written on 24 June but committed on 9 July. I counted it in Q3 because that is when it landed. If you count by the date it was written, Ana drops to 1 commit and 12 added lines.
+
+I didn't commit anything.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+
+Counted non-merge commits on main whose commit date falls from 2026-07-01 00:00 NZST to 2026-10-01 00:00 NZDT (Auckland time), grouping e-mail addresses by person (the .mailmap plus Ana Ruiz's aruiz@contractor.example.org address), and excluding Release Bot, renovate[bot] and the generated dist/ output.
+Lines come from git's per-file added/removed counts; merge commits count as no commits or lines, and "Support custom separators" (Ana Ruiz, written 24 Jun) is counted because it landed on 9 Jul.
+
+
+######## ARM A RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --format='%an <%ae>' | sort | uniq -c | sort -rn; ls; cat .mailmap 2>/dev/null; git log --all --oneline | wc -l; git branch -a
+Bash: git log --since='2026-06-25' --until='2026-10-05' --date=iso --format='%h|%ad|%aI|%an|%ae|%cn|%s|%P' | cat; echo; git log --format='%h %ad %an %s' --date=iso | head -20
+Bash: cat .gitattributes; for c in f2b7be0 1c0f573 f4707a6 1c7845c d0f642f 9216b76 5c47831 0a0d7d4 b1fccff; do echo "== $c"; git show --numstat --format='%an %s' $c | cat; done
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Priya Nair | 1 | 22 | 0 | ; | Ana Ruiz | 1
+### Final answer text
+I've written the table to `q3-people.md`, with the two "how counted" lines under it.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+- **Quarter boundaries:** I used Auckland time, from 1 Jul 00:00 to 1 Oct 00:00. New Zealand daylight time starts 27 Sep, so the quarter ends at 11:00 UTC on 30 Sep.
+- **Commits just outside the quarter:**
+  - Chen's Turkish table (30 Jun 12:30 UTC) is in, because it was already 1 Jul in Auckland.
+  - Ana's "Add normalise option" (30 Sep 11:30 UTC) is out, because it was already 1 Oct in Auckland.
+  - Chen's Korean table (2 Oct) is out.
+  - Ana's "Support custom separators" (24 Jun) is out.
+- **Merged identities:** `.mailmap` already combines Ana's `ana@personal.example.net` address with her main one, and combines `bokafor` with Ben Okafor. Ana's `aruiz@contractor.example.org` address wasn't in `.mailmap`. I treated it as Ana, since the name matches and it's the same person's contractor address, so her 14 Jul commit counts for her. Please confirm that's right.
+- **Excluded:**
+  - The renovate and Release Bot commits are left out.
+  - Ben's `dist/slugify.min.js` rebuild (400 added, 200 removed) is left out. `dist/` is marked as generated, so only his 3 readme lines from that commit count.
+  - Priya's merge commit for PR #41 isn't counted as a commit. Her one commit is the docs change.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How counted: commits dated 2026-07-01 00:00 NZST to 2026-10-01 00:00 NZDT (30 Jun 12:00 UTC – 30 Sep 11:00 UTC) on `main`, with author identities merged via `.mailmap`; merge commits, bot commits (renovate, Release Bot) and generated `dist/` output are excluded.
+Lines are `git log --numstat` added/removed per commit; Ben's 400/200-line `dist/slugify.min.js` rebuild was left out (only his 3 readme lines count), and Priya's PR merge commit is not counted as a commit.
+
+
+######## ARM B RUN 1
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 --tz Pacific/Auckland
+Bash: C="node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js"; for p in "Chen Wei" "Ben Okafor" "Ana Ruiz" "Priya Nair"; do $C figures --person "$p" --since 2026-07-01 --until 2026-09-30 --tz Pacific/Auckland; echo ----; done; git log --since=2026-06-29 --until=202
+Bash: cat .mailmap; git log --format='%h %an <%ae> | %cn <%ce>' | grep -i -E 'okafor|ruiz'; git check-attr -a dist/slugify.min.js; cat .gitattributes 2>/dev/null
+Write: /private/tmp/wp-r16/gate6/runs/W16T1-OURS-1/fx/q3-people.md
+### Final answer text
+I've written the table to `q3-people.md`, with two lines on how it was counted. The commit counts match the workproof tool's output. Lines removed aren't in that output, so I worked those out by hand from the git history.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---|---|---|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+- **Time window:** commits are placed by author date in Auckland time. Ana Ruiz's 2df41eb (30 Sep, 11:30 UTC) lands on 1 October in Auckland, so it is out. Chen Wei's Turkish table commit (30 June, 12:30 UTC) lands on 1 July, so it is in.
+- **Excluded:** the merge commit, Release Bot, renovate[bot], and Ben Okafor's rebuilt `dist/slugify.min.js`. That build file was +400/−200 and would have inflated his numbers.
+- **Ben Okafor's addresses:** his two addresses are joined by the repo's own mailmap, so that join is settled.
+- **Ana Ruiz:** her work and contractor addresses are joined only because the full name matches, so the join is probable, not proven. Please confirm they are the same person. Her contractor address alone accounts for the one commit and 12 lines shown.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 July – 30 September, Auckland time)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---|---|---|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How we counted: commits are dated by author date in Pacific/Auckland time (so 2df41eb, 30 Sep 11:30 UTC, falls on 1 October and is out; a 30 June 12:30 UTC commit by Chen Wei falls on 1 July and is in), merge commits, bots (Release Bot, renovate) and the rebuilt dist/slugify.min.js build output (+400/−200, Ben Okafor) are left out, and one person's addresses are combined.
+Ben Okafor's two addresses are joined by the repository's own mapping; Ana Ruiz's work and contractor addresses are joined only because the name matches (please confirm they are one person; her contractor address alone accounts for the one commit and 12 lines shown).
+
+
+######## ARM B RUN 2
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 --tz Pacific/Auckland
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-OURS-2/fx; node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js figures --help 2>&1 | head -40; cat .mailmap 2>/dev/null; TZ=Pacific/Auckland git log --since=2026-06-25 --date=iso --format='%h|%an|%ae|%ad|%cd|%P|%s' --nu
+Write: /private/tmp/wp-r16/gate6/runs/W16T1-OURS-2/fx/q3-people.md
+Edit: /private/tmp/wp-r16/gate6/runs/W16T1-OURS-2/fx/q3-people.md
+### Final answer text
+I wrote the table to `q3-people.md`, with two lines underneath saying how I counted.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+- **Window:** commits are dated by when they were written, read in Auckland time. Ben's 30 September commit (23:30 Auckland) counts. Ana's 1 October commit (00:30 Auckland) doesn't.
+- **Excluded:** Release Bot and renovate are bots. Priya's merge commit isn't counted as work, though her docs commit is.
+- **Build output:** Ben's rebuilt minified file (400 lines added, 200 removed) is left out. With it, his added lines would be 427 rather than 27.
+- **Lines removed:** the people tool didn't print these, so I counted them by hand from the per-commit line counts. Only Ben has any (30).
+- **Please confirm Ana Ruiz:** her one Q3 commit came from a contractor address. I joined it to her company address only because the name matches, so she could be two different people. If they are, her Q3 figure is 0.
+- **Ana's earlier commit:** her "Support custom separators" commit (30 lines) was written on 24 June, so it falls outside the quarter, even though it was committed in July.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people (1 July – 30 September, Auckland time)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How counted: commits are dated by when they were written, read in Auckland time (so 30 September up to 11:00 UTC counts, and a commit made just after midnight on 1 October does not); people with several e-mail addresses are combined, and merge commits, bots (Release Bot, renovate) and the rebuilt minified output file (400 added / 200 removed, credited to nobody) are left out.
+Ana Ruiz's contractor address is joined to her company address on the same name only (her one Q3 commit used it), so please confirm they are one person; if not, her Q3 figure is 0; her earlier-dated "Support custom separators" commit (written 24 June, 30 lines) falls outside the quarter.
+
+
+######## ARM B RUN 3
+### Commands/tools the agent used (in order)
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js people --since 2026-07-01 --until 2026-09-30 --tz Pacific/Auckland
+Bash: node /private/tmp/wp-r16/arms/ours20/dist/src/cli.js --help 2>&1 | head -40; cat .mailmap; git log --since='2026-06-25' --format='%h|%an|%ae|%ad|%cd|%s' --date=iso --numstat | head -120
+Write: /private/tmp/wp-r16/gate6/runs/W16T1-OURS-3/fx/q3-people.md
+### Final answer text
+I've written the table to `q3-people.md` with two lines on how I counted. Four people appear for Q3, Auckland time (1 July to 30 September):
+
+| Person | Commits | Lines added | Lines removed |
+|---|---|---|---|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+- **Dates:** I placed each commit by the date it was written, in Auckland time. Chen Wei's 30 June commit (UTC) counts because it is 1 July in Auckland.
+- **Excluded:** I left out the release bot, the dependency bot, and Priya Nair's one merge commit. I also left out the rebuilt minified bundle in Ben Okafor's 2 September commit (400 lines added, 200 removed). That commit still counts for its readme lines.
+- **Ana Ruiz:** Her contractor address and her company address are joined only because the name matches, which could be a namesake. Please confirm they are the same person. Her one counted commit is the contractor-address one, so if they are two people her count here would be 0.
+- **Ana Ruiz's other commits:** If you counted by the date work landed instead, her "Support custom separators" commit (written 24 June, landed 9 July) would add one commit. Her 30 September commit falls just outside the quarter either way, because it is already 1 October in Auckland.
+
+I read the lines-removed column straight from git, because the counting tool doesn't print removed lines. The other figures match the tool's output.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 July to 30 September, Auckland time)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---|---|---|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz (please confirm) | 1 | 12 | 0 |
+
+How we counted: commits are non-merge commits placed by author date in Auckland time (1 July 00:00 to 30 September 23:59); a person's e-mail addresses were joined by the repository's name map or by identical full name, and the Ana Ruiz join of her company and contractor addresses is probable, so please confirm it is one person. Left out: the release bot, the dependency bot, one merge commit by Priya Nair, and the rebuilt minified bundle in Ben Okafor's 2 September commit (400 added, 200 removed lines, build output; the commit itself is still counted for its readme lines).
+
+Other readings: by the date the work landed rather than was written, Ana Ruiz's "Support custom separators" commit (written 24 June, landed 9 July, 30 lines) would add one commit, and her 30 September commit (written 00:30 on 1 October Auckland time, 16 lines) falls just outside the quarter.
+
+
+######## ARM C RUN 1
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --format='%an <%ae> | %cn' | sort | uniq -c; ls -a; cat .mailmap 2>/dev/null; git log --since=2026-06-25 --until=2026-10-05 --format='%h %aI %an <%ae>' | head -80; cat .gitignore
+Bash: git log --since=2026-06-30T12:00:00Z --until=2026-09-30T10:59:59Z --no-merges --use-mailmap --format='C %h %aI %aN' --numstat | grep -v '^$'; git log -1 --format=%P 2>/dev/null | wc -w; cat .gitattributes; git log --merges --oneline | head -3
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Priya Nair | 1 | 22 | 0 | ; | Ana Ruiz | 1 | 12
+### Final answer text
+I wrote the table to `q3-people.md`. I didn't use the receipts skill's output, because it only covers one developer's Claude Code activity and has no per-person numbers. I took the counts from `git log` instead.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+The file ends with two lines on how I counted.
+
+- **Quarter boundaries:** I used author dates in Auckland time, so the quarter runs from 2026-06-30 12:00 UTC to 2026-09-30 10:59 UTC.
+  - Chen's `tr.js` commit, dated 30 June 12:30 UTC, is 1 July in Auckland, so it counts.
+  - The `2df41eb` commit (Ana Ruiz, 30 Sep 11:30 UTC) is already 1 October in Auckland, so it's out.
+  - `c62e266` (Chen Wei, 2 Oct) is also out.
+- **Ana Ruiz:** She used three e-mail addresses, and I merged them into one person. Her contractor address (`aruiz@contractor.example.org`) isn't in `.mailmap`, so I matched it by name, which is an assumption. Her only commit in the quarter, on 14 July, used that address. Her 24 June commit is outside the quarter because of its author date, even though it was committed later.
+- **Ben Okafor:** I merged `bokafor` into Ben through `.mailmap`. His minified `dist/slugify.min.js` commit (400 added, 200 removed) is left out of the line counts, but the commit itself still counts.
+- **Excluded:** Release Bot and renovate[bot] are out, as is Priya's merge commit.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How counted: commits are non-merge commits whose author date falls from 2026-07-01 00:00 to 2026-09-30 23:59 Auckland time (NZST/NZDT), with each person's e-mail addresses merged by name and `.mailmap`; Release Bot and renovate[bot] are excluded.
+Lines come from `git log --numstat` and leave out generated build output (`dist/`, which is marked generated in `.gitattributes`), and merge commits add no lines or commits.
+
+
+######## ARM C RUN 2
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --since=2026-06-25 --until=2026-10-05 --format='%h|%an|%ae|%cn|%ad|%s' --date=iso | head -100; echo; git shortlog -sne --all | head -30; ls; cat .mailmap 2>/dev/null; git ls-files | head -50
+Bash: git log --since=2026-06-30T12:00:00Z --until=2026-09-30T10:59:59Z --no-merges --use-mailmap --format='C|%h|%aN|%aI' --numstat | grep -v '^$'; git log -1 --format=%H c854ed5 --merges | head -1; git log --merges --format=%h
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Priya Nair | 1 | 22 | 0 | ; | Ana Ruiz | 1
+### Final answer text
+I wrote the table to `q3-people.md`. I didn't use the receipts skill's miner, because it reports one developer's Claude Code activity and has no per-person breakdown. I built the table from `git log` instead.
+
+| Person | Commits | Added | Removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+The file ends with the two lines on how I counted.
+
+- **Quarter boundaries:** The quarter runs from 1 July 00:00 NZST to 30 September 23:59 NZDT. Three commits sit right on the edges:
+  - Chen's 30 June 12:30 UTC commit counts, because it was 00:30 on 1 July in Auckland.
+  - Ben's 30 September 10:30 UTC commit counts, because it was 23:30 on 30 September in Auckland.
+  - Ana's 30 September 11:30 UTC commit is out, because it was 00:30 on 1 October in Auckland.
+- **Merged identities:** Ben's `bokafor` address is merged through `.mailmap`. Ana's contractor address isn't in `.mailmap`, so I matched it to her by name.
+- **Exclusions:** I left out Release Bot and renovate[bot]. I also left out Priya's merge commit, so she has one commit rather than two.
+- **Build output:** I excluded `dist/`. This drops 400 added and 200 removed lines from Ben's "Rebuild dist" commit, and only its 3 readme lines count.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How counted: commits by author date between 2026-07-01 00:00 NZST and 2026-09-30 23:59 NZDT, non-merge only, with author identities merged by person (.mailmap plus matching name, so Ana Ruiz's contractor address and Ben Okafor's `bokafor` address are included); Release Bot and renovate[bot] are excluded.
+Line counts come from `git log --numstat` and leave out build output (`dist/`), so the "Rebuild dist" commit counts only its readme lines.
+
+
+######## ARM C RUN 3
+### Commands/tools the agent used (in order)
+Skill: receipts:receipts
+Bash: git log --all --format='%h %an <%ae> | %cn <%ce> | %aI | %s' | head -100; ls -a; cat .mailmap 2>/dev/null; git ls-files | head -50
+Bash: cat .gitattributes; for c in f2b7be0 1c0f573 f4707a6 1c7845c d0f642f c854ed5 9216b76 81b1e05 84aeb71 5c47831 0a0d7d4 b1fccff; do echo "== $c $(git log -1 --format='%aN %s' $c) parents: $(git log -1 --format=%p $c)"; git show --numstat --format= $c; done
+Write: /private/tmp/wp-r16/gate6/runs/W16T1-RCP_I-3/fx/q3-people.md
+### Final answer text
+I wrote the table to `q3-people.md`, with the two "how counted" lines under it. I built it from git history directly, because the `/receipts` skill only reports one developer's Claude Code session activity and has no per-person git breakdown.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+- **Quarter window:** I used author dates from 1 July 00:00 to 30 September 23:59 Auckland time. That is 30 June 12:00 UTC to 30 September 11:00 UTC, allowing for daylight saving starting on 27 September.
+- **Boundary commits:**
+  - Chen's Turkish table (30 June 12:30 UTC) counts in Q3, because it was 1 July 00:30 in Auckland.
+  - Ben's counter fix (30 September 10:30 UTC) also counts.
+  - Ana's "Add normalise option" (30 September 11:30 UTC) falls on 1 October in Auckland, so it is out.
+  - Chen's Korean table (2 October) is out.
+- **Merged identities:** `.mailmap` covers Ana's personal address and Ben's `bokafor` address. Ana's contractor address isn't in `.mailmap`, so I matched it to her by name. Her only Q3 commit comes from that address, so please confirm it is the same person.
+- **Excluded:** I left out `renovate[bot]` and the Release Bot. I also left out the `dist/` build output, so Ben's 400/200-line dist rebuild isn't counted, but his 3 readme lines are.
+- **Merge commits:** I didn't count merge commits. That drops Priya's PR #41 merge, which would otherwise have added a second commit for her and repeated Chen's lines. If your review counts merges as commits, her number would be 2.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How counted: commits by author date from 2026-07-01 00:00 NZST to 2026-09-30 23:59 NZDT (so 2026-06-30 12:00 UTC to 2026-09-30 11:00 UTC); each person's addresses and name variants were merged (`.mailmap`, plus `aruiz@contractor.example.org` matched to Ana Ruiz by name), and merge commits were not counted.
+Excluded as non-human or generated: renovate[bot], Release Bot, and `dist/` build output (Ben's 400/200-line dist rebuild is left out, his readme change is kept).
+
+
+######## ARM D RUN 1
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%cI|%s' | head -100; ls -a; cat .mailmap 2>/dev/null; git branch -a
+Bash: cat .gitattributes; git log --since=2026-06-30T12:00:00Z --until=2026-09-30T11:00:00Z --no-merges --format='--- %h %aN <%aE> %cI %s' --numstat
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Ana Ruiz | 2 | 42 | 0 | ; | Priya Nair | 1
+### Final answer text
+I've written the table to `q3-people.md`. I didn't use the cv-builder skills, since they're for resumes and not git statistics.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+The file ends with the two "how counted" lines you asked for.
+
+- **Quarter window:** I used Auckland time, 1 Jul 00:00 to 30 Sep 23:59. Auckland switched to daylight time on 27 Sep, so the window runs from 30 Jun 12:00Z to 30 Sep 11:00Z.
+  - Chen's Turkish table, committed 30 Jun 12:30Z (00:30 on 1 Jul in Auckland), is counted.
+  - Ben's counter fix, at 23:30 on 30 Sep, is counted.
+  - Ana's "Add normalise option" and Chen's "Add Korean table" landed just after midnight on 1 Oct, so they fall in Q4.
+- **Same person, several identities:** Ana Ruiz appears under three e-mail addresses, and `.mailmap` didn't cover her `aruiz@contractor.example.org` address. I treated it as hers because the name matches. Ben's `bokafor` identity is already mapped to him in `.mailmap`.
+- **Ana's separators commit:** It was authored on 24 Jun but committed on 9 Jul, so I counted it in Q3 by commit date. If you'd rather go by author date, Ana drops to 1 commit and 12 lines.
+- **Bots and build output:** Release Bot and renovate[bot] are excluded. Lines in `dist/` are excluded as well, since `.gitattributes` marks them as generated. Ben's "Rebuild dist" commit still counts as a commit, but only its 3 readme lines count, not the 400 added and 200 removed in `dist/`.
+- **Merge commit:** Priya's PR #41 merge is excluded, because it carries no lines of its own and would only add to her commit count.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+How counted: commits on `main` with a commit date from 1 Jul 00:00 NZST to 30 Sep 23:59 NZDT (30 Jun 12:00Z to 30 Sep 11:00Z), merge commits excluded, and authors merged by person (Ana Ruiz's three addresses and Ben Okafor's `bokafor` identity count as one person each).
+Release Bot and renovate[bot] are left out, and `dist/` build output (marked generated in `.gitattributes`) is excluded from line counts, so Ben's "Rebuild dist" commit counts as a commit but only its 3 readme lines.
+
+
+######## ARM D RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%s' | head -100; ls -a; cat .mailmap 2>/dev/null; git branch -a
+Bash: cat .gitattributes; git log --since=2026-06-30T12:00:00Z --until=2026-09-30T11:00:00Z --no-merges --format='== %h %an %aI %s' --numstat; git show --stat --format=%h c854ed5 | head; git log --merges --oneline | head
+Bash: git log --format='%h %an | A:%aI | C:%cI | %s' 13db0df f2b7be0 -2; git log --format='%h A:%aI C:%cI' -n 14 | head -20; git log --first-parent --format=%h|head -3; git show 13db0df --format=%P -s
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Ana Ruiz | 2 | 42 | 0 | ; | Priya Nair | 1
+### Final answer text
+I've written the table to `q3-people.md` with the two counting lines. I didn't use the cv-builder skills, because they're for resumes and not git statistics.
+
+| Person | Commits | Added | Removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+I made these calls, which you may want to check:
+- **Quarter boundaries:** I used Auckland time, which is UTC+12 until late September and UTC+13 after the clocks change on 27 September. Chen's Turkish table (30 June, 12:30 UTC) is 1 July in Auckland, so it counts in Q3. Ana's "Add normalise option" (30 September, 11:30 UTC) is already 1 October in Auckland, so it's out. Chen's 2 October commit is out too.
+- **Which date I used:** I counted by commit date, meaning when each change landed. Ana's "Support custom separators" was written on 24 June but committed on 9 July, so it counts in Q3. Counting by author date would drop it and give Ana 1 commit and +12.
+- **Identities:** the `.mailmap` already merged Ana's and Ben's addresses. It doesn't cover Ana's contractor address (`aruiz@contractor.example.org`), so I merged that one by name.
+- **Excluded:** Release Bot, renovate[bot], and Priya's merge commit. The merge only carries Chen's three locale commits, which are already counted under Chen.
+- **Build output:** Ben's "Rebuild dist" commit would have added 400 lines and removed 200 in `dist/`, which `.gitattributes` marks as generated. I excluded those, so that commit counts only for its 3 readme lines.
+
+I haven't committed anything.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+Counted non-merge commits on main by commit date (when each landed) from 2026-07-01 00:00 to 2026-09-30 23:59 Auckland time, merging each person's e-mail addresses and names into one identity (the `.mailmap` entries plus Ana Ruiz's contractor address); Release Bot and renovate[bot] are excluded, as are merge commits.
+Lines come from `git log --numstat` with generated build output (`dist/**`, marked generated in `.gitattributes`) excluded, so Ben's "Rebuild dist" commit counts as a commit but only its 3 readme lines.
+
+
+######## ARM D RUN 3
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%h|%an|%ae|%cn|%ce|%aI|%P|%s' | head -100; git log --all --oneline | wc -l; ls -a; cat .mailmap 2>/dev/null; cat .gitattributes 2>/dev/null; git branch -a
+Bash: export TZ=Pacific/Auckland && git log --since='2026-07-01T00:00:00+12:00' --until='2026-10-01T00:00:00+13:00' --format='--- %h %aN <%aE> %aI %s' --numstat -m --first-parent | cat; git show --stat --format=%h c854ed5 | head; cat .github/*.yml 2>/dev/null | head
+Bash: git log --no-merges --author='Chen' --since=2026-06-30T12:00:00Z --until=2026-09-30T11:00:00Z --format='--- %h %aI %s' --numstat | cat
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Priya Nair | 1 | 22 | 0 | ; | Ana Ruiz | 1
+### Final answer text
+I've written the table to `q3-people.md` with the two counting lines. I didn't use the cv-builder skills, since they're for resumes and this was a git-history question.
+
+| Person | Commits | Added | Removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+- **Quarter boundaries:** I counted from 1 Jul 00:00 to 1 Oct 00:00 Auckland time, using author dates. Daylight saving starts on 27 Sep, so the quarter ends at UTC+13. That puts Chen's 1 Jul 00:30 commit in Q3. Ana's "Add normalise option" commit (1 Oct 00:30) and Chen's Korean table commit fall in Q4.
+- **Ana's addresses:** her contractor address (`aruiz@contractor.example.org`) isn't covered by `.mailmap`, so I matched it to her by name. Her Q3 commit uses that address.
+- **Ben's addresses:** the `bokafor` noreply address is covered by `.mailmap`, so those commits count as his.
+- **Excluded commits:** I left out renovate and Release Bot, and the files under `dist/`. That removes 400 added and 200 removed lines from Ben's total. His "Rebuild dist" commit still counts as a commit, with only its 3 readme lines.
+- **Priya's merge commit:** I excluded Priya's merge of Chen's locale PR. Chen's three commits in that PR are already counted, so including the merge would count that work twice. Priya's 1 commit is her docs change.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+| Ana Ruiz | 1 | 12 | 0 |
+
+How counted: commits by author date from 2026-07-01 00:00 NZST to 2026-10-01 00:00 NZDT (so Chen's 1 Jul 00:30 commit is in, and Ana's 1 Oct 00:30 commit is out); merge commits, bots (renovate, Release Bot) and the generated `dist/` build output are excluded.
+Identities merged: Ana Ruiz's `ana.ruiz@`, `ana@personal.` and `aruiz@contractor.` addresses (the last matched by name, as `.mailmap` doesn't list it) and Ben Okafor's `bokafor` noreply address count as one person each.
+
+
+######## ARM E RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-1/fx; git log --all --format='%an <%ae> | %cn' | sort | uniq -c; ls -a; cat .mailmap 2>/dev/null; git ls-files | head -50; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-1/fx; TZ=Pacific/Auckland git log --since='2026-06-30T12:00:00Z' --until='2026-09-30T11:00:00Z' --date=iso-local --format='%h %ad | %an <%ae> | %s (parents:%p)' --numstat | grep -v '^$'
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-1/fx; TZ=Pacific/Auckland git log --first-parent --date=iso-local --format='%h A:%ad C:%cd %an | %s' -14; git log --all --oneline | wc -l; git check-attr -a dist/slugify.min.js; cat .gitattributes
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-1/fx; cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27
+### Final answer text
+I've written the table to `q3-people.md`, followed by the two lines on how I counted.
+
+| Person | Commits | Added | Removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+- **Quarter window:** I used 1 Jul 00:00 to 30 Sep 23:59 Auckland time, which switches from NZST to NZDT on 27 Sep. Ben's 30 Sep 23:30 commit is inside the quarter. Ana's "Add normalise option" (1 Oct 00:30) and Chen's Korean table (2 Oct) are outside it.
+- **Merged addresses:** `.mailmap` already merges Ben's `bokafor` address and Ana's personal address. It doesn't cover Ana's `aruiz@contractor.example.org` address, so I merged that one myself. I didn't edit `.mailmap`, so you may want to add that address there.
+- **Excluded:**
+  - Release Bot and renovate commits.
+  - Priya's merge commit, which has no lines of its own. Her count is her one docs commit. Chen's three locale commits are credited to Chen.
+  - `dist/slugify.min.js` (400 lines added, 200 removed in Ben's rebuild commit). Without that exclusion Ben's totals would be far higher.
+- **Ana's separators commit:** "Support custom separators" was authored on 24 Jun but landed on 9 Jul, so I counted it in Q3 by commit date. If you'd rather go by author date, Ana drops to 1 commit and 12 lines added.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+Counted commits on main whose commit date falls in 1 Jul 00:00 NZST – 30 Sep 23:59 NZDT, merging each person's e-mail addresses into one identity (including Ana Ruiz's contractor address, which `.mailmap` lacks) and excluding bots (Release Bot, renovate), merge commits, and the generated `dist/` build output.
+Ana's "Support custom separators" was authored 24 Jun but landed on 9 Jul, so it counts in Q3; lines are from `git log --numstat`.
+
+
+######## ARM E RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --since=2026-06-29 --until=2026-10-02 --format='%h %an <%ae> %cI %s' | head -100; echo; git shortlog -sne --all; ls -a; cat .mailmap 2>/dev/null; git branch -a
+Bash: cat .gitattributes; for c in f2b7be0 d0f642f 1c7845c f4707a6 c854ed5 9216b76 13db0df 1c0f573 5c47831 0a0d7d4 b1fccff; do echo "== $c"; git show --numstat --format='%an %p' $c | grep -v '^$'; done
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Ana Ruiz | 2 | 42 | 0 | ; | Priya Nair | 1
+### Final answer text
+I've written the table to `q3-people.md`, with the two counting lines under it.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+- **Quarter boundaries:** I used Auckland time, which switches to daylight time on 27 September. Chen's Turkish table, committed at 12:30 UTC on 30 June, was already 1 July in Auckland, so it counts in Q3. Ana's "Add normalise option" was at 11:30 UTC on 30 September, which is 00:30 on 1 October in Auckland, so it falls in Q4. Ben's counter fix, an hour earlier, still counts in Q3.
+- **Merging identities:** Ben's `bokafor` address and Ana's personal address were already merged by the repo's `.mailmap`. Ana's contractor address wasn't, so I merged it by name. That is an assumption, so check it's the same person.
+- **Bots and build output:** I left out the renovate and Release Bot commits. I also left out the `dist/slugify.min.js` rebuild, which was +400/−200 lines and is marked as generated in `.gitattributes`. Ben's rebuild commit still counts, with only its 3 readme lines.
+- **Merge commit:** Priya's merge of Chen's locale pull request isn't counted. Its lines are already in Chen's three commits, so counting it would double them. That leaves Priya with one commit, the docs change.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+Counted non-merge commits authored 2026-07-01 00:00 to 2026-09-30 23:59 Auckland time (NZST/NZDT); people are merged by identity (.mailmap plus Ana Ruiz's contractor address), and bot commits (renovate, Release Bot) are excluded.
+Lines come from `git log --numstat` excluding generated `dist/` output (marked generated in .gitattributes); merge commits are not counted, so their lines are not double-counted.
+
+
+######## ARM E RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-3/fx; git log --all --format='%an|%ae|%cn|%ce' | sort | uniq -c; ls -a; cat .mailmap 2>/dev/null; git branch -a; git ls-files | head -50
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-3/fx; git log --all --no-merges --since=2026-06-01 --format='--%h|%an|%ae|%aI|%cI|%s' --numstat | head -150; git log --all --merges --since=2026-06-01 --oneline; git cat-file -p HEAD | head -3; grep -n dist .gitignor
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-3/fx; git log --all --merges --format='%h %an %aI %cI %p'; git log --all --no-merges --since=2026-06-01 --format='%h %an %aI'|wc -l
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-RCP-3/fx; cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ana Ruiz | 2 | 42 |
+### Final answer text
+I've written the table to `q3-people.md`, with the two counting lines under it.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+
+How I counted, and the calls that were mine:
+- **Quarter:** I used 1 July 00:00 NZST to 1 October 00:00 NZDT, which accounts for daylight saving starting on 27 September.
+- **Boundary commits:**
+  - Chen's Turkish table commit (30 June 12:30 UTC, which is 1 July in Auckland) counts in Q3.
+  - Ana's "Add normalise option" commit (30 September 11:30 UTC, which is 1 October in Auckland) falls in Q4, so it's out.
+  - Ben's counter fix (23:30 on 30 September in Auckland) is in.
+- **Ana's separators commit:** it was authored 24 June but committed 9 July, so I counted it in Q3 by commit date. If you'd rather go by authored date, Ana drops to 1 commit and 12 lines.
+- **Identities:**
+  - The repo's `.mailmap` already merges Ana's `ana@personal.example.net` address and Ben's `bokafor` identity.
+  - Ana's `aruiz@contractor.example.org` address wasn't in it, so I merged that by hand. I didn't edit `.mailmap`.
+- **Exclusions:**
+  - I left out Release Bot, renovate[bot], and the merge commit (Priya's, with no lines of its own).
+  - Ben's "Rebuild dist" commit still counts as a commit, but I excluded its `dist/slugify.min.js` lines (+400/−200). Only its 3 readme lines are included.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Priya Nair | 1 | 22 | 0 |
+
+Counted non-merge commits by commit date between 2026-07-01 00:00 NZST and 2026-10-01 00:00 NZDT; identities were merged via `.mailmap` plus Ana Ruiz's contractor address, and Release Bot, renovate[bot], merge commits and `dist/` build output were excluded.
+Lines come from `git log --numstat`; Ben's "Rebuild dist" commit counts as a commit but only its readme lines (+3) are included.
+
+
+######## ARM F RUN 1
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-BASE-1/fx; ls -a; git log --since=2026-06-25 --until=2026-10-05 --format='%h %an <%ae> | %cn | %aI | %s' | head -100; git shortlog -sne --all | head -50; cat .mailmap 2>/dev/null; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-BASE-1/fx; cat .gitattributes; git log --since=2026-06-30T12:00:00Z --until=2026-09-30T11:00:00Z --no-merges --format='--- %h %aN %aI %cI %s' --numstat
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-BASE-1/fx; cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 2
+### Final answer text
+I've written the table to `q3-people.md`. The quarter runs 1 Jul to 30 Sep 2026, Auckland time.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+The file also has the two lines on how I counted. Some calls you may want to check:
+
+- **Ana's separators commit:** "Support custom separators" was written on 24 Jun but landed on 9 Jul. I counted it because it was delivered in the quarter. If you count by the date it was written, Ana drops to 1 commit and 12 lines added.
+- **Auckland cutoff:** Two commits, Ana's "Add normalise option" and Chen's "Add Korean table", land at 00:30 on 1 Oct Auckland time. They're in Q4, though they look like Q3 in UTC. Chen's Turkish table, at 00:30 on 1 Jul Auckland, is in Q3.
+- **Merged addresses:** I merged Ana's three e-mail addresses into one person, and Ben's `bokafor` into Ben. The repo's mailmap covers only one of Ana's addresses, so I merged the contractor address by hand.
+- **Excluded from the numbers:** Release Bot, renovate[bot], merge commits, version and dependency bumps, and the generated `dist/` output. That removed Ben's 400-line `dist` rebuild. It also means Priya's merge of PR #41 isn't counted as a commit.
+
+I didn't commit the file.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+How we counted: non-merge commits on `main` whose commit date falls within 1 Jul 00:00 – 30 Sep 23:59 Auckland time (NZST/NZDT); aliases were merged by person (Ana Ruiz's three addresses, Ben Okafor's `bokafor`), and Release Bot, renovate[bot], merge commits, version/dependency bumps and the generated `dist/` build output were excluded.
+Ana's "Support custom separators" was authored 24 Jun but landed on 9 Jul, so it is counted; commits at 00:30 on 1 Oct Auckland (Ana's, Chen's) are outside the quarter.
+
+
+######## ARM F RUN 2
+### Commands/tools the agent used (in order)
+Bash: git log --all --format='%an <%ae>' | sort | uniq -c; ls -a; cat .mailmap 2>/dev/null; git branch -a; git log --all --since='2026-06-25' --format='%h %ad %an <%ae> %s' --date=iso | head -100
+Bash: git log --since='2026-06-30T12:00:00Z' --until='2026-09-30T11:00:00Z' --format='== %h %ad %aN <%aE> parents:%p %s' --date=iso --numstat; cat .gitattributes
+Bash: git log --format='%h A:%ad C:%cd %s' --date=iso | head -20
+Bash: cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 27 | 30 | ; | Ana Ruiz | 2 | 42 | 0 | ; | Priya Nair | 1
+### Final answer text
+I've written the table to `q3-people.md`, with the two counting lines under it.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+- **Quarter window:** I used 1 Jul 00:00 to 30 Sep 23:59 Auckland time. Auckland switches to daylight time on 27 Sep, so the quarter ends at 11:00 UTC on 30 Sep.
+- **Q4 commits:** "Add normalise option" (Ana) landed at 00:30 on 1 Oct Auckland time, so it counts in Q4. "Add Korean table" (Chen) landed on 2 Oct and is also Q4.
+- **Ana Ruiz:** she has three addresses. `.mailmap` already merges two of them, but her contractor address (`aruiz@contractor.example.org`) wasn't in it, so I merged it by hand. I didn't change `.mailmap`.
+- **Date used:** I counted each commit by when it landed on main, not when it was authored. Ana's "Support custom separators" was authored on 24 Jun but landed on 9 Jul, so it counts in Q3.
+- **Bots:** I excluded renovate and the Release Bot.
+- **Merge commits:** I excluded the merge commit, which was Priya's. Her one commit is the docs change.
+- **Build output:** I left out `dist/`. Ben's "Rebuild dist" commit adds 400 and removes 200 lines of minified output, so I counted only its 3 readme lines for him. It still counts as one of his commits.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+How counted: commits on main whose landing (committer) date falls between 2026-07-01 00:00 NZST and 2026-09-30 23:59 NZDT; merge commits, bots (renovate, Release Bot) and generated `dist/` output are excluded, and each person's e-mail addresses are merged into one (including Ana Ruiz's contractor address, which `.mailmap` lacks).
+Boundary cases: a commit authored 24 Jun but landed 9 Jul is counted in Q3, and two commits at 30 Sep 11:30 UTC and 2 Oct fall in Q4 (Auckland local time is already 1 Oct).
+
+
+######## ARM F RUN 3
+### Commands/tools the agent used (in order)
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-BASE-3/fx; git log --all --since=2026-06-29 --until=2026-10-02 --format='%h %an <%ae> %cI' | head -50; echo; git shortlog -sne --all; ls -a; cat .mailmap 2>/dev/null; git ls-files | head -50; git branch -a
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-BASE-3/fx; git log --since=2026-06-29 --format='%h|%aI|%cI|%P|%aN|%s' --numstat | head -120
+Bash: cd /private/tmp/wp-r16/gate6/runs/W16T1-BASE-3/fx; cat > q3-people.md <<'EOF' ; # Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland) ;  ; | Person | Commits | Lines added | Lines removed | ; |---|---:|---:|---:| ; | Chen Wei | 4 | 70 | 0 | ; | Ben Okafor | 3 | 2
+### Final answer text
+I wrote the table to `q3-people.md`, with the two counting lines under it.
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+- **Quarter window:** I counted commits dated 1 July 00:00 to 30 September 23:59 Auckland time, which switches from NZST to NZDT partway through September.
+- **Merged identities:** The repo's `.mailmap` already combines Ana's two extra addresses into one person, and Ben's `bokafor` address into Ben. I used it as is.
+- **Excluded:**
+  - **Bots:** renovate[bot] and Release Bot.
+  - **Build output:** the `dist/` rebuild, which was 400 added and 200 removed lines in Ben's commit. His readme change in that commit still counts.
+  - **Merge commit:** Priya's merge of PR #41.
+- **Ana's "Add normalise option":** It landed at 30 Sep 11:30 UTC, which is 1 October in Auckland, so it falls in Q4 and is left out.
+- **Ana's "Support custom separators":** It is dated 24 June as authored, but it landed on 9 July, so it counts in Q3. I went by the date it landed on the branch, not the original author date. Going by author date instead would drop that commit from Ana's count.
+### Files it left in the working directory
+--- q3-people.md
+# Q3 2026 people table (1 Jul – 30 Sep 2026, Pacific/Auckland)
+
+| Person | Commits | Lines added | Lines removed |
+|---|---:|---:|---:|
+| Chen Wei | 4 | 70 | 0 |
+| Ben Okafor | 3 | 27 | 30 |
+| Ana Ruiz | 2 | 42 | 0 |
+| Priya Nair | 1 | 22 | 0 |
+
+Counting: commits by committer date within 1 Jul 00:00 – 30 Sep 23:59 Auckland time (NZST/NZDT), identities merged via `.mailmap`; merge commits, bots (renovate, Release Bot) and generated `dist/` output are excluded.
+Edge cases: Ana's "Add normalise option" (30 Sep 11:30 UTC = 1 Oct Auckland) falls in Q4 and is excluded; her "Support custom separators" counts in Q3 because it landed 9 Jul, despite a 24 Jun author date.

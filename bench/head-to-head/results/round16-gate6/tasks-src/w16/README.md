@@ -1,0 +1,13 @@
+# w16: five tasks for the engineering-manager quarterly business review
+
+Job: quarterly review for non-technical executives (delivery per team/person, feature vs fix vs maintenance, joiners/leavers, quarter-on-quarter). All repository facts (names of upstream authors, file lists) were read from the clones at build time; no facts from memory. Each fixture clones a public repo at a pre-2025 pin and adds synthetic commits (fictional people, example/invalid domains) dated 2025-2026. Each build was run twice; HEAD shas and truth.py output matched.
+
+t1: sindresorhus/slugify (JavaScript), pin d572cba97a8f. Per-person Q3 2026 table in Pacific/Auckland. Hazards: quarter edges differ between UTC and Auckland (NZDT from 2026-09-27), one person with three addresses (two in .mailmap, one by name only), rebased commit (author June, landed July), bots including "Release Bot", merge commit, regenerated dist marked linguist-generated. Conventions: Auckland cut, committer (landing) date primary with author date as stated alternative, mailmap then name merge, bots and merges excluded, generated files excluded.
+
+t2: pallets/itsdangerous (Python), pin 62fde54d4ff7. Q3 2026 effort split feature/fix/maintenance by lines changed, in chat. Hazards: two lying message prefixes, whitespace-only reformat of six files, vendored library, feature plus its revert, bots, merge. Conventions: classify by behaviour, lines added+deleted, reformat/vendored/reverted pair/bots reported separately.
+
+t3: spf13/pflag (Go), pin 1118d46dfe34. Joiners and leavers Q2 to Q3 2026. Hazards: e-mail changes (no mailmap), returning contributor, person absent in Q3 who returns in October, co-author-only person in a squash, bot first seen in Q3. Conventions: identity by name, active = authored in quarter, joined = never authored before Q3, leaver flagged if active again later, trailers not authorship.
+
+t4: sharkdp/hexyl (Rust), pin abc20a380c8c. Q3 vs Q2 2026 comparison written to qoq.md. Hazards: two 2037-dated commits (both dates), one author date 1970 with a good committer date, --no-ff merge, squash with co-author, generated Cargo.lock, history out of date order. Conventions: committer date, impossible dates replaced by first parent's date, non-merge human commits, lock file excluded.
+
+t5: rubocop/rubocop-rake (Ruby), pin f4e8b7644b35. Per-team delivery Q3 2026 from an effective-dated roster in the repo. Hazards: mid-quarter team move, alias e-mail and abbreviated co-author name, cross-team squash, same-team co-author, unrostered author, bot, rename with one added line. Conventions: team at the commit date, one credit per distinct team with full lines, rename detection on.
