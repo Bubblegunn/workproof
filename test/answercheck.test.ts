@@ -287,3 +287,17 @@ test("the synchronous stopCheck stays synchronous and allows the same turn", () 
   assert.equal(stopCheck(hookInput(lines, cwd)), "");
   assert.ok(parseTurn(lines.map((l) => JSON.stringify(l)).join("\n")).writes !== undefined);
 });
+
+test("an answer about several people: another person's exact count is a figure too, and is not flagged as a near miss of a printed identity", async () => {
+  const { buildHistory, lines } = await import("./history.js");
+  // Grace (configured) 3, Heidi 4, Ivan 5, Judy 6: the checked identities are Grace and the two largest authors, so Heidi's 4 is a near miss of Grace's 3.
+  const authors: [string, string, number][] = [["Grace", AUTHOR, 3], ["Heidi Voss", "heidi@acme-labs.dev", 4], ["Ivan Roe", "ivan@acme-labs.dev", 5], ["Judy Tan", "judy@acme-labs.dev", 6]];
+  const dir = await buildHistory(authors.flatMap(([name, email, n], k) => Array.from({ length: n }, (_, i) => ({ name, email, date: `2026-03-${String(1 + k * 6 + i).padStart(2, "0")}T10:00:00Z`, message: `${name} ${i}`, files: { [`${k}-${i}.txt`]: lines(1) } }))));
+  execFileSync("git", ["config", "user.email", AUTHOR], { cwd: dir, env: ENV });
+  execFileSync("git", ["config", "user.name", "Grace"], { cwd: dir, env: ENV });
+  const ask = "Who made the commits in this repository, per person? Write it as a short list.";
+  assert.equal(await answerReason(turnOf([user(ask), say("Heidi Voss made 4 commits and Grace made 3 commits.")]), dir), null, "both numbers equal a printed per-person figure");
+  const reason = await answerReason(turnOf([user(ask), say("Heidi Voss made 7 commits and Grace made 3 commits.")]), dir);
+  assert.ok(reason, "7 is one away from Judy's 6 and equals nobody's count");
+  assert.match(reason, /prints 6 for "authored non-merge commits/);
+});

@@ -163,12 +163,21 @@ export function repoEmails(cwd: string): string[] {
   }
 }
 
+/**
+ * An address on a domain that RFC 2606 and RFC 6761 reserve for examples and tests (example, example.com/net/org, invalid, test,
+ * localhost). It cannot be a real person's address, so writing it discloses nothing and never blocks.
+ */
+export function isReservedAddress(email: string): boolean {
+  const domain = email.slice(email.lastIndexOf("@") + 1).toLowerCase();
+  return /(?:^|\.)(?:example(?:\.(?:com|net|org))?|invalid|test|localhost)$/.test(domain);
+}
+
 /** True when the final message contains an address that workproof output printed, or a repository address when a run read the repository. noreply addresses never count. */
 export function leaksEmail(finalText: string, runs: Run[], repo: string[]): boolean {
   const printed = runs.flatMap((r) => norm(r.output).match(EMAIL) ?? []);
   const known = runs.some((r) => readsRepo(r.command)) ? repo : [];
   const final = norm(finalText);
-  return [...new Set([...known, ...printed])].some((e) => e.length > 0 && !e.includes("noreply") && final.includes(e));
+  return [...new Set([...known, ...printed])].some((e) => e.length > 0 && !e.includes("noreply") && !isReservedAddress(e) && final.includes(e));
 }
 
 /**
@@ -182,7 +191,7 @@ export function writtenFileLeak(turn: Turn, repo: string[]): string | null {
   const prompt = turn.prompt ?? "";
   if (!turn.runs.length && !PROMPT_TRIGGER.test(prompt)) return null;
   if (asksForAddresses(prompt)) return null;
-  const known = new Set(repo.map((e) => norm(e)).filter((e) => e.length > 0 && !e.includes("noreply")));
+  const known = new Set(repo.map((e) => norm(e)).filter((e) => e.length > 0 && !e.includes("noreply") && !isReservedAddress(e)));
   const promptText = norm(prompt);
   for (const w of writes) {
     const leaks = (norm(w.content).match(EMAIL) ?? []).some((e) => known.has(e) && !promptText.includes(e));

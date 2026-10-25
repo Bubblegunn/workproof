@@ -232,12 +232,15 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   // Only the exact noreply phrase is removed, after joining, so a forbidden word on the same code line is still checked.
   const code = script
     .split("\n")
-    .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count") && !l.includes("If the user names a folder") && !l.includes("For evidence that changes were reviewed") && !l.includes("To check a claim that someone wrote"))
+    .filter((l) => !/^\s*#/.test(l) && !l.includes("This request matches") && !l.includes("Plain git count") && !l.includes("Run the tool as:") && !l.includes("The tool, if the request fits:") && !l.includes("For review evidence run:") && !l.includes("To check who wrote or owns"))
     .join("\n")
     .replaceAll("a GitHub noreply address whose login matches the name or the address in git config", "")
     // The two sanctioned node uses: the availability check and the read-only brief call (checked below).
     .replaceAll("command -v node >/dev/null 2>&1", "")
-    .replaceAll('node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500 --window-from-stdin', "");
+    .replaceAll('node "$root/dist/src/cli.js" $sub --brief --repo "$cwd" --budget-ms 2500 --window-from-stdin', "")
+    // The command text the hint prints for the model to run; the script itself never runs it.
+    .replaceAll('cli="node $root/dist/src/cli.js"', "")
+    .replaceAll('cli="npx workproof"', "");
 
   const forbidden = [
     /\bcurl\b/, /\bwget\b/, /\bnc\b/, /\bnode\b/, /\bnpm\b/, /\bpython\d?\b/,
@@ -261,7 +264,7 @@ test("the script is POSIX sh, executable, and free of network, launcher, write a
   const npxLines = script.split("\n").filter((l) => l.includes("npx"));
   assert.ok(npxLines.length >= 1, "output text must mention npx");
   for (const line of npxLines) {
-    assert.ok(/This request matches|verifiable figures|If the user names a folder|Counts, dates and claims come from the brief|For evidence that changes were reviewed|To check a claim that someone wrote or owns/.test(line), `npx outside the output text: ${line}`);
+    assert.ok(/This request matches|verifiable figures|then cli="node|else cli="npx workproof"|If the user names a folder|Counts, dates and claims come from the brief|For evidence that changes were reviewed|To check a claim that someone wrote or owns/.test(line), `npx outside the output text: ${line}`);
   }
 
   // Redirections: the only allowed targets are /dev/null and >&2.
@@ -441,7 +444,7 @@ test("(3) not a repository, no cwd, a missing cwd, or no git identity: exactly t
   assertHint(noId.stdout);
   const noIdCtx = contextOf(noId.stdout);
   assert.ok(noIdCtx.startsWith(contextOf(expected)), noIdCtx);
-  assert.ok(noIdCtx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (top author), all history"), noIdCtx);
+  assert.ok(noIdCtx.includes("Prepared brief (from workproof, a tool output): Brief for Jonathan Ong (top author), all history"), noIdCtx);
   assert.ok(!noIdCtx.includes("Plain git count"), noIdCtx);
 });
 
@@ -452,7 +455,7 @@ test("(4) a prompt for another rule with a repository cwd gives the generic cont
   assertHint(r.stdout);
   const ctx = contextOf(r.stdout);
   assert.ok(ctx.startsWith(contextOf(genericFor(cv))), ctx);
-  assert.ok(ctx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (configured)"), ctx);
+  assert.ok(ctx.includes("Prepared brief (from workproof, a tool output): Brief for Jonathan Ong (configured)"), ctx);
   assert.ok(!ctx.includes("Plain git count"), ctx);
 });
 
@@ -625,8 +628,8 @@ test("(14) a matching prompt in a git work tree carries the prepared brief and t
   assert.equal(r.stderr, "");
   assertHint(r.stdout);
   const ctx = contextOf(r.stdout);
-  assert.ok(ctx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (configured), all history, author date, local dates: repository commits: "), ctx);
-  assert.ok(ctx.includes("Counts, dates and claims come from the brief above or from `npx workproof figures|reviews|owner` (add --author, --since, --until for another person or window); do not recount by hand; a number you write that you did not take from a tool output is a guess."), ctx);
+  assert.ok(ctx.includes("Prepared brief (from workproof, a tool output): Brief for Jonathan Ong (configured), all history, author date, UTC dates (an impossible author date: committer date): repository commits: "), ctx);
+  assert.ok(ctx.includes("a number not taken from a tool output is a guess."), ctx);
 });
 
 test("(14b) a prompt that states a window carries the windowed brief header", () => {
@@ -636,13 +639,26 @@ test("(14b) a prompt that states a window carries the windowed brief header", ()
   assert.equal(r.stderr, "");
   assertHint(r.stdout);
   const ctx = contextOf(r.stdout);
-  assert.ok(ctx.includes("Prepared brief (from workproof figures, do not recount by hand): Brief for Jonathan Ong (configured), window 2026-01-01 to 2026-03-31, author date, local dates: repository commits: "), ctx);
+  assert.ok(ctx.includes("Prepared brief (from workproof, a tool output): Brief for Jonathan Ong (configured), window 2026-01-01 to 2026-03-31, author date, UTC dates (an impossible author date: committer date): repository commits: "), ctx);
+});
+
+test("(14c) a question about several people carries the people table; a question about one person carries that person's brief", () => {
+  const dir = personRepo();
+  const team = contextOf(run(hookInputIn("Who contributed to this repository in the git history between 1 January and 30 June 2026? Write a thank-you list with commits per person.", dir)).stdout);
+  assert.ok(team.includes("Prepared brief (from workproof, a tool output): People in 2026-01-01 to 2026-06-30, author date read in UTC"), team.slice(0, 400));
+  assert.ok(!team.includes("Brief for Jonathan Ong"), "the team question gets the table, not one person's brief");
+  assert.ok(!team.includes("@"), "no address in the people table");
+  const one = contextOf(run(hookInputIn("How many commits and lines in the git history are mine? I need it for my promotion self-review.", dir)).stdout);
+  assert.ok(one.includes("Brief for Jonathan Ong (configured)"), one.slice(0, 300));
+  assert.ok(!one.includes("People in "), "the single-person question keeps the person brief");
+  const thanks = contextOf(run(hookInputIn("Write CV bullets for my work in this git history, thanks.", dir)).stdout);
+  assert.ok(thanks.includes("Brief for Jonathan Ong (configured)"), "the word thanks does not make it a team question");
 });
 
 test("(15) a non-git cwd carries neither the brief nor the steering sentence", () => {
   const ctx = contextOf(run(hookInputIn(COUNT, nonRepo)).stdout);
   assert.ok(!ctx.includes("Prepared brief"), ctx);
-  assert.ok(!ctx.includes("Counts, dates and claims come from the brief"), ctx);
+  assert.ok(!ctx.includes("Take counts and dates from it"), ctx);
 });
 
 test("(16) a negative prompt with a repository cwd stays silent", () => {
@@ -654,8 +670,10 @@ test("(16) a negative prompt with a repository cwd stays silent", () => {
 
 test("the brief is the only node call in the hint, and it is read-only with a budget", () => {
   const calls = script.split("\n").filter((l) => /\bnode\b/.test(l) && !/^\s*#/.test(l));
-  assert.equal(calls.length, 2, calls.join("\n"));
-  assert.match(calls[1], /node "\$root\/dist\/src\/cli\.js" figures --brief --repo "\$cwd" --budget-ms 2500 --window-from-stdin/);
+  // The availability check, the printed command text for the model (never run by the script), and the one brief call.
+  assert.equal(calls.length, 3, calls.join("\n"));
+  assert.match(calls[2], /cli="node \$root\/dist\/src\/cli\.js"/);
+  assert.match(calls[1], /node "\$root\/dist\/src\/cli\.js" \$sub --brief --repo "\$cwd" --budget-ms 2500 --window-from-stdin/);
   // The prompt reaches the brief on stdin, through a subshell whose printf error is discarded.
   assert.match(calls[1], /\(printf '%s' "\$prompt" 2>\/dev\/null\) \| node /);
 });

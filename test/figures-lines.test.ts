@@ -182,9 +182,10 @@ test("the new rows sit right after 'lines deleted, whitespace ignored'", async (
   const r = await computeFigures({ repo: dir, authors: [ADA.email], json: false });
   const labels = r.rows.map((x) => x.label);
   const at = labels.indexOf("lines deleted, whitespace ignored");
-  assert.deepEqual(labels.slice(at + 1, at + 6), [
+  assert.deepEqual(labels.slice(at + 1, at + 7), [
     "lines written, net of exclusions",
     "lines excluded, by reason",
+    "lines written, reverts removed",
     "largest commit by lines added",
     "share of non-merge commits by the identity",
     "share of lines added by the identity",

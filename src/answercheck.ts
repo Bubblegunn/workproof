@@ -4,6 +4,8 @@ import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
 import { promisify } from "node:util";
 import { computeFigures, readBack } from "./figures.js";
+import { computePeople } from "./people.js";
+import { zoneLabel, zoneFromPrompt } from "./figures/zone.js";
 import type { DocHit, FigureRow, FiguresOptions, FiguresResult } from "./figures.js";
 import type { Turn } from "./stopcheck.js";
 
@@ -26,7 +28,8 @@ const DAY_MS = 86400000;
 export const PROMPT_TRIGGER = /\b(commits?|contributions?|promotion|visa|invoice|timesheet|candidate|performance review|self-review|git history)\b/i;
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g;
 const MONTHS = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"];
-const MONTH_RE = `(${MONTHS.join("|")})`;
+const MONTH_ALT = `${MONTHS.join("|")}|jan|feb|mar|apr|jun|jul|aug|sept|sep|oct|nov|dec`;
+const MONTH_RE = `(${MONTH_ALT})\\.?`;
 /** The nouns the check reads: commits and merges. */
 const COUNT_NOUNS = new Set(["commit", "commits", "merge", "merges", "merge commit", "merge commits"]);
 /** A number as a count: digits with thousands groups, or plain digits. "3,4,5" is three numbers. */
@@ -39,6 +42,11 @@ const NOT_A_CLAIM = /\b(?:squash\w*|rebase\w*|cherry\w*|revert of|pull requests?
 const QUALIFIER_BEFORE = /\b(?:last|past|previous|recent|latest|first|top|only)\s*$/i;
 const DATE_PHRASE = /\b(first|last|earliest|latest|most recent)\s+(?:authored\s+)?(?:commit|activity|contribution)\b/gi;
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The zone the prompt names, as a --tz value. UTC when it names none. */
+function zoneLabelForPrompt(prompt: string): string {
+  return zoneLabel(zoneFromPrompt(prompt));
+}
 
 export type FiguresFn = (opts: FiguresOptions) => Promise<FiguresResult>;
 
@@ -77,7 +85,7 @@ function span(year: number, from: number, to: number): Window | null {
   return since && until && from <= to ? { since, until } : null;
 }
 
-const monthNumber = (name: string): number => MONTHS.indexOf(name.toLowerCase()) + 1;
+const monthNumber = (name: string): number => MONTHS.findIndex((m) => m.startsWith(name.toLowerCase().slice(0, 3))) + 1;
 
 /**
  * The date window a prompt states, or null. Two explicit dates are a range (the earliest and the latest). Otherwise the
@@ -86,7 +94,12 @@ const monthNumber = (name: string): number => MONTHS.indexOf(name.toLowerCase())
  * A lone year (in, during, or bare YYYY) is used only when no other form matched. Anything else is null.
  */
 export function windowFromPrompt(prompt: string): Window | null {
-  const text = prompt.normalize("NFKC");
+  const CONN = "(?:\\s+(?:to|and|until|till|through|thru)\\s+|\\s*[-\u2013\u2014]\\s*)";
+  // "1 January and 30 June 2026" and "January 1 to June 30, 2026": the first date takes the year of the second.
+  const text = prompt
+    .normalize("NFKC")
+    .replace(new RegExp(`\\b(\\d{1,2})\\s+${MONTH_RE}(?=${CONN}\\d{1,2}\\s+${MONTH_RE}\\s+(\\d{4})\\b)`, "gi"), (_m, d: string, mo: string, _m2: string, y: string) => `${d} ${mo} ${y}`)
+    .replace(new RegExp(`\\b${MONTH_RE}\\s+(\\d{1,2})(?=${CONN}${MONTH_RE}\\s+\\d{1,2},?\\s+(\\d{4})\\b)`, "gi"), (_m, mo: string, d: string, _m2: string, y: string) => `${mo} ${d}, ${y}`);
   const dates: string[] = [];
   for (const m of text.matchAll(/\b(\d{4})-(\d{2})-(\d{2})\b/g)) {
     const d = isoOf(Number(m[1]), Number(m[2]), Number(m[3]));
@@ -180,17 +193,34 @@ export async function computeAll(
   windows: (Window | null)[],
   deadline: number,
   figures: FiguresFn = computeFigures,
+  tz?: string,
+  withPeople = false,
 ): Promise<FigureRow[] | null> {
   const rows: FigureRow[] = [];
   for (const email of identities) {
     for (const w of windows) {
       if (Date.now() >= deadline) return null;
-      const opts: FiguresOptions = { repo: cwd, authors: [email], json: false };
+      const opts: FiguresOptions = { repo: cwd, authors: [email], json: false, ...(tz ? { tz } : {}) };
       if (w) {
         opts.since = w.since;
         opts.until = w.until;
       }
       rows.push(...(await figures(opts)).rows);
+    }
+  }
+  // Every person's own counts are figures too: an answer about several people quotes each person's number.
+  if (withPeople) {
+    for (const w of windows) {
+      if (Date.now() >= deadline) return null;
+      try {
+        const r = await computePeople({ repo: cwd, json: false, emails: false, max: 200, ...(w ? { since: w.since, until: w.until } : {}), ...(tz ? { tz } : {}) });
+        for (const p of r.people) {
+          rows.push({ label: "authored non-merge commits, one person (people)", value: p.commits, filter: `${p.name}; merged addresses`, computed: true });
+          if (p.commitsProvenOnly !== p.commits) rows.push({ label: "authored non-merge commits, one person (people), proven joins only", value: p.commitsProvenOnly, filter: p.name, computed: true });
+        }
+      } catch {
+        // the people figures are an addition; the identity figures above stand
+      }
     }
   }
   return rows.filter((r) => r.computed);
@@ -297,7 +327,7 @@ async function check(turn: Turn, cwd: string, opts: AnswerOptions, deadline: num
   const identities = await identitiesOf(cwd);
   if (!identities.length) return null;
   const stated = windowFromPrompt(prompt);
-  const rows = await computeAll(cwd, identities, [null, ...(stated ? [stated] : [])], deadline, opts.figures);
+  const rows = await computeAll(cwd, identities, [null, ...(stated ? [stated] : [])], deadline, opts.figures, zoneLabelForPrompt(prompt), true);
   if (rows === null) return null;
   const outputs = turn.outputs ?? [];
   const sourcedText = [prompt, ...outputs].join("\n");

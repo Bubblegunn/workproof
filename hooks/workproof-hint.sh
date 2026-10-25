@@ -182,7 +182,10 @@ brief_extra() {
   [ "$(git -C "$cwd" rev-parse --is-inside-work-tree 2>/dev/null)" = true ] || return 0
   [ -f "$root/dist/src/cli.js" ] || return 0
   command -v node >/dev/null 2>&1 || return 0
-  b=$( (printf '%s' "$prompt" 2>/dev/null) | node "$root/dist/src/cli.js" figures --brief --repo "$cwd" --budget-ms 2500 --window-from-stdin 2>/dev/null) || return 0
+  sub=figures
+  # A question about several people gets the table of people; a question about one person gets that person's brief.
+  if has '(^|[^a-z])(team|everyone|everybody|contributors|people|students|members|leaderboard|ranking)([^a-z]|$)|each (person|contributor|member|student|developer|engineer|author)|per person|who (contributed|worked|wrote)|thank-you list|acknowledg|credit (everyone|the contributors|each)'; then sub=people; fi
+  b=$( (printf '%s' "$prompt" 2>/dev/null) | node "$root/dist/src/cli.js" $sub --brief --repo "$cwd" --budget-ms 2500 --window-from-stdin 2>/dev/null) || return 0
   [ -n "$b" ] || return 0
   printf '%s' "$b" | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}'
 }
@@ -190,27 +193,30 @@ brief_extra() {
 if [ -n "$lc" ] && [ "$match" = 1 ]; then
   extra=""
   if [ "$addr" = 1 ]; then extra=$(addr_extra); fi
-  # The plugin root, so the model reads the skill's files from there and does not search the disk for them.
   root=${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." 2>/dev/null && pwd)}
   root=$(printf '%s' "$root" | tr -d '[:cntrl:]"\\')
+  if [ -f "$root/dist/src/cli.js" ]; then cli="node $root/dist/src/cli.js"; else cli="npx workproof"; fi
   if [ "$weak" = 1 ]; then
-    ctx="This request may concern someone's work in a repository (workproof skill: evidence from git, usage reports, CV bullets, checking a report someone sent). Use the rules below only if the request is about writing, summarising or checking a person's work from history."
+    ctx="This request may concern someone's work in a repository (workproof: evidence from git, usage reports, CV bullets, checking a report someone sent). Use the rules below only if the request is about writing, summarising or checking a person's work from history."
   else
-    ctx="This request matches the workproof skill (evidence of the user's own work from git, a Claude Code usage report, tailoring CV bullets to a job description, or checking a report someone sent). Use the workproof skill and run \`npx workproof ...\` instead of counting or guessing by hand."
+    ctx="This request matches the workproof skill (evidence of work from git, a Claude Code usage report, CV bullets for a job description, or checking a report someone sent)."
   fi
-  ctx="$ctx If the user names a folder of exported Claude Code sessions, run \`npx workproof sessions --dir <folder>\` and do not answer from the default local logs. Plugin root: $root (skill, references and commands are under it; do not search the disk for them)."
-  ctx="$ctx Intent class: $cls. The rules block below (also in $root/skills/workproof/references/core-rules.md) applies to any document about someone's work from the commit history or sessions, whether or not you run the tool; run \`workproof figures\` before counting; use the workproof report only for figures about the user's own work."
-  rules=$(head -c 4500 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
-  if [ -n "$rules" ]; then ctx="$ctx $rules"; fi
+  if [ "$weak" = 1 ]; then
+    ctx="$ctx The tool, if the request fits: $cli <command> (the rules call it workproof). Intent: $cls."
+  else
+    ctx="$ctx Run the tool as: $cli <command> (the rules call it workproof). Intent: $cls. For a folder of exported Claude Code sessions run sessions --dir <folder>, not the default logs."
+  fi
+  rules=$(head -c 3500 "$root/skills/workproof/references/core-rules.md" 2>/dev/null | tr -d '\r\t' | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g' | awk 'BEGIN{ORS=" "}{print}')
+  if [ -n "$rules" ]; then ctx="$ctx Rules: $rules"; fi
   if has 'reviewed-by|second person.?s review|auditor|who reviewed|review evidence|approved by|four.eyes|change.review'; then
-    ctx="$ctx For evidence that changes were reviewed, run \`npx workproof reviews --path <area> --since <date> --until <date> --format csv --out <file>\` and build the answer from its rows and limits."
+    ctx="$ctx For review evidence run: $cli reviews --path <area> --since <date> --until <date> --format csv --out <file>, and build the answer from its rows and limits."
   fi
   if has 'candidate|claims?|contractor|wrote the|who wrote|written by|designed and wrote|owns? '; then
-    ctx="$ctx To check a claim that someone wrote or owns a file or folder, run \`npx workproof owner --path <path> --claim <name>\` and quote its rows (surviving lines with whitespace and moves ignored beside plain blame, who created it, namesakes, backdated commits)."
+    ctx="$ctx To check who wrote or owns a path run: $cli owner --path <path> --claim <name> and quote its rows."
   fi
   # The brief goes before the plain-git sentence, so the sentence still ends the context as before.
   brief=$(brief_extra)
-  if [ -n "$brief" ]; then ctx="$ctx Prepared brief (from workproof figures, do not recount by hand): $brief Counts, dates and claims come from the brief above or from \`npx workproof figures|reviews|owner\` (add --author, --since, --until for another person or window); do not recount by hand; a number you write that you did not take from a tool output is a guess."; fi
+  if [ -n "$brief" ]; then ctx="$ctx Prepared brief (from workproof, a tool output): $brief Take counts and dates from it or from $cli figures|people|reviews|owner (--author, --person, --since, --until, --tz); a number not taken from a tool output is a guess."; fi
   if [ -n "$extra" ]; then ctx="$ctx $extra"; fi
   printf '{"hookSpecificOutput":{"hookEventName":"UserPromptSubmit","additionalContext":"%s"}}\n' "$ctx"
 fi

@@ -4,9 +4,9 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
-import { stopCheck, parseTurn, gapItems, writtenFileLeak, PRIVACY_REASON, GAPS_REASON, FILE_REASON } from "../src/stopcheck.js";
+import { isReservedAddress, leaksEmail, stopCheck, parseTurn, gapItems, writtenFileLeak, PRIVACY_REASON, GAPS_REASON, FILE_REASON } from "../src/stopcheck.js";
 
-const AUTHOR = "grace.hopper@example.org";
+const AUTHOR = "grace.hopper@navy-labs.org";
 
 function repo(): string {
   const dir = mkdtempSync(join(tmpdir(), "workproof-stop-"));
@@ -69,7 +69,7 @@ test("blocks on a fullwidth form of the address", () => {
 
 test("blocks on an address printed by the workproof output that is not in the author data", () => {
   const cwd = repo();
-  const lines = [user("go"), bash("t1", "npx workproof --emails"), result("t1", "merged old.mail@corp.example"), say("It used old.mail@corp.example.")];
+  const lines = [user("go"), bash("t1", "npx workproof --emails"), result("t1", "merged old.mail@corp-mail.net"), say("It used old.mail@corp-mail.net.")];
   assert.match(run(lines, cwd), /"decision":"block"/);
 });
 
@@ -81,7 +81,7 @@ test("allows when the address is absent", () => {
 
 test("an address in a non-workproof tool result does not count", () => {
   const cwd = repo();
-  const lines = [user("go"), bash("t1", "npx workproof"), result("t1", "ok"), bash("t2", "cat notes"), result("t2", "someone@else.example"), say("Mail someone@else.example")];
+  const lines = [user("go"), bash("t1", "npx workproof"), result("t1", "ok"), bash("t2", "cat notes"), result("t2", "someone@else-mail.net"), say("Mail someone@else-mail.net")];
   assert.equal(run(lines, cwd), "");
 });
 
@@ -179,7 +179,7 @@ test("repository addresses block only after a bullets, verdict, report or mine r
   assert.equal(run(addressTurn("npx workproof stop-check", final), cwd), "");
   assert.match(run(addressTurn("npx workproof verdict r.json", final), cwd), /"decision":"block"/);
   // an address in the run output blocks whatever the subcommand
-  const lines = [user("go"), bash("t1", "npx workproof --help"), result("t1", "see other@corp.example"), say("Mail other@corp.example")];
+  const lines = [user("go"), bash("t1", "npx workproof --help"), result("t1", "see other@corp-mail.net"), say("Mail other@corp-mail.net")];
   assert.match(run(lines, cwd), /"decision":"block"/);
 });
 
@@ -263,4 +263,20 @@ test("a file whose own name holds the address never puts the address in the reas
   const reason = writtenFileLeak(turn, [AUTHOR]);
   assert.equal(reason, FILE_REASON("(address)"));
   assert.ok(!reason!.includes("hopper"));
+});
+
+test("an address on a reserved example or test domain discloses nobody and never blocks; a real-looking domain still does", () => {
+  for (const reserved of ["ana@example.com", "ana@example.org", "ana@x.example", "ana@corp.invalid", "ana@host.test", "ana@localhost", "ana@EXAMPLE.NET"]) {
+    assert.equal(isReservedAddress(reserved), true, reserved);
+  }
+  for (const real of ["ana@acme-labs.dev", "ana@gmail.com", "ana@examples.io", "ana@myexample.com", "ana@test-corp.com"]) {
+    assert.equal(isReservedAddress(real), false, real);
+  }
+  const turn = parseTurn(JSON.stringify(user(COMMIT_PROMPT)) + "\n" + JSON.stringify(writeCall("/tmp/r.md", "Ana <ana@example.com> wrote 3 commits")) + "\n");
+  assert.equal(writtenFileLeak(turn, ["ana@example.com"]), null, "a reserved domain in a written file");
+  const real = parseTurn(JSON.stringify(user(COMMIT_PROMPT)) + "\n" + JSON.stringify(writeCall("/tmp/r.md", "Ana <ana@acme-labs.dev> wrote 3 commits")) + "\n");
+  assert.equal(writtenFileLeak(real, ["ana@acme-labs.dev"]), FILE_REASON("r.md"));
+  const runs = [{ command: "npx workproof mine", output: "ana@example.com" }];
+  assert.equal(leaksEmail("Counted ana@example.com.", runs, ["ana@example.com"]), false);
+  assert.equal(leaksEmail("Counted ana@acme-labs.dev.", runs, ["ana@acme-labs.dev"]), true);
 });

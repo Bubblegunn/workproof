@@ -86,12 +86,12 @@ test("stop hook: the email block does not fire when the user's prompt asks for a
     execFileSync("git", ["init", "-q"], { cwd: dir, env });
     writeFileSync(join(dir, "a.txt"), "x\n");
     execFileSync("git", ["add", "."], { cwd: dir, env });
-    execFileSync("git", ["-c", "user.name=Kim", "-c", "user.email=kim.example@example.org", "commit", "-q", "-m", "init"], { cwd: dir, env });
+    execFileSync("git", ["-c", "user.name=Kim", "-c", "user.email=kim.example@navy-labs.org", "commit", "-q", "-m", "init"], { cwd: dir, env });
     const lines = (prompt: string) => [
       { type: "user", message: { role: "user", content: prompt } },
       { type: "assistant", message: { role: "assistant", content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "npx workproof mine" } }] } },
       { type: "user", message: { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", content: "ok" }] } },
-      { type: "assistant", message: { role: "assistant", content: [{ type: "text", text: "Counted: kim.example@example.org." }] } },
+      { type: "assistant", message: { role: "assistant", content: [{ type: "text", text: "Counted: kim.example@navy-labs.org." }] } },
     ];
     const run = (prompt: string) => {
       const t = join(dir, "t.jsonl");
@@ -212,7 +212,7 @@ test("sessions --dir: unique responses, tokens by type and model, tool calls onc
     const asst = (id: string, model: string, usage: Record<string, number>, content: unknown[] = []) => ({ type: "assistant", sessionId: "s1", message: { id, model, usage, content } });
     const u = (i: number, o: number, cr = 0, cc = 0) => ({ input_tokens: i, output_tokens: o, cache_read_input_tokens: cr, cache_creation_input_tokens: cc });
     const rows = [
-      { type: "user", sessionId: "s1", message: { role: "user", content: "contact me at someone@example.org" } },
+      { type: "user", sessionId: "s1", message: { role: "user", content: "contact me at someone@navy-labs.org" } },
       asst("m1", "model-a", u(10, 1), [{ type: "tool_use", id: "tu1", name: "Read" }]),
       asst("m1", "model-a", u(10, 5, 100, 20), [{ type: "tool_use", id: "tu1", name: "Read" }, { type: "tool_use", id: "tu2", name: "Bash" }]),
       asst("m2", "model-b", u(7, 3)),
@@ -232,7 +232,7 @@ test("sessions --dir: unique responses, tokens by type and model, tool calls onc
     assert.deepEqual(out.byModel["model-a"], { responses: 1, input: 10, output: 5, cacheRead: 100, cacheCreation: 20 });
     assert.equal(out.byModel["model-b"].responses, 1);
     assert.deepEqual(out.toolCalls, { total: 2, byTool: { Bash: 1, Read: 1 } });
-    assert.ok(!r.stdout.includes("someone@example.org") && !r.stdout.includes("sk-abcdefghijkl"), "no address or secret-looking string is printed");
+    assert.ok(!r.stdout.includes("someone@navy-labs.org") && !r.stdout.includes("sk-abcdefghijkl"), "no address or secret-looking string is printed");
     assert.match(r.stdout, /\(secret hidden\)/);
     const missing = spawnSync(process.execPath, [CLI, "sessions", "--dir", join(dir, "nope")], { encoding: "utf8" });
     assert.equal(missing.status, 2);
@@ -256,9 +256,10 @@ test("hint hook: export, token and tool phrasings match; the context carries the
     assert.match(r.stdout, /sessions --dir <folder>/, p);
   }
   const r = ask("summarise my usage from the session logs", { CLAUDE_PLUGIN_ROOT: "/opt/plug-in" });
-  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /Plugin root: \/opt\/plug-in /);
+  // No built CLI under that root: the hint falls back to the package command.
+  assert.match(JSON.parse(r.stdout).hookSpecificOutput.additionalContext, /Run the tool as: npx workproof <command>/);
   const derived = JSON.parse(ask("summarise my usage from the session logs", { CLAUDE_PLUGIN_ROOT: "" }).stdout).hookSpecificOutput.additionalContext;
-  assert.ok(derived.includes(`Plugin root: ${ROOT} `), derived.slice(-160));
+  assert.ok(derived.includes(`Run the tool as: node ${ROOT}/dist/src/cli.js <command>`), derived.slice(0, 300));
   assert.equal(ask("rename this variable").stdout, "");
 });
 

@@ -113,7 +113,7 @@ test("the brief for the configured identity has exactly these lines", async () =
   assert.equal(
     text,
     [
-      "Brief for Ada Lovelace (configured), all history, author date, local dates:",
+      "Brief for Ada Lovelace (configured), all history, author date, UTC dates (an impossible author date: committer date):",
       "repository commits: 14",
       "shallow clone: no",
       ".mailmap: absent",
@@ -124,8 +124,10 @@ test("the brief for the configured identity has exactly these lines", async () =
       "gaps over 30 days: 0",
       "merge commits by the identity: 1",
       "revert commits: 1",
+      "commits reverted by anyone: 1",
+      "commits with an impossible author date: 0",
       "whitespace-only commits: 1",
-      "lines written (net of exclusions): 6 (raw 54)",
+      "lines written (net of exclusions): 6 (raw 54; reverts removed 5)",
       "largest commit: 85.2% of lines added",
       "large added files with a licence, copyright or source header: 1",
       "identity candidates: 2 other address(es) with the same name",
@@ -135,7 +137,6 @@ test("the brief for the configured identity has exactly these lines", async () =
       "top author 2: Ada Lovelace: 2 commits, organisational",
       "top author 3: dependabot[bot]: 1 commit, bot",
       "top author 4: Ada Lovelace: 1 commit, personal webmail",
-      "top author 5: A. Contractor: 1 commit, organisational",
       "",
     ].join("\n"),
   );
@@ -175,7 +176,7 @@ test("a shallow clone says so, and a repository without a configured identity na
   execFileSync("git", ["clone", "-q", "--depth", "1", `file://${history}`, clone], { env: { ...process.env, GIT_CONFIG_GLOBAL: "/dev/null", GIT_CONFIG_NOSYSTEM: "1" } });
   const text = await briefText(clone);
   const first = text.split("\n");
-  assert.equal(first[0], "Brief for Ada Lovelace (top author), all history, author date, local dates:");
+  assert.equal(first[0], "Brief for Ada Lovelace (top author), all history, author date, UTC dates (an impossible author date: committer date):");
   assert.ok(first.includes("shallow clone: yes"), text);
   assert.ok(first.includes("repository commits: 1"), text);
   assert.ok(first.includes("top author 1: Ada Lovelace: 1 commit, organisational"), text);
@@ -257,7 +258,7 @@ test("usage errors exit 1: --brief with --json, and --budget-ms without --brief"
 
 // --- --window-from-stdin: the prompt on stdin limits the brief to the window it states ---
 
-const HEADER_ALL = "Brief for Ada Lovelace (configured), all history, author date, local dates:";
+const HEADER_ALL = "Brief for Ada Lovelace (configured), all history, author date, UTC dates (an impossible author date: committer date):";
 const runStdin = (dir: string, input: string, extra: string[] = ["--window-from-stdin"]) =>
   spawnSync(process.execPath, [cli, "figures", "--brief", "--repo", dir, ...extra], { encoding: "utf8", input });
 
@@ -267,7 +268,7 @@ test("a prompt that states a window gives the windowed header and figures with t
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stderr, "");
   const out = r.stdout.split("\n");
-  assert.equal(out[0], "Brief for Ada Lovelace (configured), window 2026-04-01 to 2026-06-30, author date, local dates:");
+  assert.equal(out[0], "Brief for Ada Lovelace (configured), window 2026-04-01 to 2026-06-30, author date, UTC dates (an impossible author date: committer date):");
   assert.equal(out[1], "repository commits: 14", "the repository count stays whole-repository");
   assert.ok(out.includes("authored non-merge commits: 0"), r.stdout);
   assert.ok(!out.some((l) => l.startsWith("top author")), "no author in an empty window");
@@ -278,7 +279,7 @@ test("a window that covers the whole history gives the same figures as no window
   const plain = runStdin(history, "Count my commits.", []);
   assert.equal(windowed.status, 0);
   assert.equal(plain.status, 0);
-  assert.equal(windowed.stdout.split("\n")[0], "Brief for Ada Lovelace (configured), window 2026-01-01 to 2026-12-31, author date, local dates:");
+  assert.equal(windowed.stdout.split("\n")[0], "Brief for Ada Lovelace (configured), window 2026-01-01 to 2026-12-31, author date, UTC dates (an impossible author date: committer date):");
   assert.equal(plain.stdout.split("\n")[0], HEADER_ALL);
   assert.deepEqual(windowed.stdout.split("\n").slice(1), plain.stdout.split("\n").slice(1));
 });
@@ -300,6 +301,6 @@ test("--window-from-stdin without --brief is a usage error with exit 1", () => {
 
 test("briefLines takes a window and the header names it; without one the header is unchanged", async () => {
   const lines = await briefLines(history, { since: "2026-04-01", until: "2026-04-30" });
-  assert.equal(lines?.[0], "Brief for Ada Lovelace (configured), window 2026-04-01 to 2026-04-30, author date, local dates:");
+  assert.equal(lines?.[0], "Brief for Ada Lovelace (configured), window 2026-04-01 to 2026-04-30, author date, UTC dates (an impossible author date: committer date):");
   assert.equal((await briefLines(history))?.[0], HEADER_ALL);
 });

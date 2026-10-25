@@ -3,6 +3,8 @@ import { writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { git, wallClock } from "./git.js";
 import { windowBound } from "./figures.js";
+import { parseZone, zoneLabel, dayIn } from "./figures/zone.js";
+import type { Zone } from "./figures/zone.js";
 import type { Bound } from "./figures.js";
 
 /**
@@ -20,9 +22,11 @@ const NAME_MAX = 80;
 const SUBJECT_MAX = 200;
 const DEFAULT_REVIEW_TRAILERS = ["Reviewed-by"];
 const OTHER_APPROVAL = ["Acked-by", "Approved-by", "Tested-by"];
-const SINGLE_VALUE_OPTIONS = new Set(["--repo", "--since", "--until", "--format", "--out"]);
+const SINGLE_VALUE_OPTIONS = new Set(["--repo", "--since", "--until", "--tz", "--format", "--out"]);
 
-export const CONVENTION_WINDOW_TEXT = "Convention: author date, local date in the commit's own offset";
+export const CONVENTION_WINDOW_TEXT = "Convention: author date, UTC date";
+/** The convention sentence for a zone: UTC by default, the named zone with --tz, each commit's own offset with --tz commit. */
+export const conventionWindowText = (zone: Zone): string => (zone.kind === "utc" ? CONVENTION_WINDOW_TEXT : zone.kind === "commit" ? "Convention: author date, local date in the commit's own offset" : `Convention: author date, date in ${zoneLabel(zone)}`);
 export const CONVENTION_FIXED = [
   "Reverts are in scope like any commit.",
   "Review applied to a merge covers the commits merged by it and is labelled weaker.",
@@ -39,6 +43,8 @@ export interface ReviewsOptions {
   trailers: string[];
   format: "text" | "csv" | "json";
   out?: string;
+  /** `--tz`: the zone date-only bounds and the printed dates are read in. UTC when absent. */
+  tz?: string;
 }
 
 /**
@@ -61,13 +67,14 @@ export function parseReviewsArgs(args: string[]): ReviewsOptions {
     const value = (): string => {
       const v = args[++i];
       if (v === undefined || v === "") throw new Error(`${a} needs a value`);
-      if (v.startsWith("-")) throw new Error(`${a} needs a value, and "${clean(v, 40)}" looks like another option`);
+      if (v.startsWith("-") && !(a === "--tz" && /^-\d/.test(v))) throw new Error(`${a} needs a value, and "${clean(v, 40)}" looks like another option`);
       return v;
     };
     if (a === "--repo") opts.repo = resolve(value());
     else if (a === "--path") opts.paths.push(value());
     else if (a === "--since") opts.since = value();
     else if (a === "--until") opts.until = value();
+    else if (a === "--tz") opts.tz = value();
     else if (a === "--trailer") {
       const key = value();
       if (!/^[A-Za-z0-9][A-Za-z0-9-]*$/.test(key)) throw new Error(`--trailer takes a trailer key such as Reviewed-by, not "${clean(key, 40)}"`);
@@ -149,7 +156,7 @@ const dayOf = (d: Date): string => (Number.isNaN(d.getTime()) ? "invalid date" :
 function inBound(instant: Date, local: Date, since: Bound | undefined, until: Bound | undefined): boolean {
   if (Number.isNaN(instant.getTime())) return false;
   if (since && (since.day ? dayOf(local) < since.day : instant < since.at!)) return false;
-  if (until && (until.day ? dayOf(local) > until.day : instant > until.at!)) return false;
+  if (until && (until.day ? dayOf(local) > until.day : until.exclusive ? instant >= until.at! : instant > until.at!)) return false;
   return true;
 }
 
@@ -260,7 +267,7 @@ function secondParentRanges(parents: string[], graph: Map<string, string[]>): Se
 
 interface Cover { merge: string; reviewers: Trailer[] }
 
-function classify(r: Rec, cover: Map<string, Cover[]>, canonOf: (e: string) => string): ReviewRow {
+function classify(r: Rec, cover: Map<string, Cover[]>, canonOf: (e: string) => string, zone: Zone): ReviewRow {
   const rule = (t: Trailer) => selfRule(r.author, t, canonOf(t.email));
   const reviews = r.trailers.filter((t) => t.review);
   const others = r.trailers.filter((t) => !t.review);
@@ -327,7 +334,7 @@ function classify(r: Rec, cover: Map<string, Cover[]>, canonOf: (e: string) => s
   const recorded = clean(raw.rawName, NAME_MAX) !== clean(raw.name, NAME_MAX);
   return {
     sha: r.sha,
-    localDate: dayOf(r.authorLocal),
+    localDate: zone.kind === "commit" ? dayOf(r.authorLocal) : dayIn(r.authorDate, zone),
     author: displayPerson({ name: raw.name, email: "" }) + (recorded ? ` (as recorded: ${displayPerson({ name: raw.rawName, email: "" })})` : ""),
     reviewer: clean(reviewer),
     status,
@@ -383,7 +390,7 @@ export async function computeReviews(opts: ReviewsOptions, since?: Bound, until?
     }
 
     const inScope = path.filter((r) => inBound(r.authorDate, r.authorLocal, since, until));
-    const rows = inScope.map((r) => classify(r, cover, canonOf));
+    const rows = inScope.map((r) => classify(r, cover, canonOf, parseZone(opts.tz)));
     const outside = path.filter((r) => !inBound(r.authorDate, r.authorLocal, since, until));
     const committedInside = (r: Rec) => inBound(r.committerDate, r.committerLocal, since, until);
     const group = (reason: string, shas: string[]): OutGroup => ({ reason, count: shas.length, shas: shas.slice(0, SAMPLE) });
@@ -410,7 +417,7 @@ export async function computeReviews(opts: ReviewsOptions, since?: Bound, until?
       computed: true,
       report: {
         ...text,
-        convention: [`${CONVENTION_WINDOW_TEXT}; window ${text.window}; paths ${text.paths}.`, ...CONVENTION_FIXED],
+        convention: [`${conventionWindowText(parseZone(opts.tz))}; window ${text.window}; paths ${text.paths}.`, ...CONVENTION_FIXED],
         summary,
         rows,
         outOfScope,
@@ -482,14 +489,15 @@ export function renderReviews(outcome: ReviewsOutcome, format: ReviewsOptions["f
  * (not a repository, a git failure). A not-computed run never prints a zero.
  */
 export async function runReviews(args: string[], out: { write(s: string): unknown } = process.stdout): Promise<number> {
-  const usage = "usage: workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]";
+  const usage = "usage: workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--tz <zone>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]";
   let opts: ReviewsOptions;
   let since: Bound | undefined;
   let until: Bound | undefined;
   try {
     opts = parseReviewsArgs(args);
-    since = await windowBound(opts.since, "since", opts.repo);
-    until = await windowBound(opts.until, "until", opts.repo);
+    const zone = parseZone(opts.tz);
+    since = await windowBound(opts.since, "since", opts.repo, zone);
+    until = await windowBound(opts.until, "until", opts.repo, zone);
     if (opts.out && existsSync(opts.out)) throw new Error(`${clean(opts.out, 200)} already exists; reviews does not overwrite a file`);
   } catch (err) {
     console.error(`${err instanceof Error ? err.message : String(err)}\n${usage}`);

@@ -133,7 +133,7 @@ test("figures text: labelled lines, at most 60, no verdict words", async () => {
   const labelled = lines.filter((l) => !l.startsWith("  ") && l.includes(" | "));
   assert.ok(labelled.length >= 20);
   for (const l of labelled) assert.equal(l.split(" | ").length >= 3, true, l);
-  assert.ok(lines.includes("authored non-merge commits | 7 | identities sam@alpha.example; author date 2026-01-01 to 2026-03-31 (date-only bounds are the local calendar date in the commit's own offset), reachable from HEAD"), lines.join("\n"));
+  assert.ok(lines.includes("authored non-merge commits | 7 | identities sam@alpha.example; author date 2026-01-01 to 2026-03-31, read in UTC (a date-only bound is the whole day; an impossible author date is placed by its committer date), reachable from HEAD"), lines.join("\n"));
 });
 
 test("figures text: the cap holds for a result with many rows", () => {
@@ -284,7 +284,7 @@ test("figures: an invalid or impossible --since/--until is not computed, never a
   assert.ok(ok.rows.some((x) => x.label === "authored non-merge commits" && x.computed));
 });
 
-test("figures: date-only bounds use the author's local calendar date", async () => {
+test("figures: date-only bounds are whole days in UTC by default, in the named zone with --tz, in each commit's own offset with --tz commit", async () => {
   const d = await mkdtemp(join(tmpdir(), "workproof-figures-tz-"));
   try {
     const env = { ...process.env, GIT_AUTHOR_NAME: "Tz", GIT_AUTHOR_EMAIL: "tz@x.example", GIT_COMMITTER_NAME: "Tz", GIT_COMMITTER_EMAIL: "tz@x.example", GIT_AUTHOR_DATE: "2026-03-02T00:30:00+13:00", GIT_COMMITTER_DATE: "2026-03-02T00:30:00+13:00" };
@@ -293,9 +293,19 @@ test("figures: date-only bounds use the author's local calendar date", async () 
     await writeFile(join(d, "a.txt"), "a\n");
     g(["add", "."]);
     g(["commit", "-q", "-m", "x"]);
-    const r = await computeFigures({ repo: d, authors: ["tz@x.example"], since: "2026-03-02", until: "2026-03-02", json: false });
-    assert.equal(value(r, "authored non-merge commits"), 1);
-    assert.match(r.window, /local calendar date/);
+    // 2026-03-02T00:30+13:00 is the instant 2026-03-01T11:30Z.
+    const count = async (since: string, until: string, tz?: string) =>
+      value(await computeFigures({ repo: d, authors: ["tz@x.example"], since, until, json: false, ...(tz ? { tz } : {}) }), "authored non-merge commits");
+    assert.equal(await count("2026-03-02", "2026-03-02"), 0, "UTC day 2 does not hold the instant");
+    assert.equal(await count("2026-03-01", "2026-03-01"), 1, "UTC day 1 holds it");
+    assert.equal(await count("2026-03-02", "2026-03-02", "+13:00"), 1, "the day in the commit's own offset");
+    assert.equal(await count("2026-03-02", "2026-03-02", "Pacific/Auckland"), 1, "an IANA zone (NZDT is +13:00 in March)");
+    assert.equal(await count("2026-03-02", "2026-03-02", "commit"), 1, "legacy reading");
+    const r = await computeFigures({ repo: d, authors: ["tz@x.example"], since: "2026-03-01", until: "2026-03-01", json: false });
+    assert.match(r.window, /read in UTC/);
+    assert.match(r.window, /a date-only bound is the whole day/);
+    const legacy = await computeFigures({ repo: d, authors: ["tz@x.example"], since: "2026-03-02", until: "2026-03-02", json: false, tz: "commit" });
+    assert.match(legacy.window, /own calendar date in its own offset/);
   } finally {
     await rm(d, { recursive: true, force: true });
   }
@@ -436,7 +446,7 @@ async function buildDated(commits: { date: string; file: string }[]): Promise<st
   return d;
 }
 
-test("figures: first, last, active months and gaps use the local calendar date of each author date", async () => {
+test("figures: first, last, active months and gaps use the calendar day in the window's zone (UTC by default)", async () => {
   const d = await buildDated([
     { date: "2025-12-31T22:30:00-08:00", file: "a.txt" }, // 2026-01-01 in UTC; the local date is 2025-12-31
     { date: "2026-01-30T12:00:00+00:00", file: "b.txt" }, // 30 days after 2025-12-31: not a gap over 30 days
@@ -445,9 +455,12 @@ test("figures: first, last, active months and gaps use the local calendar date o
   ]);
   try {
     const r = await computeFigures({ repo: d, authors: ["pat@example.test"], since: "2025-12-01", until: "2026-06-30", json: false });
-    assert.equal(value(r, "first authored commit date"), "2025-12-31");
+    assert.equal(value(r, "first authored commit date"), "2026-01-01");
     assert.equal(value(r, "last authored commit date"), "2026-03-20");
-    assert.equal(value(r, "active months"), 3);
+    assert.equal(value(r, "active months"), 2);
+    const west = await computeFigures({ repo: d, authors: ["pat@example.test"], since: "2025-12-01", until: "2026-06-30", json: false, tz: "-08:00" });
+    assert.equal(value(west, "first authored commit date"), "2025-12-31", "the same instant on the west-coast day");
+    assert.equal(value(west, "active months"), 3);
     assert.equal(value(r, "gaps over 30 days"), 1);
     const gaps = r.rows.find((x) => x.label === "gaps over 30 days")!;
     assert.deepEqual(gaps.detail, ["from 2026-01-30 to 2026-03-02 (31 days)"]);

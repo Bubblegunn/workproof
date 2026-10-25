@@ -79,13 +79,13 @@ const GENERIC_LOCAL = new Set(["dev", "admin", "info", "me", "git", "hello", "ma
 
 
 /** The GitHub login inside `12345+login@users.noreply.github.com`, or the older form. */
-const githubLogin = (mail: string): string | null => {
+export const githubLogin = (mail: string): string | null => {
   const m = /^(?:\d+\+)?([^@+]+)@users\.noreply\.github\.com$/i.exec(mail);
   return m ? m[1]!.toLowerCase() : null;
 };
 
-const localPart = (mail: string) => mail.split("@")[0]!.replace(/^\d+\+/, "");
-const loose = (s: string) => foldIdentity(s).replace(/[\s._-]/g, "");
+export const localPart = (mail: string) => mail.split("@")[0]!.replace(/^\d+\+/, "");
+export const loose = (s: string) => foldIdentity(s).replace(/[\s._-]/g, "");
 
 /**
  * Fixed strings that say why an address was flagged, with nothing taken from the other

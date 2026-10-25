@@ -64,9 +64,9 @@ test("git-vocabulary coding prompts stay mostly silent in a git work tree (false
 test("a weak match (repository word or cwd only) gets the pointer, not the run-the-tool instruction", () => {
   const weak = JSON.parse(run(hook, gitDir, "Write the Q3 summary for the review doc").stdout).hookSpecificOutput.additionalContext;
   assert.match(weak, /workproof core rules/);
-  assert.doesNotMatch(weak, /npx workproof \.\.\./);
-  const strong = JSON.parse(run(hook, gitDir, phrasings.work_delivery[0]).stdout).hookSpecificOutput.additionalContext;
-  assert.match(strong, /npx workproof/);
+  assert.doesNotMatch(weak, /Run the tool as:/);
+  const strong = JSON.parse(run(hook, gitDir, "How many commits and lines in the git history are mine? I need it for my promotion self-review.").stdout).hookSpecificOutput.additionalContext;
+  assert.match(strong, /Run the tool as: node \S+\/dist\/src\/cli\.js <command>/);
 });
 
 test("the request is found after a long pasted text and after a line break", () => {
@@ -93,8 +93,8 @@ test("the UserPromptSubmit hook has a timeout", () => {
   assert.equal(h.timeout, 8);
 });
 
-test("the rules live in core-rules.md only: the hint carries the eight keywords and SKILL.md rule 9 is a pointer", () => {
-  const keywords = ["please confirm", "rebase", "not counted", "sidecar", "whitespace", "what holds", "author date|author versus committer", "evidence/"];
+test("the rules live in core-rules.md only: the hint carries their keywords and SKILL.md rule 9 is a pointer", () => {
+  const keywords = ["please confirm", "listed apart", "whitespace", "holds with an exception", "committer date", "purpose the user states", "unrelated organisations", "not verifiable here"];
   const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
   const skill = readFileSync(join(root, "skills", "workproof", "SKILL.md"), "utf8");
   const ctx = JSON.parse(run(hook, gitDir, phrasings.claim_check[0]).stdout).hookSpecificOutput.additionalContext;
@@ -110,21 +110,22 @@ test("the rules live in core-rules.md only: the hint carries the eight keywords 
   assert.doesNotMatch(skill, /^   - (Identity|Window|Deliverables|Audience|Counts|Provenance|Dates):/m, "SKILL.md still repeats the document rules");
 });
 
-test("the hint and the session pointer lead to the figures command through core-rules.md", () => {
+test("the hint and the session pointer lead to the tools through core-rules.md", () => {
   const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
-  assert.match(core, /npx workproof figures/);
+  assert.match(core, /`workproof figures`/);
+  assert.match(core, /`people`/);
   const ctx = JSON.parse(run(hook, gitDir, phrasings.claim_check[0]).stdout).hookSpecificOutput.additionalContext;
-  assert.match(ctx.replace(/\s+/g, " "), /run `npx workproof figures` first/);
+  assert.match(ctx.replace(/\s+/g, " "), /Numbers come from `workproof figures` \(one person\), `people` \(several people\)/);
   const out = JSON.parse(run(session, gitDir, "").stdout).hookSpecificOutput.additionalContext;
   assert.match(out, /figures/);
 });
 
-test("a matching prompt gets the intent class and the rules block", () => {
+test("a matching prompt gets the intent class and the rules block, and is not sent to re-read the rules file", () => {
   const r = run(hook, gitDir, phrasings.claim_check[0]);
   const ctx = JSON.parse(r.stdout).hookSpecificOutput.additionalContext;
-  assert.match(ctx, /Intent class: .*claim/);
+  assert.match(ctx, /Intent: .*claim/);
   assert.match(ctx, /workproof core rules/);
-  assert.match(ctx, /references\/core-rules\.md/);
+  assert.doesNotMatch(ctx, /references\/core-rules\.md/, "the rules are in the context; naming the file makes the model read them again");
 });
 
 test("the hint still answers when the rules file is missing", () => {
@@ -150,36 +151,37 @@ test("session hook: pointer inside a git work tree, nothing outside", () => {
   assert.equal(outside.stdout, "");
 });
 
-// Round 15: limit 4300 (still under the 4500 bytes the hint reads since round 15 phase 3; 3000 before) for the rules on others' claims and on review evidence, paid for partly by shorter wording elsewhere. Round 13: limit 2100 for the one clause that points exports to `sessions --dir --since --until` and the kept rows (the hint still reads only the first 3000 bytes). Limit raised from 1700 to 2000 characters: restoring the user-named file exception (rule 4), the whitespace re-measure and raw-figure label (rule 6), and the delivered-only figure sentence keeps the always-loaded rules equal in meaning to SKILL.md.
-test("core-rules.md is short and lists R1 to R9", () => {
+// Redesign (round 16): the rules shrank from 4,300 to about 2,500 characters. The conventions moved into labelled tool rows.
+test("core-rules.md is short and lists rules 1 to 8", () => {
   const text = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
-  assert.ok(text.length <= 4300, `${text.length} characters`);
-  for (let i = 1; i <= 9; i++) assert.match(text, new RegExp(`^${i}\\. `, "m"));
+  assert.ok(text.length <= 2800, `${text.length} characters`);
+  for (let i = 1; i <= 8; i++) assert.match(text, new RegExp(`^${i}\\. `, "m"));
 });
 
 test("core-rules.md carries each rule inside its numbered line", () => {
   const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
   const line = (n) => core.split("\n").find((l) => l.startsWith(`${n}. `)) ?? "";
   const checks = {
-    4: [/unless the user names a file/i],
-    5: [/basis/i, /never a session count/i, /no number/i],
-    6: [/lines written/i, /third-party/i, /reverted/i, /ignoring whitespace/i, /for the same filter/i, /state both/i, /which is raw/i, /delivered-only figure gets its own label and does not replace lines written/i, /listed under "reverted", not as shipped/],
-    7: [/what holds or does not/i, /same full name at the same organisation or on a personal mailbox/i, /unrelated organisations is a separate unconfirmed person/i, /Co-authored-by, Reviewed-by, any case/, /AUTHORS names with no commits: named, no share/],
+    1: [/Not computed is not zero/i, /state both/i],
+    2: [/purpose the user states picks the headline/i, /other reading goes beside it in one line/i, /UTC unless the user names one/i, /impossible author dates/i, /merged people beside proven-only/i, /Never pick a convention the user did not ask for/i],
+    3: [/`people`/, /figures --person NAME/, /please confirm/i, /unrelated organisations stays a separate person/i],
+    4: [/Listed apart with the reason/i, /vendored/i, /reverted work/i],
+    5: [/Write only the file the user asked for/i, /Addresses stay out of documents/i],
+    6: [/holds with an exception/i, /not verifiable here/i, /committer alone is not the author/i],
+    7: [/commit share and the line share/i],
+    8: [/Hedge only for a real ambiguity/i],
   };
   for (const [n, res] of Object.entries(checks)) {
     for (const re of res) assert.match(line(n), re, `rule ${n} lacks ${re}`);
   }
 });
 
-test("core-rules.md carries the figure rule, the filtered-count rule and the three round 12 clauses", () => {
+test("core-rules.md no longer fixes a convention that depends on the user's purpose", () => {
   const core = readFileSync(join(root, "skills", "workproof", "references", "core-rules.md"), "utf8");
-  for (const k of ["lines written", "reverted", "third-party", "state both", "basis", "never a session count", "no number", "does not replace lines written"]) {
-    assert.match(core, new RegExp(k, "i"), `core-rules.md lacks ${k}`);
+  // These sentences chose one reading for every user and caused most of the fresh-writer losses of gates 3 and 4.
+  for (const gone of [/stays in lines written/i, /is its own row/i, /Signed-off-by are no help/i, /omit from dated lists/i, /commits authored before the window .* are outside/i, /evidence\//, /figures --doc/]) {
+    assert.doesNotMatch(core, gone, `core-rules.md still contains ${gone}`);
   }
-  assert.match(core, /run `npx workproof figures` first, write each figure with its printed label/);
-  assert.match(core, /run `figures --doc <file>`; fix or label any number matching no computed figure/);
-  assert.match(core, /not computed is not zero/);
-  assert.match(core, /Out of scope: do the task, add one scope line, no refusal/);
 });
 
 test("core-rules.md stays under the 4500 bytes the hint reads, so no rule is cut mid-line", () => {
@@ -191,12 +193,12 @@ test("core-rules.md stays under the 4500 bytes the hint reads, so no rule is cut
 test("the hint points review-evidence requests to `workproof reviews` and ownership claims to `workproof owner`, and only those", () => {
   const ctx = (text) => JSON.parse(run(hook, gitDir, text).stdout).hookSpecificOutput.additionalContext;
   const review = ctx("Our auditor wants evidence that every change in Q1 got a second person's review, recorded as Reviewed-by trailers in commit messages; write a CSV of change, author, reviewer.");
-  assert.match(review, /npx workproof reviews --path <area>/);
-  assert.doesNotMatch(review, /npx workproof owner --path <path>/);
+  assert.match(review, /cli\.js reviews --path <area>/);
+  assert.doesNotMatch(review, /cli\.js owner --path <path>/);
   const owner = ctx(phrasings.claim_check[0] + " The candidate says they wrote the parser module.");
-  assert.match(owner, /npx workproof owner --path <path>/);
+  assert.match(owner, /cli\.js owner --path <path>/);
   const plain = ctx(phrasings.work_delivery[0]);
-  assert.doesNotMatch(plain, /npx workproof reviews --path <area>/);
+  assert.doesNotMatch(plain, /reviews --path <area>/);
 });
 
 test("near-miss negatives: general git help, code review, commit messages and repo health reports stay silent even inside a repository", () => {

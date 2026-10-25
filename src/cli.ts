@@ -13,6 +13,7 @@ import { buildBullets, DEFAULT_MAX_WORDS } from "./bullets.js";
 import { stopCheckAsync } from "./stopcheck.js";
 import { buildMine } from "./mine.js";
 import { runFigures } from "./figures.js";
+import { runPeople } from "./people.js";
 import { runReviews } from "./reviews.js";
 import { runOwner } from "./owner.js";
 
@@ -33,16 +34,21 @@ const HELP = `usage: workproof [options] [--repo <dir>]...
        workproof mine [--repo <dir>]... [--author <email|name>]... [--no-merge-identities] [--emails] [--out <file>]
                  a Markdown summary of your work in each repository, from the report's figures: commits and surviving
                  lines, the addresses counted (with the rule that merged each), and what it does not show; a fixed template, no model
-       workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]
+       workproof people [--repo <dir>] [--since <date>] [--until <date>] [--tz <zone>] [--person <name|email>] [--max <n>] [--emails] [--json]
+                 every person in the window, one line each: commits (merged and proven-only), co-authored, own merges, lines,
+                 commits reverted by anyone, first and last date, and the rule that joined each person's addresses. The same
+                 full name at unrelated organisations is kept apart. Dates are read in UTC unless --tz says otherwise
+       workproof figures [--repo <dir>] [--author <email|name>]... [--person <name|email>] [--since <date>] [--until <date>] [--tz <zone>] [--doc <file>] [--json]
                  labelled counts for a document about one person's work, one line each as "label | value | filter":
-                 authored commits in the window (author date; committer date shown), identity candidates (printed, never
-                 merged), merges, rebased commits, reverts, whitespace-only commits, lines raw and with whitespace ignored,
+                 authored commits in the window (UTC unless --tz; an impossible author date is placed by its committer date and
+                 listed), identity candidates (--person joins the addresses the evidence ties), merges, rebased commits, reverts
+                 (also by anyone else), whitespace-only commits, lines raw and with whitespace ignored,
                  large added files with a licence or source header, odd dates; "not computed (<reason>)" when git fails.
                  --doc <file> reads a finished document and lists, for each number next to commit, line, file and similar
                  words, the figures that equal it (a relative <file> is resolved against the current directory, not --repo), plus the emails, shell commands, code blocks and branch names it shows.
                  It states no verdict and exits 0 whenever it ran; read-only
-       workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]
-                 for each commit in the window (author date, local date in the commit's own offset), whether a second person's
+       workproof reviews [--repo <dir>] [--path <pathspec>]... [--since <date>] [--until <date>] [--tz <zone>] [--trailer <Key>]... [--format text|csv|json] [--out <file>]
+                 for each commit in the window (author date, read in UTC unless --tz says otherwise), whether a second person's
                  review is recorded in its message: independent review, self-review, reviewed via merge (weaker), a quoted
                  "Reviewed-by:" that is not a trailer, other approval only, or no review trailer; a summary and the commits out of scope.
                  Default trailer key Reviewed-by (case-insensitive); --path limits to commits touching the pathspec.
@@ -128,7 +134,7 @@ export function starHintDecision(o: { stdoutIsTTY: boolean; stderrIsTTY: boolean
 
 /** Classifies the arguments: only a plain run that writes a report may show the hint. Pure. */
 export function starHintCommandFor(argv: string[]): "report" | "other" {
-  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures", "reviews", "owner"].includes(argv[0] ?? "")) return "other";
+  if (["check", "verify", "verdict", "attest", "countersign", "sessions", "bullets", "mine", "figures", "people", "reviews", "owner"].includes(argv[0] ?? "")) return "other";
   if (argv.some((a) => a === "--help" || a === "-h" || a === "--version" || a === "--json")) return "other";
   const f = argv.indexOf("--format");
   if (f >= 0 && argv[f + 1] === "json") return "other";
@@ -466,6 +472,10 @@ async function main() {
       await new Promise<void>((done) => process.stdout.write("", () => done()));
       process.exit(process.exitCode ?? 0);
     }
+    return;
+  }
+  if (process.argv[2] === "people") {
+    process.exitCode = await runPeople(process.argv.slice(3));
     return;
   }
   if (process.argv[2] === "reviews") {

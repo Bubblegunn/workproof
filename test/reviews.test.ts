@@ -210,7 +210,7 @@ test("every status is reached by one commit in the fixture", async () => {
 test("the fixed convention lines are printed exactly", async () => {
   const { out } = await run(["--repo", dir, ...WINDOW]);
   const lines = out.split("\n");
-  assert.equal(lines[0], "Convention: author date, local date in the commit's own offset; window 2026-03-01 to 2026-03-31; paths whole repository.");
+  assert.equal(lines[0], "Convention: author date, UTC date; window 2026-03-01 to 2026-03-31; paths whole repository.");
   for (const line of CONVENTION_FIXED) assert.ok(lines.includes(line), `missing: ${line}`);
   assert.equal(CONVENTION_FIXED.length, 3);
 });
@@ -299,10 +299,16 @@ test("a commit authored before the window and committed inside it is out of scop
   assert.ok(group.shas.includes(shas.late!));
 });
 
-test("a commit at 23:30 on the last day in a negative offset is in scope for that day", async () => {
-  const row = rowFor(await json(), SUBJECT.lastDay);
+test("a commit at 23:30 on the last day in a negative offset is the next day in UTC (out of the window) and in scope for that day with --tz", async () => {
+  assert.equal((await json()).rows.some((r) => r.subject === SUBJECT.lastDay), false, "the instant is 2026-04-01T04:30Z");
+  const row = rowFor(await json(["--tz", "-05:00"]), SUBJECT.lastDay);
   assert.equal(row.author_date, "2026-03-31");
   assert.equal(row.status, "independent review");
+  const legacy = rowFor(await json(["--tz", "commit"]), SUBJECT.lastDay);
+  assert.equal(legacy.author_date, "2026-03-31");
+  // The printed date is the day in the zone: 2026-03-20T10:00Z is already 03-21 at +14:00.
+  assert.equal(rowFor(await json(), SUBJECT.readme).author_date, "2026-03-20");
+  assert.equal(rowFor(await json(["--tz", "+14:00"]), SUBJECT.readme).author_date, "2026-03-21");
 });
 
 test("with --path lib/ a README-only commit is out of scope", async () => {

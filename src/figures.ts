@@ -7,6 +7,10 @@ import { foldIdentity, possibleSplits, SPLIT_CATEGORY } from "./figures/identity
 import { isBotIdentity } from "./figures/bot.js";
 import { windowFromPrompt } from "./answercheck.js";
 import type { Window } from "./answercheck.js";
+import { parseZone, zoneLabel, dayIn, startOfDay, nextDay, UTC_ZONE, zoneFromPrompt } from "./figures/zone.js";
+import type { Zone } from "./figures/zone.js";
+import { placeCommit } from "./figures/dates.js";
+import { groupPeople } from "./figures/people.js";
 
 /**
  * `workproof figures`: the counts a document about one person's work needs, each on a labelled line
@@ -19,6 +23,10 @@ export interface FiguresOptions {
   authors: string[];
   since?: string;
   until?: string;
+  /** `--tz`: the zone date-only bounds are read in. UTC when absent. */
+  tz?: string;
+  /** `--person`: the person (name or address) whose addresses the evidence joins; replaces --author. */
+  person?: string;
   doc?: string;
   json: boolean;
   /** `--brief`: the short prepared summary of the whole history (see runBrief). */
@@ -59,7 +67,7 @@ const LARGE_FILE_LINES = 40;
 const MAX_FILES_READ = 200;
 const MAX_BLOB_BYTES = 512 * 1024;
 
-interface LogCommit {
+export interface LogCommit {
   sha: string;
   email: string;
   name: string;
@@ -75,13 +83,13 @@ interface LogCommit {
 }
 
 /** Strips control characters and caps the length: subjects, names and paths are data and must not break the layout. */
-const data = (s: string, max = 80): string => {
+export const data = (s: string, max = 80): string => {
   const flat = s.replace(/[\p{Cc}\p{Zl}\p{Zp}]+/gu, " ").trim();
   return flat.length > max ? `${flat.slice(0, max - 3)}...` : flat;
 };
 
 /** The first meaningful line of a git failure, for a "not computed" reason. */
-function reasonOf(err: unknown): string {
+export function reasonOf(err: unknown): string {
   const e = err as { stderr?: unknown; message?: unknown };
   const text = [typeof e.stderr === "string" ? e.stderr : "", typeof e.message === "string" ? e.message : String(err)].join("\n");
   const line = text.split("\n").map((l) => l.trim()).find((l) => /^(fatal|error):/i.test(l)) ?? text.split("\n").find((l) => l.trim()) ?? "git failed";
@@ -90,18 +98,25 @@ function reasonOf(err: unknown): string {
 
 const notComputed = (label: string, filter: string, reason: string): FigureRow => ({ label, value: `not computed (${reason})`, filter, computed: false });
 
-export interface Bound { at?: Date; /** A date-only bound: compared with the author's local calendar date. */ day?: string }
+export interface Bound {
+  at?: Date;
+  /** An `until` bound given as a whole day ends before this instant (the start of the next day), not at it. */
+  exclusive?: boolean;
+  /** Only with the zone `commit`: compared with the commit's own local calendar date. */
+  day?: string;
+}
 
 const RELATIVE = /^(?:now|today|yesterday|\d{1,4}\s+(?:second|minute|hour|day|week|month|year)s?\s+ago)$/i;
 
-/** Date-only values are calendar days in the author's own offset; a full ISO time is an instant; "N days ago" is read by git. Anything else is an error, never a zero. */
-export async function windowBound(value: string | undefined, kind: "since" | "until", cwd: string): Promise<Bound | undefined> {
+/** Date-only values are whole calendar days in the zone (UTC unless a zone is given); a full ISO time is an instant; "N days ago" is read by git. Anything else is an error, never a zero. */
+export async function windowBound(value: string | undefined, kind: "since" | "until", cwd: string, zone: Zone = UTC_ZONE): Promise<Bound | undefined> {
   if (!value) return undefined;
   const bad = () => new Error(`git could not read the date "${data(value, 40)}"`);
   if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const d = new Date(`${value}T00:00:00Z`);
     if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== value) throw bad();
-    return { day: value };
+    if (zone.kind === "commit") return { day: value };
+    return kind === "since" ? { at: startOfDay(value, zone) } : { at: startOfDay(nextDay(value), zone), exclusive: true };
   }
   // A time without Z or an offset would be read in the runner's own timezone, so it is refused.
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/i.test(value)) {
@@ -117,7 +132,7 @@ export async function windowBound(value: string | undefined, kind: "since" | "un
 }
 
 /** `unreadable` counts records git listed that could not be parsed; they are reported, never silently dropped. */
-async function readLog(cwd: string): Promise<{ commits: LogCommit[]; unreadable: number }> {
+export async function readLog(cwd: string): Promise<{ commits: LogCommit[]; unreadable: number }> {
   const format = `--format=%H%x1f%aE%x1f%aN%x1f%aI%x1f%cE%x1f%cI%x1f%P%x1f%(trailers:key=Co-authored-by,valueonly,separator=%x1d)%x1f%B`;
   // -z ends each commit with NUL, which git never allows inside a message, so a message holding RS or US cannot forge a record.
   const out = await git(["log", "-z", "--no-color", "HEAD", format], cwd);
@@ -149,10 +164,10 @@ async function readLog(cwd: string): Promise<{ commits: LogCommit[]; unreadable:
   return { commits, unreadable };
 }
 
-interface Numstat { sha: string; files: { path: string; added: number | null; deleted: number | null }[] }
+export interface Numstat { sha: string; files: { path: string; added: number | null; deleted: number | null }[] }
 
 /** numstat of exactly the named commits (no walk), optionally ignoring whitespace or keeping only added files. One git call per mode. */
-async function numstatOf(shas: string[], cwd: string, mode: { ignoreWhitespace?: boolean; addedOnly?: boolean }): Promise<Map<string, Numstat>> {
+export async function numstatOf(shas: string[], cwd: string, mode: { ignoreWhitespace?: boolean; addedOnly?: boolean }): Promise<Map<string, Numstat>> {
   const out = new Map<string, Numstat>();
   if (!shas.length) return out;
   const args = ["-c", "core.quotepath=false", "log", "--no-walk=unsorted", "--stdin", "--numstat", "--format=%x1e%H", "--no-color"];
@@ -317,6 +332,8 @@ interface NetLines {
   addedText: number;
   /** The commit with most raw added lines, when the identity added any. */
   top?: { sha: string; added: number };
+  /** Lines of each commit that are in the net figure (raw added minus its exclusions). */
+  netBySha: Map<string, number>;
 }
 
 /**
@@ -377,7 +394,10 @@ async function netLines(cwd: string, shas: string[], raw: Map<string, Numstat>, 
   }
   const excluded = Object.values(counts).reduce((t, n) => t + n, 0);
   const best = [...perCommit].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))[0];
+  const netBySha = new Map(perCommit);
+  for (const e of exclusions) netBySha.set(e.sha, (netBySha.get(e.sha) ?? 0) - e.lines);
   return {
+    netBySha,
     total,
     net: total - excluded,
     counts,
@@ -388,8 +408,36 @@ async function netLines(cwd: string, shas: string[], raw: Map<string, Numstat>, 
   };
 }
 
-const sha7 = (sha: string) => sha.slice(0, 7);
-const day = (d: Date) => (Number.isNaN(d.getTime()) ? "invalid date" : d.toISOString().slice(0, 10));
+export const sha7 = (sha: string) => sha.slice(0, 7);
+export const day = (d: Date) => (Number.isNaN(d.getTime()) ? "invalid date" : d.toISOString().slice(0, 10));
+
+/** Commits that someone reverted, by "This reverts commit <sha>" in any commit's message or by a Revert "<subject>" subject that matches an earlier commit. */
+export function findReverts(log: LogCommit[]): Map<string, { by: LogCommit; basis: string }> {
+  const known = new Set(log.map((c) => c.sha));
+  const subjectOf = (c: LogCommit) => c.body.split("\n")[0] ?? "";
+  const bySubject = new Map<string, LogCommit[]>();
+  for (const c of log) bySubject.set(subjectOf(c), [...(bySubject.get(subjectOf(c)) ?? []), c]);
+  const revertedBy = new Map<string, { by: LogCommit; basis: string }>();
+  for (const c of log) {
+    const viaSha = [...c.body.matchAll(/This reverts commit ([0-9a-f]{40,64})/g)].map((m) => m[1]!);
+    for (const t of viaSha) if (known.has(t) && !revertedBy.has(t)) revertedBy.set(t, { by: c, basis: "This reverts commit" });
+    const bySubj = /^Revert "(.+)"$/.exec(subjectOf(c));
+    if (bySubj && !viaSha.length) {
+      // Only when exactly one earlier commit has that subject: with two, the tool cannot tell which one was backed out and does not guess.
+      const targets = (bySubject.get(bySubj[1]!) ?? []).filter((t) => t.sha !== c.sha && t.committer <= c.committer);
+      if (targets.length === 1 && !revertedBy.has(targets[0]!.sha)) revertedBy.set(targets[0]!.sha, { by: c, basis: 'subject Revert "..."' });
+    }
+  }
+  // A revert that was itself reverted does not back the work out: the work is back.
+  for (const [sha, r] of [...revertedBy]) if (revertedBy.has(r.by.sha)) revertedBy.delete(sha);
+  return revertedBy;
+}
+
+/** The window as one printed phrase: the dates, the zone they are read in, and the date convention. */
+export function windowDescription(sinceText: string, untilText: string, zone: Zone, dateOnly: boolean): string {
+  const zoneText = zone.kind === "commit" ? "each commit's own calendar date in its own offset" : `read in ${zoneLabel(zone)}`;
+  return `author date ${sinceText} to ${untilText}, ${zoneText} (${dateOnly && zone.kind !== "commit" ? "a date-only bound is the whole day; " : ""}an impossible author date is placed by its committer date)`;
+}
 
 export async function computeFigures(opts: FiguresOptions, now: Date = new Date()): Promise<FiguresResult> {
   const cwd = resolve(opts.repo);
@@ -398,16 +446,18 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
   let since: Bound | undefined;
   let until: Bound | undefined;
   let windowError = "";
+  let zone: Zone = UTC_ZONE;
   try {
-    since = await windowBound(opts.since, "since", cwd);
-    until = await windowBound(opts.until, "until", cwd);
+    zone = parseZone(opts.tz);
+    since = await windowBound(opts.since, "since", cwd, zone);
+    until = await windowBound(opts.until, "until", cwd, zone);
   } catch (err) {
     windowError = reasonOf(err);
   }
-  const dateOnly = [since, until].some((b) => b?.day);
+  const dateOnly = [opts.since, opts.until].some((v) => v && /^\d{4}-\d{2}-\d{2}$/.test(v));
   const sinceText = opts.since ? data(opts.since, 40) : "start of history";
   const untilText = opts.until ? data(opts.until, 40) : "now";
-  const windowText = `author date ${sinceText} to ${untilText}${dateOnly ? " (date-only bounds are the local calendar date in the commit's own offset)" : ""}`;
+  const windowText = windowDescription(sinceText, untilText, zone, dateOnly);
   const filter = `${windowText}, reachable from HEAD`;
   const result = (): FiguresResult => ({ repo: data(cwd, 200), window: windowText, rows, candidates });
 
@@ -420,23 +470,52 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
     head = sha7((await git(["rev-parse", "HEAD"], cwd)).trim());
   } catch (err) {
     const reason = windowError || reasonOf(err);
-    for (const label of ["authored non-merge commits", "first authored commit date", "last authored commit date", "active months", "gaps over 30 days", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future", "lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, reason));
+    for (const label of ["authored non-merge commits", "first authored commit date", "last authored commit date", "active months", "gaps over 30 days", "authored non-merge commits, author date as written", "commits with an impossible author date", "authored non-merge commits, with identity candidates", "all authors, non-merge commits", "merge commits by the identities", "authored before the window, committed inside it", "revert commits", "commits by the identities that anyone reverted", "whitespace-only commits", "lines added and deleted", "large added files with a header", "dates out of order", "committer date in the future", "lines written, net of exclusions", "lines written, reverts removed", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, reason));
     return result();
   }
   if (windowError) {
     rows.push(notComputed("window", filter, windowError));
     return result();
   }
-  const within = (d: Date, local: Date, lo: Bound | undefined, hi: Bound | undefined) =>
-    !Number.isNaN(d.getTime()) && (!lo || (lo.day ? day(local) >= lo.day : d >= lo.at!)) && (!hi || (hi.day ? day(local) <= hi.day : d <= hi.at!));
-  const inWindow = (c: LogCommit) => within(c.author, c.authorLocal, since, until);
+  const within = (d: Date | null, local: Date, lo: Bound | undefined, hi: Bound | undefined) =>
+    d !== null && !Number.isNaN(d.getTime()) && (!lo || (lo.day ? day(local) >= lo.day : d >= lo.at!)) && (!hi || (hi.day ? day(local) <= hi.day : hi.exclusive ? d < hi.at! : d <= hi.at!));
+  // Where each commit sits in time: its author date, or its committer date when the author date cannot be right.
+  const placement = new Map<LogCommit, ReturnType<typeof placeCommit>>();
+  for (const c of log) placement.set(c, placeCommit(c.author, c.committer, now));
+  const placed = (c: LogCommit) => placement.get(c)!;
+  /** The commit's calendar day in the window's zone, at its placed instant. */
+  const dayOfCommit = (c: LogCommit): string => {
+    const p = placed(c);
+    if (!p.at) return "no usable date";
+    return zone.kind === "commit" && p.basis === "author" ? day(c.authorLocal) : dayIn(p.at, zone);
+  };
+  const localFor = (c: LogCommit): Date => (placed(c).basis === "committer" ? c.committerLocal : c.authorLocal);
+  const inWindow = (c: LogCommit) => within(placed(c).at, localFor(c), since, until);
+  /** The strict reading: the author date as written, impossible or not. */
+  const inWindowAsWritten = (c: LogCommit) => within(c.author, c.authorLocal, since, until);
   const inCommitWindow = (c: LogCommit) => within(c.committer, c.committerLocal, since, until);
-  const beforeStart = (c: LogCommit) => !!since && (since.day ? day(c.authorLocal) < since.day : c.author < since.at!);
+  const beforeStart = (c: LogCommit) => !!since && !placed(c).issue && (since.day ? day(c.authorLocal) < since.day : c.author < since.at!);
 
   // Identity: exactly what was named (an address matches addresses, a name matches names). Candidates are printed, never merged.
   let wanted = opts.authors;
+  let personRules: string[] = [];
+  let personProblem = "";
+  if (opts.person) {
+    const g = groupPeople(log.map((c) => ({ sha: c.sha, email: c.email, name: c.name, body: c.body, parents: c.parents, committerEmail: c.committerEmail })));
+    const key = foldIdentity(opts.person);
+    const hits = g.people.filter((x) => x.emails.some((e) => foldIdentity(e) === key) || x.names.some((n) => foldIdentity(n) === key));
+    if (hits.length === 1) {
+      const p = hits[0]!;
+      wanted = p.emails;
+      personRules = [...new Set(g.merges.filter((m) => p.emails.includes(m.a) && p.emails.includes(m.b)).map((m) => `${m.rule} (${m.strength})`))];
+    } else {
+      // Never fall back to the configured identity: a mistyped name must not report someone else.
+      wanted = [];
+      personProblem = hits.length === 0 ? `no person in this history has the name or address "${data(opts.person, 60)}"` : `${hits.length} people in this history match "${data(opts.person, 60)}" (the same name at unrelated organisations); pass one address with --author`;
+    }
+  }
   // Only the configured address is the identity; a same-name address shows up as a candidate, never as a silent merge.
-  if (!wanted.length) wanted = [await configuredEmail(cwd)].filter(Boolean);
+  if (!wanted.length && !personProblem) wanted = [await configuredEmail(cwd)].filter(Boolean);
   const folded = wanted.map(foldIdentity).filter(Boolean);
   const mineEmails = new Set<string>();
   const mineNames = new Set<string>();
@@ -452,9 +531,10 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
   const nonMerge = log.filter((c) => c.parents <= 1);
   const windowed = nonMerge.filter(inWindow);
   const who = identity.emails.length ? `identities ${identity.emails.map((e) => data(e, 80)).join(", ")}` : "";
-  const noIdentity = wanted.length
+  if (opts.person && identity.emails.length > 1) rows.push({ label: "identity joined by evidence", value: `${identity.emails.length} addresses`, filter: personRules.length ? `${personRules.join("; ")}; probable joins can be wrong, the single-address figures are in the identity candidates` : "no joining rule applied", computed: true });
+  const noIdentity = personProblem || (wanted.length
     ? "no commit has that author name or address"
-    : "no author given and git config has no user.email; pass --author";
+    : "no author given and git config has no user.email; pass --author");
   const idRow = (label: string, f: string, value: () => number | string, detail?: () => string[]): void => {
     if (!identity.emails.length) rows.push(notComputed(label, f, noIdentity));
     else rows.push({ label, value: value(), filter: f, computed: true, ...(detail ? { detail: detail() } : {}) });
@@ -462,19 +542,29 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
 
   const mine = windowed.filter(isMine);
   idRow("authored non-merge commits", `${who}; ${filter}`, () => mine.length);
+  // The strict reading beside it, and the commits whose author date cannot be right (listed, never silently placed or dropped).
+  const oddDated = nonMerge.filter((c) => isMine(c) && placed(c).issue);
+  const oddInWindow = oddDated.filter(inWindow);
+  idRow("authored non-merge commits, author date as written", `${who}; the author date taken as written even when impossible, in the same window and zone; reachable from HEAD`, () => nonMerge.filter((c) => isMine(c) && inWindowAsWritten(c)).length);
+  idRow(
+    "commits with an impossible author date",
+    `${who}; any date; an author date before 1990, later than today, or later than its committer date; each is placed by its committer date when that one is possible (${oddInWindow.length} placed inside the window), else left out of dated figures`,
+    () => oddDated.length,
+    () => oddDated.slice(0, 5).map((c) => `${sha7(c.sha)} author ${day(c.author)} (${placed(c).issue}), committer ${day(c.committer)}, ${placed(c).at ? `placed ${dayOfCommit(c)}` : "left out"}`),
+  );
 
-  // Dates of the same commits. The local calendar date is day(authorLocal): the author date read in the commit's own offset.
-  const byTime = [...mine].sort((a, b) => a.author.getTime() - b.author.getTime());
-  const localDays = [...new Set(mine.map((c) => day(c.authorLocal)))].sort();
+  // Dates of the same commits, each on the calendar day of its placed instant in the window's zone.
+  const byTime = [...mine].sort((a, b) => placed(a).at!.getTime() - placed(b).at!.getTime());
+  const localDays = [...new Set(mine.map(dayOfCommit))].sort();
   const dayMs = (d: string) => Date.parse(`${d}T00:00:00Z`);
   const gaps = localDays
     .slice(1)
     .map((to, i) => ({ from: localDays[i]!, to, days: (dayMs(to) - dayMs(localDays[i]!)) / 86400000 }))
     .filter((g) => g.days > GAP_DAYS);
-  const dateFilter = `${who}; local calendar date (the commit's own offset) of the author date, in the window; ${filter}`;
-  idRow("first authored commit date", `${dateFilter}; the earliest of those commits`, () => (mine.length ? day(byTime[0]!.authorLocal) : "none in the window"));
-  idRow("last authored commit date", `${dateFilter}; the latest of those commits`, () => (mine.length ? day(byTime[byTime.length - 1]!.authorLocal) : "none in the window"));
-  idRow("active months", `${who}; distinct local YYYY-MM of the author date of those commits, in the window; ${filter}`, () => new Set(mine.map((c) => day(c.authorLocal).slice(0, 7))).size);
+  const dateFilter = `${who}; calendar date (${zoneLabel(zone)}) of the placed date, in the window; ${filter}`;
+  idRow("first authored commit date", `${dateFilter}; the earliest of those commits`, () => (mine.length ? dayOfCommit(byTime[0]!) : "none in the window"));
+  idRow("last authored commit date", `${dateFilter}; the latest of those commits`, () => (mine.length ? dayOfCommit(byTime[byTime.length - 1]!) : "none in the window"));
+  idRow("active months", `${who}; distinct YYYY-MM (${zoneLabel(zone)}) of the placed date of those commits, in the window; ${filter}`, () => new Set(mine.map((c) => dayOfCommit(c).slice(0, 7))).size);
   idRow("gaps over 30 days", `${who}; gaps longer than ${GAP_DAYS} days between consecutive authored commit dates, days counted by calendar date, in the window; ${filter}`, () => gaps.length, () => [...gaps.slice(0, 3).map((g) => `from ${g.from} to ${g.to} (${g.days} days)`), ...(gaps.length > 3 ? [`(+${gaps.length - 3} more)`] : [])]);
 
   // Identity candidates: same rules as the report's split warning, plus trailers and committer. Printed, never merged.
@@ -508,12 +598,22 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
   const reverted = new Set(reverts.flatMap((r) => r.targets.filter((t) => known.has(t))));
   idRow("revert commits", `${who}; ${filter}; detected by "This reverts commit <sha>"`, () => reverts.length, () => reverts.slice(0, 5).map((r) => `${sha7(r.c.sha)} reverts ${r.targets.map(sha7).join(", ")}`));
   idRow("commits reverted by those reverts", `${who}; targets present in this history`, () => reverted.size);
+  // Reverts by anyone: the identity's commits that someone else (or they) backed out, by "This reverts commit <sha>" or by a Revert "<subject>" subject.
+  const subjectOf = (c: LogCommit) => c.body.split("\n")[0] ?? "";
+  const revertedBy = findReverts(log);
+  const revertedMine = mine.filter((c) => revertedBy.has(c.sha));
+  idRow(
+    "commits by the identities that anyone reverted",
+    `${who}; ${filter}; the reverting commit may be by anyone and outside the window; found by "This reverts commit <sha>" or by a Revert "<subject>" subject that matches exactly one earlier commit (a repeated subject is not guessed); a revert that was itself reverted does not count`,
+    () => revertedMine.length,
+    () => revertedMine.slice(0, 5).map((c) => { const r = revertedBy.get(c.sha)!; return `${sha7(c.sha)} "${data(subjectOf(c), 50)}" reverted by ${sha7(r.by.sha)} (${data(r.by.name, 30)}, ${day(r.by.committer)}; ${r.basis})`; }),
+  );
 
   // Numstat figures: raw, with whitespace ignored, and the added files that are large.
   const shas = mine.map((c) => c.sha);
   const byHash = new Map(log.map((c) => [c.sha, c] as const));
   if (!identity.emails.length) {
-    for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header", "lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, noIdentity));
+    for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header", "lines written, net of exclusions", "lines written, reverts removed", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, noIdentity));
   } else {
     try {
       const raw = await numstatOf(shas, cwd, {});
@@ -549,6 +649,13 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
           computed: true,
           detail: sorted.slice(0, 5).map((e) => `${sha7(e.sha)} "${data(e.path, 70)}" ${e.lines} lines, ${e.reason}${e.note ? `: ${e.note}` : ""}`),
         });
+        const lasting = revertedMine.reduce((t, c) => t + (net.netBySha.get(c.sha) ?? 0), 0);
+        rows.push({
+          label: "lines written, reverts removed",
+          value: net.net - lasting,
+          filter: `${who}; the net figure above minus the ${lasting} net lines of the ${revertedMine.length} commits that anyone reverted (the row "commits by the identities that anyone reverted"); lines that were written and then backed out do not count as lasting work; the net figure above keeps them`,
+          computed: true,
+        });
         const top = net.top;
         const topCommit = top ? byHash.get(top.sha) : undefined;
         rows.push({
@@ -560,7 +667,7 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
         });
       } catch (err) {
         const reason = reasonOf(err);
-        for (const label of ["lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added"]) rows.push(notComputed(label, filter, reason));
+        for (const label of ["lines written, net of exclusions", "lines written, reverts removed", "lines excluded, by reason", "largest commit by lines added"]) rows.push(notComputed(label, filter, reason));
       }
       const commitsFilter = `${who}; authored non-merge commits in the window divided by every author's non-merge commits in the window; ${filter}`;
       rows.push(windowed.length ? { label: "share of non-merge commits by the identity", value: pct(mine.length, windowed.length), filter: `${commitsFilter} (denominator ${windowed.length}, bots included)`, computed: true } : notComputed("share of non-merge commits by the identity", commitsFilter, "no non-merge commit by any author in the window"));
@@ -590,7 +697,7 @@ export async function computeFigures(opts: FiguresOptions, now: Date = new Date(
       rows.push({ label: "large added files with a licence, copyright or source-URL header", value: withHeader.length, filter: `first 12 lines of each large added file; ${inspected} of ${large.length} large files inspected (blobs over ${MAX_BLOB_BYTES} bytes, unreadable blobs and files past the first ${MAX_FILES_READ} are not); possible third-party file, a reader decides`, computed: true, detail: withHeader.slice(0, 5).map((f) => `${sha7(f.sha)} "${data(f.path, 70)}" ${f.added} lines added; header: ${f.kinds.join(", ")}`) });
     } catch (err) {
       const reason = reasonOf(err);
-      for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header", "lines written, net of exclusions", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, reason));
+      for (const label of ["whitespace-only commits", "lines added, raw", "lines deleted, raw", "lines added, whitespace ignored", "lines deleted, whitespace ignored", "large added files", "large added files with a licence, copyright or source-URL header", "lines written, net of exclusions", "lines written, reverts removed", "lines excluded, by reason", "largest commit by lines added", "share of non-merge commits by the identity", "share of lines added by the identity"]) rows.push(notComputed(label, filter, reason));
     }
   }
 
@@ -659,9 +766,9 @@ export async function readBack(file: string, rows: FigureRow[]): Promise<DocRead
   const ownRow = (noun: string, label: string): boolean => {
     const n = noun.replace(/s$/, "").replace(/^reverted$/, "reverted");
     if (/^merge( commit)?$/.test(n)) return label.startsWith("merge commits");
-    if (n === "commit") return /commits/.test(label) && !/^(?:merge commits|revert commits|whitespace-only|commits reverted)/.test(label);
+    if (n === "commit") return /commits/.test(label) && !/^(?:merge commits|revert commits|whitespace-only|commits reverted|commits with an impossible|commits by the identities that anyone reverted)|author date as written/.test(label);
     if (n === "revert") return label === "revert commits";
-    if (n === "reverted") return label === "commits reverted by those reverts";
+    if (n === "reverted") return label === "commits reverted by those reverts" || label === "commits by the identities that anyone reverted";
     if (n === "author") return label === "distinct authors";
     if (n === "line") return label.startsWith("lines ");
     if (n === "file") return label.startsWith("large added files");
@@ -800,6 +907,8 @@ export function parseFiguresArgs(args: string[]): FiguresOptions {
     else if (a === "--author") opts.authors.push(value());
     else if (a === "--since") opts.since = value();
     else if (a === "--until") opts.until = value();
+    else if (a === "--tz") opts.tz = value();
+    else if (a === "--person") opts.person = value();
     else if (a === "--doc") opts.doc = value();
     else if (a === "--json") opts.json = true;
     else if (a === "--brief") opts.brief = true;
@@ -816,7 +925,7 @@ export function parseFiguresArgs(args: string[]): FiguresOptions {
 
 /** `workproof figures`: returns the exit code, 0 whenever it ran and 1 for a usage error. */
 export async function runFigures(args: string[], out: { write(s: string): unknown } = process.stdout): Promise<number> {
-  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--since <date>] [--until <date>] [--doc <file>] [--json]\n       workproof figures --brief [--repo <dir>] [--budget-ms <n>] [--window-from-stdin]";
+  const usage = "usage: workproof figures [--repo <dir>] [--author <email|name>]... [--person <name|email>] [--since <date>] [--until <date>] [--tz <UTC|+03:00|Europe/Istanbul|commit>] [--doc <file>] [--json]\n       workproof figures --brief [--repo <dir>] [--budget-ms <n>] [--window-from-stdin]";
   let opts: FiguresOptions;
   try {
     opts = parseFiguresArgs(args);
@@ -829,7 +938,7 @@ export async function runFigures(args: string[], out: { write(s: string): unknow
     return 1;
   }
   if (opts.brief) {
-    if (opts.json || opts.doc || opts.authors.length || opts.since || opts.until) {
+    if (opts.json || opts.doc || opts.authors.length || opts.since || opts.until || opts.tz || opts.person) {
       console.error(`--brief takes only --repo and --budget-ms (and --window-from-stdin)\n${usage}`);
       return 1;
     }
@@ -848,7 +957,7 @@ export async function runFigures(args: string[], out: { write(s: string): unknow
 // ---- `workproof figures --brief`: a short prepared summary of the whole history, for the prompt hint. ----
 
 export const BRIEF_MAX_COMMITS = 20000;
-const BRIEF_TOP_AUTHORS = 5;
+const BRIEF_TOP_AUTHORS = 4;
 const WEBMAIL_DOMAIN = /^(?:gmail|googlemail|outlook|hotmail|live|msn|yahoo|icloud|me|mac|proton|protonmail|pm|gmx|qq|163|126|yandex)\.[a-z]{2,}(?:\.[a-z]{2})?$/;
 
 export type AddressKind = "organisational" | "personal webmail" | "noreply" | "bot" | "unknown";
@@ -904,13 +1013,17 @@ export async function readPromptFromStdin(max = 4000): Promise<string> {
  * commits, no identity at all. With a window, the figures and the author ranking cover only the commits whose author date
  * (local calendar date) lies in it; the repository commit count stays whole-repository.
  */
-export async function briefLines(repo: string, window?: Window | null): Promise<string[] | undefined> {
+export async function briefLines(repo: string, window?: Window | null, zone: Zone = UTC_ZONE): Promise<string[] | undefined> {
   const cwd = resolve(repo);
   if (!(await git(["rev-parse", "--is-inside-work-tree"], cwd).then((s) => s.trim() === "true", () => false))) return undefined;
   const counted = await git(["rev-list", "--count", `--max-count=${BRIEF_MAX_COMMITS + 1}`, "HEAD"], cwd).then((s) => Number(s.trim()), () => Number.NaN);
   if (!Number.isInteger(counted) || counted < 1 || counted > BRIEF_MAX_COMMITS) return undefined;
   const { commits: log } = await readLog(cwd);
-  const dayOf = (c: LogCommit): string => day(c.authorLocal);
+  const nowForBrief = new Date();
+  const dayOf = (c: LogCommit): string => {
+    const p = placeCommit(c.author, c.committer, nowForBrief);
+    return p.at ? dayIn(p.at, zone) : "no usable date";
+  };
   const inBrief = (c: LogCommit): boolean => !window || ((!window.since || dayOf(c) >= window.since) && (!window.until || dayOf(c) <= window.until));
   const nonMerge = log.filter((c) => c.parents <= 1 && inBrief(c));
 
@@ -936,7 +1049,7 @@ export async function briefLines(repo: string, window?: Window | null): Promise<
   const configuredNameText = configured ? await configuredName(cwd) : "";
   const displayName = briefName(configuredNameText || mostCommon(namesOf.get(identity)) || "(no name)");
 
-  const figures = await computeFigures({ repo: cwd, authors: [identity], json: false, ...(window ? { since: window.since, until: window.until } : {}) });
+  const figures = await computeFigures({ repo: cwd, authors: [identity], json: false, tz: zoneLabel(zone), ...(window ? { since: window.since, until: window.until } : {}) });
   const row = (label: string): string => String(figures.rows.find((r) => r.label === label)?.value ?? "not computed (no such figure)");
 
   // Identity candidates by kind. The same rules as the report's split warning; only the counts leave this function.
@@ -960,7 +1073,7 @@ export async function briefLines(repo: string, window?: Window | null): Promise<
   }
 
   const lines = [
-    window ? `Brief for ${displayName} (${source}), window ${window.since} to ${window.until}, author date, local dates:` : `Brief for ${displayName} (${source}), all history, author date, local dates:`,
+    window ? `Brief for ${displayName} (${source}), window ${window.since} to ${window.until}, author date, ${zoneLabel(zone)} dates (an impossible author date: committer date):` : `Brief for ${displayName} (${source}), all history, author date, ${zoneLabel(zone)} dates (an impossible author date: committer date):`,
     `repository commits: ${counted}`,
     `shallow clone: ${shallow ? "yes" : "no"}`,
     `.mailmap: ${mailmap ? "present" : "absent"}`,
@@ -971,8 +1084,10 @@ export async function briefLines(repo: string, window?: Window | null): Promise<
     `gaps over 30 days: ${row("gaps over 30 days")}`,
     `merge commits by the identity: ${row("merge commits by the identities")}`,
     `revert commits: ${row("revert commits")}`,
+    `commits reverted by anyone: ${row("commits by the identities that anyone reverted")}`,
+    `commits with an impossible author date: ${row("commits with an impossible author date")}`,
     `whitespace-only commits: ${row("whitespace-only commits")}`,
-    `lines written (net of exclusions): ${row("lines written, net of exclusions")} (raw ${row("lines added, raw")})`,
+    `lines written (net of exclusions): ${row("lines written, net of exclusions")} (raw ${row("lines added, raw")}; reverts removed ${row("lines written, reverts removed")})`,
     `largest commit: ${largestShare(row("largest commit by lines added"))}`,
     `large added files with a licence, copyright or source header: ${row("large added files with a licence, copyright or source-URL header")}`,
     `identity candidates: ${sameName} other address(es) with the same name`,
@@ -992,7 +1107,11 @@ export async function runBrief(repo: string, budgetMs: number, out: { write(s: s
     timer = setTimeout(() => resolveLate(undefined), budgetMs);
   });
   // The window comes from the prompt on stdin; no window (or no prompt) is the whole history, as before.
-  const job = async () => briefLines(repo, windowFromStdin ? windowFromPrompt(await readPromptFromStdin()) : null);
+  const job = async () => {
+    if (!windowFromStdin) return briefLines(repo, null);
+    const prompt = await readPromptFromStdin();
+    return briefLines(repo, windowFromPrompt(prompt), zoneFromPrompt(prompt));
+  };
   const lines = await Promise.race([job().catch(() => undefined), late]).finally(() => clearTimeout(timer));
   if (lines) out.write(`${lines.map(withoutAddresses).join("\n")}\n`);
   return 0;
