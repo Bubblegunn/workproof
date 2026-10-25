@@ -144,7 +144,9 @@ test("session hook: pointer inside a git work tree, nothing outside", () => {
   assert.equal(inside.status, 0);
   const out = JSON.parse(inside.stdout).hookSpecificOutput;
   assert.equal(out.hookEventName, "SessionStart");
-  assert.match(out.additionalContext, /skills\/workproof\/references\/core-rules\.md/);
+  assert.doesNotMatch(out.additionalContext, /core-rules\.md/, "naming the rules file makes the model read it again; the hint carries the rules");
+  assert.match(out.additionalContext, /do not read the rules file/);
+  assert.match(out.additionalContext, new RegExp(`${root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/dist/src/cli\\.js figures`));
   assert.equal(out.additionalContext.split("\n").length, 3);
   const outside = run(session, plainDir, "");
   assert.equal(outside.status, 0);
