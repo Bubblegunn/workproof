@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { rm, writeFile, readFile } from "node:fs/promises";
+import { rm, writeFile, readFile, mkdir } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
@@ -179,8 +179,10 @@ test("--card writes light and dark SVG files", async () => {
 
   try {
     const cli = join(process.cwd(), "dist/src/cli.js");
-    const out = join(dir, "card-report");
-
+    const out = join(dir, "acme-secret-client", "reports", "r");
+    await mkdir(join(dir, "acme-secret-client", "reports"), {
+      recursive: true,
+    });
     execFileSync("node", [
       cli,
       "--repo", dir,
@@ -192,8 +194,10 @@ test("--card writes light and dark SVG files", async () => {
     const light = await readFile(`${out}.card.svg`, "utf8");
     const dark = await readFile(`${out}.card-dark.svg`, "utf8");
 
-    assert.match(light, /width="500" height="180"/);
-    assert.match(dark, /width="500" height="180"/);
+    assert.doesNotMatch(light, /acme-secret-client/);
+    assert.doesNotMatch(dark, /acme-secret-client/);
+    assert.match(light, /npx workproof check r\.json/);
+    assert.match(dark, /npx workproof check r\.json/);
     assert.notEqual(light, dark);
 
     const report = JSON.parse(
@@ -264,4 +268,34 @@ test("card excludes private report details with all privacy options", async () =
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test("card rejects reports with multiple repositories", () => {
+  const report = {
+    repositories: [
+      {
+        head: "abcdef123456",
+        figures: [
+          { id: "survivingLines", value: { lines: 100, share: 0.5 } },
+          { id: "commitShare", value: { author: 5, total: 10, share: 0.5 } },
+          { id: "tenure", value: { days: 20 } },
+          { id: "filesAuthored", value: { authored: 4, total: 8 } },
+        ],
+      },
+      {
+        head: "987654fedcba",
+        figures: [
+          { id: "survivingLines", value: { lines: 50, share: 0.25 } },
+          { id: "commitShare", value: { author: 3, total: 10, share: 0.3 } },
+          { id: "tenure", value: { days: 10 } },
+          { id: "filesAuthored", value: { authored: 2, total: 8 } },
+        ],
+      },
+    ],
+  } as Parameters<typeof cardFor>[0];
+
+  assert.throws(
+    () => cardFor(report),
+    /--card supports only one repository/,
+  );
 });

@@ -364,10 +364,10 @@ npx workproof --repo . --author "your-email@example.com" --out workproof-report 
 
 This writes:
 
-- `workproof-report.md` — the Markdown report.
-- `workproof-report.json` — the report data.
-- `workproof-report.card.svg` — the light-theme card.
-- `workproof-report.card-dark.svg` — the dark-theme card.
+- `workproof-report.md`: the Markdown report.
+- `workproof-report.json`: the report data.
+- `workproof-report.card.svg`: the light-theme card.
+- `workproof-report.card-dark.svg`: the dark-theme card.
 
 ### Display in a GitHub profile README
 
@@ -390,7 +390,7 @@ Embed the cards using `<picture>` to select the appropriate theme:
 
 Update the paths if the SVG files are stored elsewhere. Regenerate and republish the cards whenever you want to refresh the displayed figures.
 
-The cards contain aggregate report figures rather than source code. Paths and email addresses are not included unless the corresponding `--paths` or `--emails` options were enabled when generating the report.
+Profile cards never include file paths, email addresses, or source code, regardless of whether `--paths` or `--emails` are enabled.
 
 ## GitHub Action
 

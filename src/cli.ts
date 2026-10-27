@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { basename, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createRequire } from "node:module";
 import { analyseRepo, buildReport, renderMarkdown, verifyReport, checkReport, narrate, badgeFor, newFingerprintKey, writeStatement, signLocal, countersignStatement, signCountersignature, readCountersignature, COUNTERSIGN_PROVES, COUNTERSIGN_DOES_NOT_PROVE, cardFor } from "./index.js";
@@ -282,8 +282,9 @@ async function main() {
     written.push(`${out}.badge.json`);
   }
   if (card) {
-    await writeFile(`${out}.card.svg`, cardFor(report, "light", `${out}.json`));
-    await writeFile(`${out}.card-dark.svg`, cardFor(report, "dark", `${out}.json`));
+    const reportFilename = basename(`${out}.json`);
+    await writeFile(`${out}.card.svg`, cardFor(report, "light", reportFilename));
+    await writeFile(`${out}.card-dark.svg`, cardFor(report, "dark", reportFilename));
     written.push(`${out}.card.svg`, `${out}.card-dark.svg`);
   }
 

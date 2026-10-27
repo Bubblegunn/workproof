@@ -21,9 +21,13 @@ export function cardFor(
   theme: CardTheme = "light",
   reportFile = "workproof-report.json",
 ): string {
-  const repo = report.repositories[0];
-  if (!repo) throw new Error("the report has no repositories");
-
+  if (report.repositories.length === 0) {
+    throw new Error("the report has no repositories");
+  }
+  if (report.repositories.length > 1) {
+    throw new Error("--card supports only one repository");
+  }
+  const repo = report.repositories[0]!;
   const figure = (id: string) => {
     const result = repo.figures.find((item) => item.id === id);
     if (!result) throw new Error(`the report has no ${id} figure`);
@@ -39,7 +43,14 @@ export function cardFor(
     {
       label: "SURVIVING LINES",
       value: number(surviving.lines as number),
-      detail: `${percentage(surviving.share as number)} attributed`,
+      detail: [
+      `${percentage(surviving.share as number)} of surviving lines`,
+      typeof surviving.sample === "number" && surviving.sample > 1
+        ? `1 in ${number(surviving.sample)} files sampled`
+        : null,
+    ]
+      .filter((part): part is string => part !== null)
+      .join(" · "),
     },
     {
       label: "COMMIT SHARE",
