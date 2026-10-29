@@ -30,7 +30,7 @@ Turn a git repository into a verifiable engineering report for one author, witho
   --emails               include author emails in the report (off by default)
   --narrate              append a model-written paragraph; needs WORKPROOF_API_URL, WORKPROOF_API_KEY, WORKPROOF_MODEL
   --badge                also write <out>.badge.json, a shields.io endpoint document
-  --card                 write light and dark SVG cards alongside the report                 
+  --card                 write light and dark SVG cards alongside the report
   --out <basename>       output basename (default: workproof-report)
   --format <mode>        output markdown, json, or both (default: both)
   --json                 print the JSON to stdout instead of writing files (legacy alias)
